@@ -819,6 +819,21 @@ class MDB_Common extends PEAR
     }
 
     // }}}
+    // {{{ standaloneQuery()
+
+   /**
+     * execute a query as DBA
+     * 
+     * @param string $query the SQL query
+     * @return mixed MDB_OK on success, a MDB error on failure
+     * @access public
+     */
+    function standaloneQuery($query)
+    {
+        return $this->query($query, null, false);
+    }
+
+    // }}}
     // {{{ query()
 
     /**
