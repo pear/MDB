@@ -3730,7 +3730,7 @@ class MDB_Common extends PEAR
             if ($rekey) {
                 if ($fetchmode & MDB_FETCHMODE_ASSOC) {
                     $key = reset($row);
-                    unset($result[key($row)]);
+                    unset($row[key($row)]);
                 } else {
                     $key = array_shift($row);
                 }
