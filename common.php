@@ -1210,7 +1210,7 @@ class MDB_common extends PEAR
         return(1);
     }
 
-    function baseFetchArray($result, &$array, $row)
+    function baseFetchInto($result, &$array, $row)
     {
         $columns = $this->numCols($result);
         if (MDB::isError($columns)) {
@@ -1234,7 +1234,7 @@ class MDB_common extends PEAR
     // added $fetchmode
     function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $row = null)
     {
-        return ($this->baseFetchArray($result, $array, $row));
+        return ($this->baseFetchInto($result, $array, $row));
     }
     
     // renamed for PEAR
