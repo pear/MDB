@@ -345,7 +345,7 @@ class MDB_sqlite extends MDB_Common
             return $this->raiseError(MDB_ERROR_ACCESS_VIOLATION);
         }
 
-        $function = $persistent ? 'sqlite_open' : 'sqlite_popen';
+        $function = $persistent ? 'sqlite_popen' : 'sqlite_open';
         $connection = @$function($dsninfo['database']);
         if (!$connection) {
             return $this->sqliteRaiseError(MDB_ERROR_NODBSELECTED);
