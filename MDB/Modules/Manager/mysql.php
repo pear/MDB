@@ -570,6 +570,9 @@ class MDB_manager_mysql_class extends MDB_manager_common
                         $type[0] = 'integer';
                         if($length == '1') {
                             $type[1] = 'boolean';
+                            if (preg_match('/[is|has]/', $field_name)) {
+                                $type = array_reverse($type);
+                            }
                         }
                         break;
                     case 'tinytext':
@@ -583,6 +586,9 @@ class MDB_manager_mysql_class extends MDB_manager_common
                             $type[1] = 'blob';
                         } elseif($length == '1') {
                             $type[1] = 'boolean';
+                            if (preg_match('/[is|has]/', $field_name)) {
+                                $type = array_reverse($type);
+                            }
                         } elseif(strstr($db_type, 'text'))
                             $type[1] = 'clob';
                         break;
@@ -668,7 +674,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
                     $implicit_sequence = array();
                     $implicit_sequence['on'] = array();
                     $implicit_sequence['on']['table'] = $table;
-                    $implicit_sequence['on']['field'] = $field;
+                    $implicit_sequence['on']['field'] = $field_name;
                     $definition[1]['name'] = $table.'_'.$field_name;
                     $definition[1]['definition'] = $implicit_sequence;
                 }
@@ -690,7 +696,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
                     if($is_primary) {
                         $implicit_index = array();
                         $implicit_index['unique'] = 1;
-                        $implicit_index['FIELDS'][$field] = '';
+                        $implicit_index['FIELDS'][$field_name] = '';
                         $definition[2]['name'] = $field_name;
                         $definition[2]['definition'] = $implicit_index;
                     }
@@ -832,21 +838,22 @@ class MDB_manager_mysql_class extends MDB_manager_common
             return($result);
         }
         $definition = array();
+        $definition[$index_name] = array();
         while (is_array($row = $db->fetchInto($result, DB_FETCHMODE_ASSOC))) {
             $key_name = strtolower($row['Key_name']);
             if(!strcmp($index_name, $key_name)) {
                 if(!$row['Non_unique']) {
-                    $definition['unique'] = 1;
+                    $definition[$index_name]['unique'] = 1;
                 }
-                $column_name = $row['Column_name'];
-                $definition['FIELDS'][$column_name] = array();
+                $column_name = strtolower($row['Column_name']);
+                $definition[$index_name]['FIELDS'][$column_name] = array();
                 if(isset($row['Collation'])) {
-                    $definition['FIELDS'][$column_name]['sorting'] = ($row['Collation'] == 'A' ? 'ascending' : 'descending');
+                    $definition[$index_name]['FIELDS'][$column_name]['sorting'] = ($row['Collation'] == 'A' ? 'ascending' : 'descending');
                 }
             }
         }
         $db->freeResult($result);
-        if (!isset($definition['FIELDS'])) {
+        if (!isset($definition[$index_name]['FIELDS'])) {
             return $db->raiseError(DB_ERROR_MANAGER, '', '', 'Get table index definition: it was not specified an existing table index');
         }
         return ($definition);
@@ -953,7 +960,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
             return($table_names);
         }
         for($i = 0, $j = count($table_names); $i < $j; $i++) {
-            if ($sqn = $db->_isSequenceName($table_names[$i])) {
+            if ($sqn = $db->_isSequenceName(strtolower($table_names[$i]))) {
                 $start = $db->currId($sqn);
                 if (MDB::isError($start)) {
                     return ($start);
@@ -964,7 +971,8 @@ class MDB_manager_mysql_class extends MDB_manager_common
                     $db->warnings[] = 'database does not support getting current
                         sequence value,the sequence value was incremented';
                 }
-                $definition = array('start' => $start);
+                $definition = array();
+                $definition[$sqn] = array('start' => $start);
                 return($definition);
             }
         }
