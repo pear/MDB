@@ -81,7 +81,7 @@ class DB
 
     function apiVersion()
     {
-        return MDB::apiVersion();
+        return 2;
     }
 
     function isError($value)
@@ -180,7 +180,7 @@ class DB_result
     function free()
     {
         $err = $this->dbh->freeResult($this->result);
-        if(DB::isError($err)) {
+        if(MDB::isError($err)) {
             return $err;
         }
         $this->result = FALSE;
@@ -286,7 +286,7 @@ class MDB_PEAR_PROXY
     function execute($stmt, $data = FALSE)
     {
         $result = $this->MDB_object->execute($stmt, NULL, $data);
-        if (DB::isError($result) || $result === DB_OK) {
+        if (MDB::isError($result) || $result === DB_OK) {
             return $result;
         } else {
             return new DB_result($this->MDB_object, $result);
@@ -322,7 +322,7 @@ class MDB_PEAR_PROXY
     function limitQuery($query, $from, $count)
     {
         $result = $this->MDB_object->limitQuery($query, $from, $count);
-        if (DB::isError($result) || $result === DB_OK) {
+        if (MDB::isError($result) || $result === DB_OK) {
             return $result;
         } else {
             return new DB_result($this->MDB_object, $result);
