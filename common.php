@@ -295,7 +295,7 @@ class MDB_common extends PEAR
 
     function dropTable($name)
     {
-        return($this->Query("DROP TABLE $name"));
+        return($this->query("DROP TABLE $name"));
     }
 
     function alterTable($name, &$changes, $check)
@@ -495,7 +495,7 @@ class MDB_common extends PEAR
 
     function executePreparedQuery($prepared_query, $query)
     {
-        return($this->Query($query));
+        return($this->query($query));
     }
 
     function executeQuery($prepared_query)
@@ -609,40 +609,40 @@ class MDB_common extends PEAR
                     case "null":
                         // maybe it would be cleaner to use $array[$i][2] instead of $array[$i][1] here
                         // but it might not be as nice when defining the array itself
-                        $success = $this->QuerySet($prepared_query, $i+1, $array[$i][1], "NULL",1, "");
+                        $success = $this->querySet($prepared_query, $i+1, $array[$i][1], "NULL",1, "");
                         break;
                     case "text":
-                        $success = $this->QuerySet($prepared_query, $i+1, "text", $this->GetTextFieldValue($array[$i][1]));
+                        $success = $this->querySet($prepared_query, $i+1, "text", $this->getTextFieldValue($array[$i][1]));
                         break;
                     case "clob":
-                        $success = $this->QuerySet($prepared_query, $i+1, "clob", $array[$i][1],0, $array[$i][2]);
+                        $success = $this->querySet($prepared_query, $i+1, "clob", $array[$i][1],0, $array[$i][2]);
                         break;
                     case "blob":
-                        $success = $this->QuerySet($prepared_query, $i+1, "blob", $array[$i][1],0, $array[$i][2]);
+                        $success = $this->querySet($prepared_query, $i+1, "blob", $array[$i][1],0, $array[$i][2]);
                         break;
                     case "integer":
-                        $success = $this->QuerySet($prepared_query, $i+1, "integer", $this->GetIntegerFieldValue($array[$i][1]));
+                        $success = $this->querySet($prepared_query, $i+1, "integer", $this->getIntegerFieldValue($array[$i][1]));
                         break;
                     case "boolean":
-                        $success = $this->QuerySet($prepared_query, $i+1, "boolean", $this->GetBooleanFieldValue($array[$i][1]));
+                        $success = $this->querySet($prepared_query, $i+1, "boolean", $this->getBooleanFieldValue($array[$i][1]));
                         break;
                     case "date":
-                        $success = $this->QuerySet($prepared_query, $i+1, "date", $this->GetDateFieldValue($array[$i][1]));
+                        $success = $this->querySet($prepared_query, $i+1, "date", $this->getDateFieldValue($array[$i][1]));
                         break;
                     case "timestamp":
-                        $success = $this->QuerySet($prepared_query, $i+1, "timestamp", $this->GetTimestampFieldValue($array[$i][1]));
+                        $success = $this->querySet($prepared_query, $i+1, "timestamp", $this->getTimestampFieldValue($array[$i][1]));
                         break;
                     case "time":
-                        $success = $this->QuerySet($prepared_query, $i+1, "time", $this->GetTimeFieldValue($array[$i][1]));
+                        $success = $this->querySet($prepared_query, $i+1, "time", $this->getTimeFieldValue($array[$i][1]));
                         break;
                     case "float":
-                        $success = $this->QuerySet($prepared_query, $i+1, "float", $this->GetFloatFieldValue($array[$i][1]));
+                        $success = $this->querySet($prepared_query, $i+1, "float", $this->getFloatFieldValue($array[$i][1]));
                         break;
                     case "decimal":
-                        $success = $this->QuerySet($prepared_query, $i+1, "decimal", $this->GetDecimalFieldValue($array[$i][1]));
+                        $success = $this->querySet($prepared_query, $i+1, "decimal", $this->getDecimalFieldValue($array[$i][1]));
                         break;
                     default:
-                        $success = $this->QuerySet($prepared_query, $i+1, "text", $this->GetTextFieldValue($array[$i][1]));                    
+                        $success = $this->querySet($prepared_query, $i+1, "text", $this->getTextFieldValue($array[$i][1]));                    
                         break;
                 }
                 if (MDB::isError($success)) {
@@ -653,7 +653,7 @@ class MDB_common extends PEAR
         else
         {
             for($i = 0, $j = count($array); $i<$j; ++$i) {
-                $success = $this->QuerySet($prepared_query, $i+1, "text", $this->GetTextFieldValue($array[$i]));
+                $success = $this->querySet($prepared_query, $i+1, "text", $this->getTextFieldValue($array[$i]));
                 if (MDB::isError($success)) {
                     return $success;
                 }
@@ -664,12 +664,12 @@ class MDB_common extends PEAR
 
     function querySetNull($prepared_query, $parameter, $type)
     {
-        return($this->QuerySet($prepared_query, $parameter, $type, "NULL", 1, ""));
+        return($this->querySet($prepared_query, $parameter, $type, "NULL", 1, ""));
     }
 
     function querySetText($prepared_query, $parameter, $value)
     {
-        return($this->QuerySet($prepared_query, $parameter, "text", $this->GetTextFieldValue($value)));
+        return($this->querySet($prepared_query, $parameter, "text", $this->getTextFieldValue($value)));
     }
 
     function querySetCLob($prepared_query, $parameter, $value, $field)
@@ -684,37 +684,37 @@ class MDB_common extends PEAR
 
     function querySetInteger($prepared_query, $parameter, $value)
     {
-        return($this->querySet($prepared_query, $parameter, "integer", $this->GetIntegerFieldValue($value)));
+        return($this->querySet($prepared_query, $parameter, "integer", $this->getIntegerFieldValue($value)));
     }
 
     function querySetBoolean($prepared_query, $parameter, $value)
     {
-        return($this->querySet($prepared_query, $parameter, "boolean", $this->GetBooleanFieldValue($value)));
+        return($this->querySet($prepared_query, $parameter, "boolean", $this->getBooleanFieldValue($value)));
     }
 
     function querySetDate($prepared_query, $parameter, $value)
     {
-        return($this->querySet($prepared_query, $parameter, "date", $this->GetDateFieldValue($value)));
+        return($this->querySet($prepared_query, $parameter, "date", $this->getDateFieldValue($value)));
     }
 
     function querySetTimestamp($prepared_query, $parameter, $value)
     {
-        return($this->querySet($prepared_query, $parameter, "timestamp", $this->GetTimestampFieldValue($value)));
+        return($this->querySet($prepared_query, $parameter, "timestamp", $this->getTimestampFieldValue($value)));
     }
 
     function querySetTime($prepared_query, $parameter, $value)
     {
-        return($this->querySet($prepared_query, $parameter, "time", $this->GetTimeFieldValue($value)));
+        return($this->querySet($prepared_query, $parameter, "time", $this->getTimeFieldValue($value)));
     }
 
     function querySetFloat($prepared_query, $parameter, $value)
     {
-        return($this->querySet($prepared_query, $parameter, "float", $this->GetFloatFieldValue($value)));
+        return($this->querySet($prepared_query, $parameter, "float", $this->getFloatFieldValue($value)));
     }
 
     function querySetDecimal($prepared_query, $parameter, $value)
     {
-        return($this->querySet($prepared_query, $parameter, "decimal", $this->GetDecimalFieldValue($value)));
+        return($this->querySet($prepared_query, $parameter, "decimal", $this->getDecimalFieldValue($value)));
     }
 
     function affectedRows()
@@ -741,18 +741,18 @@ class MDB_common extends PEAR
 
     function fetchLobResult($result, $row, $field)
     {
-        $lob = count($this->lobs)+1;
+        $lob = count($this->lobs) + 1;
         $this->lobs[$lob] = array(
-            "Result" =>$result,
-            "Row" =>$row,
-            "Field" =>$field,
-            "Position" =>0
+            "Result" => $result,
+            "Row" => $row,
+            "Field" => $field,
+            "Position" => 0
         );
         $character_lob = array(
-            "Database" =>$this->database,
-            "Error" =>"",
-            "Type" =>"resultlob",
-            "ResultLOB" =>$lob
+            "Database" => $this,
+            "Error" => "",
+            "Type" => "resultlob",
+            "ResultLOB" => $lob
         );
         if (!createLob($character_lob, $clob)) {
             return $this->raiseError(DB_ERROR, "", "", 
@@ -1028,21 +1028,21 @@ class MDB_common extends PEAR
     {
         switch($type) {
             case "integer":
-                return($this->GetIntegerFieldValue($value));
+                return($this->getIntegerFieldValue($value));
             case "text":
-                return($this->GetTextFieldValue($value));
+                return($this->getTextFieldValue($value));
             case "boolean":
-                return($this->GetBooleanFieldValue($value));
+                return($this->getBooleanFieldValue($value));
             case "date":
-                return($this->GetDateFieldValue($value));
+                return($this->getDateFieldValue($value));
             case "timestamp":
-                return($this->GetTimestampFieldValue($value));
+                return($this->getTimestampFieldValue($value));
             case "time":
-                return($this->GetTimeFieldValue($value));
+                return($this->getTimeFieldValue($value));
             case "float":
-                return($this->GetFloatFieldValue($value));
+                return($this->getFloatFieldValue($value));
             case "decimal":
-                return($this->GetDecimalFieldValue($value));
+                return($this->getDecimalFieldValue($value));
         }
         return("");
     }
@@ -1126,12 +1126,12 @@ class MDB_common extends PEAR
             }
         }
         $query.= ")";
-        return($this->Query($query));
+        return($this->query($query));
     }
 
     function dropIndex($table, $name)
     {
-        return($this->Query("DROP INDEX $name"));
+        return($this->query("DROP INDEX $name"));
     }
 
     function setup()
@@ -1354,7 +1354,7 @@ class MDB_common extends PEAR
     
     function queryField($query, &$field, $type = "text")
     {
-        $result = $this->Query($query);
+        $result = $this->query($query);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -1370,7 +1370,7 @@ class MDB_common extends PEAR
 
     function queryRow($query, &$row, $types = "")
     {
-        $result = $this->Query($query);
+        $result = $this->query($query);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -1385,7 +1385,7 @@ class MDB_common extends PEAR
 
     function queryColumn($query, &$column, $type = "text")
     {
-        $result = $this->Query($query);
+        $result = $this->query($query);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -1681,4 +1681,4 @@ class MDB_common extends PEAR
     }
 };
 
-?>
+?> 
