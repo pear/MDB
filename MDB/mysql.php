@@ -890,4 +890,4 @@ class MDB_mysql extends MDB_common
     }
 };
 }
-?> 
+?>
