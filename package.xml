@@ -11,6 +11,7 @@
       MDB_Manager_mysql
       - fixed listTableIndexes()
       - fixed typo in getTableFieldDefinition()
+      - hardcode fetchmode to prevent issues when a different default fetchmode is set (fixed bug #1914)
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
