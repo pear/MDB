@@ -159,7 +159,7 @@ class MDB_Parser extends XML_Parser {
             if (!isset($this->table['FIELDS'][$this->init_name])) {
                 $this->raiseError($xp, 'unkown field "'.$this->init_name.'"');
             };
-            if (!$this->validateFieldValue($this->init_name, $this->init_value)) {
+            if (!$this->validateFieldValue($this->init_name, $this->init_value, $xp)) {
                 $this->raiseError($xp, 'field "'.$this->init_name.'" has wrong value');
             };
             $this->init['FIELDS'][$this->init_name] = $this->init_value;
@@ -243,7 +243,7 @@ class MDB_Parser extends XML_Parser {
             };
             $this->table['FIELDS'][$this->field_name] = $this->field;
             if (isset($this->field['default'])) {
-                if (!$this->validateFieldValue($this->field_name, $this->field['default'])) {
+                if (!$this->validateFieldValue($this->field_name, $this->field['default'], $xp)) {
                     $this->raiseError($xp, 'default value of "'.$this->field_name.'" is of wrong type');
                 };
             };
@@ -332,7 +332,7 @@ class MDB_Parser extends XML_Parser {
         $this->element = implode('-', $this->elements);
     }
 
-    function validateFieldValue($field_name, &$field_value)
+    function validateFieldValue($field_name, &$field_value, &$xp)
     {
         if (!isset($this->table['FIELDS'][$field_name])) {
             return;
@@ -342,52 +342,52 @@ class MDB_Parser extends XML_Parser {
         case 'text':
         case 'clob':
             if (isset($field_def['length']) && strlen($field_value) > $field_def['length']) {
-                return $this->raiseError($xp, 'fault');
+                return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             };
             break;
         case 'blob':
             if (!eregi("^([0-9a-f]{2})*\$", $field_value)) {
-                return $this->raiseError($xp, 'fault');
+                return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
             $field_value = pack('H*', $field_value);
             if (isset($field_def['length']) && strlen($field_value) > $field_def['length']) {
-                return $this->raiseError($xp, 'fault');
+                return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             };
             break;
         case 'integer':
             if ($field_value != ((int)$field_value)) {
-                return $this->raiseError($xp, 'fault');
+                return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             };
             $field_value = (int) $field_value;
             if (isset($field_def['unsigned']) && $field_def['unsigned'] && $field_value < 0) {
-                return $this->raiseError($xp, 'fault');
+                return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             };
             break;
         case 'boolean':
             if ($field_value !== '0' && $field_value !== '1') {
-                return $this->raiseError($xp, 'fault');
+                return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
             $field_value = (int) $field_value;
             break;
         case 'date':
             if (!ereg("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})$", $field_value)) {
-                return $this->raiseError($xp, 'fault');
+                return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
             break;
         case 'timestamp':
             if (!ereg("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})$", $field_value)) {
-                return $this->raiseError($xp, 'fault');
+                return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
             break;
         case 'time':
             if (!reg("^([0-9]{2}):([0-9]{2}):([0-9]{2})$", $field_value)) {
-                return $this->raiseError($xp, 'fault');
+                return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
             break;
         case 'float':
         case 'double':
             if ($field_value != (double) $field_value) {
-                return $this->raiseError($xp, 'fault');
+                return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             };
             $field_value = (double) $field_value;
             break;
@@ -401,9 +401,9 @@ class MDB_Parser extends XML_Parser {
             return FALSE;
         };
         $error = "Parser error: \"".$msg."\"\n";
-        $byte = xml_get_current_byte_index($xp);
-        $line = xml_get_current_line_number($xp);
-        $column = xml_get_current_column_number($xp);
+        $byte = @xml_get_current_byte_index($xp);
+        $line = @xml_get_current_line_number($xp);
+        $column = @xml_get_current_column_number($xp);
         $error .= "Byte: $byte; Line: $line; Col: $column\n";
         $this->error = PEAR::raiseError(null, DB_ERROR_MANAGER_PARSE,  null, null,
             $error, 'MDB_Error', TRUE);
