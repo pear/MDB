@@ -73,6 +73,14 @@ require_once 'testUtils.php';
 require_once 'MDB.php';
 require_once 'Console_TestListener.php';
 
+PEAR::setErrorHandling(PEAR_ERROR_CALLBACK, 'handle_pear_error');
+function handle_pear_error ($error_obj)
+{
+    print '<pre><b>PEAR-Error</b><br />';
+    echo $error_obj->getMessage().': '.$error_obj->getUserinfo();
+    print '</pre>';
+}
+
 MDB::loadFile('Date');
 
 foreach ($testcases as $testcase) {
