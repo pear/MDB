@@ -50,6 +50,10 @@ require_once('MDB/Common.php');
 /**
  * MDB FrontBase driver
  *
+ * Notes:
+ * - This driver is fairly untested at this time and shoukd be considered
+ *   alpha quality for this reason
+ *
  * @package MDB
  * @category Database
  * @author  Lukas Smith <smith@dybnet.de>

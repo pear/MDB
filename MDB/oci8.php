@@ -48,7 +48,36 @@ require_once('MDB/Common.php');
 
 /**
  * MDB OCI8 driver
- * 
+ *
+ * Notes:
+ * - when fetching in associative mode all keys are uppercased which is not the
+ *   intenteded behavior. Due to BC issues this will not be changed in MDB 1.x
+ *   however.
+ *
+ * - createDatabase and dropDatabase are not supported
+ *
+ * - Text fields with unspecified length limit are created as VARCHAR with an
+ *   optional limit that may not exceed 4000 characters.
+ *
+ * - date fields are emulated with date fields with time set to 00:00:00.
+     time fields are emulated with date fields with the day set to 0001-01-01.
+ *
+ * - The numRows method is emulated by fetching all the rows into memory.
+ *   Avoid using it if for queries with large result sets.
+ *
+ * - Oracle does not provide direct support for returning result sets restricted
+     to a given range. Such support is emulated in the MDB oci8 driver.
+ *
+ * - Storing data in large object fields has to be done in two phases: first the
+     fields are initialized using a INSERT or UPDATE query that sets the fields
+     to an empty value, then the data values are uploaded to the large objects
+     returned by reference from the executed queries.
+ *   Besides the fact that only INSERT and UPDATE queries are supported to
+     upload large object data values, only UPDATE queries that affect only one
+     row will set the large object fields correctly.
+ *
+ * - The driver alterTable method does not implement table or column renaming.
+ *
  * @package MDB
  * @category Database
  * @author Lukas Smith <smith@backendmedia.com> 

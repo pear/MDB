@@ -51,6 +51,9 @@ require_once('MDB/Common.php');
 /**
  * MDB MySQL driver
  *
+ * Notes:
+ * - The decimal type fields are emulated with integer fields.
+ *
  * @package MDB
  * @category Database
  * @author  Lukas Smith <smith@backendmedia.com>
