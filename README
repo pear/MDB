@@ -1,8 +1,7 @@
 ** Introduction:
 
-"PEAR MDB" (as I am calling it right now for a lack of better name to
-differentiate from the existing projects) is a project to merge PEAR DB
-and Metabase into one DB abstraction layer.
+"PEAR MDB" is a project to merge PEAR DB and Metabase into one DB
+abstraction layer.
 
 You can get info on these at:
   PEAR DB: http://pear.php.net
@@ -84,7 +83,8 @@ tests (especially the MDB_test.php) or just try out some stuff (MDB
 should be able to do anything that Metabase can and most of what PEAR
 can do, allthough there is no wrapper for PEAR). However, MDB using the
 Metabase Wrapper has been running in my companies cvs without any problems
-for a couple of weeks now.
+for a couple of weeks now. There is an effort underway that will provide
+a native test suite based on PHPUnit.
 
 ** Package Content:
 
@@ -103,10 +103,12 @@ The files that make up MDB are:
   metabase_wrapper.php (wrapper to mimic the Metabase API)
   pear_wrapper.php (wrapper to mimic the PEAR DB API)
   reverse_engineer_xml_schema.php (really lame script to help with
-  dumping and creating from to and from xml schema files)
+  dumping and creating from to and from xml schema files; this script
+  is deprecated in favor of the MDB_frontend package)
 
 The important pieces for testing right now are:
-  driver_test.php (uses driver_test_config.php, setup_test.php,
+  driver_test.php (several test calls to the MDB Metabase Wrapper;
+                   uses driver_test_config.php, setup_test.php,
                    driver_test.schema, log_test.schema, test.schema)
   MDB_test.php (several test calls to MDB's native API)
   MDB_pear_wrapper_test.php (several calls to the MDB PEAR Wrapper)
@@ -121,6 +123,7 @@ Other Included Files
   Readme.txt (you are reading it currently)
 
 ** Documentation:
+
 PHPDoc generated documentation can be found at: http://www.dybnet.de/MDB/docs/
 
 The entire "public" API and most of the "private" methods (except for some of
@@ -141,6 +144,7 @@ would now be
 If you want to help out with documentation please email me.
 
 ** Testing:
+
 You will need to setup the following user, with the right to create new
 databases:
 
@@ -190,6 +194,7 @@ modify driver_test_config.php before running driver_test.php with the
 new driver.
 
 ** Roadmap:
+
 1.0 Release (sometime in August)
 - More tests with Metabase and PEAR DB wrapper (you)
 
