@@ -300,7 +300,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
                     if (strcmp($query, "")) {
                         $query .= ', ';
                     }
-                    $query .= 'ALTER '.$field_name.' TYPE '.$db->getFieldDeclaration($fields[$field_name]['Definition']);
+                    $query .= 'ALTER '.$field_name.' TYPE '.$fields[$field_name]['Definition'];
                 }
             }
             if (MDB::isError($err = $db->query("ALTER TABLE $name $query"))) {
