@@ -757,7 +757,7 @@ class MDB_mysql extends MDB_common
         $this->supported["AffectedRows"] = 
         $this->supported["Summaryfunctions"] = 
         $this->supported["OrderByText"] = 
-        $this->supported["GetSequenceCurrentValue"] = 
+        $this->supported["currId"] = 
         $this->supported["SelectRowRanges"] = 
         $this->supported["LOBs"] = 
         $this->supported["Replace"] = 
@@ -772,8 +772,6 @@ class MDB_mysql extends MDB_common
     // ********************
     // new methods for PEAR
     // ********************
-
-
     /**
      * Move the internal mysql result pointer to the next available result
      * Currently not supported
