@@ -378,20 +378,20 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      */
     function getTableFieldDefinition(&$db, $table, $field_name)
     {
-        $result = $db->query("select 
+        $result = $db->query("SELECT 
                     attnum,attname,typname,attlen,attnotnull,
                     atttypmod,usename,usesysid,pg_class.oid,relpages,
                     reltuples,relhaspkey,relhasrules,relacl,adsrc
-                    from pg_class,pg_user,pg_type,
+                    FROM pg_class,pg_user,pg_type,
                          pg_attribute left outer join pg_attrdef on
-			             pg_attribute.attrelid=pg_attrdef.adrelid 
-                    where (pg_class.relname='$table') 
+                         pg_attribute.attrelid=pg_attrdef.adrelid 
+                    WHERE (pg_class.relname='$table') 
                         and (pg_class.oid=pg_attribute.attrelid) 
                         and (pg_class.relowner=pg_user.usesysid) 
                         and (pg_attribute.atttypid=pg_type.oid)
                         and attnum > 0
                         and attname = '$field_name'
-                        order by attnum
+                        ORDER BY attnum
                         ");
         if(MDB::isError($result)) {
             return($result);
@@ -515,17 +515,17 @@ class MDB_Manager_pgsql extends MDB_Manager_common
         }
  
         // check that its not just a unique field
-        if(MDB::isError($indexes = $db->queryAll("select 
+        if(MDB::isError($indexes = $db->queryAll("SELECT 
                 oid,indexrelid,indrelid,indkey,indisunique,indisprimary 
-                from pg_index, pg_class 
-                where (pg_class.relname='$table') 
-                    and (pg_class.oid=pg_index.indrelid)", NULL, MDB_FETCHMODE_ASSOC))) {
+                FROm pg_index, pg_class 
+                WHERE (pg_class.relname='$table') 
+                    AND (pg_class.oid=pg_index.indrelid)", NULL, MDB_FETCHMODE_ASSOC))) {
             return $indexes;
         }
         $indkeys = explode(' ',$indexes['indkey']);
         if (in_array($columns['attnum'],$indkeys)) {
-            if (MDB::isError($indexname = $db->queryAll("select 
-                    relname from pg_class where oid={$columns['indexrelid']}")) ) {
+            if (MDB::isError($indexname = $db->queryAll("SELECT 
+                    relname FROM pg_class WHERE oid={$columns['indexrelid']}")) ) {
                 return $indexname;
             }
             
@@ -572,11 +572,11 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      * @access public
      */
     function listTableIndexes(&$db, $table) {
-        $result = $db->query("select relname 
-                                from pg_class where oid in
-                                  (select indexrelid from pg_index, pg_class 
-                                   where (pg_class.relname='$table') 
-                                   and (pg_class.oid=pg_index.indrelid))");
+        $result = $db->query("SELECT relname 
+                                FROM pg_class WHERE oid IN
+                                  (SELECR indexrelid FROM pg_index, pg_class 
+                                   WHERE (pg_class.relname='$table') 
+                                   AND (pg_class.oid=pg_index.indrelid))");
         return $db->fetchCol($result);
     }
 
@@ -593,9 +593,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      */
     function getTableIndexDefinition(&$db, $table, $index_name)
     {
-        $row = $db->queryAll("select * from pg_index, pg_class 
-                                where (pg_class.relname='$index_name') 
-                                and (pg_class.oid=pg_index.indexrelid)", NULL, MDB_FETCHMODE_ASSOC);
+        $row = $db->queryAll("SELECT * from pg_index, pg_class 
+                                WHERE (pg_class.relname='$index_name') 
+                                AND (pg_class.oid=pg_index.indexrelid)", NULL, MDB_FETCHMODE_ASSOC);
         if ($row[0]['relname'] != $index_name) {
             return($db->raiseError(MDB_ERROR_MANAGER, '', '', 'Get table index definition: it was not specified an existing table index'));
         }

@@ -377,9 +377,9 @@ class MDB_pgsql extends MDB_common
             
             global $_MDB_databases;
             $_MDB_databases[$this->database] = '';
-            return(TRUE);
+            return(MDB_OK);
         }
-        return(FALSE);
+        return(MDB_ERROR);
     }
 
     // }}}
@@ -417,11 +417,11 @@ class MDB_pgsql extends MDB_common
         if (($connection = $this->_doConnect('template1', 0)) == 0) {
             return($this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL, '_standaloneQuery: Cannot connect to template1'));
         }
-        if (!($success = @pg_Exec($connection, $query))) {
+        if (!($result = @pg_Exec($connection, $query))) {
             $this->raiseError(MDB_ERROR, NULL, NULL, '_standaloneQuery: ' . pg_ErrorMessage($connection));
         }
         pg_Close($connection);
-        return($success);
+        return($result);
     }
 
     // }}}
