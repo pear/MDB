@@ -98,7 +98,7 @@ class MDB_mysql extends MDB_Common
         $this->supported['replace'] = 1;
         $this->supported['sub_selects'] = 0;
 
-        $this->options['default_table_type'] = null;
+        $this->options['default_table_type'] = false;
 
         $this->errorcode_map = array(
             1004 => MDB_ERROR_CANNOT_CREATE,
