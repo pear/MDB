@@ -105,12 +105,8 @@ class MDB_Extended
             return $result;
         }
 
-        $one = $db->fetchOne($result);
-
-        if (!$db->options['autofree'] || $one != null) {
-            $db->freeResult($result);
-        }
-
+        $one = $db->fetch($result);
+        $db->freeResult($result);
         return $one;
     }
 
@@ -140,11 +136,7 @@ class MDB_Extended
         }
 
         $row = $db->fetchRow($result, $fetchmode);
-
-        if (!$db->options['autofree'] || $row != null) {
-            $db->freeResult($result);
-        }
-
+        $db->freeResult($result);
         return $row;
     }
 
@@ -176,11 +168,7 @@ class MDB_Extended
         }
 
         $col = $db->fetchCol($result, $colnum);
-
-        if (!$db->options['autofree']) {
-            $db->freeResult($result);
-        }
-
+        $db->freeResult($result);
         return $col;
     }
 
@@ -219,11 +207,7 @@ class MDB_Extended
         }
 
         $all = $db->fetchAll($result, $fetchmode, $rekey, $force_array, $group);
-
-        if (!$db->options['autofree']) {
-            $db->freeResult($result);
-        }
-
+        $db->freeResult($result);
         return $all;
     }
 
@@ -267,15 +251,10 @@ class MDB_Extended
             return $result;
         }
 
-        $row = $db->fetchRow($result, MDB_FETCHMODE_ORDERED);
-
+        $one = $db->fetch($result);
         $db->freePreparedQuery($prepared_query);
-
-        if (!$db->options['autofree'] || $row != null) {
-            $db->freeResult($result);
-        }
-
-        return $row[0];
+        $db->freeResult($result);
+        return $one;
     }
 
     // }}}
@@ -316,13 +295,8 @@ class MDB_Extended
         }
 
         $row = $db->fetchRow($result, $fetchmode);
-
         $db->freePreparedQuery($prepared_query);
-
-        if (!$db->options['autofree'] || $row != null) {
-            $db->freeResult($result);
-        }
-
+        $db->freeResult($result);
         return $row;
     }
 
@@ -367,13 +341,8 @@ class MDB_Extended
         }
 
         $col = $db->fetchCol($result, $colnum);
-
         $db->freePreparedQuery($prepared_query);
-
-        if (!$db->options['autofree']) {
-            $db->freeResult($result);
-        }
-
+        $db->freeResult($result);
         return $col;
     }
 
@@ -424,13 +393,8 @@ class MDB_Extended
         }
 
         $all = $db->fetchAll($result, $fetchmode, $rekey, $force_array, $group);
-
         $db->freePreparedQuery($prepared_query);
-
-        if (!$db->options['autofree']) {
-            $db->freeResult($result);
-        }
-
+        $db->freeResult($result);
         return $all;
     }
 
