@@ -118,6 +118,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ createDatabase()
+
     /**
      * create a new database
      *
@@ -142,6 +143,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ dropDatabase()
+
     /**
      * drop an existing database
      *
@@ -165,6 +167,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ createTable()
+
     /**
      * create a new table
      *
@@ -224,6 +227,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ alterTable()
+
     /**
      * alter an existing table
      *
@@ -414,6 +418,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ listDatabases()
+
     /**
      * list all databases
      *
@@ -434,6 +439,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ listUsers()
+
     /**
      * list all users
      *
@@ -454,6 +460,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ listTables()
+
     /**
      * list all tables in the current database
      *
@@ -479,6 +486,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ listTableFields()
+
     /**
      * list all fields in a tables in the current database
      *
@@ -516,6 +524,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ getTableFieldDefinition()
+
     /**
      * get the stucture of a field into an array
      *
@@ -672,6 +681,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ createIndex()
+
     /**
      * get the stucture of a field into an array
      *
@@ -725,6 +735,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ dropIndex()
+
     /**
      * drop existing index
      *
@@ -743,6 +754,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ listTableIndexes()
+
     /**
      * list all indexes in a table
      *
@@ -784,6 +796,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ getTableIndexDefinition()
+
     /**
      * get the stucture of an index into an array
      *
@@ -844,6 +857,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ createSequence()
+
     /**
      * create sequence
      *
@@ -887,6 +901,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ dropSequence()
+
     /**
      * drop existing sequence
      *
@@ -905,6 +920,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ listSequences()
+
     /**
      * list all sequences in the current database
      *
@@ -930,6 +946,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
 
     // }}}
     // {{{ getSequenceDefinition()
+
     /**
      * get the stucture of a sequence into an array
      *

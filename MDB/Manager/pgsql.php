@@ -59,6 +59,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ createDatabase()
+
     /**
      * create a new database
      * @param  $dbs (reference) array where database names will be stored
@@ -73,6 +74,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ dropDatabase()
+
     /**
      * drop an existing database
      * @param  $dbs (reference) array where database names will be stored
@@ -87,6 +89,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ createTable()
+
     /**
      * create a new table
      * @param  $dbs (reference) array where database names will be stored
@@ -134,6 +137,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ alterTable()
+
     /**
      * alter an existing table
      * @param  $dbs (reference) array where database names will be stored
@@ -272,6 +276,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ listDatabases()
+
     /**
      * list all databases
      * @param  $dbs (reference) array where database names will be stored
@@ -285,6 +290,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ listUsers()
+
     /**
      * list all users
      * @param  $dbs (reference) array where database names will be stored
@@ -298,6 +304,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ listTables()
+
     /**
      * list all tables in the current database
      * @param  $dbs (reference) array where database names will be stored
@@ -324,6 +331,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ listTableFields()
+
     /**
      * list all fields in a tables in the current database
      *
@@ -352,6 +360,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ listViews()
+
     /**
      * list the views in the database
      * @param  $dbs (reference) array where database names will be stored
@@ -377,6 +386,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ createSequence()
+
     /**
      * create sequence
      * @param  $dbs (reference) array where database names will be stored
@@ -393,6 +403,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ dropSequence()
+
     /**
      * drop existing sequence
      * @param  $dbs (reference) array where database names will be stored
@@ -408,6 +419,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ listSequences()
+
     /**
      * list all sequences in the current database
      * @param  $dbs (reference) array where database names will be stored

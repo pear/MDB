@@ -155,6 +155,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ errorNative()
+
     /**
      * Get the native error code of the last error (if any) that
      * occured on the current connection.
@@ -179,6 +180,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ autoCommit()
+
     /**
      * Define whether database changes done on the database be automatically
      * committed. This function may also implicitly start or end a transaction.
@@ -228,6 +230,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ commit()
+
     /**
      * Commit the database changes done during a transaction that is in
      * progress. This function may only be called when auto-committing is
@@ -254,6 +257,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ rollback()
+
     /**
      * Cancel any database changes done during a transaction that is in
      * progress. This function may only be called when auto-committing is
@@ -280,6 +284,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ connect()
+
     /**
      * Connect to the database
      *
@@ -380,6 +385,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ query()
+
     /**
      * Send a query to the database and return any results with a
      * DB_result object.
@@ -441,6 +447,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ subSelect()
+
     /**
      * simple subselect emulation for Mysql
      *
@@ -475,6 +482,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ replace()
+
     /**
      * Execute a SQL REPLACE query. A REPLACE query is identical to a INSERT
      * query, except that if there is already a row in the table with the same
@@ -606,6 +614,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getColumnNames()
+
     /**
      * Retrieve the names of columns returned by the DBMS in a query result.
      *
@@ -643,6 +652,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ numCols()
+
     /**
      * Count the number of columns returned by the DBMS in a query result.
      *
@@ -664,6 +674,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ endOfResult()
+
     /**
     * check if the end of the result set has been reached
     *
@@ -684,6 +695,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ fetch()
+
     /**
     * fetch value from a result set
     *
@@ -710,6 +722,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ fetchClob()
+
     /**
     * fetch a clob value from a result set
     *
@@ -729,6 +742,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ fetchBlob()
+
     /**
     * fetch a blob value from a result set
     *
@@ -747,6 +761,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ convertResult()
+
     /**
     * convert a value to a RDBMS indepdenant MDB type
     *
@@ -779,6 +794,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ numRows()
+
     /**
     * returns the number of rows in a result object
     *
@@ -795,6 +811,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ freeResult()
+
     /**
      * Free the internal resources associated with $result.
      *
@@ -820,6 +837,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getIntegerDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an integer type
      * field to be used in statements like CREATE TABLE.
@@ -859,6 +877,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getCLOBDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
      * large object type field to be used in statements like CREATE TABLE.
@@ -910,6 +929,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getBLOBDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
      * object type field to be used in statements like CREATE TABLE.
@@ -962,6 +982,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getDateDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an date type
      * field to be used in statements like CREATE TABLE.
@@ -994,6 +1015,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getTimestampDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an timestamp
      * type field to be used in statements like CREATE TABLE.
@@ -1027,6 +1049,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getTimeDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an time type
      * field to be used in statements like CREATE TABLE.
@@ -1059,6 +1082,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getFloatDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an float type
      * field to be used in statements like CREATE TABLE.
@@ -1103,6 +1127,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getDecimalDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an decimal type
      * field to be used in statements like CREATE TABLE.
@@ -1137,6 +1162,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getClobValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -1165,6 +1191,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ freeClobValue()
+
     /**
      * free a chracter large object
      *
@@ -1183,6 +1210,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getBlobValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -1211,6 +1239,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ freeBlobValue()
+
     /**
      * free a binary large object
      *
@@ -1228,6 +1257,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getFloatValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -1246,6 +1276,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getDecimalValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -1264,6 +1295,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ nextId()
+
     /**
      * returns the next free id of a sequence
      *
@@ -1303,6 +1335,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ currId()
+
     /**
      * returns the current id of a sequence
      *
@@ -1325,6 +1358,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ fetchInto()
+
     /**
      * Fetch a row and insert the data into an existing array.
      *
@@ -1369,6 +1403,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ nextResult()
+
     /**
      * Move the internal mysql result pointer to the next available result
      * Currently not supported
@@ -1387,6 +1422,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ tableInfo()
+
     /**
     * returns meta data about the result set
     *
@@ -1492,3 +1528,4 @@ class MDB_driver_mysql extends MDB_common
 }
 }
 ?>
+

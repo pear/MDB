@@ -62,6 +62,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ getFieldDeclaration()
+
     /**
      * get declaration of a field
      *
@@ -126,6 +127,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ getFieldDeclarationList()
+
     /**
      * get declaration of a number of field in bulk
      *
@@ -194,6 +196,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ createDatabase()
+
     /**
      * create a new database
      *
@@ -211,6 +214,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ dropDatabase()
+
     /**
      * drop an existing database
      *
@@ -228,6 +232,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ createTable()
+
     /**
      * create a new table
      *
@@ -278,6 +283,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ dropTable()
+
     /**
      * drop an existing table
      *
@@ -295,6 +301,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ alterTable()
+
     /**
      * alter an existing table
      *
@@ -400,6 +407,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ listDatabases()
+
     /**
      * list all databases
      *
@@ -417,6 +425,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ listUsers()
+
     /**
      * list all users
      *
@@ -434,6 +443,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ listViews()
+
     /**
      * list all views in the current database
      *
@@ -451,6 +461,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ listFunctions()
+
     /**
      * list all functions in the current database
      *
@@ -468,6 +479,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ listTables()
+
     /**
      * list all tables in the current database
      *
@@ -485,6 +497,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ listTableFields()
+
     /**
      * list all fields in a tables in the current database
      *
@@ -503,6 +516,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ getTableFieldDefinition()
+
     /**
      * get the stucture of a field into an array
      *
@@ -522,6 +536,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ createIndex()
+
     /**
      * get the stucture of a field into an array
      *
@@ -587,6 +602,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ dropIndex()
+
     /**
      * drop existing index
      *
@@ -605,6 +621,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ listTableIndexes()
+
     /**
      * list all indexes in a table
      *
@@ -623,6 +640,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ getTableIndexDefinition()
+
     /**
      * get the stucture of an index into an array
      *
@@ -642,6 +660,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ createSequence()
+
     /**
      * create sequence
      *
@@ -661,6 +680,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ dropSequence()
+
     /**
      * drop existing sequence
      *
@@ -679,6 +699,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ listSequences()
+
     /**
      * list all sequences in the current database
      *
@@ -696,6 +717,7 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ getSequenceDefinition()
+
     /**
      * get the stucture of a sequence into an array
      *

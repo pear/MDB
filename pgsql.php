@@ -125,6 +125,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ errorCode()
+
     /**
      * Map native error codes to DB's portable ones.  Requires that
      * the DB implementation's constructor fills in the $errorcode_map
@@ -175,6 +176,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ autoCommit()
+
     /**
      * Define whether database changes done on the database be automatically
      * committed. This function may also implicitly start or end a transaction.
@@ -205,6 +207,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ commit()
+
     /**
      * Commit the database changes done during a transaction that is in
      * progress. This function may only be called when auto-committing is
@@ -226,6 +229,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ rollback()
+
     /**
      * Cancel any database changes done during a transaction that is in
      * progress. This function may only be called when auto-committing is
@@ -281,6 +285,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ connect()
+
     /**
      * Connect to the database
      *
@@ -358,6 +363,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ query()
+
     /**
      * Execute a query
      * @param string $query the SQL query
@@ -432,6 +438,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ endOfResult()
+
     /**
     * check if the end of the result set has been reached
     *
@@ -452,6 +459,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ retrieveLob()
+
     /**
      * fetch a float value from a result set
      *
@@ -488,6 +496,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ endOfResultLob()
+
     /**
      * Determine whether it was reached the end of the large object and
      * therefore there is no more data to be read for the its input stream.
@@ -509,6 +518,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ readResultLob()
+
     /**
      * Read data from large object input stream.
      *
@@ -540,6 +550,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ destroyResultLob()
+
     /**
      * Free any resources allocated during the lifetime of the large object
      * handler object.
@@ -563,6 +574,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ fetchClob()
+
     /**
      * fetch a clob value from a result set
      *
@@ -582,6 +594,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ fetchBlob()
+
     /**
      * fetch a blob value from a result set
      *
@@ -600,6 +613,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ resultIsNull()
+
     /**
      * Determine whether the value of a query result located in given row and
      *   field is a NULL.
@@ -620,6 +634,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ numRows()
+
     /**
      * returns the number of rows in a result object
      *
@@ -636,6 +651,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ freeResult()
+
     /**
      * Free the internal resources associated with $result.
      *
@@ -676,6 +692,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getTextDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an text type
      * field to be used in statements like CREATE TABLE.
@@ -709,6 +726,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getClobDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
      * large object type field to be used in statements like CREATE TABLE.
@@ -739,6 +757,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getBlobDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
      * object type field to be used in statements like CREATE TABLE.
@@ -769,6 +788,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getDateDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare a date type
      * field to be used in statements like CREATE TABLE.
@@ -797,6 +817,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getTimeDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare a time
      * field to be used in statements like CREATE TABLE.
@@ -825,6 +846,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getFloatDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare a float type
      * field to be used in statements like CREATE TABLE.
@@ -853,6 +875,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getDecimalDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare a decimal type
      * field to be used in statements like CREATE TABLE.
@@ -881,6 +904,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getLobValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -938,6 +962,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getClobValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -958,6 +983,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ freeClobValue()
+
     /**
      * free a character large object
      *
@@ -974,6 +1000,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getBlobValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -994,6 +1021,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ freeBlobValue()
+
     /**
      * free a binary large object
      *
@@ -1010,6 +1038,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getFloatValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -1028,6 +1057,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getDecimalValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -1046,6 +1076,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getColumnNames()
+
     /**
      * Retrieve the names of columns returned by the DBMS in a query result.
      *
@@ -1077,6 +1108,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ numCols()
+
     /**
      * Count the number of columns returned by the DBMS in a query result.
      *
@@ -1097,6 +1129,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ convertResult()
+
     /**
      * convert a value to a RDBMS indepdenant MDB type
      *
@@ -1129,6 +1162,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ nextId()
+
     /**
      * returns the next free id of a sequence
      *
@@ -1168,6 +1202,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ currId()
+
     /**
      * returns the current id of a sequence
      *
@@ -1192,6 +1227,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ fetch()
+
     /**
      * fetch value from a result set
      *
@@ -1215,6 +1251,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ nextResult()
+
     /**
      * Move the internal pgsql result pointer to the next available result
      *
@@ -1231,6 +1268,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ tableInfo()
+
     /**
      * returns meta data about the result set
      *
@@ -1336,6 +1374,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ fetchInto()
+
     /**
      * Fetch a row and insert the data into an existing array.
      *
