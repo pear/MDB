@@ -340,7 +340,7 @@ class MDB
             $keys = array_keys($GLOBALS['_MDB_databases']);
             for ($i=0, $j=count($keys); $i<$j; ++$i) {
                 $tmp_dsn = $GLOBALS['_MDB_databases'][$keys[$i]]->getDSN('array');
-                if (count(array_diff($dsninfo, $tmp_dsn)) == 0) {
+                if (count(array_diff($tmp_dsn, $dsninfo)) == 0) {
                     MDB::setOptions($GLOBALS['_MDB_databases'][$keys[$i]], $options);
                     return $GLOBALS['_MDB_databases'][$keys[$i]];
                 }
