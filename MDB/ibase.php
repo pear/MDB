@@ -773,12 +773,12 @@ class MDB_ibase extends MDB_Common
     /**
      * Determine whether the value of a query result located in given row and
      *    field is a null.
-     * 
+     *
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
      * @return mixed true or false on success, a MDB error on failure
-     * @access public 
+     * @access public
      */
     function resultIsNull($result, $row, $field)
     {
@@ -964,8 +964,8 @@ class MDB_ibase extends MDB_Common
                 $this->results[$result_value][$this->results[$result_value]['current_row']] = $this->results[$result_value]['row_buffer'];
                 unset($this->results[$result_value]['row_buffer']);
             }
-            while ($this->results[$result_value]['current_row'] < $rownum)) {
-                $this->results[$result_value]['current_row']++
+            while ($this->results[$result_value]['current_row'] < $rownum) {
+                $this->results[$result_value]['current_row']++;
                 if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                     $row = @ibase_fetch_assoc($result);
                 } else {
