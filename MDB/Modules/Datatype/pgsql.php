@@ -622,8 +622,8 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
             return $lobresult;
         }
         $data = pg_loread($db->lobs[$lob]['handle'], $length);
-        if (is_string($data)) {
-            $db->pgsqlRaiseError();
+        if (!is_string($data)) {
+             return $db->pgsqlRaiseError();
         }
         if (($length = strlen($data)) == 0) {
             $db->lobs[$lob]['end_of_LOB'] = 1;
