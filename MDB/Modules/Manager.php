@@ -406,7 +406,7 @@ class MDB_manager extends PEAR
         }
         $previous_database_name = $this->database->setDatabase($this->database_definition["name"]);
         if (($support_transactions = $this->database->support("Transactions")) 
-            && MDB::isError($result = $this->database->autoCommitTransactions(0)))
+            && MDB::isError($result = $this->database->autoCommit(FALSE)))
         {
             return $result;
         }
@@ -446,7 +446,7 @@ class MDB_manager extends PEAR
         if (MDB::isError($result)) {
             if ($created_objects) {
                 if ($support_transactions) {
-                    $res = $this->database->rollbackTransaction();
+                    $res = $this->database->rollback();
                     if (MDB::isError($res)) 
                         $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
                             'Could not rollback the partially created database alterations ('
@@ -461,7 +461,7 @@ class MDB_manager extends PEAR
             }
         } else {
             if ($support_transactions) {
-                $res = $this->database->autoCommitTransactions(1);
+                $res = $this->database->autoCommit(TRUE);
                 if (MDB::isError($res)) 
                     $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
                         'Could not end transaction after successfully created the database ('
@@ -944,7 +944,7 @@ class MDB_manager extends PEAR
         
         $previous_database_name = $this->database->setDatabase($this->database_definition["name"]);
         if (($support_transactions = $this->database->support("Transactions"))
-            && MDB::isError($result = $this->database->autoCommitTransactions(0))) {
+            && MDB::isError($result = $this->database->autoCommit(FALSE))) {
             return $result;
         }
         $error = "";
@@ -1140,7 +1140,7 @@ class MDB_manager extends PEAR
             && MDB::isError($result))
         {
             if ($support_transactions) {
-                $res = $this->database->rollbackTransaction();
+                $res = $this->database->rollback();
                 if (MDB::isError($res)) 
                     $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
                         'Could not rollback the partially created database alterations ('
@@ -1154,7 +1154,7 @@ class MDB_manager extends PEAR
             }
         }
         if ($support_transactions) {
-            $result = $this->database->autoCommitTransactions(1);
+            $result = $this->database->autoCommit(TRUE);
             if (MDB::isError($result)) {
                 $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
                     'Could not end transaction after successfully implemented the requested database alterations ('
