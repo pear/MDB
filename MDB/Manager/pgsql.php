@@ -203,7 +203,7 @@ class MDB_manager_pgsql_class extends MDB_manager_database_class
      * 
      * @return mixed DB_OK on success, a DB error on failure
      */
-    function listViewss(&$db, &$tables)
+    function listViews(&$db, &$tables)
     {
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
         $result = $db->query("SELECT viewname FROM pg_views");
@@ -213,14 +213,16 @@ class MDB_manager_pgsql_class extends MDB_manager_database_class
         return $db->fetchCol($result, $viewss);
     }
 
-    function createSequence(&$db, $name, $start)
+    function createSequence(&$db, $seq_name, $start)
     {
-        return($db->query("CREATE SEQUENCE $name INCREMENT 1" . ($start < 1 ? " MINVALUE $start" : "")." START $start"));
+        $seqname = $db->getSequenceName($seq_name);
+        return($db->query("CREATE SEQUENCE $seqname INCREMENT 1" . ($start < 1 ? " MINVALUE $start" : "")." START $start"));
     }
 
-    function dropSequence(&$db, $name)
+    function dropSequence(&$db, $seq_name)
     {
-        return($db->query("DROP SEQUENCE $name"));
+        $seqname = $db->getSequenceName($seq_name);
+        return($db->query("DROP SEQUENCE $seq_name"));
     }
 
 };
