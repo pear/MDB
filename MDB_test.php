@@ -19,9 +19,10 @@
     $input_file = 'metapear_test_db.schema';
     $database_variables = array(
     );
-
+// lets create the database using 'metapear_test_db.schema'
+// if you have allready run this script you should have 'metapear_test_db.schema.before'
+// in that case MDb will just compare the two schemas and make any necessary modifications to the existing DB
     $result = $manager->updateDatabase($input_file, $input_file.".before", $dsn, $database_variables);
-    echo $manager->database->database_name;
 
     // just for kicks you can mess up this part to see some pear error handling
     $user = 'metapear';
@@ -127,11 +128,15 @@
     echo "tableInfo on a string:<br>";
     echo Var_Dump::display($db->tableInfo("numbers"))."<br>";
 
-
+// ok noew lets create a new xml schema file from the existing DB
+// we will not use the 'metapear_test_db.schema' for this
+// this feature is especially interesting for people that have an existing Db and want to move to MDB's xml schema management
     $manager->setupDatabase($dsn);
     $manager->getDefinitionFromDatabase();
+// this is the database definition as an array
     echo Var_Dump::display($manager->database_definition)."<br>";
 
+// new we will write this array as an xml schema file
     $manager->debug = "Output";
     echo $manager->dumpDatabase(array(
         "Output" => "Dump",
