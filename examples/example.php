@@ -131,7 +131,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo(Var_Dump::display($array).'<br>');
     // save some time with this function
     // lets just get all and free the result
-    Var_Dump::display($db->loadExtended());
+    Var_Dump::display($db->loadModule('extended'));
     $array = $db->extended->queryAll($db, $query);
     $db->freeResult($result);
     echo('<br>all with just one call:<br>');
