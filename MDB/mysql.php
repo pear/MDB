@@ -102,7 +102,7 @@ class MDB_mysql extends MDB_Common
         
         $this->decimal_factor = pow(10.0, $this->decimal_places);
         
-        $this->options['DefaultTableType'] = false;
+        $this->options['default_table_type'] = false;
         $this->options['fixed_float'] = false;
         
         $this->errorcode_map = array(
@@ -297,16 +297,16 @@ class MDB_mysql extends MDB_Common
                 'MDB_Error', true);
         }
 
-        $use_transactions = $this->getOption('use_transactions');
+        $use_transactions = $this->options['use_transactions'];
         if (!MDB::isError($use_transactions) && $use_transactions) {
             $this->supported['Transactions'] = 1;
             $this->default_table_type = 'BDB';
         } else {
             $this->default_table_type = '';
         }
-        $DefaultTableType = $this->getOption('DefaultTableType');
-        if (!MDB::isError($DefaultTableType) && $DefaultTableType) {
-            switch($this->default_table_type = strtoupper($DefaultTableType)) {
+        $default_table_type = $this->options['default_table_type'];
+        if (!MDB::isError($default_table_type) && $default_table_type) {
+            switch($this->default_table_type = strtoupper($default_table_type)) {
                 case 'BERKELEYDB':
                     $this->default_table_type = 'BDB';
                 case 'BDB':
@@ -319,12 +319,12 @@ class MDB_mysql extends MDB_Common
                 case 'MRG_MYISAM':
                 case 'MYISAM':
                     if (isset($this->supported['Transactions'])) {
-                        $this->warnings[] = $DefaultTableType
+                        $this->warnings[] = $default_table_type
                             .' is not a transaction-safe default table type';
                     }
                     break;
                 default:
-                    $this->warnings[] = $DefaultTableType
+                    $this->warnings[] = $default_table_type
                         .' is not a supported default table type';
             }
         }
@@ -445,7 +445,8 @@ class MDB_mysql extends MDB_Common
                 return $this->mysqlRaiseError();
             }
         }
-        if ($result = mysql_query($query, $this->connection)) {
+        $query_function = $this->options['result_buffering'] ? 'mysql_query' : 'mysql_unbuffered_query';
+        if ($result = $query_function($query, $this->connection)) {
             if ($ismanip) {
                 $this->affected_rows = mysql_affected_rows($this->connection);
                 return MDB_OK;
