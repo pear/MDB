@@ -123,18 +123,19 @@ class MDB_pgsql extends MDB_Common
         static $error_regexps;
         if (empty($error_regexps)) {
             $error_regexps = array(
-                '/([Tt]able does not exist\.|[Rr]elation [\"\'].*[\"\'] does not exist|[Ss]equence does not exist|[Cc]lass ".+" not found)$/' => MDB_ERROR_NOSUCHTABLE,
-                '/[Tt]able [\"\'].*[\"\'] does not exist/' => MDB_ERROR_NOSUCHTABLE,
+                '/(([Rr]elation|[Ss]equence|[Tt]able)( [\"\'].*[\"\'])? does not exist|[Cc]lass ".+" not found)$/' => MDB_ERROR_NOSUCHTABLE,
+                '/[Cc]olumn [\"\'].*[\"\'] .*does not exist/' => MDB_ERROR_NOSUCHFIELD,
                 '/[Rr]elation [\"\'].*[\"\'] already exists|[Cc]annot insert a duplicate key into (a )?unique index.*/' => MDB_ERROR_ALREADY_EXISTS,
-                '/divide by zero$/'                     => MDB_ERROR_DIVZERO,
+                '/(divide|division) by zero$/'          => MDB_ERROR_DIVZERO,
                 '/pg_atoi: error in .*: can\'t parse /' => MDB_ERROR_INVALID_NUMBER,
+                '/invalid input syntax for integer/'    => MDB_ERROR_INVALID_NUMBER,
                 '/ttribute [\"\'].*[\"\'] not found$|[Rr]elation [\"\'].*[\"\'] does not have attribute [\"\'].*[\"\']/' => MDB_ERROR_NOSUCHFIELD,
                 '/parser: parse error at or near \"/'   => MDB_ERROR_SYNTAX,
                 '/syntax error at/'                     => MDB_ERROR_SYNTAX,
+                '/permission denied/'                   => MDB_ERROR_ACCESS_VIOLATION,
                 '/violates not-null constraint/'        => MDB_ERROR_CONSTRAINT_NOT_NULL,
                 '/violates [\w ]+ constraint/'          => MDB_ERROR_CONSTRAINT,
-                '/referential integrity violation/'     => MDB_ERROR_CONSTRAINT,
-                '/deadlock detected/'                   => MDB_ERROR_DEADLOCK
+                '/referential integrity violation/'     => MDB_ERROR_CONSTRAINT
             );
         }
         foreach ($error_regexps as $regexp => $code) {
