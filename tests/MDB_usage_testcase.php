@@ -221,9 +221,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $this->insertTestValues($prepared_query, $data[$row]);
 
-            //ISN'T THIS BETTER?
-            //$result = $this->db->executeQuery($prepared_query, $this->types);
-            $result = $this->db->executeQuery($prepared_query);
+            $result = $this->db->executeQuery($prepared_query, $this->types);
 
             if (MDB::isError($result)) {
                 $this->assertTrue(FALSE, 'Error executing prepared query'.$result->getMessage());
