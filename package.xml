@@ -95,9 +95,9 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>1.1.4RC5</version>
+    <version>1.1.4RC6</version>
     <state>devel</state>
-    <date>2003-12-06</date>
+    <date>2003-12-22</date>
     <notes>
       All:
       - fixed issues with PHP5
@@ -143,6 +143,8 @@
       FBSQL driver:
       - numerous bug fixes to all parts of the driver (especially to the connection handling,
       datatype abstraction, limit support and manager class)
+      PGSQL driver:
+      - fixed a bug in the error code mapping due to changes in recent PostGreSQL versions
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
