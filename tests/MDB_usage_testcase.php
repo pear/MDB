@@ -556,7 +556,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      */
     function testReplace() {
         if (!$this->db->support('Replace')) {
-            $this->assertTrue(FALSE, 'This database does not support sequences');
+            $this->assertTrue(FALSE, 'This database does not support Replace');
             return;
         }
         $row = 1234;
@@ -652,7 +652,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         if ($support_affected_rows) {
             $affected_rows = $this->db->affectedRows();
 
-            $this->assertEquals($affected_rows, 1, "replacing a row in an empty table returned $affected_rows unlike 1 as expected");
+            $this->assertEquals($affected_rows, 2, "replacing a row in an empty table returned $affected_rows unlike 2 as expected");
         }
 
         $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users');
@@ -668,6 +668,87 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $this->db->freeResult($result);
     }
 
+    /**
+     *
+     */
+    function testAffectedRows() {
+        if (!$this->db->support('AffectedRows')) {
+            $this->assertTrue(FALSE, 'This database does not support AffectedRows');
+            return;
+        }
+
+        $data = array();
+        $total_rows = 7;
+
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+
+        for ($row = 0; $row < $total_rows; $row++) {
+            $data[$row]["user_name"] = "user_$row";
+            $data[$row]["user_password"] = "somepassword";
+            $data[$row]["subscribed"] = $row % 2;
+            $data[$row]["user_id"] = $row;
+            $data[$row]["quota"] = sprintf("%.2f",strval(1+($row+1)/100));
+            $data[$row]["weight"] = sqrt($row);
+            $data[$row]["access_date"] = MDB_date::mdbToday();
+            $data[$row]["access_time"] = MDB_date::mdbTime();
+            $data[$row]["approved"] = MDB_date::mdbNow();
+
+            $this->insertTestValues($prepared_query, $data[$row]);
+
+            $result = $this->db->executeQuery($prepared_query);
+            
+            $affected_rows = $this->db->affectedRows();
+
+            $this->assertEquals($affected_rows, 1, "Inserting the row $row return $affected_rows affected row count instead of 1 as expected"); 
+
+            if (MDB::isError($result)) {
+                $this->assertTrue(FALSE, 'Error executing prepared query' . $result->getMessage());
+            }
+        }
+
+        $this->db->freePreparedQuery($prepared_query);
+
+        $prepared_query = $this->db->prepareQuery('UPDATE users SET user_password=? WHERE user_id < ?');
+
+        for ($row = 0; $row < $total_rows; $row++) {
+            $this->db->setParamText($prepared_query, 1, "another_password_$row");
+            $this->db->setParamInteger($prepared_query, 2, $row);
+
+            $result = $this->db->executeQuery($prepared_query);
+            
+            if (MDB::isError($result)) {
+                $this->assertTrue(FALSE, 'Error executing prepared query' . $result->getMessage());
+            }
+
+            $affected_rows = $this->db->affectedRows();
+
+            $this->assertEquals($affected_rows, $row, "Updating the $row rows return $affected_rows affected row count"); 
+
+        }
+
+        $this->db->freePreparedQuery($prepared_query);
+
+        $prepared_query = $this->db->prepareQuery('DELETE FROM users WHERE user_id >= ?');
+
+        for ($row = $total_rows; $total_rows; $total_rows = $row) {
+            $this->db->setParamInteger($prepared_query, 1, $row = intval($total_rows / 2));
+
+            $result = $this->db->executeQuery($prepared_query);
+            
+            if (MDB::isError($result)) {
+                $this->assertTrue(FALSE, 'Error executing prepared query' . $result->getMessage());
+            }
+
+            $affected_rows = $this->db->affectedRows();
+
+            $this->assertEquals($affected_rows, ($total_rows - $row), "Deleting " . ($inserted_rows - $row) . " rows returned $affected_rows affected row count"); 
+
+        }
+
+        $this->db->freePreparedQuery($prepared_query);
+      
+
+    }
 
 }
 
