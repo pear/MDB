@@ -485,7 +485,7 @@ else</tt></p>
 </ul>
 <h4><li><a name="98.3.3">Retrieving data from large object fields</a></li></h4>
 <p>Retriving data from large object fields is done by executing normal <tt>SELECT</tt> queries.</p>
-<p>The methods <tt>fetchClobResult</tt> and <tt>fetchBlobResult</tt> return a value that identifies a large object handler class object. The data may be retrieved using the method <tt>readLob</tt>. Alternatively, the handler object identifier may be passed to another handler class object that will read the large object result value and process it in a useful way, like for instance storing the data in a file.</p>
+<p>The methods <tt>fetchClob</tt> and <tt>fetchBlobt</tt> return a value that identifies a large object handler class object. The data may be retrieved using the method <tt>readLob</tt>. Alternatively, the handler object identifier may be passed to another handler class object that will read the large object result value and process it in a useful way, like for instance storing the data in a file.</p>
 <p>Here follows an example of how to select a character large object field to output its data:</p>
 <ul>
 <p><li>Execute the <tt>SELECT</tt> query. More than one large object field could be selected in the same query.</li></p>
@@ -503,7 +503,7 @@ else</tt></p>
 <p><li>Retrieve the large object identifier for a given result row column. Usually this always succeed, but if there is an unexpected error, it will return an error object to denote an error. If you are not sure if the selected column is <tt>NULL</tt>, use the method <tt>resultIsNull</tt> here to verify that.</li></p>
 <ul>
 <ul>
-<p><tt>$clob=$mdb->fetchClobResult($result,0,&quot;document&quot;);<br />
+<p><tt>$clob=$mdb->fetchClob($result,0,&quot;document&quot;);<br />
 if(!MDB::isError($clob))<br />
 {</tt></p>
 </ul>
