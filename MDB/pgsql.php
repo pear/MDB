@@ -1,17 +1,43 @@
 <?php
-/* vim: set expandtab tabstop=4 shiftwidth=4: */
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1997-2002 The PHP Group                                |
+// | Copyright (c) 1998-2002 Manuel Lemos, Tomas V.V.Cox,                 |                             |
+// | Stig. S. Bakken, Lukas Smith                                         |
+// | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
-// | This source file is subject to version 2.02 of the PHP license,      |
-// | that is bundled with this package in the file LICENSE, and is        |
-// | available at through the world-wide-web at                           |
-// | http://www.php.net/license/2_02.txt.                                 |
-// | If you did not receive a copy of the PHP license and are unable to   |
-// | obtain it through the world-wide-web, please send a note to          |
-// | license@php.net so we can mail you a copy immediately.               |
+// | MDB is a merge of PEAR DB and Metabases that provides a unified DB   |
+// | API as well as database abstraction for PHP applications.            |
+// | This LICENSE is in the BSD license style.                            |
+// |                                                                      |
+// | Redistribution and use in source and binary forms, with or without   |
+// | modification, are permitted provided that the following conditions   |
+// | are met:                                                             |
+// |                                                                      |
+// | Redistributions of source code must retain the above copyright       |
+// | notice, this list of conditions and the following disclaimer.        |
+// |                                                                      |
+// | Redistributions in binary form must reproduce the above copyright    |
+// | notice, this list of conditions and the following disclaimer in the  |
+// | documentation and/or other materials provided with the distribution. |
+// |                                                                      |
+// | Neither the name of Manuel Lemos, Tomas V.V.Cox, Stig. S. Bakken,    |
+// | Lukas Smith nor the names of his contributors may be used to endorse |
+// | or promote products derived from this software without specific prior|
+// | written permission.                                                  |
+// |                                                                      |
+// | THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS  |
+// | "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT    |
+// | LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS    |
+// | FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE      |
+// | REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,          |
+// | INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, |
+// | BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS|
+// |  OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED  |
+// | AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT          |
+// | LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY|
+// | WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE          |
+// | POSSIBILITY OF SUCH DAMAGE.                                          |
 // +----------------------------------------------------------------------+
 // | Author: Paul Cooper <pgc@ucecom.com>                                 |
 // +----------------------------------------------------------------------+
@@ -224,65 +250,58 @@ class MDB_pgsql extends MDB_common
         $ismanip = MDB::isManip($query);
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;
-        $this->first_selected_row = $this->selected_row_limit=0;
-        $connected = $this->connect(); 
+        $this->first_selected_row = $this->selected_row_limit = 0;
+        $connected = $this->connect();
         if(MDB::isError($connected)) {
             return $connected;
         }
 
-        if (($select = (substr(strtolower(ltrim($query)), 
-                               0, strlen("select")) == "select") ) && $limit > 0) {
-            if($this->auto_commit && !MDB::isError($this->_doQuery("BEGIN"))) {
+        if (!$ismanip && $limit > 0 &&
+            substr(strtolower(ltrim($query)), 
+            0, 6) == "select")
+        {
+            if($this->auto_commit && MDB::isError($this->_doQuery("BEGIN"))) {
                 return $this->raiseError(DB_ERROR);
             }
-            $error = "";
-        
-            if(!MDB::isError($result = $this->_doQuery("DECLARE select_cursor SCROLL CURSOR FOR $query")))
-                {
-                    $result = $this->_doQuery("MOVE FORWARD $first FROM select_cursor");
-                    if($first > 0 && MDB::isError($result)) {
-                        $error = pg_Errormessage($this->connection);
-                    }
-                    if(!MDB::isError($result)
-                       && MDB::isError($result = $this->_doQuery("FETCH FORWARD $limit FROM select_cursor"))) {
-                        $error = pg_Errormessage($this->connection);
-                    }
-                } else {
-                    $error = pg_Errormessage($this->connection);
-                }
-            if($this->auto_commit && MDB::isError($result = $this->_doQuery("END"))) {
-                if($result) {
-                    $error = pg_Errormessage($this->connection);
+            $result = $this->_doQuery("DECLARE select_cursor SCROLL CURSOR FOR $query");
+            if(!MDB::isError($result))
+            {
+                if($first > 0 && MDB::isError($result = $this->_doQuery("MOVE FORWARD $first FROM select_cursor"))) {
                     $this->freeResult($result);
-                    $result = 0;
-                } else {
-                    $error .= " and could not end the implicit transaction (".$this->Error().")";
+                    return $result;
                 }
+                if(MDB::isError($result = $this->_doQuery("FETCH FORWARD $limit FROM select_cursor")))
+                {
+                    $this->freeResult($result);
+                    return $result;
+                }
+            } else {
+                return $result;
             }
-            $this->raiseError(DB_ERROR, NULL, NULL, $error);
+            if($this->auto_commit && MDB::isError($result2 = $this->_doQuery("END"))) {
+                $this->freeResult($result);
+                return $result2;
+            }
         } else {
             $result = $this->_doQuery($query);
+            if (MDB::isError($result)) {
+                return $result;
+            }
         }
-        if (!MDB::isError($result) && $select) {
-            $this->highest_fetched_row[$result] = -1;
-        }
+
         if ($ismanip) {
             $this->affected_rows = @pg_cmdtuples($result);
             return DB_OK;
         } elseif (preg_match('/^\s*\(?\s*SELECT\s+/si', $query) &&
-                  !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query)) {
-            /* PostgreSQL commands:
-               ABORT, ALTER, BEGIN, CLOSE, CLUSTER, COMMIT, COPY,
-               CREATE, DECLARE, DELETE, DROP TABLE, EXPLAIN, FETCH,
-               GRANT, INSERT, LISTEN, LOAD, LOCK, MOVE, NOTIFY, RESET,
-               REVOKE, ROLLBACK, SELECT, SELECT INTO, SET, SHOW,
-               UNLISTEN, UPDATE, VACUUM
-            */
+            !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query))
+        {
+            $this->highest_fetched_row[$result] = -1;
             return $result;
         } else {
             $this->affected_rows = 0;
             return DB_OK;
         }
+        return $this->raiseError(DB_ERROR);
     }
 
     function endOfResult($result)
@@ -412,16 +431,6 @@ class MDB_pgsql extends MDB_common
         return($success);
     }
 
-    function createDatabase($name)
-    {
-        return($this->StandaloneQuery("CREATE DATABASE $name"));
-    }
-
-    function dropDatabase($name)
-    {
-        return($this->StandaloneQuery("DROP DATABASE $name"));
-    }
-
     function getTextFieldTypeDeclaration($name, &$field)
     {
         return((IsSet($field["length"]) ? "$name VARCHAR (".$field["length"].")" : "$name TEXT").(IsSet($field["default"]) ? " DEFAULT '".$field["default"]."'" : "").(IsSet($field["notnull"]) ? " NOT NULL" : ""));
@@ -544,7 +553,7 @@ class MDB_pgsql extends MDB_common
                 $this->columns[$result][strtolower(pg_fieldname($result, $column))] = $column;
         }
         $column_names = $this->columns[$result];
-        return(1);
+        return (DB_OK);
     }
 
     function numberOfColumns($result)
@@ -561,92 +570,84 @@ class MDB_pgsql extends MDB_common
         switch($type) {
         case METABASE_TYPE_BOOLEAN:
             $value = (strcmp($value,"Y") ? 0 : 1);
-            return(1);
+            return (DB_OK);
         case METABASE_TYPE_DECIMAL:
             $value = sprintf("%." . $this->decimal_places . "f", doubleval($value)/$this->decimal_factor);
-            return(1);
+            return (DB_OK);
         case METABASE_TYPE_FLOAT:
             $value = doubleval($value);
-            return(1);
+            return (DB_OK);
         case METABASE_TYPE_DATE:
         case METABASE_TYPE_TIME:
-            return(1);
+            return (DB_OK);
         case METABASE_TYPE_TIMESTAMP:
             $value = substr($value, 0, strlen("YYYY-MM-DD HH:MM:SS"));
-            return(1);
+            return (DB_OK);
         default:
             return($this->BaseConvertResult($value, $type));
         }
     }
 
-    function alterTable($name, &$changes, $check)
-    {
-        if($check) {
-            for($change=0, Reset($changes); $change < count($changes); Next($changes), $change++) {
-                switch(Key($changes)) {
-                case "AddedFields":
-                    break;
-                case "RemovedFields":
-                    return($this->SetError("Alter table", "database server does not support dropping table columns"));
-                case "name":
-                case "RenamedFields":
-                case "ChangedFields":
-                default:
-                    return($this->SetError("Alter table", "change type \"" . Key($changes) . "\" not yet supported"));
-                }
-            }
-            return(1);
-        } else {
-            if(IsSet($changes[$change="name"])
-               || IsSet($changes[$change="RenamedFields"])
-               || IsSet($changes[$change="ChangedFields"]))
-                return($this->SetError("Alter table", "change type \"$change\" not yet supported"));
-            $query = "";
-            if(IsSet($changes["AddedFields"])) {
-                $fields = $changes["AddedFields"];
-                for($field = 0, Reset($fields); $field < count($fields); Next($fields), $field++) {
-                    if(!$this->Query("ALTER TABLE $name ADD " . $fields[Key($fields)]["Declaration"])) {
-                        return(0);
-                    }
-                }
-            }
-            if(IsSet($changes["RemovedFields"])) {
-                $fields = $changes["RemovedFields"];
-                for($field = 0, Reset($fields); $field < count($fields); Next($fields), $field++) {
-                    if(!$this->Query("ALTER TABLE $name DROP " . Key($fields))) {
-                        return(0);
-                    }
-                }
-            }
-            return(1);
-        }
-    }
+    // }}}
+    // {{{ nextId()
 
-    function createSequence($name, $start)
-    {
-        return($this->query("CREATE SEQUENCE $name INCREMENT 1" . ($start < 1 ? " MINVALUE $start" : "")." START $start"));
-    }
+    /**
+     * Get the next value in a sequence.
+     *
+     * We are using native PostgreSQL sequences. If a sequence does
+     * not exist, it will be created, unless $ondemand is false.
+     *
+     * @access public
+     * @param string $seq_name the name of the sequence
+     * @param bool $ondemand whether to create the sequence on demand
+     * @return a sequence integer, or a DB error
+     */
+	 
+	 // Metabase version of nextId()
+     function getSequenceNextValue($name, &$value)
+     {
+         if(!($result = $this->Query("SELECT NEXTVAL ('$name')"))) {
+             return(0);
+         }
+         if($this->numRows($result) == 0) {
+             $this->freeResult($result);
+             return($this->SetError("Get sequence next value","could not find value in sequence table"));
+         }
+         $value = intval($this->fetchResult($result, 0, 0));
+         $this->freeResult($result);
+         return (DB_OK);
+     }
 
-    function dropSequence($name)
+    function nextId($seq_name, $ondemand = true)
     {
-        return($this->query("DROP SEQUENCE $name"));
-    }
-
-    function getSequenceNextValue($name, &$value)
-    {
-        if(!($result = $this->Query("SELECT NEXTVAL ('$name')"))) {
-            return(0);
+        //temp hack - need to figure this out in pear
+        //        $seqname = $this->getSequenceName($seq_name);
+        $seqname = $seq_name;
+        $repeat = 0;
+        do {
+            $this->pushErrorHandling(PEAR_ERROR_RETURN);
+            $result = $this->query("SELECT NEXTVAL('${seqname}')");
+            $this->popErrorHandling();
+            if ($ondemand && MDB::isError($result) &&
+                $result->getCode() == DB_ERROR_NOSUCHTABLE) {
+                $repeat = 1;
+                $result = $this->createSequence($seq_name);
+                if (DB::isError($result)) {
+                    return $this->raiseError($result);
+                }
+            } else {
+                $repeat = 0;
+            }
+        } while ($repeat);
+        if (MDB::isError($result)) {
+            return $this->raiseError($result);
         }
-        if($this->numRows($result) == 0) {
-            $this->freeResult($result);
-            return($this->SetError("Get sequence next value","could not find value in sequence table"));
-        }
-        $value = intval($this->fetchResult($result, 0, 0));
+        $this->fetchInto($result, $arr, DB_FETCHMODE_ORDERED);
         $this->freeResult($result);
-        return(1);
+        return $arr[0];
     }
 
-    function getSequenceCurrentValue($name, &$value)
+    function currId($name, &$value)
     {
         if(!($result = $this->query("SELECT last_value FROM $name"))) {
             return(0);
@@ -657,14 +658,13 @@ class MDB_pgsql extends MDB_common
             }
         $value = intval($this->fetchResult($result,0,0));
         $this->freeResult($result);
-        return(1);
+        return (DB_OK);
     }
 
     function autoCommit($auto_commit)
     {
-        $this->Debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
         if(((!$this->auto_commit) == (!$auto_commit))) {
-            return(1);
+            return (DB_OK);
         }
         if($this->connection) {
             if(!$this->Query($auto_commit ? "END" : "BEGIN"))
@@ -676,7 +676,6 @@ class MDB_pgsql extends MDB_common
 
     function commit()
     {
-        $this->debug("Commit Transaction");
         if($this->auto_commit) {
             return($this->SetError("Commit transaction","transaction changes are being auto commited"));
         }
@@ -685,7 +684,6 @@ class MDB_pgsql extends MDB_common
 
     function rollback()
     {
-        $this->febug("Rollback Transaction");
         if($this->auto_commit) {
             return($this->SetError("Rollback transaction","transactions can not be rolled back when changes are auto commited"));
         }
@@ -845,49 +843,6 @@ class MDB_pgsql extends MDB_common
         return $res;
     }
 
-    // }}}
-    // {{{ nextId()
-
-    /**
-     * Get the next value in a sequence.
-     *
-     * We are using native PostgreSQL sequences. If a sequence does
-     * not exist, it will be created, unless $ondemand is false.
-     *
-     * @access public
-     * @param string $seq_name the name of the sequence
-     * @param bool $ondemand whether to create the sequence on demand
-     * @return a sequence integer, or a DB error
-     */
-    function nextId($seq_name, $ondemand = true)
-    {
-        //temp hack - need to figure this out in pear
-        //        $seqname = $this->getSequenceName($seq_name);
-        $seqname = $seq_name;
-        $repeat = 0;
-        do {
-            $this->pushErrorHandling(PEAR_ERROR_RETURN);
-            $result = $this->query("SELECT NEXTVAL('${seqname}')");
-            $this->popErrorHandling();
-            if ($ondemand && MDB::isError($result) &&
-                $result->getCode() == DB_ERROR_NOSUCHTABLE) {
-                $repeat = 1;
-                $result = $this->createSequence($seq_name);
-                if (DB::isError($result)) {
-                    return $this->raiseError($result);
-                }
-            } else {
-                $repeat = 0;
-            }
-        } while ($repeat);
-        if (MDB::isError($result)) {
-            return $this->raiseError($result);
-        }
-        $this->fetch($result, $arr, DB_FETCHMODE_ORDERED);
-        $this->freeResult($result);
-        return $arr[0];
-    }
-
     /**
      * Get the number of rows in a result set.
      *
@@ -918,32 +873,32 @@ class MDB_pgsql extends MDB_common
      */
     function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        if($rownum == NULL) {
+        if ($rownum == NULL) {
             ++$this->highest_fetched_row[$result];
             $rownum = $this->highest_fetched_row[$result];
         } else {
-            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
+            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
         }
         if ($rownum + 1 > $this->numRows($result)) {
             return NULL;
         }
-        $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
         if ($fetchmode & DB_FETCHMODE_ASSOC) {
             $array = @pg_fetch_array($result, $rownum, PGSQL_ASSOC);
         } else {
             $array = @pg_fetch_row($result, $rownum);
         }
         if (!$array) {
-            $err = pg_errormessage($this->connection);
-            if (!$err) {
-                return null;
+            $errno = @pg_errormessage($this->connection);
+            if (!$errno) {
+                if($this->autofree) {
+                    $this->freeResult($result);
+                }
+                return NULL;
             }
-            return $this->pgsqlRaiseError();
+            return $this->pgsqlRaiseError($errno);
         }
-        if (isset($this->result_types[$result])) {
-            if (!$this->convertResultRow($result, $array)) {
-                return $this->raiseError();
-            }
+        if (!$this->convertResultRow($result, $array)) {
+            return $this->raiseError();
         }
         return DB_OK;
     }
