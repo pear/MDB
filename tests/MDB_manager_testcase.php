@@ -61,8 +61,9 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
         global $dsn, $options, $database;
         $this->dsn = $dsn;
         $this->database = $database;
-        $this->manager =& new MDB_manager;
+        $this->manager =& new MDB_Manager;
         $this->manager->connect($dsn, $options);
+        
         $this->fields = array('user_name',
                         'user_password',
                         'subscribed',
@@ -73,7 +74,7 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
                         'access_time',
                         'approved'
                         );
-
+        
         $this->types = array('text',
                        'text',
                        'boolean',
@@ -105,18 +106,17 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     // test the manager
     function testManager() {
         if ($this->methodExists($this->manager, 'updateDatabase')) {
-            $input_file = '../driver_test.schema';
+            $input_file = 'driver_test.schema';
             $backup_file = $input_file . '.before';
             $result = $this->manager->updateDatabase($input_file, $backup_file, array('create'=>'1', 'name'=>$this->database));
             if(!MDB::isError($result)) {
-                $input_file = '../lob_test.schema';
+                $input_file = 'lob_test.schema';
                 $backup_file = $input_file . '.before';
                 $result = $this->manager->updateDatabase($input_file, $backup_file, array('create'=>'1', 'name'=>$this->database));
             }
             $this->assertTrue(!MDB::isError($result), 'Error creating/updating database');
         }
     }
-
 }
 
 ?>
