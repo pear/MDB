@@ -108,6 +108,7 @@ class MDB_mysql extends MDB_Common
             1006 => MDB_ERROR_CANNOT_CREATE,
             1007 => MDB_ERROR_ALREADY_EXISTS,
             1008 => MDB_ERROR_CANNOT_DROP,
+            1022 => MDB_ERROR_ALREADY_EXISTS,
             1046 => MDB_ERROR_NODBSELECTED,
             1050 => MDB_ERROR_ALREADY_EXISTS,
             1051 => MDB_ERROR_NOSUCHTABLE,
@@ -821,12 +822,13 @@ class MDB_mysql extends MDB_Common
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
         $value = @mysql_result($result, $rownum, $field);
         if ($value === false && $value != null) {
-            return($this->mysqlRaiseError($errno));
+            return $this->mysqlRaiseError($errno);
         }
         if (isset($this->results[$result_value]['types'][$field])) {
-            $value = $this->datatype->convertResult($this, $value, $this->results[$result_value]['types'][$field]);
+            $type = $this->results[$result_value]['types'][$field];
+            $value = $this->datatype->convertResult($this, $value, $type);
         }
-        return($value);
+        return $value;
     }
 
     // }}}

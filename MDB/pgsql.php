@@ -479,7 +479,17 @@ class MDB_pgsql extends MDB_Common
         if ($ismanip) {
             $this->affected_rows = @pg_cmdtuples($result);
             return MDB_OK;
-        } elseif  (preg_match('/^\s*\(?\s*SELECT\s+/si', $query) && !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query)) {
+        } elseif ((preg_match('/^\s*\(?\s*SELECT\s+/si', $query)
+                && !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query)
+            ) || preg_match('/^\s*EXPLAIN/si',$query )
+        ) {
+            /* PostgreSQL commands:
+               ABORT, ALTER, BEGIN, CLOSE, CLUSTER, COMMIT, COPY,
+               CREATE, DECLARE, DELETE, DROP TABLE, EXPLAIN, FETCH,
+               GRANT, INSERT, LISTEN, LOAD, LOCK, MOVE, NOTIFY, RESET,
+               REVOKE, ROLLBACK, SELECT, SELECT INTO, SET, SHOW,
+               UNLISTEN, UPDATE, VACUUM
+            */
             $this->results[intval($result)]['highest_fetched_row'] = -1;
             if ($types != null) {
                 if (!is_array($types)) {
@@ -729,12 +739,13 @@ class MDB_pgsql extends MDB_Common
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
         $value = @pg_result($result, $rownum, $field);
         if ($value === false && $value != null) {
-            return($this->pgsqlRaiseError($errno));
+            return $this->pgsqlRaiseError($errno);
         }
         if (isset($this->results[$result_value]['types'][$field])) {
-            $value = $this->datatype->convertResult($this, $value, $this->results[$result_value]['types'][$field]);
+            $type = $this->results[$result_value]['types'][$field];
+            $value = $this->datatype->convertResult($this, $value, $type);
         }
-        return($value);
+        return $value;
     }
 
     // }}}
