@@ -7,7 +7,7 @@
  */
 
  if (!defined("MDB_MYSQL_INCLUDED")) {
-    define("MDB_MYSQL_INCLUDED",1);
+    define("MDB_MYSQL_INCLUDED", 1);
 
 require_once "common.php";
  
@@ -24,29 +24,58 @@ class MDB_mysql extends MDB_common
     var $columns = array();
     var $fixed_float = 0;
     var $escape_quotes = "\\";
-    var $sequence_prefix="_sequence_";
-    var $dummy_primary_key="dummy_primary_key";
-    var $manager_class_name="MDB_manager_mysql_class";
-    var $manager_include="manager_mysql.php";
-    var $manager_included_constant="MDB_MANAGER_MYSQL_INCLUDED"; 
-    // new for PEAR
-    var $errorcode_map = array(
-        1004 => DB_ERROR_CANNOT_CREATE,
-        1005 => DB_ERROR_CANNOT_CREATE,
-        1006 => DB_ERROR_CANNOT_CREATE,
-        1007 => DB_ERROR_ALREADY_EXISTS,
-        1008 => DB_ERROR_CANNOT_DROP,
-        1046 => DB_ERROR_NODBSELECTED,
-        1050 => DB_ERROR_ALREADY_EXISTS,
-        1051 => DB_ERROR_NOSUCHTABLE,
-        1054 => DB_ERROR_NOSUCHFIELD,
-        1062 => DB_ERROR_ALREADY_EXISTS,
-        1064 => DB_ERROR_SYNTAX,
-        1100 => DB_ERROR_NOT_LOCKED,
-        1136 => DB_ERROR_VALUE_COUNT_ON_ROW,
-        1146 => DB_ERROR_NOSUCHTABLE,
-    );
+    var $sequence_prefix = "_sequence_";
+    var $dummy_primary_key = "dummy_primary_key";
+    var $manager_class_name = "MDB_manager_mysql_class";
+    var $manager_include = "manager_mysql.php";
+    var $manager_included_constant = "MDB_MANAGER_MYSQL_INCLUDED"; 
+
+    // }}}
+    // {{{ constructor
+    /**
+    * Constructor
+    */
+    function MDB_mysql()
+    {
+        $this->MDB_common();
+        $this->phptype = 'mysql';
+        $this->dbsyntax = 'mysql';
         
+        $this->supported["Sequences"] = 1;
+        $this->supported["Indexes"] = 1;
+        $this->supported["AffectedRows"] = 1;
+        $this->supported["Summaryfunctions"] = 1;
+        $this->supported["OrderByText"] = 1;
+        $this->supported["currId"] = 1;
+        $this->supported["SelectRowRanges"] = 1;
+        $this->supported["LOBs"] = 1;
+        $this->supported["Replace"] = 1;
+
+        if (isset($this->options["UseTransactions"])
+            && $this->options["UseTransactions"]) {
+            $this->supported["Transactions"] = 1;
+        }
+        $this->decimal_factor = pow(10.0, $this->decimal_places);
+        
+        $this->errorcode_map = array(
+            1004 => DB_ERROR_CANNOT_CREATE,
+            1005 => DB_ERROR_CANNOT_CREATE,
+            1006 => DB_ERROR_CANNOT_CREATE,
+            1007 => DB_ERROR_ALREADY_EXISTS,
+            1008 => DB_ERROR_CANNOT_DROP,
+            1046 => DB_ERROR_NODBSELECTED,
+            1050 => DB_ERROR_ALREADY_EXISTS,
+            1051 => DB_ERROR_NOSUCHTABLE,
+            1054 => DB_ERROR_NOSUCHFIELD,
+            1062 => DB_ERROR_ALREADY_EXISTS,
+            1064 => DB_ERROR_SYNTAX,
+            1100 => DB_ERROR_NOT_LOCKED,
+            1136 => DB_ERROR_VALUE_COUNT_ON_ROW,
+            1146 => DB_ERROR_NOSUCHTABLE,
+            1048 => DB_ERROR_CONSTRAINT,
+        );
+    }
+
     function connect()
     {
         $port = (isset($this->options["port"]) ? $this->options["port"] : "");
@@ -243,7 +272,14 @@ class MDB_mysql extends MDB_common
     function fetch($result, $row, $field)
     {
         $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
-        return (mysql_result($result, $row, $field));
+        $res = mysql_result($result, $row, $field);
+        if (!$res && $res != null) {
+            $errno = @mysql_errno($this->connection);
+            if($errno) {
+                return $this->mysqlRaiseError($errno);
+            }
+        }
+        return ($res);
     }
     
     // renamed for PEAR
@@ -253,22 +289,25 @@ class MDB_mysql extends MDB_common
     {
         if ($row !== null) {
             if (!@mysql_data_seek($result, $row)) {
-                return $this->raiseError(DB_ERROR, "", "", 
-                    'Fetch result array', @mysql_error($this->connection));
-            }
-        }
-        if ($fetchmode & DB_FETCHMODE_ASSOC) {
-            if (!$array = mysql_fetch_array($result, MYSQL_ASSOC)) {
-                return $this->raiseError(DB_ERROR, "", "", 
-                    'Fetch result array', @mysql_error($this->connection));
-            }
-        } else {
-            if (!$array = mysql_fetch_row($result)) {
-                return $this->raiseError(DB_ERROR, "", "", 
-                    'Fetch result array ', @mysql_error($this->connection));
+                return null;
             }
         }
         $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
+        if ($fetchmode & DB_FETCHMODE_ASSOC) {
+            $array = mysql_fetch_array($result, MYSQL_ASSOC);
+        } else {
+           $array = mysql_fetch_row($result);
+        }
+        if (!$array) {
+            $errno = @mysql_errno($this->connection);
+            if (!$errno) {
+                if($this->autofree) {
+                    $this->freeResult($result);
+                }
+                return null;
+            }
+            return $this->mysqlRaiseError($errno);
+        }
         if (isset($this->result_types[$result])) {
             if (!$this->convertResultRow($result, $array)) {
                 return $this->raiseError();
@@ -574,25 +613,6 @@ class MDB_mysql extends MDB_common
         return ($this->query("ROLLBACK"));
     }
 
-    function setup()
-    {
-        $this->supported["Sequences"] = 
-        $this->supported["Indexes"] = 
-        $this->supported["AffectedRows"] = 
-        $this->supported["Summaryfunctions"] = 
-        $this->supported["OrderByText"] = 
-        $this->supported["currId"] = 
-        $this->supported["SelectRowRanges"] = 
-        $this->supported["LOBs"] = 
-        $this->supported["Replace"] = 
-            1;
-        if (isset($this->options["UseTransactions"])
-        && $this->options["UseTransactions"])
-            $this->supported["Transactions"] = 1;
-        $this->decimal_factor = pow(10.0, $this->decimal_places);
-        return ("");
-    }
-    
     // ********************
     // new methods for PEAR
     // ********************
