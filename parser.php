@@ -25,7 +25,6 @@ class MDB_parser
     var $error_line, $error_column, $error_byte_index;
     var $variables = array();
     var $fail_on_invalid_names = 1;
-    var $database = array();
 
     /* PRIVATE DATA */
     var $invalid_names = array(
