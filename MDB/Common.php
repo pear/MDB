@@ -206,12 +206,6 @@ class MDB_Common extends PEAR
     * @var boolean
     * @access private
     */
-    var $pass_debug_handle = FALSE;
-
-    /**
-    * @var boolean
-    * @access private
-    */
     var $auto_commit = TRUE;
 
     /**
@@ -502,15 +496,13 @@ class MDB_Common extends PEAR
     /**
      * set a debug handler
      *
-     * @param string $capture name of the function that should be used in
-     *      debug()
+     * @param string $capture name of the function that should be used in debug()
      * @access public
      * @see debug()
      */
-    function captureDebugOutput($capture)
+    function captureDebugOutput($capture = 'MDB_defaultDebugOutput')
     {
-        $this->pass_debug_handle = $capture;
-        $this->debug = ($capture ? 'MDB_defaultDebugOutput' : '');
+        $this->debug = ($capture ? $capture : false);
     }
 
     // }}}
@@ -525,11 +517,7 @@ class MDB_Common extends PEAR
     function debug($message)
     {
         if (strcmp($function = $this->debug, '')) {
-            if ($this->pass_debug_handle) {
-                $function($this, $message);
-            } else {
-                $function($message);
-            }
+            $function($this, $message);
         }
     }
 
