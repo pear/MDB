@@ -1210,7 +1210,7 @@ class MDB_driver_pgsql extends MDB_common {
     {
         $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
         $res = @pg_result($result, $row, $field);
-        if (!$res && $res != NULL) {
+        if ($res === FALSE) {
             return $this->pgsqlRaiseError();
         }
         return ($res);
