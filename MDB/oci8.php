@@ -557,9 +557,11 @@ class MDB_oci8 extends MDB_Common
                     return $err;
                 }
             }
-            return $this->_return_result($result, $return_obj);
+            $result= $this->_return_result($result, $return_obj);
+            return $result;
         }
-        return $this->oci8RaiseError();
+        $error = $this->oci8RaiseError();
+        return $error;
     }
 
     // }}}

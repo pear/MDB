@@ -492,12 +492,14 @@ class MDB_pgsql extends MDB_Common
                     return $err;
                 }
             }
-            return $this->_return_result($result, $return_obj);
+            $result= $this->_return_result($result, $return_obj);
+            return $result;
         } else {
             $this->affected_rows = 0;
             return MDB_OK;
         }
-        return $this->raiseError(MDB_ERROR);
+        $error = $this->pgsqlRaiseError();
+        return $error;
     }
 
     // }}}

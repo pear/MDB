@@ -562,9 +562,11 @@ class MDB_ibase extends MDB_Common
                     return $err;
                 }
             }
-            return $this->_return_result($result, $return_obj);
+            $result= $this->_return_result($result, $return_obj);
+            return $result;
         }
-        return $this->ibaseRaiseError();
+        $error = $this->ibaseRaiseError();
+        return $error;
 
     }
 
