@@ -189,14 +189,6 @@ class MDB
             }
         }
 
-        $include_lob = $db->getOption('include_lob');
-        if (!MDB::isError($include_lob) && $include_lob) {
-            MDB::loadFile('LOB');
-        }
-        $include_manager = $db->getOption('include_manager');
-        if (!MDB::isError($include_manager) && $include_manager) {
-            $db->loadModule('manager');
-        }
         return MDB_OK;
     }
 
@@ -214,11 +206,9 @@ class MDB
     function &factory($type)
     {
         $class_name = "MDB_$type";
-        
-        @include_once "MDB/${type}.php";
-        
-        @$db =& new $class_name;
-        
+        include_once "MDB/${type}.php";
+        $db =& new $class_name;
+
         return $db;
     }
 
@@ -408,9 +398,9 @@ class MDB
      */
     function isError($value)
     {
-        return is_object($value) &&
-            (get_class($value) == 'mdb_error' ||
-            is_subclass_of($value, 'mdb_error'));
+        return is_object($value)
+            && (get_class($value) == 'mdb_error'
+            || is_subclass_of($value, 'mdb_error'));
     }
     
     // }}}
