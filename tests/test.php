@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1998-2002 Manuel Lemos, Paul Cooper                    |
+// | Copyright (c) 1998-2004 Manuel Lemos, Paul Cooper                    |
 // | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
 // | MDB is a merge of PEAR DB and Metabases that provides a unified DB   |
