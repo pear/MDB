@@ -1321,11 +1321,11 @@ class MDB_common extends PEAR
             return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
                 'Set selected row range: selecting row ranges is not supported by this driver');
         }
-        if (gettype($first)!= "integer" || $first < 0) {
+        if (gettype($first) != "integer" || $first < 0) {
             return $this->raiseError(DB_ERROR_SYNTAX, "", "",
                 'Set selected row range: it was not specified a valid first selected range row');
         }
-        if (gettype($limit)!= "integer" || $limit < 1) {
+        if (gettype($limit) != "integer" || $limit < 1) {
             return $this->raiseError(DB_ERROR_SYNTAX, "", "",
                 'Set selected row range: it was not specified a valid selected range row limit');
         }
@@ -1516,7 +1516,8 @@ class MDB_common extends PEAR
         {
             return $result;
         }
-        if (!MDB::isError($success = $this->queryOne("SELECT COUNT(*) FROM $table$condition", $affected_rows, "integer"))) {
+        $affected_rows = $this->queryOne("SELECT COUNT(*) FROM $table$condition", "integer");
+        if (!MDB::isError($affected_rows)) {
             switch($affected_rows) {
                 case 0:
                     $success = $this->query("INSERT INTO $table ($insert) VALUES ($values)");
@@ -1531,6 +1532,8 @@ class MDB_common extends PEAR
                                    'replace keys are not unique');
                     break;
             }
+        } else {
+            $success = $affected_rows;
         }
 
         if (!$in_transaction) {
