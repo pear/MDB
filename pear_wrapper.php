@@ -119,7 +119,7 @@ class DB_result
 
     function fetchInto(&$arr, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        $this->dbh->fetchInto($this->result, &$arr, $fetchmode, $rownum);
+        return $this->dbh->fetchInto($this->result, &$arr, $fetchmode, $rownum);
     }
 
     function numCols()
