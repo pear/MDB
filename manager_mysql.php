@@ -659,7 +659,11 @@ class MDB_manager_mysql_class extends MDB_manager_common
                     if(isset($default)) {
                         $field_choices[$datatype]['default'] = $default;
                     }
-                    if($type[$datatype] != 'boolean') {
+                    if($type[$datatype] != 'boolean'
+                        && $type[$datatype] != 'time'
+                        && $type[$datatype] != 'date'
+                        && $type[$datatype] != 'timestamp')
+                    {
                         if(strlen($length)) {
                             $field_choices[$datatype]['length'] = $length;
                         }
@@ -687,7 +691,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
                     }
                     $is_primary = FALSE;
                     foreach($indexes as $index) {
-                        if ($index['Key_name'] == 'PRIMARY' && $index['Column_name'] == $field) {
+                        if ($index['Key_name'] == 'PRIMARY' && $index['Column_name'] == $field_name) {
                             $is_primary = TRUE;
                             break;
                         }
