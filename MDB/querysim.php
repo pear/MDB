@@ -297,8 +297,8 @@ class MDB_querysim extends MDB_Common
             }
             $this->connection = 0;
         }
-        if(is_array($options)) {
-            foreach($options as $option => $value) {
+        if(is_array($this->options)) {
+            foreach($this->options as $option => $value) {
                 if((in_array($option, array('columnDelim','dataDelim','eolDelim')))
                     && ($value == '\\')) {
                         return $this->raiseError(MDB_ERROR, null, null,
