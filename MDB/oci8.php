@@ -72,19 +72,20 @@ class MDB_oci8 extends MDB_Common
         $this->phptype = 'oci8';
         $this->dbsyntax = 'oci8';
         
-        $this->supported['sequences'] = 1;
-        $this->supported['indexes'] = 1;
-        $this->supported['summary_functions'] = 1;
-        $this->supported['order_by_text'] = 1;
-        $this->supported['affected_rows']= 1;
-        $this->supported['transactions'] = 1;
-        $this->supported['limit_queries'] = 1;
-        $this->supported['LOBs'] = 1;
-        $this->supported['replace'] = 1;
-        $this->supported['sub_selects'] = 1;
+        $this->supported['sequences'] = true;
+        $this->supported['indexes'] = true;
+        $this->supported['summary_functions'] = true;
+        $this->supported['order_by_text'] = true;
+        $this->supported['affected_rows'] = true;
+        $this->supported['transactions'] = true;
+        $this->supported['limit_queries'] = true;
+        $this->supported['LOBs'] = true;
+        $this->supported['replace'] = true;
+        $this->supported['sub_selects'] = true;
         
         $this->options['DBA_username'] = false;
         $this->options['DBA_password'] = false;
+        $this->options['database_name_prefix'] = false;
         $this->options['default_tablespace'] = false;
         $this->options['HOME'] = false;
         $this->options['default_text_field_length'] = 4000;
@@ -174,7 +175,7 @@ class MDB_oci8 extends MDB_Common
     function autoCommit($auto_commit)
     {
         $this->debug(($auto_commit ? 'On' : 'Off'), 'autoCommit');
-        if (!$this->auto_commit == !$auto_commit) {
+        if ($this->auto_commit == $auto_commit) {
             return MDB_OK;
         }
         if ($this->connection && $auto_commit && MDB::isError($commit = $this->commit())) {
@@ -258,7 +259,7 @@ class MDB_oci8 extends MDB_Common
      */
     function _doConnect($username, $password)
     {
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+        if (!PEAR::loadExtension($this->phptype)) {
             return $this->raiseError(MDB_ERROR_NOT_FOUND, null, null,
                 'extension '.$this->phptype.' is not compiled into PHP');
         }
@@ -307,7 +308,7 @@ class MDB_oci8 extends MDB_Common
             $this->_close();
         }
 
-        $connection = $this->_doConnect($this->database_name, $this->dsn['password']);
+        $connection = $this->_doConnect($this->options['database_name_prefix'].$this->database_name, $this->dsn['password']);
         if (MDB::isError($connection)) {
             return $connection;
         }
@@ -343,7 +344,7 @@ class MDB_oci8 extends MDB_Common
             $this->affected_rows = -1;
             $this->uncommitedqueries = 0;
 
-            $GLOBALS['_MDB_databases'][$this->db_index] = '';
+            unset($GLOBALS['_MDB_databases'][$this->db_index]);
             return true;
         }
         return false;
@@ -588,7 +589,8 @@ class MDB_oci8 extends MDB_Common
             return $connect;
         }
 
-        if (!MDB::isError($result = $this->_doQuery($query, $first, $limit, $prepared_query))) {
+        $result = $this->_doQuery($query, $first, $limit, $prepared_query);
+        if (!MDB::isError($result)) {
             if ($types != null) {
                 if (!is_array($types)) {
                     $types = array($types);
@@ -736,11 +738,11 @@ class MDB_oci8 extends MDB_Common
                     return true;
                 }
             }
-            @OCIFetchInto($result, $this->results[$result_value]['row_buffer'], OCI_ASSOC+OCI_RETURN_NULLS);
-            if (is_array($this->results[$result_value]['row_buffer'])) {
+            @OCIFetchInto($result, $buffer, OCI_ASSOC+OCI_RETURN_NULLS);
+            if (is_array($buffer)) {
+                $this->results[$result_value]['row_buffer'] = $buffer;
                 return false;
             }
-            unset($this->results[$result_value]['row_buffer']);
             return true;
         }
         return $this->raiseError(MDB_ERROR, null, null,
@@ -832,11 +834,12 @@ class MDB_oci8 extends MDB_Common
      */
     function freeResult($result)
     {
-        if (!is_resource($result)) {
-            return $this->raiseError(MDB_ERROR, null, null,
-                'freeResult: attemped to free an unknown query result');
+        $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'freeResult: it was specified an inexisting result set');
         }
-        unset($this->results[intval($result)]);
+        unset($this->results[$result_value]);
         return @OCIFreeCursor($result);
     }
 
@@ -898,6 +901,11 @@ class MDB_oci8 extends MDB_Common
      */
     function fetch($result, $rownum = 0, $field = 0)
     {
+        $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'fetch: it was specified an inexisting result set');
+        }
         if (is_numeric($field)) {
             $row = $this->fetchRow($result, MDB_FETCHMODE_ORDERED, $rownum);
         } else {
@@ -927,6 +935,10 @@ class MDB_oci8 extends MDB_Common
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'fetchRow: it was specified an inexisting result set');
+        }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }

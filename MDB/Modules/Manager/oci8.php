@@ -85,16 +85,17 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
         } else {
             $tablespace = '';
         }
-        if (MDB::isError($password = $db->dsn['password'])) {
+        if (!($password = $db->dsn['password'])) {
             $password = $name;
         }
-        $result = $db->standaloneQuery('CREATE USER '.$name.' IDENTIFIED BY '.$password.$tablespace);
+        $username = $db->options['database_name_prefix'].$name;
+        $result = $db->standaloneQuery('CREATE USER '.$username.' IDENTIFIED BY '.$password.$tablespace);
         if (!MDB::isError($result)) {
-            $result = $db->standaloneQuery('GRANT CREATE SESSION, CREATE TABLE,UNLIMITED TABLESPACE,CREATE SEQUENCE TO '.$name);
+            $result = $db->standaloneQuery('GRANT CREATE SESSION, CREATE TABLE,UNLIMITED TABLESPACE,CREATE SEQUENCE TO '.$username);
             if (!MDB::isError($result)) {
                 return MDB_OK;
             } else {
-                if (MDB::isError($result2 = $db->standaloneQuery('DROP USER '.$name.' CASCADE'))) {
+                if (MDB::isError($result2 = $db->standaloneQuery('DROP USER '.$username.' CASCADE'))) {
                     return $db->raiseError(MDB_ERROR, null, null,
                         'createDatabase: could not setup the database user ('.$result->getUserinfo().') and then could drop its records ('.$result2->getUserinfo().')');
                 }
@@ -119,7 +120,8 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
     function dropDatabase($name)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        return $db->standaloneQuery('DROP USER '.$name.' CASCADE');
+        $username = $db->options['database_name_prefix'].$name;
+        return $db->standaloneQuery('DROP USER '.$username.' CASCADE');
     }
 
     // }}}
@@ -284,15 +286,15 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
                     $field_name = $current_name;
                 }
                 $change = '';
-                $change_type = $change_default = 0;
+                $change_type = $change_default = false;
                 if (isset($fields[$current_name]['type'])) {
-                    $change_type = $change_default = 1;
+                    $change_type = $change_default = true;
                 }
                 if (isset($fields[$current_name]['length'])) {
-                    $change_type = 1;
+                    $change_type = true;
                 }
                 if (isset($fields[$current_name]['changed_default'])) {
-                    $change_default = 1;
+                    $change_default = true;
                 }
                 if ($change_type) {
                     $db->loadModule('datatype');
@@ -330,7 +332,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
     function listDatabases()
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $result = $db->query("SELECT table_name, tablespace_name FROM user_tables", null, false);
+        $result = $db->query("SELECT SUBSTR(table_name, 4) FROM user_tables WHERE table_name = 'MDB%'", null, false);
         if (MDB::isError($result)) {
             return $result;
         }
