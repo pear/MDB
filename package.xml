@@ -44,10 +44,10 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>0.9.10</version>
+    <version>0.9.11</version>
     <state>devel</state>
-    <date>2002-07-30</date>
-    <notes>cleanups all over MDB; large improvements to the MDB manager</notes>
+    <date>2002-08-05</date>
+    <notes>made feature improvements and bug fixs to the manager; pgsql core driver now passes the driver test suite; lob support cleanup considerably</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
