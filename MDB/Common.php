@@ -135,7 +135,7 @@ class MDB_common extends PEAR
     */
     function MDB_common()
     {
-        $this->PEAR('DB_Error');
+        $this->PEAR('MDB_Error');
         $this->supported = array();
         $this->errorcode_map = array();
         $this->fetchmode = DB_FETCHMODE_ORDERED;
@@ -373,7 +373,7 @@ class MDB_common extends PEAR
         }
         return (0);
     }
-    
+
     // }}}
     // {{{ setErrorHandler() (deprecated)
 
@@ -408,6 +408,24 @@ class MDB_common extends PEAR
         $last_function = $this->error_handler;
         $this->error_handler = $function;
         return ($last_function);
+    }
+    
+    // }}}
+    // {{{ error() (deprecated)
+
+    /**
+     * Retrieve the error message text associated with the last operation that
+     * failed. Some functions may fail but they do not return the reason that
+     * makes them to fail. This function is meant to retrieve a textual
+     * description of the failure cause.
+     * 
+     * @access public
+     *
+     * @return string the error message text associated with the last failure.
+     */
+    function error()
+    {
+        return($this->last_error);
     }
 
     // }}}
@@ -3536,13 +3554,8 @@ class MDB_common extends PEAR
             $res = $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
                     'Fetch field: result set is empty');
         } else {
-            if ($this->resultIsNull($result, 0, 0)) {
-                unset($value);
-                $res = DB_OK;
-            } else {
-                $res = $this->fetchInto($result, $value, $fetchmode, 0);
-                $value = $value[0];
-            }
+            $res = $this->fetchInto($result, $value, $fetchmode, NULL);
+            $value = $value[0];
         }
         if(!$this->autofree || $value == NULL) {
             $this->freeResult($result);
