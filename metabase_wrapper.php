@@ -1515,7 +1515,7 @@ class Metabase_manager_class
 
     function AlterDatabase(&$previous_definition, &$changes)
     {
-        $result = $this->MDB_manager_object->alterDatabase($previous_definition, $changes);
+        $result = $this->MDB_manager_object->_alterDatabase($previous_definition, $changes);
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1525,7 +1525,7 @@ class Metabase_manager_class
 
     function EscapeSpecialCharacters($string)
     {
-        $result = $this->MDB_manager_object->escapeSpecialCharacters($string);
+        $result = $this->MDB_manager_object->_escapeSpecialCharacters($string);
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1555,7 +1555,7 @@ class Metabase_manager_class
 
     function ParseDatabaseDefinitionFile($input_file, &$database_definition, &$variables, $fail_on_invalid_names = 1)
     {
-        $result = $this->MDB_manager_object->parseDatabaseDefinitionFile($input_file, $variables, $fail_on_invalid_names);
+        $result = $this->MDB_manager_object->_parseDatabaseDefinitionFile($input_file, $variables, $fail_on_invalid_names);
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1566,7 +1566,7 @@ class Metabase_manager_class
 
     function DumpDatabaseChanges(&$changes)
     {
-        $result = $this->MDB_manager_object->dumpDatabaseChanges($changes);
+        $result = $this->MDB_manager_object->_dumpDatabaseChanges($changes);
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1588,7 +1588,7 @@ class Metabase_manager_class
 
     function DumpDatabaseContents($schema_file, &$setup_arguments, &$dump_arguments, &$variables)
     {
-        $result = $this->MDB_manager_object->dumpDatabaseContents($schema_file, $setup_arguments, $dump_arguments, $variables);
+        $result = $this->MDB_manager_object->_dumpDatabaseContents($schema_file, $setup_arguments, $dump_arguments, $variables);
         if (MDB::isError($result)) {
             return(0);
         } else {
