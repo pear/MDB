@@ -44,7 +44,7 @@
 //
 // $Id$
 //
-require_once 'PEAR.php';
+require_once('PEAR.php');
 
 /**
  * The method mapErrorCode in each MDB_dbtype implementation maps
@@ -95,10 +95,10 @@ define('MDB_ERROR_LOADMODULE',         -32);
  *
  * The prepare/execute model in DB is mostly borrowed from the ODBC
  * extension, in a query the '?' character means a scalar parameter.
- * There are two extensions though, a "&" character means an opaque
+ * There are two extensions though, a '&' character means an opaque
  * parameter.  An opaque parameter is simply a file name, the real
  * data are in that file (useful for putting uploaded files into your
- * database and such). The "!" char means a parameter that must be
+ * database and such). The '!' char means a parameter that must be
  * left as it is.
  * They modify the quote behavior:
  * MDB_PARAM_SCALAR (?) => 'original string quoted'
@@ -231,14 +231,13 @@ class MDB
      */
     function &factory($type)
     {
-        $type       = $dsninfo['phptype'];
         $class_name = "MDB_$type";
         
-        @include_once "MDB/${type}.php";
+        @include_once("MDB/${type}.php");
         
         @$db =& new $classname;
         
-        return $db;
+        return($db);
     }
     
     // }}}
@@ -278,23 +277,23 @@ class MDB
             $class_name    = 'MDB_'.$type;
             $include       = 'MDB/'.$type.'.php';
         } else {
-            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
+            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
                 NULL, NULL, 'no RDBMS driver specified',
-                'MDB_Error', TRUE);
+                'MDB_Error', TRUE));
         }
         
-        if (is_array($options) && isset($options["debug"]) &&
-            $options["debug"] >= 2) {
+        if (is_array($options) && isset($options['debug']) &&
+            $options['debug'] >= 2) {
             // expose php errors with sufficient debug level
-            include_once $include;
+            include_once($include);
         } else {
-            @include_once $include;
+            @include_once($include);
         }
         
         if (!class_exists($class_name)) {
-            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND, NULL, NULL,
+            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND, NULL, NULL,
                 'Unable to include the '.$include.' file',
-                'MDB_Error', TRUE);
+                'MDB_Error', TRUE));
         }
         
         @$db =& new $class_name($dsninfo, $options);
@@ -305,10 +304,10 @@ class MDB
             if (MDB::isError($err)) {
                 $dsn = $db->getDSN();
                 $err->addUserInfo($dsn);
-                return $err;
+                return($err);
             }
         }
-        return $db;
+        return($db);
     }
     
     // }}}
@@ -322,7 +321,7 @@ class MDB
      */
     function loadFile($file)
     {
-        @include_once 'MDB/'.$file.'.php';
+        @include_once('MDB/'.$file.'.php');
     }
     
     // }}}
@@ -336,7 +335,7 @@ class MDB
      */
     function apiVersion()
     {
-        return 1;
+        return(1);
     }
     
     // }}}
@@ -351,7 +350,7 @@ class MDB
      */
     function isError($value)
     {
-        return (is_object($value) &&
+        return(is_object($value) &&
             (get_class($value) == 'mdb_error' ||
             is_subclass_of($value, 'mdb_error')));
     }
@@ -373,9 +372,9 @@ class MDB
         $manips = 'INSERT|UPDATE|DELETE|REPLACE|CREATE|DROP|
                   ALTER|GRANT|REVOKE|LOCK|UNLOCK|ROLLBACK|COMMIT';
         if (preg_match('/^\s*"?('.$manips.')\s+/i', $query)) {
-            return TRUE;
+            return(TRUE);
         }
-        return FALSE;
+        return(FALSE);
     }
     
     // }}}
@@ -433,8 +432,8 @@ class MDB
             $value = $value->getCode();
         }
         
-        return isset($errorMessages[$value]) ?
-           $errorMessages[$value] : $errorMessages[MDB_ERROR];
+        return(isset($errorMessages[$value]) ?
+           $errorMessages[$value] : $errorMessages[MDB_ERROR]);
     }
     
     // }}}
@@ -475,7 +474,7 @@ class MDB
     function parseDSN($dsn)
     {
         if (is_array($dsn)) {
-            return $dsn;
+            return($dsn);
         }
         
         $parsed = array(
@@ -510,7 +509,7 @@ class MDB
         }
         
         if (empty($dsn)) {
-            return $parsed;
+            return($parsed);
         }
         
         // Get (if found): username and password
@@ -585,7 +584,7 @@ class MDB
             }
         }
         
-        return $parsed;
+        return($parsed);
     }
 }
 
@@ -607,7 +606,7 @@ class MDB_Error extends PEAR_Error
      * MDB_Error constructor.
      *
      * @param mixed   $code      MDB error code, or string with error message.
-     * @param integer $mode      what "error mode" to operate in
+     * @param integer $mode      what 'error mode' to operate in
      * @param integer $level     what error level to use for
      *                           $mode & PEAR_ERROR_TRIGGER
      * @param smixed  $debuginfo additional debug info, such as the last query
