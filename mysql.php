@@ -6,7 +6,7 @@
  *
  */
 
- if(!defined("MDB_MYSQL_INCLUDED")) {
+ if (!defined("MDB_MYSQL_INCLUDED")) {
     define("MDB_MYSQL_INCLUDED",1);
 
 require_once "common.php";
@@ -74,7 +74,9 @@ class MDB_mysql extends MDB_common
                 $major = intval($version[0]);
                 $minor = intval($version[1]);
                 $revision = intval($version[2]);
-                if ($major > 3 || ($major == 3 && $minor >= 23 && ($minor > 23 || $revision >= 6))) {
+                if ($major > 3 || ($major == 3 && $minor >= 23
+					&& ($minor > 23 || $revision >= 6)))
+				{
                     $this->fixed_float = 0;
                 }
                 mysql_free_result($result);
@@ -82,7 +84,7 @@ class MDB_mysql extends MDB_common
         }
         if (isset($this->supported["Transactions"]) && !$this->auto_commit)    {
             if (!mysql_query("SET AUTOCOMMIT = 0", $this->connection)) {
-                mysql_Close($this->connection);
+                mysql_close($this->connection);
                 $this->connection = 0;
                 $this->affected_rows = -1;
                 return (0);
@@ -101,7 +103,7 @@ class MDB_mysql extends MDB_common
     {
         if ($this->connection != 0) {
             if (isset($this->supported["Transactions"]) && !$this->auto_commit) {
-                $this->AutoCommitTransactions(1);
+                $this->autoCommitTransactions(1);
             }
             mysql_Close($this->connection);
             $this->connection = 0;
@@ -138,7 +140,7 @@ class MDB_mysql extends MDB_common
         } else {
             return $this->raiseError(DB_ERROR);
         }
-            //return ($this->setError("Query",mysql_error($this->connection)));
+        //return ($this->setError("Query",mysql_error($this->connection)));
         return ($result);
     }
 
@@ -285,22 +287,22 @@ class MDB_mysql extends MDB_common
 
     function createDatabase($name)
     {
-        if (!$this->Connect()) {
+        if (!$this->connect()) {
             return (0);
         }
         if (!mysql_create_db($name, $this->connection)) {
-            return ($this->setError("Create database",mysql_error($this->connection)));
+            return $this->mysqlRaiseError(DB_ERROR_CANNOT_CREATE);
         }
         return (1);
     }
 
     function dropDatabase($name)
     {
-        if (!$this->Connect()) {
+        if (!$this->connect()) {
             return (0);
         }
         if (!mysql_drop_db($name, $this->connection)) {
-            return ($this->setError("Drop database",mysql_error($this->connection)));
+            return ($this->mysqlRaiseError(DB_ERROR_CANNOT_DROP));
         }
         return (1);
     }
@@ -574,16 +576,16 @@ class MDB_mysql extends MDB_common
 
     function createSequence($name, $start)
     {
-        $res = $this->Query("CREATE TABLE _sequence_$name
+        $res = $this->query("CREATE TABLE _sequence_$name
             (sequence INT DEFAULT 0 NOT NULL AUTO_INCREMENT, PRIMARY KEY (sequence))");
-        if (DB::isError($res)) {
+        if (MDB::isError($res)) {
             return $res;
         }
-        if ($start == 1 || $this->Query("INSERT INTO _sequence_$name (sequence) VALUES (".($start-1).")")) {
+        if ($start == 1 || $this->query("INSERT INTO _sequence_$name (sequence) VALUES (".($start-1).")")) {
             return (1);
         }
-        $error = $this->Error();
-        if (!$this->Query("DROP TABLE _sequence_$name")) {
+        $error = $this->error();
+        if (!$this->query("DROP TABLE _sequence_$name")) {
             $this->warning = "could not drop inconsistent sequence table";
         }
         return ($this->setError("Create sequence", $error));
@@ -591,21 +593,18 @@ class MDB_mysql extends MDB_common
 
     function dropSequence($name)
     {
-        return ($this->Query("DROP TABLE _sequence_$name"));
+        return ($this->query("DROP TABLE _sequence_$name"));
     }
     
     // renamed for PEAR
     // used to be: getSequenceNextValue
-    // added $on_demand
-    // on_demand was default true for PEAR but was unavailable in Metabase
-    // so this needs to be handled
-    function nextId($name, $on_demand = true)
+    function nextId($name)
     {
-        if (!$this->Query("INSERT INTO _sequence_$name (sequence) VALUES (NULL)")) {
+        if (!$this->query("INSERT INTO _sequence_$name (sequence) VALUES (NULL)")) {
             return (0);
         }
         $value = intval(mysql_insert_id());
-        if (!$this->Query("DELETE FROM _sequence_$name WHERE sequence<$value")) {
+        if (!$this->query("DELETE FROM _sequence_$name WHERE sequence<$value")) {
             $this->warning = "could delete previous sequence table values";
         }
         return ($value);
@@ -725,6 +724,20 @@ class MDB_mysql extends MDB_common
        }
        return $this->raiseError($errno, null, null, null, @mysql_error($this->connection));
    }
+
+    /**
+     * Move the internal mysql result pointer to the next available result
+     *
+     * @param a valid fbsql result resource
+     *
+     * @access public
+     *
+     * @return true if a result is available otherwise return false
+     */
+    function nextResult($result)
+    {
+        return false;
+    }
    
      function tableInfo($result, $mode = null) {
         $count = 0;
