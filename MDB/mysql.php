@@ -486,7 +486,11 @@ class MDB_mysql extends MDB_Common
         if ($this->supported['SubSelects'] == 1) {
             return $query;
         }
-        $col = $this->queryCol($query);
+        $result = $this->query($query);
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        $col = $this->fetchCol($result);
         if (MDB::isError($col)) {
             return $col;
         }
@@ -815,7 +819,8 @@ class MDB_mysql extends MDB_Common
             if (!@mysql_data_seek($result, $rownum)) {
                 return null;
             }
-            $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
+            $this->results[$result_value]['highest_fetched_row'] =
+                max($this->results[$result_value]['highest_fetched_row'], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;

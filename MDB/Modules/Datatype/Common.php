@@ -326,6 +326,7 @@ class MDB_Datatype_Common
             return $db->raiseError(MDB_ERROR_INVALID, null, null,
                 'Set result types: attempted to redefine the types of the columns of a result set');
         }
+
         $columns = $db->numCols($result);
         if (MDB::isError($columns)) {
             return $columns;
@@ -420,7 +421,7 @@ class MDB_Datatype_Common
      */
     function convertResult(&$db, $value, $type)
     {
-        return $this->_baseConvertResult($value, $type);
+        return $this->_baseConvertResult($db, $value, $type);
     }
 
     // }}}
@@ -456,7 +457,7 @@ class MDB_Datatype_Common
                         $row[$key] = intval($row[$key]);
                         break;
                     default:
-                        $value = $this->convertResult($row[$key], $type);
+                        $value = $this->convertResult($db, $row[$key], $type);
                         if (MDB::isError($value)) {
                             return $value;
                         }

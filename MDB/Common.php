@@ -514,25 +514,21 @@ class MDB_Common extends PEAR
      *      that is used for error messages
      * @param string $module name of the module that should be loaded
      *      (only used for error messages)
-     * @param string $included_constant name of the constant that should be
-     *      defined when the module has been loaded
      * @param string $include name of the script that includes the module
      * @access private
      */
-    function _loadModule($scope, $module, $included_constant, $include)
+    function _loadModule($scope, $module, $include)
     {
-        if (strlen($included_constant) == 0 || !defined($included_constant)) {
-            if ($include) {
-                $include = 'MDB/Modules/'.$include;
-                if (MDB::isError($debug = $this->getOption('debug')) || $debug > 2) {
-                    include_once $include;
-                } else {
-                    @include_once $include;
-                }
+        if ($include) {
+            $include = 'MDB/Modules/'.$include;
+            if (MDB::isError($debug = $this->getOption('debug')) || $debug > 2) {
+                include_once $include;
             } else {
-                return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
-                    $scope . ': it was not specified an existing ' . $module . ' file (' . $include . ')');
+                @include_once $include;
             }
+        } else {
+            return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
+                $scope . ': it was not specified an existing ' . $module . ' file (' . $include . ')');
         }
         return MDB_OK;
     }
@@ -553,7 +549,6 @@ class MDB_Common extends PEAR
             return MDB_OK;
         }
         $result = $this->_loadModule($scope, 'Manager',
-            'MDB_MANAGER_'.strtoupper($this->phptype).'_INCLUDED',
             'Manager/'.$this->phptype.'.php');
         if (MDB::isError($result)) {
             return $result;
@@ -583,7 +578,6 @@ class MDB_Common extends PEAR
             return MDB_OK;
         }
         $result = $this->_loadModule($scope, 'Datatype',
-            'MDB_Datatype_'.strtoupper($this->phptype).'_INCLUDED',
             'Datatype/'.$this->phptype.'.php');
         if (MDB::isError($result)) {
             return $result;
@@ -594,6 +588,34 @@ class MDB_Common extends PEAR
                 'Unable to load extension');
         }
         @$this->datatype = new $class_name;
+        return MDB_OK;
+    }
+
+    // }}}
+    // {{{ loadExtended()
+
+    /**
+     * loads the Extended module
+     *
+     * @param string $scope information about what method is being loaded,
+     *                       that is used for error messages
+     * @access public
+     */
+    function loadExtended($scope = '')
+    {
+        if (isset($this->extended) && is_object($this->extended)) {
+            return MDB_OK;
+        }
+        $result = $this->_loadModule($scope, 'Extended', 'Extended.php');
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        $class_name = 'MDB_Extended';
+        if (!class_exists($class_name)) {
+            return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
+                'Unable to load extension');
+        }
+        @$this->extended = new $class_name;
         return MDB_OK;
     }
 
@@ -1391,9 +1413,9 @@ class MDB_Common extends PEAR
      */
     function setResultTypes($result, $types)
     {
-        $result = $this->loadDatatype('setResultTypes');
-        if (MDB::isError($result)) {
-            return $result;
+        $load = $this->loadDatatype('setResultTypes');
+        if (MDB::isError($load)) {
+            return $load;
         }
         return $this->datatype->setResultTypes($this, $result, $types);
     }
@@ -1714,13 +1736,17 @@ class MDB_Common extends PEAR
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
         if (MDB::isError($this->endOfResult($result))) {
-            $this->freeResult($result);
+            if ($this->options['autofree']) {
+                $this->freeResult($result);
+            }
             return null;
         }
-
         $columns = $this->numCols($result);
         if (MDB::isError($columns)) {
             return $columns;
+        }
+        if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
+            $fetchmode = $this->fetchmode;
         }
         if ($fetchmode & MDB_FETCHMODE_ASSOC) {
             $column_names = $this->getColumnNames($result);
@@ -1732,6 +1758,9 @@ class MDB_Common extends PEAR
             if (!$this->resultIsNull($result, $rownum, $column)) {
                 $result = $this->fetch($result, $rownum, $column);
                 if ($result == null) {
+                    if ($this->options['autofree']) {
+                        $this->freeResult($result);
+                    }
                     return null;
                 }
             }
@@ -1741,7 +1770,7 @@ class MDB_Common extends PEAR
                 $array[$column] = $result;
             }
         }
-        if (isset($this->results[$result]['types'])) {
+        if (isset($this->results[intval($result)]['types'])) {
             $array = $this->datatype->convertResultRow($this, $result, $array);
         }
         return $array;

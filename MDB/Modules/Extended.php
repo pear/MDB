@@ -1,4 +1,4 @@
-<<?php
+<?php
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
@@ -85,8 +85,8 @@ class MDB_Extended
         }
         $one = $db->fetchOne($result);
 
-        if (!$this->options['autofree'] || $one != null) {
-            $this->freeResult($result);
+        if (!$db->options['autofree'] || $one != null) {
+            $db->freeResult($result);
         }
 
         return $one;
@@ -117,8 +117,8 @@ class MDB_Extended
         }
         $row = $db->fetchRow($result, $fetchmode);
 
-        if (!$this->options['autofree'] || $row != null) {
-            $this->freeResult($result);
+        if (!$db->options['autofree'] || $row != null) {
+            $db->freeResult($result);
         }
 
         return $row;
@@ -151,8 +151,8 @@ class MDB_Extended
         }
         $col = $db->fetchCol($result, $colnum);
 
-        if (!$this->options['autofree']) {
-            $this->freeResult($result);
+        if (!$db->options['autofree']) {
+            $db->freeResult($result);
         }
 
         return $col;
@@ -191,8 +191,8 @@ class MDB_Extended
         }
         $all = $db->fetchAll($result, $fetchmode, $rekey, $force_array, $group);
 
-        if (!$this->options['autofree']) {
-            $this->freeResult($result);
+        if (!$db->options['autofree']) {
+            $db->freeResult($result);
         }
 
         return $all;
@@ -218,12 +218,13 @@ class MDB_Extended
      */
     function getOne(&$db, $query, $type = null, $params = array(), $param_types = null)
     {
-        if ($type != null) {
-            $type = array($type);
-        }
         settype($params, 'array');
         if (count($params) == 0) {
             return $this->queryOne($db, $query, $type);
+        }
+
+        if ($type != null) {
+            $type = array($type);
         }
 
         $prepared_query = $db->prepareQuery($query);
@@ -241,8 +242,8 @@ class MDB_Extended
 
         $db->freePreparedQuery($prepared_query);
 
-        if (!$this->options['autofree'] || $row != null) {
-            $this->freeResult($result);
+        if (!$db->options['autofree'] || $row != null) {
+            $db->freeResult($result);
         }
 
         return $row[0];
@@ -270,9 +271,10 @@ class MDB_Extended
     function getRow(&$db, $query, $types = null, $params = array(), $param_types = null, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
         settype($params, 'array');
-        if (count($params) > 0) {
+        if (count($params) == 0) {
             return $this->queryRow($db, $query, $types, $fetchmode);
         }
+
         $prepared_query = $db->prepareQuery($query);
         if (MDB::isError($prepared_query)) {
             return $prepared_query;
@@ -288,8 +290,8 @@ class MDB_Extended
 
         $db->freePreparedQuery($prepared_query);
 
-        if (!$this->options['autofree'] || $row != null) {
-            $this->freeResult($result);
+        if (!$db->options['autofree'] || $row != null) {
+            $db->freeResult($result);
         }
 
         return $row;
@@ -340,8 +342,8 @@ class MDB_Extended
 
         $db->freePreparedQuery($prepared_query);
 
-        if (!$this->options['autofree']) {
-            $this->freeResult($result);
+        if (!$db->options['autofree']) {
+            $db->freeResult($result);
         }
 
         return $col;
@@ -396,8 +398,8 @@ class MDB_Extended
 
         $db->freePreparedQuery($prepared_query);
 
-        if (!$this->options['autofree']) {
-            $this->freeResult($result);
+        if (!$db->options['autofree']) {
+            $db->freeResult($result);
         }
 
         return $all;

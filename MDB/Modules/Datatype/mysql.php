@@ -75,7 +75,7 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
             case MDB_TYPE_DECIMAL:
                 return sprintf('%.'.$db->decimal_places.'f', doubleval($value)/$db->decimal_factor);
             default:
-                return $this->_baseConvertResult($value, $type);
+                return $this->_baseConvertResult($db, $value, $type);
         }
     }
 

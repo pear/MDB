@@ -618,10 +618,10 @@ class MDB_ibase extends MDB_Common
     function _skipLimitOffset($result)
     {
         $result_value = intval($result);
-        $first = $this->limits[$result_value][0];
-        for (; $this->limits[$result_value][2] < $first; $this->limits[$result_value][2]++) {
+        $first = $this->results[$result_value]['limits'][0];
+        for (; $this->results[$result_value]['limits'][2] < $first; $this->results[$result_value]['limits'][2]++) {
             if (!is_array(@ibase_fetch_row($result))) {
-                $this->limits[$result_value][2] = $first;
+                $this->results[$result_value]['limits'][2] = $first;
                 return $this->raiseError(MDB_ERROR, null, null,
                     'Skip first rows: could not skip a query result row');
             }
@@ -716,17 +716,17 @@ class MDB_ibase extends MDB_Common
             return $this->raiseError(MDB_ERROR, null, null,
                 'End of result: attempted to check the end of an unknown result');
         }
-        if (isset($this->rows[$result_value])) {
-            return $this->results[$result_value]['highest_fetched_row'] >= $this->rows[$result_value]-1;
+        if (isset($this->results[$result_value]['rows'])) {
+            return $this->results[$result_value]['highest_fetched_row'] >= $this->results[$result_value]['rows']-1;
         }
         if (isset($this->results[$result_value]['row_buffer'])) {
             return false;
         }
-        if (isset($this->limits[$result_value])) {
+        if (isset($this->results[$result_value]['limits'])) {
             if (MDB::isError($this->_skipLimitOffset($result))
-                || $this->results[$result_value]['current_row'] + 1 >= $this->limits[$result_value][1])
+                || $this->results[$result_value]['current_row'] + 1 >= $this->results[$result_value]['limits'][1])
             {
-                $this->rows[$result_value] = 0;
+                $this->results[$result_value]['rows'] = 0;
                 return true;
             }
         }
@@ -734,7 +734,7 @@ class MDB_ibase extends MDB_Common
             return false;
         }
         unset($this->results[$result_value]['row_buffer']);
-        $this->rows[$result_value] = $this->results[$result_value]['current_row']+1;
+        $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row']+1;
         return true;
     }
 
@@ -784,11 +784,11 @@ class MDB_ibase extends MDB_Common
         if (isset($this->results[$result_value][$rownum])) {
             return $this->results[$result_value][$rownum];
         }
-        if (isset($this->rows[$result_value])) {
+        if (isset($this->results[$result_value]['rows'])) {
             return $this->raiseError(MDB_ERROR, null, null, 'Fetch Row: there are no more rows to retrieve') ;
         }
-        if (isset($this->limits[$result_value])) {
-            if ($rownum >= $this->limits[$result_value][1]) {
+        if (isset($this->results[$result_value]['limits'])) {
+            if ($rownum >= $this->results[$result_value]['limits'][1]) {
                 return $this->raiseError(MDB_ERROR, null, null, 'Fetch Row: attempted to fetch a row beyond the number rows available in the query result') ;
             }
             if (MDB::isError($err = $this->_skipLimitOffset($result))) {
@@ -802,7 +802,7 @@ class MDB_ibase extends MDB_Common
         }
         for (; $this->results[$result_value]['current_row']<$rownum; $this->results[$result_value]['current_row']++) {
             if (!is_array($this->results[$result_value][$this->results[$result_value]['current_row']+1] = @ibase_fetch_row($result))) {
-                $this->rows[$result_value] = $this->results[$result_value]['current_row']+1;
+                $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row']+1;
                 return $this->raiseError(MDB_ERROR, null, null, 'Fetch Row: could not fetch the query result row (maybe empty result?)') ;
             } else {
                 //this foreach is supposed to solve the "padded whitespaces" problem...   REVIEW ME!!!
@@ -837,16 +837,16 @@ class MDB_ibase extends MDB_Common
             return $this->raiseError(MDB_ERROR, null, null,
                 'Number of rows: attemped to obtain the number of rows contained in an unknown query result');
         }
-        if (!isset($this->rows[$result_value])) {
+        if (!isset($this->results[$result_value]['rows'])) {
             if (MDB::isError($getcolumnnames = $this->getColumnNames($result))) {
                 return $getcolumnnames;
             }
-            if (isset($this->limits[$result_value])) {
+            if (isset($this->results[$result_value]['limits'])) {
                 if (MDB::isError($skipfirstrow = $this->_skipLimitOffset($result))) {
-                    $this->rows[$result_value] = 0;
+                    $this->results[$result_value]['rows'] = 0;
                     return $skipfirstrow;
                 }
-                $limit = $this->limits[$result_value][1];
+                $limit = $this->results[$result_value]['limits'][1];
             } else {
                 $limit = 0;
             }
@@ -858,9 +858,9 @@ class MDB_ibase extends MDB_Common
                 }
                 for (;($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit) && $this->results[$result_value][$this->results[$result_value]['current_row'] + 1] = @ibase_fetch_row($result);$this->results[$result_value]['current_row']++);
             }
-            $this->rows[$result_value] = $this->results[$result_value]['current_row'] + 1;
+            $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row'] + 1;
         }
-        return $this->rows[$result_value];
+        return $this->results[$result_value]['rows'];
     }
 
     // }}}
