@@ -353,7 +353,7 @@ class MDB_parser extends PEAR
                         }
                         $tags[$data['Tag']] = $property_element_path;
                         if (!$this->getTagData($property_element_path,
-                            $values[$data['Tag']], 
+                            $values[$data['Tag']],
                             "Could not parse $property_type ".$data['Tag'].' property')
                         ) {
                             return(0);
@@ -564,7 +564,7 @@ class MDB_parser extends PEAR
                                                 if (strcmp(strval($length), $field_values['length'])
                                                     || $length <= 0)
                                                 {
-                                                    return($this->setParserError($field_tags['length'], 
+                                                    return($this->setParserError($field_tags['length'],
                                                         'It was not specified a valid text field length value')
                                                 );
                                                 }

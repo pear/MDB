@@ -301,7 +301,7 @@ class xml_parser_class
                 $this->error_line=$xml_parser_handlers[$this->xml_parser]->error_line;
                 $this->error_column=$xml_parser_handlers[$this->xml_parser]->error_column;
                 $this->error_byte_index=$xml_parser_handlers[$this->xml_parser]->error_byte_index;
-            }            
+            }
         }
         return($this->error);
     }
