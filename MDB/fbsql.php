@@ -179,7 +179,7 @@ class MDB_fbsql extends MDB_Common
      */
     function autoCommit($auto_commit)
     {
-        $this->debug('autoCommit', ($auto_commit ? 'On' : 'Off'));
+        $this->debug(($auto_commit ? 'On' : 'Off'), 'autoCommit');
         if (!isset($this->supported['Transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Auto-commit transactions: transactions are not in use');
@@ -251,7 +251,7 @@ class MDB_fbsql extends MDB_Common
      */
     function rollback()
     {
-        $this->debug('rollback', 'rolling back transaction');
+        $this->debug('rolling back transaction', 'rollback');
         if (!isset($this->supported['Transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Rollback transactions: transactions are not in use');
@@ -387,7 +387,7 @@ class MDB_fbsql extends MDB_Common
      */
     function query($query, $types = null)
     {
-        $this->debug('query', $query);
+        $this->debug($query, 'query');
         $ismanip = MDB::isManip($query);
         $this->last_query = $query;
         $first = $this->first_selected_row;

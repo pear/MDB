@@ -181,7 +181,7 @@ class MDB_oci8 extends MDB_Common
      */
     function autoCommit($auto_commit)
     {
-        $this->debug('autoCommit', ($auto_commit ? 'On' : 'Off'));
+        $this->debug(($auto_commit ? 'On' : 'Off'), 'autoCommit');
         if (!$this->auto_commit == !$auto_commit) {
             return MDB_OK;
         }
@@ -207,7 +207,7 @@ class MDB_oci8 extends MDB_Common
      */
     function commit()
     {
-        $this->debug('commit', 'commit transaction');
+        $this->debug('commit transaction', 'commit');
         if (!isset($this->supported['Transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Commit transactions: transactions are not in use');
@@ -240,7 +240,7 @@ class MDB_oci8 extends MDB_Common
      */
     function rollback()
     {
-        $this->debug('rollback', 'rolling back transaction');
+        $this->debug('rolling back transaction', 'rollback');
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'Rollback transactions: transactions can not be rolled back when changes are auto commited');
@@ -521,7 +521,7 @@ class MDB_oci8 extends MDB_Common
      */
     function query($query, $types = null)
     {
-        $this->debug('query', $query);
+        $this->debug($query, 'query');
         $this->last_query = $query;
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;

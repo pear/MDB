@@ -402,7 +402,7 @@ class MDB_querysim extends MDB_Common
             $query = $this->_readFile();
         }
         
-        $this->debug('query', $query);
+        $this->debug($query, 'query');
         $ismanip = false;
         
         $first = $this->first_selected_row;
