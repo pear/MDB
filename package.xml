@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE package SYSTEM "../../php4/pear/package.dtd">
+<package version="1.0">
+  <name>MDB</name>
+  <summary>Unified Database API</summary>
+  <description>
+    MDB is a merge of PEAR DB's and Metabases that provides a unified DB API.
+    It also provides methods for DB portability and DB feature emulation.
+    Most notably it features a DB independent XML-Schema manager.
+  </description>
+  <maintainers>
+    <maintainer>
+      <user>lsmith</user>
+      <role>lead</role>
+      <name>Lukas Kahwe Smith</name>
+      <email>lsmith@php.net</email>
+    </maintainer>
+    <maintainer>
+      <user>clinn</user>
+      <role>developer</role>
+      <name>Christopher Linn</name>
+      <email>clinn@dybnet.de</email>
+    </maintainer>
+    <maintainer>
+      <user>ssb</user>
+      <role>contributor</role>
+      <name>Stig Sæther Bakken</name>
+      <email>stig@php.net</email>
+    </maintainer>
+    <maintainer>
+      <user>cox</user>
+      <role>contributor</role>
+      <name>Tomas V.V.Cox</name>
+      <email>cox@php.net</email>
+    </maintainer>
+    <maintainer>
+      <user>manuel</user>
+      <role>contributor</role>
+      <name>Manuel Lemos</name>
+      <email>mlemos@acm.org</email>
+    </maintainer>
+  </maintainers>
+  <release>
+    <version>0.9</version>
+    <state>beta</state>
+    <date>2002-05-03</date>
+    <notes>First packaged release of MDB</notes>
+    <filelist>
+      <dir name="/">
+          <file>MDB.php</file>
+          <file>common.php</file>
+          <file>mysql.php</file>
+          <file>lob.php</file>
+          <file>manager.php</file>
+          <file>parser.php</file>
+          <file>xml_parser.php</file>
+          <file>metabase_wrapper.php</file>
+          <file>pear_wrapper.php</file>
+          <file>README.txt</file>
+          <file>MDB_test.php</file>
+          <file>MDB_test_pear_wrapper.php</file>
+          <file>driver_test.php</file>
+          <file>driver_test_config.php</file>
+          <file>driver_test.schema</file>
+          <file>setup_test.php</file>
+          <file>lob_test.schema</file>
+          <file>test.schema</file>
+          <file>Var_Dump.php</file>
+        </dir>
+    </filelist>
+    <deps>
+      <dep type="php" rel="ge" version="4.0.4pl1" />
+    </deps>
+  </release>
+</package>
