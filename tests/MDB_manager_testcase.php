@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1998-2002 Manuel Lemos, Paul Cooper                    |
+// | Copyright (c) 1998-2004 Manuel Lemos, Paul Cooper                    |
 // | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
 // | MDB is a merge of PEAR DB and Metabases that provides a unified DB   |
@@ -43,8 +43,6 @@
 //
 // $Id$
 
-require_once 'MDB/Manager.php';
-
 class MDB_Manager_TestCase extends PHPUnit_TestCase {
     //contains the dsn of the database we are testing
     var $dsn;
@@ -66,8 +64,8 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     }
 
     function setUp() {
-        $this->dsn = $GLOBALS['dsn'];
-        $this->options = $GLOBALS['options'];
+        $this->dsn      = $GLOBALS['dsn'];
+        $this->options  = $GLOBALS['options'];
         $this->database = $GLOBALS['database'];
         $backup_file = $this->driver_input_file.$this->backup_extension;
         if (file_exists($backup_file)) {
@@ -83,6 +81,29 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
             $this->assertTrue(false, 'Could not connect to manager in setUp');
             exit;
         }
+        $this->fields = array(
+            'user_name',
+            'user_password',
+            'subscribed',
+            'user_id',
+            'quota',
+            'weight',
+            'access_date',
+            'access_time',
+            'approved'
+        );
+
+        $this->types = array(
+           'text',
+           'text',
+           'boolean',
+           'integer',
+           'decimal',
+           'float',
+           'date',
+           'time',
+           'timestamp'
+       );
     }
 
     function tearDown() {
@@ -95,7 +116,7 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
 
     function methodExists(&$class, $name) {
         if (is_object($class)
-            && array_key_exists(strtolower($name), array_flip(get_class_methods($class)))
+            && array_key_exists(strtolower($name), array_change_key_case(array_flip(get_class_methods($class))))
         ) {
             return true;
         }
@@ -104,21 +125,21 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     }
 
     function testCreateDatabase() {
-        if (!$this->methodExists($this->manager->db->manager, 'dropDatabase')) {
+        if (!$this->methodExists($this->manager->database, 'dropDatabase')) {
             return;
         }
-        $result = $this->manager->db->manager->dropDatabase($this->database);
+        $result = $this->manager->database->dropDatabase($this->database);
         if (!MDB::isError($result) || $result->getCode() != MDB_ERROR_UNSUPPORTED) {
             if (!$this->methodExists($this->manager, 'updateDatabase')) {
                 return;
             }
             $result = $this->manager->updateDatabase($this->driver_input_file, false, array('create' =>'1', 'name' => $this->database));
-            if (!MDB::isError($result)) {
+            if(!MDB::isError($result)) {
                 $result = $this->manager->updateDatabase($this->lob_input_file, false, array('create' =>'0', 'name' => $this->database));
             }
             $this->assertFalse(MDB::isError($result), 'Error creating database');
         } else if ($result->getCode() == MDB_ERROR_UNSUPPORTED) {
-            $this->assertTrue(false, 'Database management not supported');
+            $this->assertTrue(false, 'Database creation not supported');
         }
     }
 
@@ -131,7 +152,7 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
             copy($this->driver_input_file, $backup_file);
         }
         $result = $this->manager->updateDatabase($this->driver_input_file, $backup_file, array('create' =>'0', 'name' =>$this->database));
-        if (!MDB::isError($result)) {
+        if(!MDB::isError($result)) {
             $backup_file = $this->lob_input_file.$this->backup_extension;
             if (!file_exists($backup_file)) {
                 copy($this->lob_input_file, $backup_file);

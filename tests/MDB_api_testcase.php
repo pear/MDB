@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1998-2002 Manuel Lemos, Paul Cooper                    |
+// | Copyright (c) 1998-2004 Manuel Lemos, Paul Cooper                    |
 // | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
 // | MDB is a merge of PEAR DB and Metabases that provides a unified DB   |
@@ -62,8 +62,8 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function setUp() {
-        $this->dsn = $GLOBALS['dsn'];
-        $this->options = $GLOBALS['options'];
+        $this->dsn      = $GLOBALS['dsn'];
+        $this->options  = $GLOBALS['options'];
         $this->database = $GLOBALS['database'];
         $this->db =& MDB::connect($this->dsn, $this->options);
         if (MDB::isError($this->db)) {
@@ -81,7 +81,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
                         'access_date',
                         'access_time',
                         'approved'
-                        );
+                    );
 
         $this->types = array(
                         'text',
@@ -105,7 +105,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function methodExists($name) {
-        if (array_key_exists(strtolower($name), array_flip(get_class_methods($this->db)))) {
+        if (array_key_exists(strtolower($name), array_change_key_case(array_flip(get_class_methods($this->db))))) {
             return true;
         }
         $this->assertTrue(false, 'method '. $name.' not implemented in '.get_class($this->db));
@@ -115,7 +115,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     //test stuff in common.php
     function testConnect() {
         $db =& MDB::connect($this->dsn, $this->options);
-        if (MDB::isError($db)) {
+        if(MDB::isError($db)) {
             $this->assertTrue(false, 'Connect failed bailing out - ' .$db->getMessage() . ' - ' .$db->getUserInfo());
         }
         if (MDB::isError($this->db)) {
@@ -141,11 +141,23 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $this->db->setOption('persistent', $option);
     }
 
-    function testLoadModule() {
-        if (!$this->methodExists('loadModule')) {
+/*
+// incorrectly expects a specific escape character
+    function testGetTextValue() {
+        if (!$this->methodExists('getTextValue')) {
             return;
         }
-        $this->assertTrue(!MDB::isError($this->db->loadModule('manager')));
+        $text = "Mr O'Leary";
+        $text = $this->db->getTextValue($text);
+        $this->assertEquals("'Mr O\'Leary'", $text);
+    }
+*/
+
+    function testLoadManager() {
+        if (!$this->methodExists('loadManager')) {
+            return;
+        }
+        $this->assertTrue(!MDB::isError($this->db->loadManager('Load Management Class')));
     }
 
     // test of the driver
@@ -164,31 +176,19 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
             return;
         }
         $result = $this->standardQuery();
-
         $this->assertTrue(is_resource($result), 'query: $result returned is not a resource');
     }
 
-    function testFetchRow() {
-        if (!$this->methodExists('fetchRow')) {
+    function testFetchInto() {
+        if (!$this->methodExists('fetch')) {
             return;
         }
         $result = $this->standardQuery();
-        $err = $this->db->fetchRow($result);
-        $this->db->freeResult($result);
-
-        if (MDB::isError($err)) {
+        $err = $this->db->fetchInto($result, MDB_FETCHMODE_ORDERED);
+        if(MDB::isError($err)) {
             $this->assertTrue(false, 'Error testFetch: '.$err->getMessage().' - '.$err->getUserInfo());
         }
-    }
-
-    function testNumRows() {
-        if (!$this->methodExists('numRows')) {
-            return;
-        }
-        $result = $this->standardQuery();
-        $numrows = $this->db->numRows($result);
-        $this->assertTrue(!MDB::isError($numrows) && is_int($numrows));
-        $this->db->freeResult($result);
+        $this->assertNull($err);
     }
 
     function testNumCols() {
@@ -196,22 +196,17 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
             return;
         }
         $result = $this->standardQuery();
-        $numcols = $this->db->numCols($result);
-        $this->assertTrue(!MDB::isError($numcols) && $numcols > 0);
-        $this->db->freeResult($result);
+        $this->assertTrue((!MDB::isError($this->db->numCols($result))) && ($this->db->numCols($result) > 0));
     }
 
     function testSingleton() {
-        // this will reuse the existing database connection
-        // which has a database name set
         $mdb =& MDB::singleton();
         $this->assertTrue(MDB::isConnection($mdb));
-        $this->assertTrue($mdb->db_index == $this->db->db_index, 'MDB::singleton() called without a parameter did not return the first still connected MDB instance ('.$mdb->getDSN().' should be equal to '.$this->db->getDSN().')');
-        
-        // $this->dsn does not have a database name set
-        $another_mdb =& MDB::singleton($this->dsn, $this->options);
-        
-        $this->assertTrue($another_mdb->db_index != $this->db->db_index, 'MDB::singleton() called with a different dsn returned the first still connected MDB instance ('.$another_mdb->getDSN().' should not be equal to '.$this->db->getDSN().')');
+
+        // should have a different database name set
+        $mdb =& MDB::singleton($this->dsn, $this->options);
+
+        $this->assertTrue($mdb->database != $this->db->database);
     }
 }
 

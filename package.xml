@@ -3,6 +3,92 @@
 <package version="1.0">
   <name>MDB</name>
   <summary>database abstraction layer</summary>
+  <release>
+    <version>1.3.1</version>
+    <state>stable</state>
+    <date>2003-04-22</date>
+    <notes>
+      MDB_Manager_mysql
+      - fixed listTableIndexes()
+      - fixed typo in getTableFieldDefinition()
+      - hardcode fetchmode to prevent issues when a different default fetchmode is set (fixed bug #1914)
+      - fixed typo in MDB_Manager_oci8::listTables() (fix for bug #2434)
+    </notes>
+    <filelist>
+      <file role="php" baseinstalldir="/">MDB.php</file>
+      <file role="doc">README</file>
+      <file role="doc">MAINTAINERS</file>
+      <file role="doc">TODO</file>
+      <dir name="MDB">
+        <file role="php">Common.php</file>
+        <file role="php">querysim.php</file>
+        <file role="php">mssql.php</file>
+        <file role="php">ibase.php</file>
+        <file role="php">oci8.php</file>
+        <file role="php">fbsql.php</file>
+        <file role="php">mysql.php</file>
+        <file role="php">pgsql.php</file>
+        <file role="php">Date.php</file>
+        <file role="php">Manager.php</file>
+        <file role="php">Parser.php</file>
+        <file role="php">metabase_wrapper.php</file>
+        <file role="php">peardb_wrapper.php</file>
+        <file role="php">reverse_engineer_xml_schema.php</file>
+        <dir name="Modules">
+          <file role="php">LOB.php</file>
+          <dir name="Manager">
+            <file role="php">Common.php</file>
+            <file role="php">mssql.php</file>
+            <file role="php">ibase.php</file>
+            <file role="php">oci8.php</file>
+            <file role="php">fbsql.php</file>
+            <file role="php">mysql.php</file>
+            <file role="php">pgsql.php</file>
+          </dir>
+        </dir>
+      </dir>
+      <dir name="doc">
+        <file role="doc">tutorial.html</file>
+        <file role="doc">datatypes.html</file>
+        <file role="doc">xml_schema_documentation.html</file>
+        <file role="doc">xml_schema.xsl</file>
+        <file role="doc">skeleton.php</file>
+        <file role="doc">Modules_Manager_skeleton.php</file>
+      </dir>
+      <dir name="tests">
+        <file role="test">README</file>
+        <file role="test">test.php</file>
+        <file role="test">clitest.php</file>
+        <file role="test">testchoose.php</file>
+        <file role="test">MDB_api_testcase.php</file>
+        <file role="test">MDB_manager_testcase.php</file>
+        <file role="test">MDB_usage_testcase.php</file>
+        <file role="test">MDB_bugs_testcase.php</file>
+        <file role="test">HTML_TestListener.php</file>
+        <file role="test">Console_TestListener.php</file>
+        <file role="test">tests.css</file>
+        <file role="test">testUtils.php</file>
+        <file role="test">test_setup.php.dist</file>
+        <file role="test">test.schema</file>
+        <file role="test">MDB_test.php</file>
+        <file role="test">MDB_pear_wrapper_test.php</file>
+        <file role="test">metapear_test_db.schema</file>
+        <file role="test">driver_test_config.php</file>
+        <file role="test">driver_test.php</file>
+        <file role="test">setup_test.php</file>
+        <file role="test">driver_test.schema</file>
+        <file role="test">lob_test.schema</file>
+        <dir name="templates">
+          <file role="test">results.tpl</file>
+        </dir>
+      </dir>
+    </filelist>
+    <deps>
+        <dep type="php" rel="ge" version="4.2.0" />
+        <dep type="pkg" rel="ge" version="1.0b1">PEAR</dep>
+        <dep type="pkg" rel="has">XML_Parser</dep>
+    </deps>
+  </release>
   <description>
     PEAR MDB is a merge of the PEAR DB and Metabase php database abstraction layers.
 
@@ -14,7 +100,6 @@
     * Datatype abstraction and on demand datatype conversion
     * Portable error codes
     * Sequential and non sequential row fetching as well as bulk fetching
-    * Ability to make buffered and unbuffered queries
     * Ordered array and associative array for the fetched rows
     * Prepare/execute (bind) emulation
     * Sequence emulation
@@ -27,6 +112,9 @@
     * Module Framework to load advanced functionality on demand
     * Table information interface
     * RDBMS management methods (creating, dropping, altering)
+    * RDBMS independent xml based schema definition management
+    * Altering of a DB from a changed xml schema
+    * Reverse engineering of xml schemas from an existing DB (currently only MySQL)
     * Full integration into the PEAR Framework
     * Wrappers for the PEAR DB and Metabase APIs
     * PHPDoc API documentation
@@ -39,7 +127,6 @@
     Querysim
     Interbase/Firebird
     MSSQL
-    Other soon to follow.
   </description>
   <license>
     BSD style
@@ -94,150 +181,129 @@
       <email>l.alberton@quipo.it</email>
     </maintainer>
   </maintainers>
-  <release>
-    <version>2.0devel1</version>
-    <state>devel</state>
-    <date>2003-09-24</date>
-    <notes>
-        This is the first preview release of MDB 2.0.
-        It will not be available through the pear installer.
-        
-        MDB 2.x breaks backwards compatibility in many ways in order to simplify
-        the API for both users and drivers developers.
-        
-        Here follows a short list of the most important changes:
-        - all code that is not necessary for basic operation is now separateed
-          into separate modules which can be loaded with the loadModule() method
-        - all datatype related methods have been moved to a dataype module with
-          the notable exception of getValue() and the newly introduced getDeclaration()
-        - all "higher level" methods like queryRow/getRow etc have been moved to
-          the extended module
-        - all manager method are no longer available in the core class and or
-          now only available in the manager module
-        - all reverse engineering methods have been taken from the manager class
-          and are now available through the reverse module
-        - a new module has been added to allow the addition of methods with
-          RDBMS specific functionality (like getting the last autoincrement ID)
-        - LOB handling has been greatly simplified
-        - several methods names have been shortend
-        - the fetch.+ methods do not free the result set anymore
-        - the Manager and the reverse_engineer_xml_schema script are no longer
-          part of MDB and will be moved into the yet to be created DB_Schema
-          package. However until then you can find MDB 2.x compatible versions
-          of these scripts in CVS.
-        - all parameters are now lowercased with underscores as separators
-        - all drivers now support all of the dsn options that PEAR DB supports
-        - several methods have been removed because they offered redundant functionality
-        - changed prepare API type is now passed to prepare and not to setParam*()
-    </notes>
-    <filelist>
-      <file role="php" baseinstalldir="/">MDB.php</file>
-      <file role="doc">README</file>
-      <file role="doc">MAINTAINERS</file>
-      <file role="doc">TODO</file>
-      <dir name="MDB">
-        <file role="php">Common.php</file>
-        <file role="php">querysim.php</file>
-        <file role="php">mssql.php</file>
-        <file role="php">ibase.php</file>
-        <file role="php">oci8.php</file>
-        <file role="php">fbsql.php</file>
-        <file role="php">mysql.php</file>
-        <file role="php">pgsql.php</file>
-        <dir name="Wrapper">
-          <file role="php">metabase.php</file>
-          <file role="php">peardb.php</file>
-        </dir>
-        <dir name="Modules">
-          <file role="php">Date.php</file>
-          <file role="php">LOB.php</file>
-          <file role="php">Extended.php</file>
-          <file role="php">Result.php</file>
-          <dir name="Manager">
-            <file role="php">Common.php</file>
-            <file role="php">mssql.php</file>
-            <file role="php">ibase.php</file>
-            <file role="php">oci8.php</file>
-            <file role="php">fbsql.php</file>
-            <file role="php">mysql.php</file>
-            <file role="php">pgsql.php</file>
-          </dir>
-          <dir name="Datatype">
-            <file role="php">Common.php</file>
-            <file role="php">mssql.php</file>
-            <file role="php">ibase.php</file>
-            <file role="php">oci8.php</file>
-            <file role="php">fbsql.php</file>
-            <file role="php">mysql.php</file>
-            <file role="php">pgsql.php</file>
-          </dir>
-          <dir name="Native">
-            <file role="php">mssql.php</file>
-            <file role="php">ibase.php</file>
-            <file role="php">oci8.php</file>
-            <file role="php">fbsql.php</file>
-            <file role="php">mysql.php</file>
-            <file role="php">pgsql.php</file>
-          </dir>
-          <dir name="Reverse">
-            <file role="php">Common.php</file>
-            <file role="php">mssql.php</file>
-            <file role="php">ibase.php</file>
-            <file role="php">oci8.php</file>
-            <file role="php">fbsql.php</file>
-            <file role="php">mysql.php</file>
-            <file role="php">pgsql.php</file>
-          </dir>
-        </dir>
-      </dir>
-      <dir name="doc">
-        <file role="doc">tutorial.html</file>
-        <file role="doc">datatypes.html</file>
-        <file role="doc">xml_schema_documentation.html</file>
-        <file role="doc">xml_schema.xsl</file>
-        <file role="doc">skeleton.php</file>
-        <file role="doc">MDB.dtd</file>
-        <file role="doc">Modules_Manager_skeleton.php</file>
-        <file role="doc">Modules_Datatype_skeleton.php</file>
-        <file role="doc">Modules_Reverse_skeleton.php</file>
-        <file role="doc">Modules_Native_skeleton.php</file>
-      </dir>
-      <dir name="examples">
-        <file role="test">example.php</file>
-        <file role="test">peardb_wrapper_example.php</file>
-        <file role="test">metapear_test_db.schema</file>
-      </dir>
-      <dir name="tests">
-        <file role="test">README</file>
-        <file role="test">test.php</file>
-        <file role="test">clitest.php</file>
-        <file role="test">testchoose.php</file>
-        <file role="test">MDB_api_testcase.php</file>
-        <file role="test">MDB_manager_testcase.php</file>
-        <file role="test">MDB_usage_testcase.php</file>
-        <file role="test">MDB_bugs_testcase.php</file>
-        <file role="test">HTML_TestListener.php</file>
-        <file role="test">Console_TestListener.php</file>
-        <file role="test">tests.css</file>
-        <file role="test">testUtils.php</file>
-        <file role="test">test_setup.php.dist</file>
-        <file role="test">test.schema</file>
-        <file role="test">driver_test_config.php</file>
-        <file role="test">driver_test.php</file>
-        <file role="test">setup_test.php</file>
-        <file role="test">driver_test.schema</file>
-        <file role="test">lob_test.schema</file>
-        <dir name="templates">
-          <file role="test">results.tpl</file>
-        </dir>
-      </dir>
-    </filelist>
-    <deps>
-        <dep type="php" rel="ge" version="4.1.0" />
-        <dep type="pkg" rel="ge" version="1.0b1">PEAR</dep>
-    </deps>
-  </release>
   <changelog>
+    <release>
+      <version>1.3</version>
+      <state>stable</state>
+      <date>2003-04-22</date>
+      <notes>
+        MDB requires PHP 4.2 from now on.
+        MDB:
+        - fixed PHP5 compatibility issue in MDB::isError()
+        all drivers:
+        - added quoteIdentifier() method
+        - added sequence_col_name option to make the column name inside sequence
+          emulation tables configurable
+        - renamed toString() to __toString() in order to take advantage of new PHP5
+          goodness and made it public
+        - unified the native error raising methods (tested on oracle, pgsql, mysql and ibase)
+        - fixed bug #1159 which would break index handling in getTableFieldDefinition()
+          if not in portability mode
+        MDB_ibase:
+        - fixed several bugs in the buffering code
+        - fixed NULL management
+        - fixed replace()
+        MDB_oci8:
+        - fixed several bugs in the buffering code
+        - added native currId() implementation
+        MDB_Manager_oci8:
+        - added listTables() and listTableFields()
+        MDB_mysql:
+        - added quoteIdentifier() method
+        MDB_fbsql:
+        - removed broken implementations of currId()
+        MDB_mssql:
+        - removed broken implementations of currId()
+        - added quoteIdentifier() method
+        MDB_Manager_mysql:
+        - fixed mysql 4.0.13 issue in createSequence()
+        - several fixes to ensure the correct case is used when fetching data
+          without the portability flag setting enabled
+        MDB_Manager_mssql:
+        - added listTables() and listTableFields()
+        - added getTableFieldDefinition() (still alpha quality)
+        test suite:
+        - added several test and applied PHP5 compatibility fixes
+        - fixed a wrong assumption in the fetchmode bug test
+        - moved set_time_limit() call to the setup script to be easier to customize
+      </notes>
+    </release>
+    <release>
+      <version>1.2</version>
+      <state>stable</state>
+      <date>2004-01-11</date>
+      <notes>
+        - fixed potential memory leaks in the handling of metadata associated with
+          result sets
+        - silenced all calls to native RDBMS API calls
+        MDB:
+        - fixed issue in MDB::singleton() when using array dsn's
+        MDB_Common:
+        - fixed typo in fetchCol (bug #523)
+        MDB_Driver_mssql:
+        - fixed parse error
+        MDB_Driver_oci:
+        - fixed bug in the result buffering code
+        test suite:
+        - fixed typo in the output of console test results
+      </notes>
+    </release>
+    <release>
+      <version>1.1.4</version>
+      <state>stable</state>
+      <date>2004-01-05</date>
+      <notes>
+      This release marks the end of the feature additions to MDB 1.x. All further
+      feature additions will do into the MDB 2.x (aka MDB2) branch. MDB 1.x will
+      of course still be actively maintained and possibly new drivers may get added.
+      All:
+      - fixed issues with PHP5
+      - cosmetic fixes
+      MDB Class:
+      - added MDB::isConnection()
+      - fixed issues in MDB::singleton() if instances of MDB have been disconnected
+      test suite:
+      - minor improvements to the test suite
+      - fixed most CS issues in the test suite
+      - fixed bug in test suite (user_id was incorrectly set to type text instead of integer)
+      - added a test for MDB::singleton()
+      MDB_Common:
+      - fixed bug in support() that would result in always returning true
+      - fixed bug in getValue() when $type is empty
+      - fixed bug in getDSN() incorrect handling of port value
+      - fixed bug in currID() which would result in a fatal error
+      - fixed the common implementation of fetchInto()
+      - added MDB_FETCHMODE_ASSOC to the common implementation of fetchInto()
+      All drivers:
+      - backported several fixes from HEAD to each of the drivers
+      - fixed bug in extension detection in all drivers
+      - fixed bug 22328
+      - added notes at the top of the driver regarding driver specfic issues
+      - disconnect now unsets instead of overwriting with '' in $GLOBALS['_MDB_databases']
+      - added optimize option
+      - lowercase keys in associative results if optimize option is set to portability
+      MySQL driver:
+      - fixed bug in the transaction support detection in the manager class
+      Interbase driver:
+      - now passes all but the transaction test
+      - now also supports associative fetching
+      - added missing getTypeDeclaration() method
+      - fixed replace emulation
+      - fixed bug in interbase driver LOB handling
+      - fixed autofree in fetchInto()
+      Oracle driver:
+      - fixed autofree in fetchInto()
+      - fixed a typo in convertResult()
+      MSSQL driver:
+      - now passes all tests
+      - numerous bug fixes
+      FBSQL driver:
+      - numerous bug fixes to all parts of the driver (especially to the connection handling,
+      datatype abstraction, limit support and manager class)
+      PGSQL driver:
+      - fixed a bug in the error code mapping due to changes in recent PostGreSQL versions
+      </notes>
+    </release>
     <release>
       <version>1.1.3</version>
       <state>stable</state>

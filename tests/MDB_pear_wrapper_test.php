@@ -5,8 +5,8 @@
 //
 
 // BC hack to define PATH_SEPARATOR for version of PHP prior 4.3
-if (!defined('PATH_SEPARATOR')) {
-    if (defined('DIRECTORY_SEPARATOR') && DIRECTORY_SEPARATOR == "\\") {
+if(!defined('PATH_SEPARATOR')) {
+    if(defined('DIRECTORY_SEPARATOR') && DIRECTORY_SEPARATOR == "\\") {
         define('PATH_SEPARATOR', ';');
     } else {
         define('PATH_SEPARATOR', ':');
@@ -14,9 +14,9 @@ if (!defined('PATH_SEPARATOR')) {
 }
 ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
 
-    require_once 'MDB.php';
+    require_once('MDB.php');
     MDB::loadFile('peardb_wrapper');
-    require_once 'Var_Dump.php';
+    require_once('Var_Dump.php');
 
     // just for kicks you can mess up this part to see some pear error handling
     $user = 'metapear';
@@ -28,9 +28,9 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     $dsn = "mysql://$user:$pass@$host/$db_name";
     // MDB::connect will return a Pear DB object on success
     // or a Pear DB Error object on error
-    // You can also set to true the second param
+    // You can also set to TRUE the second param
     // if you want a persistent connection:
-    // $db = DB::connect($dsn, true);
+    // $db = DB::connect($dsn, TRUE);
     $db =& DB::connect($dsn);
     // With DB::isError you can differentiate between an error or
     // a valid connection.
@@ -105,7 +105,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo('<br>see getAll in action:<br>');
     echo(Var_Dump::display($db->getAll('SELECT * FROM test')).'<br>');
     echo('<br>see getAssoc in action:<br>');
-    echo(Var_Dump::display($db->getAssoc('SELECT * FROM test', false, '', DB_FETCHMODE_ASSOC)).'<br>');
+    echo(Var_Dump::display($db->getAssoc('SELECT * FROM test', FALSE, '', DB_FETCHMODE_ASSOC)).'<br>');
     echo('tableInfo on a string:<br>');
     echo(Var_Dump::display($db->tableInfo('numbers')).'<br>');
     echo('<br>just a simple delete query:<br>');

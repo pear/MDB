@@ -4,11 +4,23 @@
 // and modify the time limit as needed
 //set_time_limit(100);
 
+
 $testcases = array(
     'MDB_manager_testcase',
     'MDB_api_testcase',
     'MDB_usage_testcase',
-    'MDB_bugs_testcase'
+    'MDB_bugs_testcase',
+);
+
+$dbarray[] = array(
+    'dsn' => array(
+        'phptype' => 'pgsql',
+        'username' => 'username',
+        'password' => 'password',
+        'hostspec' => 'hostname',
+    ),
+    'options' => array(
+    )
 );
 $dbarray[] = array(
     'dsn' => array(
@@ -18,29 +30,10 @@ $dbarray[] = array(
         'hostspec' => 'hostname',
     ),
     'options' => array(
-        'use_transactions' => true
+        'UseTransactions' => TRUE
     )
 );
 
-$dbarray[] = array(
-    'dsn' => array(
-        'phptype' => 'pgsql',
-        'username' => 'username',
-        'password' => 'password',
-        'hostspec' => 'hostname',
-    )
-);
-
-$dbarray[] = array(
-    'dsn' => array(
-        'phptype' => 'oci8',
-        'username' => '',
-        'password' => 'password',
-        'hostspec' => 'hostname',
-    ),
-    'options' => array(
-        'DBA_username' => 'username',
-        'DBA_password' => 'password'
-    )
-);
+// you may need to uncomment the line and modify the multiplier as you see fit
+#set_time_limit(60*count($dbarray));
 ?>

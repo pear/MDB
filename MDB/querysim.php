@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1998-2002 Manuel Lemos, Tomas V.V.Cox,                 |
+// | Copyright (c) 1998-2004 Manuel Lemos, Tomas V.V.Cox,                 |
 // | Stig. S. Bakken, Lukas Smith                                         |
 // | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
@@ -82,7 +82,7 @@
         <history author="Alan Richmond" email="arichmond@bigfoot.com" type="Create" date="10-July-2002">
             Rewrote in PHP as an extention to the PEAR DB API.
             Functions supported:
-                connect, disconnect, query, fetchRow, freeResult,
+                connect, disconnect, query, fetchRow, fetchInto, freeResult,
                 numCols, numRows, getSpecialQuery
             David Huyck (bombusbee.com) added ability to escape special
                 characters (i.e., delimiters) using a '\'.
@@ -140,7 +140,7 @@
             Ported to PEAR MDB.
             Methods supported:
                 connect, query, getColumnNames, numCols, endOfResult, fetch,
-                numRows, freeResult, fetchRow, nextResult, setLimit
+                numRows, freeResult, fetchInto, nextResult, setSelectedRowRange
                 (inherited).
         </history>
         <history
@@ -171,17 +171,17 @@
                 <string name="phptype" default="querysim" />
                 <string name="dbsyntax" default="querysim" />
                 <array name="supported" comments="most of these don't actually do anything, they are enabled to simulate the option being available if checked">
-                    <boolean name="sequences" default="true" />
-                    <boolean name="indexes" default="true" />
-                    <boolean name="affected_rows" default="true" />
-                    <boolean name="summary_functions" default="true" />
-                    <boolean name="order_by_text" default="true" />
-                    <boolean name="current_id" default="true" />
-                    <boolean name="limit_querys" default="true" comments="this one is functional" />
+                    <boolean name="Sequences" default="true" />
+                    <boolean name="Indexes" default="true" />
+                    <boolean name="AffectedRows" default="true" />
+                    <boolean name="Summaryfunctions" default="true" />
+                    <boolean name="OrderByText" default="true" />
+                    <boolean name="CurrId" default="true" />
+                    <boolean name="SelectRowRanges" default="true" comments="this one is functional" />
                     <boolean name="LOBs" default="true" />
-                    <boolean name="replace" default="true" />
-                    <boolean name="sub_selects" default="true" />
-                    <boolean name="transactions" default="true" />
+                    <boolean name="Replace" default="true" />
+                    <boolean name="SubSelects" default="true" />
+                    <boolean name="Transactions" default="true" />
                 </array>
                 <string name="last_query" comments="last value passed in with query()" />
                 <array name="options" comments="these can be changed at run time">
@@ -216,8 +216,21 @@ require_once 'MDB/Common.php';
  */
 class MDB_querysim extends MDB_Common
 {
-    // {{{ properties
+// Most of the class variables are taken from the corresponding Metabase driver.
+// Few are taken from the corresponding PEAR DB driver.
+// Some are MDB specific.
+    var $connection = 0;
+    var $connected_host;
+    var $connected_user;
+    var $connected_password;
+    var $connected_port;
+    var $opened_persistent = '';
+
     var $escape_quotes = "\\";
+    var $decimal_factor = 1.0;
+
+    var $highest_fetched_row = array();
+    var $columns = array();
     // }}}
 
     // {{{ constructor
@@ -232,21 +245,26 @@ class MDB_querysim extends MDB_Common
         $this->dbsyntax = 'querysim';
         
         // Most of these are dummies to simulate availability if checked
-        $this->supported['sequences'] = true;
-        $this->supported['indexes'] = true;
-        $this->supported['affected_rows'] = true;
-        $this->supported['summary_functions'] = true;
-        $this->supported['order_by_text'] = true;
-        $this->supported['current_id'] = true;
-        $this->supported['limit_queries'] = true;// this one is real
-        $this->supported['LOBs'] = true;
-        $this->supported['replace'] = true;
-        $this->supported['sub_selects'] = true;
-        $this->supported['transactions'] = true;
+        $this->supported['Sequences'] = 1;
+        $this->supported['Indexes'] = 1;
+        $this->supported['AffectedRows'] = 1;
+        $this->supported['Summaryfunctions'] = 1;
+        $this->supported['OrderByText'] = 1;
+        $this->supported['CurrId'] = 1;
+        $this->supported['SelectRowRanges'] = 1;// this one is real
+        $this->supported['LOBs'] = 1;
+        $this->supported['Replace'] = 1;
+        $this->supported['SubSelects'] = 1;
+        $this->supported['Transactions'] = 1;
         
-        $this->options['columnDelim'] = ',';
-        $this->options['dataDelim'] = '|';
-        $this->options['eolDelim'] = "\n";
+        // init QuerySim options
+        $querySimOptions = array(
+            'columnDelim' => ',',
+            'dataDelim'   => '|',
+            'eolDelim'    => "\n"
+        );
+        // let runtime options overwrite defaults
+        $this->options = array_merge($querySimOptions, $this->options);
     }
     // }}}
 
@@ -257,7 +275,7 @@ class MDB_querysim extends MDB_Common
      *
      * @param string $dsn the data source name (see MDB::parseDSN for syntax)
      * @param mixed $persistent (optional) boolean whether the connection should
-     *        be persistent (default false) or assoc array of config options
+     *        be persistent (default FALSE) or assoc array of config options
      *
      * @access public
      *
@@ -265,18 +283,26 @@ class MDB_querysim extends MDB_Common
      */
     function connect()
     {
-        if ($this->connection != 0) {
-            if (!strcmp($this->connected_database_name, $this->database_name)
+        if($this->connection != 0) {
+            if (!strcmp($this->selected_database, $this->database_name)
                 && ($this->opened_persistent == $this->options['persistent']))
             {
                 return MDB_OK;
             }
-            if ($this->connected_database_name) {
+            if ($this->selected_database) {
                 $this->_close($this->connection);
             }
             $this->connection = 0;
         }
-
+        if(is_array($this->options)) {
+            foreach($this->options as $option => $value) {
+                if((in_array($option, array('columnDelim','dataDelim','eolDelim')))
+                    && ($value == '\\')) {
+                        return $this->raiseError(MDB_ERROR, null, null,
+                            "MDB Error: option $option cannot be set to '\\'");
+                }
+            }
+        }
         $connection = 1;// sim connect
         // if external, check file...
         if ($this->database_name) {
@@ -297,7 +323,7 @@ class MDB_querysim extends MDB_Common
             }
         }
         $this->connection = $connection;
-        $this->connected_database_name = $this->database_name;
+        $this->selected_database = $this->database_name;
         $this->opened_persistent = $this->options['persistent'];
         return MDB_OK;
     }
@@ -310,8 +336,8 @@ class MDB_querysim extends MDB_Common
      *
      * @access public
      *
-     * @return bool true on success, false if file closed.
-     *              Always true if simulated.
+     * @return bool TRUE on success, FALSE if file closed.
+     *              Always TRUE if simulated.
      */
     function _close()
     {
@@ -322,10 +348,34 @@ class MDB_querysim extends MDB_Common
                 $ret = @fclose($this->connection);
             }
             $this->connection = 0;
-
-            unset($GLOBALS['_MDB_databases'][$this->db_index]);
+            unset($GLOBALS['_MDB_databases'][$this->database]);
         }
         return $ret;
+    }
+    // }}}
+
+    // {{{ setOption()
+    
+    /**
+    * Set the option for the MDB class
+    *
+    * @param string $option option name
+    * @param mixed  $value value for the option
+    *
+    * @return mixed MDB_OK or MDB_Error
+    */
+    function setOption($option, $value)
+    {
+        if ((in_array($option, array('columnDelim','dataDelim','eolDelim')))
+            && ($value == '\\')
+        ) {
+            return $this->raiseError("option $option cannot be set to '\\'");
+        }
+        if (isset($this->options[$option])) {
+            $this->options[$option] = $value;
+            return MDB_OK;
+        }
+        return $this->raiseError("unknown option $option");
     }
     // }}}
 
@@ -338,21 +388,20 @@ class MDB_querysim extends MDB_Common
      * @param string The QuerySim text
      * @param mixed   $types  array that contains the types of the columns in
      *                        the result set
-     * @param mixed $result_mode boolean or string which specifies which class to use
+     *
+     * @access public
      *
      * @return mixed Simulated result set as a multidimentional
      * array if valid QuerySim text was passed in.  A MDB error
      * is returned on failure.
-     *
-     * @access public
      */
-    function &query($query, $types = null, $result_mode = null)
+    function query($query, $types = null)
     {
         if ($this->database_name) {
             $query = $this->_readFile();
         }
         
-        $this->debug($query, 'query');
+        $this->debug("Query: $query");
         $ismanip = false;
         
         $first = $this->first_selected_row;
@@ -372,12 +421,11 @@ class MDB_querysim extends MDB_Common
             if ($limit > 0) {
                 $result[1] = array_slice($result[1], $first-1, $limit);
             }
-            $this->results[$this->_querySimSignature($result)]['highest_fetched_row'] = -1;
-            $result =& $this->_return_result($result, $result_mode);
+            $this->highest_fetched_row[$this->_querySimSignature($result)] = -1;
+            
             return $result;
         }
-        $error =& $this->raiseError();
-        return $error;
+        return $this->raiseError();
     }
 
     // }}}
@@ -401,7 +449,7 @@ class MDB_querysim extends MDB_Common
                 $buffer .= fgets($this->connection, 1024);
             }
         } else {
-            $this->connection = @fopen($this->connected_database_name, 'r');
+            $this->connection = @fopen($this->selected_database, 'r');
             while (!feof($this->connection)) {
                 $buffer .= fgets($this->connection, 1024);
             }
@@ -456,7 +504,7 @@ class MDB_querysim extends MDB_Common
         //populate columnNames array
         $thisLine = each($lineData);
         $columnNames = $this->_parseOnDelim($thisLine[1], $columnDelim);
-        if ((in_array('', $columnNames)) || (in_array('NULL', $columnNames))) {
+        if ((in_array('', $columnNames)) || (in_array('null', $columnNames))) {
             return $this->raiseError(MDB_ERROR_SYNTAX, null, null,
                 'all column names must be defined');
         }
@@ -476,7 +524,7 @@ class MDB_querysim extends MDB_Common
                 }
                 //loop through data elements in data line
                 foreach ($thisData as $thisElement) {
-                    if (strtoupper($thisElement) == 'NULL'){
+                    if (strtolower($thisElement) == 'null'){
                         $thisElement = '';
                     }
                     //replace double-slash tokens with single-slash
@@ -559,14 +607,19 @@ class MDB_querysim extends MDB_Common
     function getColumnNames($result)
     {
         $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value])) {
-            return $this->raiseError(MDB_ERROR_INVALID, null, null,
-                'Get column names: a non-existant result set was specified');
+        if (!isset($this->highest_fetched_row[$result_value])) {
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
+                'Get column names: it was specified an inexisting result set'));
         }
-        $this->results[$result_value]['columns'] = array_flip($result[0]);
-        $res = array_change_key_case($res, CASE_LOWER);
-        
-        return $res;
+        if (!isset($this->columns[$result_value])) {
+            $this->columns[$result_value] = array();
+            $columns = array_flip($result[0]);
+            if ($this->options['optimize'] == 'portability') {
+                $columns = array_change_key_case($columns, CASE_LOWER);
+            }
+            $this->columns[$result_value] = $columns;
+        }
+        return($this->columns[$result_value]);
     }
     // }}}
 
@@ -583,7 +636,7 @@ class MDB_querysim extends MDB_Common
     function numCols($result)
     {
         $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value])) {
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'numCols: a non-existant result set was specified');
         }
@@ -598,20 +651,43 @@ class MDB_querysim extends MDB_Common
     * check if the end of the result set has been reached
     *
     * @param resource    $result result identifier
-    * @return mixed true or false on sucess, a MDB error on failure
+    * @return mixed TRUE or FALSE on sucess, a MDB error on failure
     * @access public
     */
     function endOfResult($result)
     {
         $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value])) {
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'endOfResult(): attempted to check the end of an unknown result');
         }
-        return $this->results[$result_value]['highest_fetched_row'] >= $this->numRows($result)-1;
+        return ($this->highest_fetched_row[$result_value] >= $this->numRows($result)-1);
     }
     // }}}
 
+    // {{{ fetch()
+
+    /**
+    * fetch value from a simulated result set
+    *
+    * @param array  $result simulated result
+    * @param int    $row    number of the row where the data can be found
+    * @param int    $field    field number where the data can be found
+    * @return mixed string on success, a MDB error on failure
+    * @access public
+    */
+    function fetch($result, $row, $field)
+    {
+        $result_value = $this->_querySimSignature($result);
+        $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $row);
+        if (isset($result[1][$row][$field])) {
+            $res = $result[1][$row][$field];
+        } else {
+            return $this->raiseError(MDB_ERROR, null, null,
+                "fetch():  row $row, field $field is undefined in result set");
+        }
+        return $res;
+    }
     // }}}
 
     // {{{ numRows()
@@ -626,7 +702,7 @@ class MDB_querysim extends MDB_Common
     function numRows($result)
     {
         $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value])) {
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'numRows(): a non-existant result set was specified');
         }
@@ -641,55 +717,33 @@ class MDB_querysim extends MDB_Common
      * Free the internal resources associated with $result.
      *
      * @param $result result identifier
-     * @return bool true on success, false if $result is invalid
+     * @return bool TRUE on success, FALSE if $result is invalid
      * @access public
      */
     function freeResult(&$result)
     {
         $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value])) {
-            return $this->raiseError(MDB_ERROR_INVALID, null, null,
-                'freeResult: it was specified an inexisting result set');
+        
+        if(isset($this->highest_fetched_row[$result_value])) {
+            unset($this->highest_fetched_row[$result_value]);
         }
-        unset($this->results[$result_value]);
-        unset($result);
+        if(isset($this->columns[$result_value])) {
+            unset($this->columns[$result_value]);
+        }
+        if(isset($this->result_types[$result_value])) {
+            unset($this->result_types[$result_value]);
+        }
+        if (isset($result)) {
+            // can't unset() in caller, so this is the best we can do...
+            $result = null;
+        } else {
+            return false;
+        }
         return true;
     }
     // }}}
 
-    // {{{ fetch()
-
-    /**
-    * fetch value from a simulated result set
-    *
-    * @param array  $result simulated result
-    * @param int    $rownum    number of the row where the data can be found
-    * @param int    $field    field number where the data can be found
-    * @return mixed string on success, a MDB error on failure
-    * @access public
-    */
-    function fetch($result, $rownum = 0, $field = 0)
-    {
-        $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value])) {
-            return $this->raiseError(MDB_ERROR_INVALID, null, null,
-                'fetch: it was specified an inexisting result set');
-        }
-        if (!isset($result[1][$rownum][$field])) {
-            return $this->raiseError(MDB_ERROR, null, null,
-                "fetch():  row $row, field $field is undefined in result set");
-        }
-        $this->highest_fetched_row[$result_value] =
-            max($this->highest_fetched_row[$result_value], $rownum);
-        $value = $result[1][$rownum][$field];
-        if (isset($this->results[$result_value]['types'][$field])) {
-            $value = $this->datatype->convertResult($value, $this->results[$result_value]['types'][$field]);
-        }
-        return $value;
-    }
-    // }}}
-
-    // {{{ fetchRow()
+    // {{{ fetchInto()
 
     /**
      * Fetch a row and return data in an array.
@@ -697,43 +751,39 @@ class MDB_querysim extends MDB_Common
      * @param resource $result result identifier
      * @param int $fetchmode ignored
      * @param int $rownum the row number to fetch
-     * @return mixed data array or null on success, a MDB error on failure
+     * @return mixed data array or NULL on success, a MDB error on failure
      * @access public
      */
-    function fetchRow(&$result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
+    function fetchInto(&$result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value])) {
-            return $this->raiseError(MDB_ERROR_INVALID, null, null,
-                'fetchRow: it was specified an inexisting result set');
-        }
         //if specific rownum request
-        if (is_null($rownum)) {
-            ++$this->results[$result_value]['highest_fetched_row'];
-            $rownum = $this->results[$result_value]['highest_fetched_row'];
+        if ($rownum == null) {
+            ++$this->highest_fetched_row[$result_value];
+            $rownum = $this->highest_fetched_row[$result_value];
         } else {
             if (!isset($result[1][$rownum])) {
                 return null;
             }
+            $this->highest_fetched_row[$result_value] =
+                max($this->highest_fetched_row[$result_value], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
         // get row
-        if (!$row = @$result[1][$rownum]) {
+        if(!$row = @$result[1][$rownum]) {
             return null;
         }
         // make row associative
-        if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+        if (is_array($row) && $fetchmode & MDB_FETCHMODE_ASSOC) {
             foreach ($row as $key => $value) {
                 $arraytemp[$result[0][$key]] = $value;
             }
             $row = $arraytemp;
-        }
-        $this->results[$result_value]['highest_fetched_row'] =
-            max($this->results[$result_value]['highest_fetched_row'], $rownum);
-        if (isset($this->results[$result_value]['types'])) {
-            $row = $this->datatype->convertResultRow($result, $row);
+            if ($this->options['optimize'] == 'portability') {
+                $row = array_change_key_case($row, CASE_LOWER);
+            }
         }
         return $row;
     }
@@ -742,22 +792,21 @@ class MDB_querysim extends MDB_Common
     // {{{ nextResult()
 
     /**
-     * Move the internal result pointer to the next available result
-     * Currently not supported
-     * 
-     * @param $result valid result resource
+     * Move the array result pointer to the next available row
+     *
+     * @param array a valid QuerySim result array
      * @return true if a result is available otherwise return false
      * @access public
      */
     function nextResult(&$result)
     {
         $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value])) {
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'nextResult(): a non-existant result set was specified');
         }
         $result_value = $this->_querySimSignature($result);
-        $setrow = ++$this->results[$result_value]['highest_fetched_row'];
+        $setrow = ++$this->highest_fetched_row[$result_value];
         return isset($result[1][$setrow]) ? true : false;
     }
     // }}}

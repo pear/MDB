@@ -2,8 +2,8 @@
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1998-2002 Manuel Lemos, Tomas V.V.Cox,                 |
-// | Stig. S. Bakken, Lukas Smith, Frank M. Kromann                       |
+// | Copyright (c) 1998-2004 Manuel Lemos, Tomas V.V.Cox,                 |
+// | Stig. S. Bakken, Lukas Smith                                         |
 // | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
 // | MDB is a merge of PEAR DB and Metabases that provides a unified DB   |
@@ -46,44 +46,129 @@
 //
 
 /**
- * MDB MSSQL driver for the native module
+ * Several methods to convert the MDB native timestamp format (ISO based)
+ * to and from data structures that are convienient to worth with in side of php.
+ * For more complex date arithmetic please take a look at the Date package in PEAR
  *
  * @package MDB
  * @category Database
- * @author  Lukas Smith <smith@dybnet.de>
+ * @author  Lukas Smith <smith@backendmedia.com>
  */
-class MDB_Native_mssql
+class MDB_Date
 {
-    var $db_index;
-
-    // }}}
-    // {{{ constructor
+    // {{{ mdbNow()
 
     /**
-     * Constructor
-     */
-    function MDB_Native_mssql($db_index)
-    {
-        $this->db_index = $db_index;
-    }
-
-    // }}}
-    // {{{ getInsertID()
-
-    /**
-     * get last insert ID
+     * return the current datetime
      *
-     * @param string $table name of the table
-     * @return mixed MDB_Error or id
+     * @return string current datetime in the MDB format
      * @access public
      */
-    function getInsertID($table)
+    function mdbNow()
     {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $result = $this->query("SELECT @@IDENTITY FROM $table", 'integer', false);
-        $value = $this->fetch($result);
-        $this->freeResult($result);
-        return $value;
+        return(date('Y-m-d H:i:s'));
     }
+
+    // }}}
+    // {{{ mdbToday()
+
+    /**
+     * return the current date
+     *
+     * @return string current date in the MDB format
+     * @access public
+     */
+    function mdbToday()
+    {
+        return(date('Y-m-d'));
+    }
+
+    // }}}
+    // {{{ mdbTime()
+
+    /**
+     * return the current time
+     *
+     * @return string current time in the MDB format
+     * @access public
+     */
+    function mdbTime()
+    {
+        return(date('H:i:s'));
+    }
+
+    // }}}
+    // {{{ date2Mdbstamp()
+
+    /**
+     * convert a date into a MDB timestamp
+     *
+     * @param integer $hour hour of the date
+     * @param integer $minute minute of the date
+     * @param integer $second second of the date
+     * @param integer $month month of the date
+     * @param integer $day day of the date
+     * @param integer $year year of the date
+     * @return string a valid MDB timestamp
+     * @access public
+     */
+    function date2Mdbstamp($hour = NULL, $minute = NULL, $second = NULL,
+        $month = NULL, $day = NULL, $year = NULL)
+    {
+        return MDB_Date::unix2Mdbstamp(mktime($hour, $minute, $second, $month, $day, $year));
+    }
+
+    // }}}
+    // {{{ unix2Mdbstamp()
+
+    /**
+     * convert a unix timestamp into a MDB timestamp
+     *
+     * @param integer $unix_timestamp a valid unix timestamp
+     * @return string a valid MDB timestamp
+     * @access public
+     */
+    function unix2Mdbstamp($unix_timestamp)
+    {
+        return date('Y-m-d H:i:s', $unix_timestamp);
+    }
+
+    // }}}
+    // {{{ mdbstamp2Unix()
+
+    /**
+     * convert a MDB timestamp into a unix timestamp
+     *
+     * @param integer $mdb_timestamp a valid MDB timestamp
+     * @return string unix timestamp with the time stored in the MDB format
+     * @access public
+     */
+    function mdbstamp2Unix($mdb_timestamp)
+    {
+        $arr = MDB_Date::mdbstamp2Date($mdb_timestamp);
+
+        return mktime($arr['hour'], $arr['minute'], $arr['second'], $arr['month'], $arr['day'], $arr['year'], 0);
+        }
+
+    // }}}
+    // {{{ mdbstamp2Date()
+
+    /**
+     * convert a MDB timestamp into an array containing all
+     * values necessary to pass to php's date() function
+     *
+     * @param integer $mdb_timestamp a valid MDB timestamp
+     * @return array with the time split
+     * @access public
+     */
+    function mdbstamp2Date($mdb_timestamp)
+    {
+        list($arr['year'], $arr['month'], $arr['day'], $arr['hour'], $arr['minute'], $arr['second']) =
+            sscanf($mdb_timestamp, "%04u-%02u-%02u %02u:%02u:%02u");
+        return($arr);
+    }
+
+    // }}}
 }
+
 ?>

@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1998-2002 Manuel Lemos, Paul Cooper                    |
+// | Copyright (c) 1998-2004 Manuel Lemos, Paul Cooper                    |
 // | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
 // | MDB is a merge of PEAR DB and Metabases that provides a unified DB   |
@@ -62,11 +62,10 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     }
 
     function setUp() {
-        $this->dsn = $GLOBALS['dsn'];
+        $this->dsn      = $GLOBALS['dsn'];
         $this->options  = $GLOBALS['options'];
         $this->database = $GLOBALS['database'];
         $this->db =& MDB::connect($this->dsn, $this->options);
-
         if (MDB::isError($this->db)) {
             $this->assertTrue(false, 'Could not connect to database in setUp');
             exit;
@@ -107,7 +106,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     }
 
     function methodExists($name) {
-        if (array_key_exists(strtolower($name), array_flip(get_class_methods($this->db)))) {
+        if (array_key_exists(strtolower($name), array_change_key_case(array_flip(get_class_methods($this->db))))) {
             return true;
         }
         $this->assertTrue(false, 'method '. $name.' not implemented in '.get_class($this->db));
@@ -133,23 +132,23 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
     function insertTestValues($prepared_query, &$data) {
         for ($i = 0; $i < count($this->fields); $i++) {
-            $this->db->setParam($prepared_query, ($i + 1), $data[$this->fields[$i]]);
+            $func = 'setParam'.$this->types[$i];
+            $this->db->$func($prepared_query, ($i + 1), $data[$this->fields[$i]]);
         }
     }
 
     function verifyFetchedValues(&$result, $rownum, &$data) {
-        $row = $this->db->fetchRow($result, MDB_FETCHMODE_ORDERED, $rownum);
-
+        $row = $this->db->fetchInto($result, $rownum);
         for ($i = 0; $i < count($this->fields); $i++) {
-            $value = $row[$i];
-            $field = $this->fields[$i];
+            $type = $this->types[$i];
             if ($this->types[$i] == 'float') {
                 $delta = 0.0000000001;
             } else {
                 $delta = 0;
             }
-
-            $this->assertEquals($data[$field], $value, "the value retrieved for field \"$field\" ($value) doesn't match what was stored ($data[$field])", $delta);
+            $value = $row[$i];
+            $field = $this->fields[$i];
+            $this->assertEquals($data[$field], $value, "the value retrieved for field \"$field\" ($value) using type $type doesn't match what was stored ($data[$field]).", $delta);
         }
     }
 
@@ -165,7 +164,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data = array();
         $data['user_name'] = "user_$row";
         $data['user_password'] = 'somepassword';
-        $data['subscribed'] = $row % 2 ? true : false;
+        $data['subscribed'] = (boolean)($row % 2);
         $data['user_id'] = $row;
         $data['quota'] = strval($row/100);
         $data['weight'] = sqrt($row);
@@ -173,13 +172,13 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data['access_time'] = MDB_Date::mdbTime();
         $data['approved'] = MDB_Date::mdbNow();
 
-        $prepared_query = $this->db->prepare('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
 
         $this->insertTestValues($prepared_query, $data);
 
-        $result = $this->db->execute($prepared_query);
+        $result = $this->db->executeQuery($prepared_query);
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->freePreparedQuery($prepared_query);
 
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
@@ -205,12 +204,12 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data = array();
         $total_rows = 5;
 
-        $prepared_query = $this->db->prepare('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
 
         for ($row = 0; $row < $total_rows; $row++) {
             $data[$row]['user_name'] = "user_$row";
             $data[$row]['user_password'] = 'somepassword';
-            $data[$row]['subscribed'] = $row % 2 ? true : false;
+            $data[$row]['subscribed'] = (boolean)($row % 2);
             $data[$row]['user_id'] = $row;
             $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
             $data[$row]['weight'] = sqrt($row);
@@ -220,26 +219,24 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $this->insertTestValues($prepared_query, $data[$row]);
 
-            $result = $this->db->execute($prepared_query);
+            $result = $this->db->executeQuery($prepared_query, $this->types);
 
             if (MDB::isError($result)) {
                 $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
             }
         }
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->freePreparedQuery($prepared_query);
 
-        $total_fields = count($this->fields);
+        $total_fields =  count($this->fields);
         for ($i = 0; $i < $total_fields; $i++) {
             $field = $this->fields[$i];
             for ($row = 0; $row < $total_rows; $row++) {
-                $result = $this->db->query('SELECT '.$field.' FROM users WHERE user_id='.$row, $this->types[$i]);
-                $value = $this->db->fetch($result);
+                $value = $this->db->queryOne('SELECT '.$field.' FROM users WHERE user_id='.$row, $this->types[$i]);
                 if (MDB::isError($value)) {
                     $this->assertTrue(false, 'Error fetching row '.$row.' for field '.$field.' of type '.$this->types[$i]);
                 } else {
-                    $this->assertEquals(strval(trim($value)), strval($data[$row][$field]), 'the query field '.$field.' of type '.$this->types[$i].' for row '.$row.' was returned as "'.$value.'" unlike "'.$data[$row][$field].'" as expected');
-                    $this->db->freeResult($result);
+                    $this->assertEquals(strval(trim($value)), strval($data[$row][$field]), 'the query field '.$field.' of type '.$this->types[$i].' for row '.$row.' was returned in "'.$value.'" unlike "'.$data[$row][$field].'" as expected');
                 }
             }
         }
@@ -251,15 +248,15 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Tests prepared queries, making sure they correctly deal with ?, !, and '
      */
     function testPreparedQueries() {
-        $question_value = $this->db->getValue('text', 'Does this work?');
+        $question_value = $this->db->getTextValue('Does this work?');
 
-        $prepared_query = $this->db->prepare("INSERT INTO users (user_name, user_password, user_id) VALUES (?, $question_value, 1)", array('text'));
+        $prepared_query = $this->db->prepareQuery("INSERT INTO users (user_name, user_password, user_id) VALUES (?, $question_value, 1)", array('text'));
 
-        $this->db->setParam($prepared_query, 1, 'Sure!');
+        $this->db->setParamText($prepared_query, 1, 'Sure!');
 
-        $result = $this->db->execute($prepared_query);
+        $result = $this->db->executeQuery($prepared_query);
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->freePreparedQuery($prepared_query);
 
         if (MDB::isError($result)) {
             $error = $result->getMessage();
@@ -267,15 +264,15 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->assertTrue(!MDB::isError($result), 'Could not execute prepared query with a text value with a question mark. Error: ');
 
-        $question_value = $this->db->getValue('text', "Wouldn't it be great if this worked too?");
+        $question_value = $this->db->getTextValue("Wouldn't it be great if this worked too?");
 
-        $prepared_query = $this->db->prepare("INSERT INTO users (user_name, user_password, user_id) VALUES (?, $question_value, 2)", array('text'));
+        $prepared_query = $this->db->prepareQuery("INSERT INTO users (user_name, user_password, user_id) VALUES (?, $question_value, 2)", array('text'));
 
-        $this->db->setParam($prepared_query, 1, 'For Sure!');
+        $this->db->setParamText($prepared_query, 1, 'For Sure!');
 
-        $result = $this->db->execute($prepared_query);
+        $result = $this->db->executeQuery($prepared_query);
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->freePreparedQuery($prepared_query);
 
         if (MDB::isError($result)) {
             $error = $result->getMessage();
@@ -297,7 +294,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data = array();
         $data['user_name'] = "user_$row";
         $data['user_password'] = 'somepassword';
-        $data['subscribed'] = $row % 2 ? true : false;
+        $data['subscribed'] = (boolean)($row % 2);
         $data['user_id'] = $row;
         $data['quota'] = strval($row/100);
         $data['weight'] = sqrt($row);
@@ -305,13 +302,13 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data['access_time'] = MDB_Date::mdbTime();
         $data['approved'] = MDB_Date::mdbNow();
 
-        $prepared_query = $this->db->prepare('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
 
         $this->insertTestValues($prepared_query, $data);
 
-        $result = $this->db->execute($prepared_query);
+        $result = $this->db->executeQuery($prepared_query);
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->freePreparedQuery($prepared_query);
 
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
@@ -354,7 +351,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $value = 'NULL';
                 $is_null = true;
             } else {
-                $value = $this->db->getValue('text', $test_values[$test_value][0]);
+                $value = $this->db->getTextValue($test_values[$test_value][0]);
                 $is_null = $test_values[$test_value][1];
             }
 
@@ -410,10 +407,10 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                             "\\\"\\\""
                             );
 
-        for ($string = 0; $string < count($test_strings); $string++) {
+        for($string = 0; $string < count($test_strings); $string++) {
             $this->clearTables();
 
-            $value = $this->db->getValue('text', $test_strings[$string]);
+            $value = $this->db->getTextValue($test_strings[$string]);
 
             $result = $this->db->query("INSERT INTO users (user_name,user_password,user_id) VALUES ($value,$value,0)");
 
@@ -429,10 +426,10 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $this->assertTrue(!$this->db->endOfResult($result), 'The query result seems to have reached the end of result earlier than expected');
 
-            $value = $this->db->fetch($result);
+            $value = $this->db->fetch($result, 0, 'user_name');
             $this->db->freeResult($result);
 
-            $this->assertEquals(rtrim($value), $test_strings[$string], "the value retrieved for field \"user_name\" (\"$value\") doesn't match what was stored (".$test_strings[$string].')');
+            $this->assertEquals($test_strings[$string], rtrim($value), "the value retrieved for field \"user_name\" (\"$value\") doesn't match what was stored (".$test_strings[$string].')');
 
         }
     }
@@ -440,22 +437,22 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     /**
      * Test paged queries
      *
-     * Test the use of setLimit to return paged queries
+     * Test the use of setSelectedRowRange to return paged queries
      */
     function testRanges() {
-        if (!$this->supported('limit_queries')) {
+        if (!$this->supported('SelectRowRanges')) {
             return;
         }
 
         $data = array();
         $total_rows = 5;
 
-        $prepared_query = $this->db->prepare('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
 
         for ($row = 0; $row < $total_rows; $row++) {
             $data[$row]['user_name'] = "user_$row";
             $data[$row]['user_password'] = 'somepassword';
-            $data[$row]['subscribed'] = $row % 2 ? true : false;
+            $data[$row]['subscribed'] = (boolean)($row % 2);
             $data[$row]['user_id'] = $row;
             $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
             $data[$row]['weight'] = sqrt($row);
@@ -465,18 +462,18 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $this->insertTestValues($prepared_query, $data[$row]);
 
-            $result = $this->db->execute($prepared_query);
+            $result = $this->db->executeQuery($prepared_query);
 
             if (MDB::isError($result)) {
                 $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
             }
         }
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->freePreparedQuery($prepared_query);
 
         for ($rows = 2, $start_row = 0; $start_row < $total_rows; $start_row += $rows) {
 
-            $this->db->setLimit($start_row, $rows);
+            $this->db->setSelectedRowRange($start_row, $rows);
 
             $result = $this->db->query('SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users ORDER BY user_id', $this->types);
 
@@ -495,7 +492,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         for ($rows = 2, $start_row = 0; $start_row < $total_rows; $start_row += $rows) {
 
-            $this->db->setLimit($start_row, $rows);
+            $this->db->setSelectedRowRange($start_row, $rows);
 
             $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users ORDER BY user_id', $this->types);
 
@@ -505,12 +502,13 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $result_rows = $this->db->numRows($result);
 
-            $this->assertTrue(($result_rows <= $rows), 'expected a result of no more than $rows but the returned number of rows is $result_rows');
+            $this->assertTrue(($result_rows <= $rows), "expected a result of no more than $rows but the returned number of rows is $result_rows");
 
             for ($row = 0; $row < $result_rows; $row++) {
-                $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result at row $row that is before $result_rows as expected');
+                $this->assertTrue(!$this->db->endOfResult($result), "The query result seem to have reached the end of result at row $row that is before $result_rows as expected");
 
                 $this->verifyFetchedValues($result, $row, $data[$row + $start_row]);
+
             }
         }
 
@@ -523,16 +521,14 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Test the handling of sequences
      */
     function testSequences() {
-        if (!$this->supported('sequences')) {
+        if (!$this->supported('Sequences')) {
             return;
         }
-
-        $this->db->loadModule('manager');
 
         for ($start_value = 1; $start_value < 4; $start_value++) {
             $sequence_name = "test_sequence_$start_value";
 
-            $result = $this->db->manager->createSequence($sequence_name, $start_value);
+            $result = $this->db->createSequence($sequence_name, $start_value);
             $this->assertTrue(!MDB::isError($result), "Error creating sequence $sequence_name with start value $start_value");
 
             for ($sequence_value = $start_value; $sequence_value < ($start_value + 4); $sequence_value++) {
@@ -542,7 +538,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             }
 
-            $result = $this->db->manager->dropSequence($sequence_name);
+            $result = $this->db->dropSequence($sequence_name);
 
             if (MDB::isError($result)) {
                 $this->assertTrue(false, "Error dropping sequence $sequence_name : ".$result->getMessage());
@@ -560,8 +556,30 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         }
 
-        $result = $this->db->manager->dropSequence($sequence_name);
+        $result = $this->db->dropSequence($sequence_name);
 
+        if (MDB::isError($result)) {
+            $this->assertTrue(false, "Error dropping sequence $sequence_name : ".$result->getMessage());
+        }
+
+        // Test currId()
+        $sequence_name = 'test_currid';
+
+        $next = $this->db->nextId($sequence_name);
+        $curr = $this->db->currId($sequence_name);
+
+        if (MDB::isError($curr)) {
+            $this->assertTrue(false, "Error getting the current value of sequence $sequence_name : ".$curr->getMessage());
+        } else {
+            if ($next != $curr) {
+                if ($next+1 == $curr) {
+                    $this->assertTrue(false, "Warning: currId() is using nextId() instead of a native implementation");
+                } else {
+                    $this->assertEquals($next, $curr, "return value if currId() does not match the previous call to nextId()");
+                }
+            }
+        }
+        $result = $this->db->dropSequence($sequence_name);
         if (MDB::isError($result)) {
             $this->assertTrue(false, "Error dropping sequence $sequence_name : ".$result->getMessage());
         }
@@ -574,7 +592,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * The replace method emulates the replace query of mysql
      */
     function testReplace() {
-        if (!$this->supported('replace')) {
+        if (!$this->supported('Replace')) {
             return;
         }
 
@@ -582,7 +600,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data = array();
         $data['user_name'] = "user_$row";
         $data['user_password'] = 'somepassword';
-        $data['subscribed'] = $row % 2 ? true : false;
+        $data['subscribed'] = (boolean)($row % 2);
         $data['user_id'] = $row;
         $data['quota'] = strval($row/100);
         $data['weight'] = sqrt($row);
@@ -591,46 +609,46 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data['approved'] = MDB_Date::mdbNow();
 
         $fields = array(
-            'user_name' => array(
-                'value' => "user_$row",
-                'type' => 'text'
-            ),
-            'user_password' => array(
-                'value' => $data['user_password'],
-                'type' => 'text'
-            ),
-            'subscribed' => array(
-                'value' => $data['subscribed'],
-                'type' => 'boolean'
-            ),
-            'user_id' => array(
-                'value' => $data['user_id'],
-                'type' => 'integer',
-                'key' => 1
-            ),
-            'quota' => array(
-                'value' => $data['quota'],
-                'type' => 'decimal'
-            ),
-            'weight' => array(
-                'value' => $data['weight'],
-                'type' => 'float'
-            ),
-            'access_date' => array(
-                'value' => $data['access_date'],
-                'type' => 'date'
-            ),
-            'access_time' => array(
-                'value' => $data['access_time'],
-                'type' => 'time'
-            ),
-            'approved' => array(
-                'value' => $data['approved'],
-                'type' => 'timestamp'
-            )
-        );
+                      'user_name' => array(
+                                           'Value' => "user_$row",
+                                           'Type' => 'text'
+                                         ),
+                      'user_password' => array(
+                                               'Value' => $data['user_password'],
+                                               'Type' => 'text'
+                                             ),
+                      'subscribed' => array(
+                                            'Value' => $data['subscribed'],
+                                            'Type' => 'boolean'
+                                          ),
+                      'user_id' => array(
+                                         'Value' => $data['user_id'],
+                                         'Type' => 'integer',
+                                         'Key' => 1
+                                       ),
+                      'quota' => array(
+                                       'Value' => $data['quota'],
+                                       'Type' => 'decimal'
+                                     ),
+                      'weight' => array(
+                                        'Value' => $data['weight'],
+                                        'Type' => 'float'
+                                      ),
+                      'access_date' => array(
+                                             'Value' => $data['access_date'],
+                                             'Type' => 'date'
+                                           ),
+                      'access_time' => array(
+                                             'Value' => $data['access_time'],
+                                             'Type' => 'time'
+                                           ),
+                      'approved' => array(
+                                          'Value' => $data['approved'],
+                                          'Type' => 'timestamp'
+                                        )
+                      );
 
-        $support_affected_rows = $this->db->support('affected_rows');
+        $support_affected_rows = $this->db->support('AffectedRows');
 
         $result = $this->db->replace('users', $fields);
 
@@ -641,7 +659,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         if ($support_affected_rows) {
             $affected_rows = $this->db->affectedRows();
 
-            $this->assertEquals($affected_rows, 1, "replacing a row in an empty table returned $affected_rows unlike 1 as expected");
+            $this->assertEquals(1, $affected_rows, "replacing a row in an empty table returned $affected_rows unlike 1 as expected");
         }
 
         $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users', $this->types);
@@ -653,14 +671,14 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $this->verifyFetchedValues($result, 0, $data);
 
         $row = 4321;
-        $fields['user_name']['value'] = $data['user_name'] = "user_$row";
-        $fields['user_password']['value'] = $data['user_password'] = 'somepassword';
-        $fields['subscribed']['value'] = $data['subscribed'] = $row % 2 ? true : false;
-        $fields['quota']['value'] = $data['quota'] = strval($row/100);
-        $fields['weight']['value'] = $data['weight'] = sqrt($row);
-        $fields['access_date']['value'] = $data['access_date'] = MDB_Date::mdbToday();
-        $fields['access_time']['value'] = $data['access_time'] = MDB_Date::mdbTime();
-        $fields['approved']['value'] = $data['approved'] = MDB_Date::mdbNow();
+        $fields['user_name']['Value']     = $data['user_name']     = "user_$row";
+        $fields['user_password']['Value'] = $data['user_password'] = 'somepassword';
+        $fields['subscribed']['Value']    = $data['subscribed']    = (boolean)($row % 2);
+        $fields['quota']['Value']         = $data['quota']         = strval($row/100);
+        $fields['weight']['Value']        = $data['weight']        = sqrt($row);
+        $fields['access_date']['Value']   = $data['access_date']   = MDB_Date::mdbToday();
+        $fields['access_time']['Value']   = $data['access_time']   = MDB_Date::mdbTime();
+        $fields['approved']['Value']      = $data['approved']      = MDB_Date::mdbNow();
 
         $result = $this->db->replace('users', $fields);
 
@@ -671,7 +689,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         if ($support_affected_rows) {
             $affected_rows = $this->db->affectedRows();
 
-            $this->assertEquals($affected_rows, 2, "replacing a row in an empty table returned $affected_rows unlike 2 as expected");
+            $this->assertEquals(2, $affected_rows, "replacing a row in a non empty table returned $affected_rows unlike 2 as expected");
         }
 
         $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users', $this->types);
@@ -691,29 +709,29 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Test affected rows methods
      */
     function testAffectedRows() {
-        if (!$this->supported('affected_rows')) {
+        if (!$this->supported('AffectedRows')) {
             return;
         }
 
         $data = array();
         $total_rows = 7;
 
-        $prepared_query = $this->db->prepare('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
 
         for ($row = 0; $row < $total_rows; $row++) {
-            $data[$row]['user_name'] = "user_$row";
+            $data[$row]['user_name']     = "user_$row";
             $data[$row]['user_password'] = 'somepassword';
-            $data[$row]['subscribed'] = $row % 2 ? true : false;
-            $data[$row]['user_id'] = $row;
-            $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
-            $data[$row]['weight'] = sqrt($row);
-            $data[$row]['access_date'] = MDB_Date::mdbToday();
-            $data[$row]['access_time'] = MDB_Date::mdbTime();
-            $data[$row]['approved'] = MDB_Date::mdbNow();
+            $data[$row]['subscribed']    = (boolean)($row % 2);
+            $data[$row]['user_id']       = $row;
+            $data[$row]['quota']         = sprintf("%.2f",strval(1+($row+1)/100));
+            $data[$row]['weight']        = sqrt($row);
+            $data[$row]['access_date']   = MDB_Date::mdbToday();
+            $data[$row]['access_time']   = MDB_Date::mdbTime();
+            $data[$row]['approved']      = MDB_Date::mdbNow();
 
             $this->insertTestValues($prepared_query, $data[$row]);
 
-            $result = $this->db->execute($prepared_query);
+            $result = $this->db->executeQuery($prepared_query);
 
             $affected_rows = $this->db->affectedRows();
 
@@ -724,15 +742,15 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             }
         }
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->freePreparedQuery($prepared_query);
 
-        $prepared_query = $this->db->prepare('UPDATE users SET user_password=? WHERE user_id < ?', array('text', 'integer'));
+        $prepared_query = $this->db->prepareQuery('UPDATE users SET user_password=? WHERE user_id < ?', array('text', 'integer'));
 
         for ($row = 0; $row < $total_rows; $row++) {
-            $this->db->setParam($prepared_query, 1, "another_password_$row");
-            $this->db->setParam($prepared_query, 2, $row);
+            $this->db->setParamText($prepared_query, 1, "another_password_$row");
+            $this->db->setParamInteger($prepared_query, 2, $row);
 
-            $result = $this->db->execute($prepared_query);
+            $result = $this->db->executeQuery($prepared_query);
 
             if (MDB::isError($result)) {
                 $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
@@ -744,14 +762,14 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         }
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->freePreparedQuery($prepared_query);
 
-        $prepared_query = $this->db->prepare('DELETE FROM users WHERE user_id >= ?', array('integer'));
+        $prepared_query = $this->db->prepareQuery('DELETE FROM users WHERE user_id >= ?', array('integer'));
 
         for ($row = $total_rows; $total_rows; $total_rows = $row) {
-            $this->db->setParam($prepared_query, 1, $row = intval($total_rows / 2));
+            $this->db->setParamInteger($prepared_query, 1, $row = intval($total_rows / 2));
 
-            $result = $this->db->execute($prepared_query);
+            $result = $this->db->executeQuery($prepared_query);
 
             if (MDB::isError($result)) {
                 $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
@@ -763,14 +781,14 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         }
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->freePreparedQuery($prepared_query);
     }
 
     /**
      * Testing transaction support
      */
     function testTransactions() {
-        if (!$this->supported('transactions')) {
+        if (!$this->supported('Transactions')) {
             return;
         }
 
@@ -778,20 +796,20 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $row = 0;
         $data = array();
-        $data['user_name'] = "user_$row";
+        $data['user_name']     = "user_$row";
         $data['user_password'] = 'somepassword';
-        $data['subscribed'] = $row % 2 ? true : false;
-        $data['user_id'] = $row;
-        $data['quota'] = strval($row/100);
-        $data['weight'] = sqrt($row);
-        $data['access_date'] = MDB_Date::mdbToday();
-        $data['access_time'] = MDB_Date::mdbTime();
-        $data['approved'] = MDB_Date::mdbNow();
+        $data['subscribed']    = (boolean)($row % 2);
+        $data['user_id']       = $row;
+        $data['quota']         = strval($row/100);
+        $data['weight']        = sqrt($row);
+        $data['access_date']   = MDB_Date::mdbToday();
+        $data['access_time']   = MDB_Date::mdbTime();
+        $data['approved']      = MDB_Date::mdbNow();
 
-        $prepared_query = $this->db->prepare('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
 
         $this->insertTestValues($prepared_query, $data);
-        $result = $this->db->execute($prepared_query);
+        $result = $this->db->executeQuery($prepared_query);
         $this->db->rollback();
 
         $result = $this->db->query('SELECT * FROM users');
@@ -803,7 +821,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $this->db->freeResult($result);
 
         $this->insertTestValues($prepared_query, $data);
-        $result = $this->db->execute($prepared_query);
+        $result = $this->db->executeQuery($prepared_query);
         $this->db->commit();
 
         $result = $this->db->query('SELECT * FROM users');
@@ -823,7 +841,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $autocommit = $this->db->autocommit(1);
         $this->assertTrue(!MDB::isError($autocommit), 'Error autocommiting transactions');
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->freePreparedQuery($prepared_query);
 
         $result = $this->db->query('SELECT * FROM users');
         if (MDB::isError($result)) {
@@ -838,75 +856,83 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Testing LOB storage
      */
 
-    function testLOBStorage() {
+    function testLobStorage() {
         if (!$this->supported('LOBs')) {
             return;
         }
 
-        $prepared_query = $this->db->prepare('INSERT INTO files (ID, document, picture) VALUES (1,?,?)', array('clob', 'blob'));
+        //$prepared_query = $this->db->prepareQuery('INSERT INTO files (document,picture) VALUES (?,?)');
+        $prepared_query = $this->db->prepareQuery('INSERT INTO files (ID, document,picture) VALUES (1,?,?)', array('clob', 'blob'));
 
         $character_lob = array(
-                            'data' => '',
-                            'field' => 'document'
-
+                              'Database' => $this->db,
+                              'Error' => '',
+                              'Data' => ''
                               );
         for ($code = 32; $code <= 127; $code++) {
-            $character_lob['data'] .= chr($code);
+            $character_lob['Data'] .= chr($code);
         }
         $binary_lob = array(
-                            'data' => '',
-                            'field' => 'picture'
+                            'Database' => $this->db,
+                            'Error' => '',
+                            'Data' => ''
                             );
         for ($code = 0; $code <= 255; $code++) {
-            $binary_lob['data'] .= chr($code);
+            $binary_lob['Data'] .= chr($code);
         }
 
-        $this->db->setParam($prepared_query, 1, $character_lob);
-        $this->db->setParam($prepared_query, 2, $binary_lob);
+        $clob = $this->db->createLob($character_lob);
+        $this->assertTrue(!MDB::isError($clob), 'Error creating character LOB: '.$character_lob['Error']);
 
-        $result = $this->db->execute($prepared_query);
+        $blob = $this->db->createLob($binary_lob);
+        $this->assertTrue(!MDB::isError($blob), 'Error creating binary LOB: '.$binary_lob['Error']);
 
-        if ($is_error = MDB::isError($result)) {
+        $this->db->setParamClob($prepared_query, 1, $clob, 'document');
+        $this->db->setParamBlob($prepared_query, 2, $blob, 'picture');
+        $result = $this->db->executeQuery($prepared_query);
+
+        if($is_error = MDB::isError($result)) {
             $msg = $result->getUserInfo();
         } else {
             $msg = '';
         }
         $this->assertTrue(!$is_error, 'Error executing prepared query: '.$msg);
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->destroyLob($blob);
+        $this->db->destroyLob($clob);
+        $this->db->freePreparedQuery($prepared_query);
 
         $result = $this->db->query('SELECT document, picture FROM files', array('clob', 'blob'));
+        //$result = $this->db->query('SELECT document, picture FROM files');
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error selecting from files'.$result->getMessage());
         }
-
         $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result too soon.');
 
-        $row = $this->db->fetchRow($result);
-
-        $clob = $row[0];
+        $clob = $this->db->fetchClob($result, 0, 'document');
         if (!MDB::isError($clob)) {
-            for ($value = ''; !$this->db->datatype->endOfLOB($clob);) {
-                $this->assertTrue(($this->db->datatype->readLOB($clob, $data, 8192) >= 0), 'Could not read CLOB');
+            for ($value = ''; !$this->db->endOfLob($clob);) {
+                $this->assertTrue(($this->db->readLob($clob, $data, 8192) >= 0), 'Could not read CLOB');
                 $value .= $data;
             }
-            $this->db->datatype->destroyLOB($clob);
+            $this->db->destroyLob($clob);
 
-            $this->assertEquals($character_lob['data'], $value, 'Retrieved character LOB value ("' . $value . '") is different from what was stored ("' . $character_lob['data'] . '")');
+            $this->assertEquals($value, $character_lob['Data'], 'Retrieved character LOB value ("' . $value . '") is different from what was stored ("' . $character_lob['Data'] . '")');
         } else {
             $this->assertTrue(false, 'Error retrieving CLOB result');
         }
 
-        $blob = $row[1];
+        $blob = $this->db->fetchBlob($result, 0, 'picture');
+
         if (!MDB::isError($blob)) {
-            for ($value = ''; !$this->db->datatype->endOfLOB($blob);) {
-                $this->assertTrue(($this->db->datatype->readLOB($blob, $data, 8192) >= 0), 'Could not read BLOB');
+            for ($value = ''; !$this->db->endOfLob($clob);) {
+                $this->assertTrue(($this->db->readLob($blob, $data, 8192) >= 0), 'Could not read BLOB');
                 $value .= $data;
             }
 
-            $this->db->datatype->destroyLOB($blob);
+            $this->db->destroyLob($blob);
 
-            $this->assertEquals($value, $binary_lob['data'], 'Retrieved binary LOB value ("'.$value.'") is different from what was stored ("'.$binary_lob['data'].'")');
+            $this->assertEquals($value, $binary_lob['Data'], 'Retrieved binary LOB value ("'.$value.'") is different from what was stored ("'.$binary_lob['Data'].'")');
         } else {
             $this->assertTrue(false, 'Error retrieving CLOB result');
         }
@@ -917,12 +943,13 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Test for lob storage from and to files
      */
 
-    function testLOBFiles() {
+    function testLobFiles() {
         if (!$this->supported('LOBs')) {
             return;
         }
 
-        $prepared_query = $this->db->prepare('INSERT INTO files (ID, document, picture) VALUES (1,?,?)', array('clob', 'blob'));
+        $prepared_query = $this->db->prepareQuery('INSERT INTO files (ID, document,picture) VALUES (1,?,?)', array('clob', 'blob'));
+        //$prepared_query = $this->db->prepareQuery('INSERT INTO files (document,picture) VALUES (?,?)');
 
         $character_data_file = 'character_data';
         if (($file = fopen($character_data_file, 'w'))) {
@@ -930,9 +957,10 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $character_data .= chr($code);
             }
             $character_lob = array(
-                                   'type' => 'inputfile',
-                                   'field' => 'document',
-                                   'file_name' => $character_data_file
+                                   'Type' => 'inputfile',
+                                   'Database' => $this->db,
+                                   'Error' => '',
+                                   'FileName' => $character_data_file
                                    );
             $this->assertTrue((fwrite($file, $character_data, strlen($character_data)) == strlen($character_data)), 'Error creating clob file to read from');
             fclose($file);
@@ -940,42 +968,62 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $binary_data_file = 'binary_data';
         if (($file = fopen($binary_data_file, 'wb'))) {
-            for ($binary_data = '', $code = 0; $code <= 255; $code++) {
+            for($binary_data = '', $code = 0; $code <= 255; $code++) {
                     $binary_data .= chr($code);
             }
             $binary_lob = array(
-                                'type' => 'inputfile',
-                                'field' => 'picture',
-                                'file_name' => $binary_data_file
+                                'Type' => 'inputfile',
+                                'Database' => $this->db,
+                                'Error' => '',
+                                'FileName' => $binary_data_file
                                 );
             $this->assertTrue((fwrite($file, $binary_data, strlen($binary_data)) == strlen($binary_data)), 'Error creating blob file to read from');
             fclose($file);
         }
 
-        $this->db->setParam($prepared_query, 1, $character_lob);
-        $this->db->setParam($prepared_query, 2, $binary_lob);
+        $clob = $this->db->createLob($character_lob);
+        $this->assertTrue(!MDB::isError($clob), 'Error creating clob');
 
-        $result = $this->db->execute($prepared_query);
+        $blob = $this->db->createLob($binary_lob);
+        $this->assertTrue(!MDB::isError($blob), 'Error creating blob');
+
+        $this->db->setParamCLOB($prepared_query, 1, $clob, 'document');
+        $this->db->setParamBLOB($prepared_query, 2, $blob, 'picture');
+
+        $result = $this->db->executeQuery($prepared_query);
         $this->assertTrue(!MDB::isError($result), 'Error executing prepared query - inserting LOB from files');
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->destroyLOB($blob);
+        $this->db->destroyLOB($clob);
 
-        $result = $this->db->query('SELECT document, picture FROM files', array('clob', 'blob'));
+        $this->db->freePreparedQuery($prepared_query);
+
+        $result = $this->db->query('SELECT document, picture FROM files');
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error selecting from files'.$result->getMessage());
         }
 
         $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result too soon.');
 
-        $row = $this->db->fetchRow($result);
-        $clob = $row[0];
+        $character_lob = array(
+                             'Type' => 'outputfile',
+                             'Database' => $this->db,
+                             'Result' => $result,
+                             'Row' => 0,
+                             'Field' => 'document',
+                             'Binary' => 0,
+                             'Error' => '',
+                             'FileName' => $character_data_file
+                             );
+
+        $clob = $this->db->createLOB($character_lob);
+
         if (!MDB::isError($clob)) {
-            $clob = $this->db->datatype->setLOBFile($clob, $character_data_file);
-            $this->assertTrue(($this->db->datatype->readLOB($clob, $data, 0) >= 0), 'Error reading CLOB ');
-            $this->db->datatype->destroyLOB($clob);
+            $this->assertTrue(($this->db->readLOB($clob, $data, 0) >= 0), 'Error reading CLOB ');
+            $this->db->destroyLOB($clob);
 
             $this->assertTrue(($file = fopen($character_data_file, 'r')), "Error opening character data file: $character_data_file");
-            $this->assertEquals(gettype($value = fread($file, filesize($character_data_file))), 'string', "Could not read from character LOB file: $character_data_file");
+            $this->assertEquals(getType($value = fread($file, filesize($character_data_file))), 'string', "Could not read from character LOB file: $character_data_file");
             fclose($file);
 
             $this->assertEquals($value, $character_data, "retrieved character LOB value (\"".$value."\") is different from what was stored (\"".$character_data."\")");
@@ -983,14 +1031,25 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $this->assertTrue(false, 'Error creating character LOB in a file');
         }
 
-        $blob = $row[1];
+        $binary_lob = array(
+                            'Type' => 'outputfile',
+                            'Database' => $this->db,
+                            'Result' => $result,
+                            'Row' => 0,
+                            'Field' => 'picture',
+                            'Binary' => 1,
+                            'Error' => '',
+                            'FileName' => $binary_data_file
+                            );
+
+        $blob = $this->db->createLOB($binary_lob);
+
         if (!MDB::isError($blob)) {
-            $blob = $this->db->datatype->setLOBFile($blob, $binary_data_file);
-            $this->assertTrue(($this->db->datatype->readLOB($blob, $data, 0) >= 0), 'Error reading BLOB ');
-            $this->db->datatype->destroyLOB($blob);
+            $this->assertTrue(($this->db->readLOB($blob, $data, 0) >= 0), 'Error reading BLOB ');
+            $this->db->destroyLOB($blob);
 
             $this->assertTrue(($file = fopen($binary_data_file, 'rb')), "Error opening binary data file: $binary_data_file");
-            $this->assertEquals(gettype($value = fread($file, filesize($binary_data_file))), 'string', "Could not read from binary LOB file: $binary_data_file");
+            $this->assertEquals(getType($value = fread($file, filesize($binary_data_file))), 'string', "Could not read from binary LOB file: $binary_data_file");
             fclose($file);
 
             $this->assertEquals($value, $binary_data, "retrieved binary LOB value (\"".$value."\") is different from what was stored (\"".$binary_data."\")");
@@ -1005,20 +1064,21 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Test handling of lob nulls
      */
 
-    function testLOBNulls() {
+    function testLobNulls() {
         if (!$this->supported('LOBs')) {
             return;
         }
 
-        $prepared_query = $this->db->prepare('INSERT INTO files (ID, document,picture) VALUES (1,?,?)', array('clob', 'blob'));
+        $prepared_query = $this->db->prepareQuery('INSERT INTO files (ID, document,picture) VALUES (1,?,?)', array('clob', 'blob'));
+        //$prepared_query = $this->db->prepareQuery('INSERT INTO files (document,picture) VALUES (?,?)');
 
-        $this->db->setParam($prepared_query, 1, null);
-        $this->db->setParam($prepared_query, 2, null);
+        $this->db->setParamNull($prepared_query, 1, 'clob');
+        $this->db->setParamNull($prepared_query, 2, 'blob');
 
-        $result = $this->db->execute($prepared_query);
+        $result = $this->db->executeQuery($prepared_query);
         $this->assertTrue(!MDB::isError($result), 'Error executing prepared query - inserting NULL lobs');
 
-        $this->db->freePrepared($prepared_query);
+        $this->db->freePreparedQuery($prepared_query);
 
         $result = $this->db->query('SELECT document, picture FROM files', array('clob', 'blob'));
         if (MDB::isError($result)) {
@@ -1027,11 +1087,35 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result too soon.');
 
-        $this->assertTrue($this->db->resultIsNull($result, 0, 'document'), 'A query result large object column document is not NULL unlike what was expected');
-        $this->assertTrue($this->db->resultIsNull($result, 0, 'picture'), 'A query result large object column picture is not NULL unlike what was expected');
+        $this->assertTrue($this->db->resultIsNull($result, 0, 'document'), 'A query result large object column is not NULL unlike what was expected (document)');
+        $this->assertTrue($this->db->resultIsNull($result, 0, 'picture'), 'A query result large object column is not NULL unlike what was expected (picture)');
 
         $this->db->freeResult($result);
     }
-}
 
+    /**
+     * test tableInfo()
+     */
+    function testTableInfo()
+    {
+        if (!$this->methodExists('tableInfo')) {
+            return;
+        }
+
+        $table_info = $this->db->tableInfo('users');
+        if (MDB::isError($table_info)) {
+            $this->assertTrue(false, 'Error in tableInfo(): '.$table_info->getMessage());
+        } else {
+
+            $this->assertEquals(count($this->fields), count($table_info), 'The number of fields retrieved ('.count($table_info).') is different from the expected one ('.count($this->fields).')');
+            foreach ($table_info as $field_info) {
+                $this->assertEquals($field_info['table'], 'users', "the table name is not correct (expected: 'users'; actual: $field_info[table])");
+                if (!in_array(strtolower($field_info['name']), $this->fields)) {
+                    $this->assertTrue(false, 'Field names do not match ('.$field_info['name'].' not recognized');
+                }
+                //add check on types...
+            }
+        }
+    }
+}
 ?>

@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1998-2002 Manuel Lemos, Tomas V.V.Cox,                 |
+// | Copyright (c) 1998-2004 Manuel Lemos, Tomas V.V.Cox,                 |
 // | Stig. S. Bakken, Lukas Smith                                         |
 // | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
@@ -44,42 +44,37 @@
 //
 // $Id$
 
-require_once 'MDB/Modules/Manager/Common.php';
+if(!defined('MDB_MANAGER_IBASE_INCLUDED'))
+{
+    define('MDB_MANAGER_IBASE_INCLUDED', 1);
+
+require_once('MDB/Modules/Manager/Common.php');
 
 /**
  * MDB FireBird/InterBase driver for the management modules
  *
  * @package MDB
  * @category Database
+ * @access private
  * @author  Lorenzo Alberton <l.alberton@quipo.it>
  */
 class MDB_Manager_ibase extends MDB_Manager_common
 {
-    // }}}
-    // {{{ constructor
-
-    /**
-     * Constructor
-     */
-    function MDB_Manager_ibase($db_index)
-    {
-        $this->MDB_Manager_Common($db_index);
-    }
-
+    
     // {{{ createDatabase()
 
     /**
      * create a new database
      *
+     * @param object $db    database object that is extended by this class
      * @param string $name  name of the database that should be created
      * @return mixed        MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function createDatabase($name)
+    function createDatabase(&$db, $name)
     {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        return ($db->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Create database',
-                'createDatabase: PHP Interbase API does not support direct queries. You have to '
+        return ($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'Create database',
+                'PHP Interbase API does not support direct queries. You have to '
                 .'create the db manually by using isql command or a similar program'));
     }
 
@@ -89,15 +84,15 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * drop an existing database
      *
+     * @param object $db    database object that is extended by this class
      * @param string $name  name of the database that should be dropped
      * @return mixed        MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function dropDatabase($name)
+    function dropDatabase(&$db, $name)
     {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        return ($db->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Drop database',
-                'dropDatabase: PHP Interbase API does not support direct queries. You have '
+        return ($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'Drop database',
+                'PHP Interbase API does not support direct queries. You have '
                 .'to drop the db manually by using isql command or a similar program'));
     }
 
@@ -107,40 +102,40 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * check if planned changes are supported
      *
+     * @param object $db        database object that is extended by this class
      * @param string $name name of the database that should be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function checkSupportedChanges(&$changes)
+    function checkSupportedChanges(&$db, &$changes)
     {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        for ($change=0, reset($changes);
+        for($change=0, reset($changes);
             $change<count($changes);
             next($changes), $change++)
         {
             switch(key($changes)) {
-                case 'changed_not_null':
-                case 'notnull':
-                    return $this->raiseError(MDB_ERROR_MANAGER, '', '',
-                        'checkSupportedChanges: it is not supported changes to field not null constraint');
-                case 'ChangedDefault':
-                case 'default':
-                    return $this->raiseError(MDB_ERROR_MANAGER, '', '',
-                        'checkSupportedChanges: it is not supported changes to field default value');
-                case 'length':
-                    return $this->raiseError(MDB_ERROR_MANAGER, '', '',
-                        'checkSupportedChanges: it is not supported changes to field default length');
-                case 'unsigned':
-                case 'type':
-                case 'declaration':
-                case 'definition':
+                case "ChangedNotNull":
+                case "notnull":
+                    return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                        'Check supported changes: it is not supported changes to field not null constraint'));
+                case "ChangedDefault":
+                case "default":
+                    return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                        'Check supported changes: it is not supported changes to field default value'));
+                case "length":
+                    return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                        'Check supported changes: it is not supported changes to field default length'));
+                case "unsigned":
+                case "type":
+                case "Declaration":
+                case "Definition":
                     break;
                 default:
-                    return $this->raiseError(MDB_ERROR_MANAGER, '', '',
-                        'checkSupportedChanges: it is not supported change of type' . key($changes));
+                    return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                        'Check supported changes: it is not supported change of type' . key($changes)));
             }
         }
-        return MDB_OK;
+        return(MDB_OK);
     }
 
     // }}}
@@ -149,6 +144,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * alter an existing table
      *
+     * @param object    $db        database object that is extended by this class
      * @param string $name name of the table that is intended to be changed.
      * @param array $changes associative array that contains the details of each type
      *                              of change that is intended to be performed. The types of
@@ -158,7 +154,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
      *
      *                                 New name for the table.
      *
-     *                             added_fields
+     *                             AddedFields
      *
      *                                 Associative array with the names of fields to be added as
      *                                  indexes of the array. The value of each entry of the array
@@ -170,13 +166,13 @@ class MDB_Manager_ibase extends MDB_Manager_common
      *                                  is expected to contain the portion of the field declaration already
      *                                  in DBMS specific SQL code as it is used in the CREATE TABLE statement.
      *
-     *                             removed_fields
+     *                             RemovedFields
      *
      *                                 Associative array with the names of fields to be removed as indexes
      *                                  of the array. Currently the values assigned to each entry are ignored.
      *                                  An empty array should be used for future compatibility.
      *
-     *                             renamed_fields
+     *                             RenamedFields
      *
      *                                 Associative array with the names of fields to be renamed as indexes
      *                                  of the array. The value of each entry of the array should be set to
@@ -185,11 +181,11 @@ class MDB_Manager_ibase extends MDB_Manager_common
      *                                  the portion of the field declaration already in DBMS specific SQL code
      *                                  as it is used in the CREATE TABLE statement.
      *
-     *                             changed_fields
+     *                             ChangedFields
      *
      *                                 Associative array with the names of the fields to be changed as indexes
      *                                  of the array. Keep in mind that if it is intended to change either the
-     *                                  name of a field and any other properties, the changed_fields array entries
+     *                                  name of a field and any other properties, the ChangedFields array entries
      *                                  should have the new names of the fields as array indexes.
      *
      *                                 The value of each entry of the array should be set to another associative
@@ -209,114 +205,112 @@ class MDB_Manager_ibase extends MDB_Manager_common
      *                             Example
      *                                 array(
      *                                     'name' => 'userlist',
-     *                                     'added_fields' => array(
+     *                                     'AddedFields' => array(
      *                                         'quota' => array(
      *                                             'type' => 'integer',
      *                                             'unsigned' => 1
-     *                                             'declaration' => 'quota INT'
+     *                                             'Declaration' => 'quota INT'
      *                                         )
      *                                     ),
-     *                                     'removed_fields' => array(
+     *                                     'RemovedFields' => array(
      *                                         'file_limit' => array(),
      *                                         'time_limit' => array()
      *                                         ),
-     *                                     'changed_fields' => array(
+     *                                     'ChangedFields' => array(
      *                                         'gender' => array(
      *                                             'default' => 'M',
-     *                                             'change_default' => 1,
-     *                                             'declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                             'ChangeDefault' => 1,
+     *                                             'Declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                         )
      *                                     ),
-     *                                     'renamed_fields' => array(
+     *                                     'RenamedFields' => array(
      *                                         'sex' => array(
      *                                             'name' => 'gender',
-     *                                             'declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                             'Declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                         )
      *                                     )
      *                                 )
      * @param boolean $check indicates whether the function should just check if the DBMS driver
-     *                              can perform the requested table alterations if the value is true or
+     *                              can perform the requested table alterations if the value is TRUE or
      *                              actually perform them otherwise.
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function alterTable($name, &$changes, $check)
+    function alterTable(&$db, $name, &$changes, $check)
     {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        if ($check) {
-            for ($change=0, reset($changes);
+        if($check) {
+            for($change=0, reset($changes);
                 $change<count($changes);
                 next($changes), $change++)
             {
                 switch(key($changes)) {
-                    case 'added_fields':
-                    case 'removed_fields':
-                    case 'renamed_fields':
+                    case "AddedFields":
+                    case "RemovedFields":
+                    case "RenamedFields":
                         break;
-                    case 'changed_fields':
-                        $fields = $changes['changed_fields'];
-                        for ($field=0, reset($fields);
-                            $field < count($fields);
+                    case "ChangedFields":
+                        $fields = $changes['ChangedFields'];
+                        for($field=0, reset($fields);
+                            $field<count($fields);
                             next($fields), $field++)
                         {
-                            if (MDB::isError($err = $this->checkSupportedChanges($fields[key($fields)]))) {
-                                return $err;
+                            if(MDB::isError($err = $this->checkSupportedChanges($fields[Key($fields)]))) {
+                                return($err);
                             }
                         }
                         break;
                     default:
-                        return $this->raiseError(MDB_ERROR_MANAGER, '', '',
-                            'alterTable: change type ' . key($changes) . ' not yet supported');
+                        return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                            'Alter table: change type ' . key($changes) . ' not yet supported'));
                 }
             }
-            return MDB_OK;
+            return(MDB_OK);
         } else {
             $query = '';
-            if (isset($changes['added_fields'])) {
-                $fields = $changes['added_fields'];
-                for ($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
-                    if (strcmp($query, '')) {
+            if(isset($changes['AddedFields'])) {
+                $fields = $changes['AddedFields'];
+                for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
+                    if(strcmp($query, "")) {
                         $query .= ', ';
                     }
-                    $query .= 'ADD ' . $fields[key($fields)]['declaration'];
+                    $query .= 'ADD ' . $fields[key($fields)]['Declaration'];
                 }
             }
-            if (isset($changes['removed_fields'])) {
-                $fields = $changes['removed_fields'];
-                for ($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
-                    if (strcmp($query, '')) {
+            if(isset($changes['RemovedFields'])) {
+                $fields = $changes['RemovedFields'];
+                for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
+                    if(strcmp($query, "")) {
                         $query .= ', ';
                     }
                     $query .= 'DROP ' . key($fields);
                 }
             }
-            if (isset($changes['renamed_fields'])) {
-                $fields = $changes['renamed_fields'];
-                for ($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
-                    if (strcmp($query, '')) {
+            if(isset($changes['RenamedFields'])) {
+                $fields = $changes['RenamedFields'];
+                for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
+                    if(strcmp($query, "")) {
                         $query .= ', ';
                     }
-                    $query .= 'ALTER ' . key($fields) . ' TO ' . $fields[key($fields)]['name'];
+                    $query .= 'ALTER ' . key($fields) . ' TO ' . $fields[Key($fields)]['name'];
                 }
             }
-            if (isset($changes['changed_fields'])) {
-                $fields = $changes['changed_fields'];
-                for ($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
+            if(isset($changes['ChangedFields'])) {
+                $fields = $changes['ChangedFields'];
+                for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
                     $field_name = key($fields);
-                    if (MDB::isError($err = $this->checkSupportedChanges($fields[$field_name]))) {
-                        return $err;
+                    if(MDB::isError($err = $this->CheckSupportedChanges($fields[Key($fields)]))) {
+                        return($err);
                     }
-                    if (strcmp($query, '')) {
+                    if(strcmp($query, "")) {
                         $query .= ', ';
                     }
-                    $db->loadModule('datatype');
-                    $query .= 'ALTER '.$field_name.' TYPE '.$db->datatype->getTypeDeclaration($fields[$field_name]['definition']);
+                    $query .= 'ALTER '.$field_name.' TYPE '.$db->getFieldDeclaration($fields[$field_name]['Definition']);
                 }
             }
-            if (MDB::isError($err = $db->query("ALTER TABLE $name $query"))) {
+            if(MDB::isError($err = $db->query("ALTER TABLE $name $query"))) {
                 return $err;
             }
-            return MDB_OK;
+            return(MDB_OK);
         }
     }
 
@@ -326,24 +320,26 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * list all fields in a tables in the current database
      *
+     * @param object    $db        database object that is extended by this class
      * @param string $table name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listTableFields($table)
+    function listTableFields(&$db, $table)
     {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $query = "SELECT RDB$FIELD_SOURCE FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME='$table'";
-        $result = $db->query($query, null, false);
-        if (MDB::isError($result)) {
-            return $result;
+        $result = $db->query("SELECT RDB$FIELD_SOURCE FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME='$table'");
+        if(MDB::isError($result)) {
+            return($result);
         }
         $columns = $db->getColumnNames($result);
-        if (MDB::isError($columns)) {
+        if(MDB::isError($columns)) {
             $db->freeResult($columns);
         }
-        return $columns;
+        return($columns);
     }
+
+    // }}}
+    // {{{ getTableFieldDefinition()
 
     // }}}
     // {{{ listViews()
@@ -351,22 +347,15 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * list the views in the database
      *
+     * @param object    $db        database object that is extended by this class
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-/*
-    function listViews()
+    function listViews(&$db)
     {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $result = $db->query('SELECT RDB$VIEW_NAME');
-        if (MDB::isError($result)) {
-            return $result;
-        }
-        $views = $db->fetchCol($result);
-        $db->freeResult($result);
-        return $views;
+        //return($db->queryCol('SELECT RDB$VIEW_NAME'));
+        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'not supported feature'));
     }
-*/
 
     // }}}
     // {{{ createIndex()
@@ -374,6 +363,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * get the stucture of a field into an array
      *
+     * @param object    $dbs        database object that is extended by this class
      * @param string    $table         name of the table on which the index is to be created
      * @param string    $name         name of the index to be created
      * @param array     $definition        associative array that defines properties of the index to be created.
@@ -393,7 +383,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
 
      *                                 Example
      *                                    array(
-     *                                        'fields' => array(
+     *                                        'FIELDS' => array(
      *                                            'user_name' => array(
      *                                                'sorting' => 'ascending'
      *                                            ),
@@ -403,34 +393,33 @@ class MDB_Manager_ibase extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createIndex($table, $name, $definition)
+    function createIndex(&$db, $table, $name, $definition)
     {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        for ($query_sort='', $query_fields='', $field=0, reset($definition['fields']);
-            $field<count($definition['fields']);
-            $field++, next($definition['fields'])
-        ) {
-            if ($field > 0) {
+        for($query_sort='', $query_fields='', $field=0, reset($definition['FIELDS']);
+            $field<count($definition['FIELDS']);
+            $field++, next($definition['FIELDS']))
+        {
+            if($field > 0) {
                 $query_fields .= ',';
             }
-            $field_name = key($definition['fields']);
+            $field_name = key($definition['FIELDS']);
             $query_fields .= $field_name;
-            if (!strcmp($query_sort, '') 
-                && $db->support('index_sorting')
-                && isset($definition['fields'][$field_name]['sorting'])
-            ) {
-                switch($definition['fields'][$field_name]['sorting']) {
-                    case 'ascending':
-                        $query_sort = ' ASC';
+            if(!strcmp($query_sort, "") 
+                && $db->support('IndexSorting')
+                && isset($definition['FIELDS'][$field_name]['sorting']))
+            {
+                switch($definition['FIELDS'][$field_name]['sorting']) {
+                    case "ascending":
+                        $query_sort = " ASC";
                         break;
-                    case 'descending':
-                        $query_sort = ' DESC';
+                    case "descending":
+                        $query_sort = " DESC";
                         break;
                 }
             }
         }
-        return $db->query('CREATE'.(isset($definition['unique']) ? ' UNIQUE' : '') . $query_sort
-             ." INDEX $name  ON $table ($query_fields)");
+        return($db->query('CREATE'.(isset($definition['unique']) ? ' UNIQUE' : '') . $query_sort
+                         ." INDEX $name  ON $table ($query_fields)"));
     }
 
     // }}}
@@ -439,26 +428,26 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * create sequence
      *
+     * @param object    $db        database object that is extended by this class
      * @param string $seq_name name of the sequence to be created
      * @param string $start start value of the sequence; default is 1
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function createSequence($seq_name, $start = 1)
+    function createSequence(&$db, $seq_name, $start)
     {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $seqname = $db->getSequenceName($seq_name);
         if (MDB::isError($result = $db->query("CREATE GENERATOR $seqname"))) {
-            return $result;
+            return($result);
         }
         if (MDB::isError($result = $db->query("SET GENERATOR $seqname TO ".($start-1)))) {
             if (MDB::isError($err = $db->dropSequence($seq_name))) {
-                return $this->raiseError(MDB_ERROR_MANAGER, null, null,
-                    'createSequence: Could not setup sequence start value and then it was not possible to drop it: '
-                    .$err->getMessage().' - ' .$err->getUserInfo());
+                return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                        'Could not setup sequence start value and then it was not possible to drop it: '
+                        .$err->getMessage().' - ' .$err->getUserInfo()));
             }
         }
-        return $result;
+        return($result);
     }
 
     // }}}
@@ -467,15 +456,15 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * drop existing sequence
      *
+     * @param object    $db        database object that is extended by this class
      * @param string $seq_name name of the sequence to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function dropSequence($seq_name)
+    function dropSequence(&$db, $seq_name)
     {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $seqname = $db->getSequenceName($seq_name);
-        return $db->query("DELETE FROM RDB\$GENERATORS WHERE RDB\$GENERATOR_NAME='".strtoupper($seqname)."'");
+        return($db->query("DELETE FROM RDB\$GENERATORS WHERE RDB\$GENERATOR_NAME='".strtoupper($seqname)."'"));
     }
 
     // }}}
@@ -484,19 +473,15 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * list all sequences in the current database
      *
+     * @param object    $db        database object that is extended by this class
      * @return mixed data array on success, a MDB error on failure
      * @access public
      **/
-    function listSequences()
+    function listSequences(&$db)
     {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $result = $db->query("SELECT RDB\$GENERATOR_NAME FROM RDB\$GENERATORS", null, false);
-        if (MDB::isError($result)) {
-            return $result;
-        }
-        $sequences = $db->fetchCol($result);
-        $db->freeResult($result);
-        return $sequences;
+        return($db->queryCol("SELECT RDB\$GENERATOR_NAME FROM RDB\$GENERATORS"));
     }
 }
+
+};
 ?>

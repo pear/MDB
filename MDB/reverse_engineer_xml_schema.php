@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1998-2002 Manuel Lemos, Tomas V.V.Cox,                 |
+// | Copyright (c) 1998-2004 Manuel Lemos, Tomas V.V.Cox,                 |
 // | Stig. S. Bakken, Lukas Smith                                         |
 // | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
@@ -94,11 +94,6 @@ echo ('
                     default:
                         $dump_what = MDB_MANAGER_DUMP_ALL;
                         break;
-                }
-                if (class_exists('Var_Dump')) {
-                    Var_Dump::display($manager->updateDatabase($_REQUEST['file']));
-                } else {
-                    var_dump($manager->updateDatabase($_REQUEST['file']));
                 }
                 $dump_config = array(
                     'Output_Mode' => 'file',
