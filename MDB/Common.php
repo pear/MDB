@@ -304,14 +304,6 @@ class MDB_common extends PEAR
         } else {
             $this->include_path = dirname(__FILE__);
         }
-        if(isset($dsninfo['database'])) {
-            $this->setDatabase($dsninfo['database']);
-            $err = $this->connect();
-            if (MDB::isError($err)) {
-                $err->addUserInfo($dsn);
-                return $err;
-            }
-        }
     }
 
     // }}}
@@ -4033,6 +4025,7 @@ class MDB_common extends PEAR
      */
     function fetchCol($result, $fetchmode = DB_FETCHMODE_DEFAULT, $colnum = '0')
     {
+        $column = array();
         while(is_array($res = $this->fetchInto($result, $fetchmode, NULL))) {
             $column[] = $res[$colnum];
         }
@@ -4129,9 +4122,9 @@ class MDB_common extends PEAR
     function queryOne($query, $type = NULL, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         if($type != NULL) {
-            $types = array($type);
+            $type = array($type);
         }
-        $result = $this->query($query, $types);
+        $result = $this->query($query, $type);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -4189,9 +4182,9 @@ class MDB_common extends PEAR
     function queryCol($query, $type = NULL, $fetchmode = DB_FETCHMODE_DEFAULT, $colnum = '0')
     {
         if($type != NULL) {
-            $types = array($type);
+            $type = array($type);
         }
-        $result = $this->query($query, $types);
+        $result = $this->query($query, $type);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -4257,9 +4250,9 @@ class MDB_common extends PEAR
                 return $prepared_query;
             }
             $this->setParamArray($prepared_query, $params, $param_types);
-            $result = $this->executeQuery($prepared_query, $types);
+            $result = $this->executeQuery($prepared_query, $type);
         } else {
-            $result = $this->query($query, $types);
+            $result = $this->query($query, $type);
         }
 
         if (MDB::isError($result)) {
@@ -4359,7 +4352,7 @@ class MDB_common extends PEAR
     function &getCol($query, $type = NULL, $params = array(), $param_types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT, $colnum = '0')
     {
         if ($type != NULl) {
-            $types = array($type);
+            $type = array($type);
         }
         settype($params, 'array');
         if (sizeof($params) > 0) {
@@ -4369,9 +4362,9 @@ class MDB_common extends PEAR
                 return $prepared_query;
             }
             $this->setParamArray($prepared_query, $params, $param_types);
-            $result = $this->executeQuery($prepared_query, $types);
+            $result = $this->executeQuery($prepared_query, $type);
         } else {
-            $result = $this->query($query, $types);
+            $result = $this->query($query, $type);
         }
 
         if (MDB::isError($result)) {

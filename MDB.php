@@ -347,6 +347,15 @@ class MDB
                 NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
         $db =& new $class_name($dsninfo, $options);
+        if(isset($dsninfo['database'])) {
+            $db->setDatabase($dsninfo['database']);
+            $err = $db->connect();
+            if (MDB::isError($err)) {
+                $dsn = $dsninfo['phptype'].'://'.$dsninfo['username'].':'.$dsninfo['password'].'@'.$dsninfo['hostspec'].'/'.$dsninfo['database'];
+                $err->addUserInfo($dsn);
+                return $err;
+            }
+        }
         return $db;
     }
 

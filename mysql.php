@@ -376,8 +376,6 @@ class MDB_driver_mysql extends MDB_common
             if (isset($result) && MDB::isError($result)) {
                 return $result;
             }
-            global $databases;
-            $databases[$database] = '';
             return TRUE;
         }
         return FALSE;

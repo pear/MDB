@@ -117,7 +117,7 @@ class MDB_driver_pgsql extends MDB_common {
             } else {
                 $err = $this->raiseError(DB_ERROR, NULL, NULL, 'Setup: could not execute BEGIN');
             }
-            if (MDB::isError($err)) {
+            if (isset($err) && MDB::isError($err)) {
                 return ($err);
             }
         }
@@ -280,7 +280,12 @@ class MDB_driver_pgsql extends MDB_common {
         if (($connection = @$function($connect_string)) > 0) {
             return ($connection);
         }
-        return ($this->raiseError(DB_ERROR_CONNECT_FAILED, '', '', 'doConnect: ' . isset($php_errormsg) ? $php_errormsg : 'Could not connect to PostgreSQL server'));
+        if (isset($php_errormsg)) {
+            $error_msg = $php_errormsg;
+        } else {
+            $error_msg = 'Could not connect to PostgreSQL server';
+        }
+        return ($this->raiseError(DB_ERROR_CONNECT_FAILED, '', '', 'doConnect: '.$error_msg));
     }
 
     // }}}
@@ -306,10 +311,11 @@ class MDB_driver_pgsql extends MDB_common {
             $this->affected_rows = -1;
             $this->connection = 0;
         }
-        $this->connection = $this->_doConnect($this->database_name, $this->options['persistent']);
-        if (MDB::isError($this->connection)) {
-            return $this->connection;
+        $connection = $this->_doConnect($this->database_name, $this->options['persistent']);
+        if (MDB::isError($connection)) {
+            return $connection;
         }
+        $this->connection = $connection;
 
         if (!$this->auto_commit && MDB::isError($trans_result = $this->_doQuery('BEGIN'))) {
             pg_Close($this->connection);
@@ -338,7 +344,12 @@ class MDB_driver_pgsql extends MDB_common {
             pg_Close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
+
+            global $databases;
+            $databases[$this->database] = '';
+            return TRUE;
         }
+        return FALSE;
     }
 
     // }}}
@@ -485,7 +496,7 @@ class MDB_driver_pgsql extends MDB_common {
             if (!($this->lobs[$lob]['Handle'] = @pg_loopen($this->connection, $this->lobs[$lob]['Value'], 'r'))) {
                 if (isset($this->lobs[$lob]['InTransaction'])) {
                     @pg_Exec($this->connection, 'END');
-                    unSet($this->lobs[$lob]['InTransaction']);
+                    unset($this->lobs[$lob]['InTransaction']);
                 }
                 unset($this->lobs[$lob]['Value']);
                 return ($this->raiseError(DB_ERROR, NULL, NULL, 'Retrieve LOB: ' . pg_ErrorMessage($this->connection)));
@@ -663,9 +674,15 @@ class MDB_driver_pgsql extends MDB_common {
      */
     function freeResult($result)
     {
-        UnSet($this->highest_fetched_row[$result]);
-        UnSet($this->columns[$result]);
-        UnSet($this->result_types[$result]);
+        if(isset($this->highest_fetched_row[$result])) {
+            unset($this->highest_fetched_row[$result]);
+        }
+        if(isset($this->columns[$result])) {
+            unset($this->columns[$result]);
+        }
+        if(isset($this->result_types[$result])) {
+            unset($this->result_types[$result]);
+        }
         return (pg_freeresult($result));
     }
 

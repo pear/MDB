@@ -212,7 +212,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
         if(MDB::isError($verify = $this->_verifyTransactionalTableType($db, $db->default_table_type))) {
             return($verify);
         }
-        if (MDB::isError($query_fields = $this->getFieldDeclarationList($db, $fields))) {
+        if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'unkown error');
         }
         if (isset($db->supported['Transactions'])
@@ -472,14 +472,14 @@ class MDB_manager_mysql_class extends MDB_manager_common
      */
     function listTables(&$db)
     {
-        $result = $db->queryCol('SHOW TABLES', NULL, DB_FETCHMODE_ORDERED);
-        if(MDB::isError($result)) {
-            return $result;
+        $table_names = $db->queryCol('SHOW TABLES', NULL, DB_FETCHMODE_ORDERED);
+        if(MDB::isError($table_names)) {
+            return $table_names;
         }
-        for($i = 0, $j = count($result), $tables = array(); $i < $j; ++$i)
+        for($i = 0, $j = count($table_names), $tables = array(); $i < $j; ++$i)
         {
-            if (!$this->_isSequenceName($db, $result[$i]))
-                $tables[] = $result[$i];
+            if (!$db->_isSequenceName($table_names[$i]))
+                $tables[] = $table_names[$i];
         }
         return ($tables);
     }
@@ -932,13 +932,13 @@ class MDB_manager_mysql_class extends MDB_manager_common
      */
     function listSequences(&$db)
     {
-        $result = $db->queryCol('SHOW TABLES', NULL, DB_FETCHMODE_ORDERED);
-        if(MDB::isError($result)) {
-            return $result;
+        $table_names = $db->queryCol('SHOW TABLES', NULL, DB_FETCHMODE_ORDERED);
+        if(MDB::isError($table_names)) {
+            return $table_names;
         }
-        for($i = 0, $j = count($result), $sequences = array(); $i < $j; ++$i)
+        for($i = 0, $j = count($table_names), $sequences = array(); $i < $j; ++$i)
         {
-            if ($sqn = $db->_isSequenceName($db, $result[$i]))
+            if ($sqn = $db->_isSequenceName($table_names[$i]))
                 $sequences[] = $sqn;
         }
         return ($sequences);
@@ -959,11 +959,12 @@ class MDB_manager_mysql_class extends MDB_manager_common
      */
     function getSequenceDefinition(&$db, $sequence)
     {
-        if(MDB::isError($table_names = $db->queryCol('SHOW TABLES', NULL, DB_FETCHMODE_ORDERED))) {
+        $table_names = $db->queryCol('SHOW TABLES', NULL, DB_FETCHMODE_ORDERED);
+        if(MDB::isError($table_names)) {
             return($table_names);
         }
         for($i = 0, $j = count($table_names); $i < $j; $i++) {
-            if ($sqn = $db->_isSequenceName($db, $table_names[$i])) {
+            if ($sqn = $db->_isSequenceName($table_names[$i])) {
                 $start = $db->currId($sqn);
                 if (MDB::isError($start)) {
                     return ($start);
