@@ -70,25 +70,31 @@ class MDB_Manager_oci8_ extends MDB_Manager_Common {
      */
     function createDatabase(&$db, $name)
     {
-        if (!isset($db->getOption($option = "DBAUser")) || !isset($db->getOption($option = "DBAPassword"))) {
+        $user = $db->getOption("DBAUser");
+        if (MDB::isError($user)) {
             return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
-                "it was not specified the Oracle $option option"));
+                "it was not specified the Oracle DBAUser option"));
         }
-        if ($db->connect($db->getOption("DBAUser"), $db->getOption("DBAPassword"), 0)) {
+        $password = $db->getOption("DBAPassword");
+        if (MDB::isError($password)) {
+            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
+                "it was not specified the Oracle DBAPassword option"));
+        }
+        if (MDB::isError($db->connect($user, $password, 0))) {
             $tablespace = $db->getOption("DefaultTablespace");
             if(MDB::isError($tablespace)) {
                 $tablespace = '';
             } else {
                 $tablespace = ' DEFAULT TABLESPACE '.$tablespace;
             }
-            if ($db->_doQuery('CREATE USER '.$db->user.' IDENTIFIED BY '.$db->password.$tablespace) {
+            if ($db->_doQuery('CREATE USER '.$db->user.' IDENTIFIED BY '.$db->password.$tablespace)) {
                 if (MDB::isError($result = $db->_doQuery('GRANT CREATE SESSION, CREATE TABLE,UNLIMITED TABLESPACE,CREATE SEQUENCE TO '.$db->user))) {
                     if (MDB::isError($result2 = $db->_doQuery('DROP USER '.$db->user.' CASCADE'))) {
                         return($db->raiseError(MDB_Error, '','', 'Create database',
-                            "could not setup the database user (".$result->getUserinfo().") and then could drop its records (".$result2->getUserinfo().")";
+                            "could not setup the database user (".$result->getUserinfo().") and then could drop its records (".$result2->getUserinfo().")"));
                     }
                     return($db->raiseError(MDB_Error, '','', 'Create database',
-                        "could not setup the database user (".$result->getUserinfo().")";
+                        "could not setup the database user (".$result->getUserinfo().")"));
                 } else {
                     return MDB_OK;
                 }
@@ -110,11 +116,17 @@ class MDB_Manager_oci8_ extends MDB_Manager_Common {
      */
     function dropDatabase(&$db, $name)
     {
-        if (!isset($db->getOption($option = "DBAUser")) || !isset($db->getOption($option = "DBAPassword"))) {
+        $user = $db->getOption("DBAUser");
+        if (MDB::isError($user)) {
             return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
-                "it was not specified the Oracle $option option"));
+                "it was not specified the Oracle DBAUser option"));
         }
-        if (MDB::isError($result = $db->connect($db->getOption("DBAUser"), $db->getOption("DBAPassword"), 0)) {
+        $password = $db->getOption("DBAPassword");
+        if (MDB::isError($password)) {
+            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
+                "it was not specified the Oracle DBAPassword option"));
+        }
+        if (MDB::isError($db->connect($user, $password, 0))) {
             return $result;
         }
         return($db->_doQuery("DROP USER " . $db->user . " CASCADE"));

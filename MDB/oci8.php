@@ -195,7 +195,7 @@ class MDB_oci8 extends MDB_Common {
             return(MDB_OK);
         }
         if ($this->connection && $auto_commit && !$this->CommitTransaction()) {
-            return($this->raiseError())
+            return($this->raiseError());
         }
         $this->auto_commit = $auto_commit;
         return($this->_registerTransactionShutdown($auto_commit));
@@ -275,7 +275,7 @@ class MDB_oci8 extends MDB_Common {
     {
         if (isset($this->options["SID"])) {
             $sid = $this->options["SID"];
-        else {
+        } else {
             $sid = getenv("ORACLE_SID");
         }
         if (!strcmp($sid, "")) {
@@ -303,7 +303,7 @@ class MDB_oci8 extends MDB_Common {
         }
         if (!$this->_doQuery("ALTER SESSION SET NLS_DATE_FORMAT='YYYY-MM-DD HH24:MI:SS'")) {
             $this->_close();
-            return($this->raiseError())
+            return($this->raiseError());
         }
         $this->connected_user = $user;
         $this->connected_password = $password;
@@ -347,7 +347,10 @@ class MDB_oci8 extends MDB_Common {
         if ($prepared_query) {
             $columns = "";
             $variables = "";
-            for(reset($this->clobs[$prepared_query]), $clob = 0;$clob < count($this->clobs[$prepared_query]);$clob++, next($this->clobs[$prepared_query])) {
+            for(reset($this->clobs[$prepared_query]), $clob = 0;
+                $clob < count($this->clobs[$prepared_query]);
+                $clob++, next($this->clobs[$prepared_query]))
+            {
                 $position = key($this->clobs[$prepared_query]);
                 if (gettype($descriptors[$position] = OCINewDescriptor($this->connection, OCI_D_LOB)) != "object") {
                     $success = $this->raiseError(MDB_ERROR, '', '',
@@ -385,7 +388,10 @@ class MDB_oci8 extends MDB_Common {
                         }
                     }
                     if (!MDB::isError($success)) {
-                        for(reset($this->blobs[$prepared_query]), $blob = 0;$blob < count($this->blobs[$prepared_query]);$blob++, next($this->blobs[$prepared_query])) {
+                        for(reset($this->blobs[$prepared_query]), $blob = 0;
+                            $blob < count($this->blobs[$prepared_query]);
+                            $blob++, next($this->blobs[$prepared_query]))
+                        {
                             $position = key($this->blobs[$prepared_query]);
                             if (!OCIBindByName($statement, ":blob".$position, $descriptors[$position], -1, OCI_B_BLOB)) {
                                 $success = $this->oci8RaiseError(MDB_ERROR, '', '',
@@ -398,7 +404,10 @@ class MDB_oci8 extends MDB_Common {
                 if (!MDB::isError($success)) {
                     if (($result = @OCIExecute($statement, ($lobs == 0 && $this->auto_commit) ? OCI_COMMIT_ON_SUCCESS : OCI_DEFAULT))) {
                         if ($lobs) {
-                            for(reset($this->clobs[$prepared_query]), $clob = 0;$clob < count($this->clobs[$prepared_query]);$clob++, next($this->clobs[$prepared_query])) {
+                            for(reset($this->clobs[$prepared_query]), $clob = 0;
+                                $clob < count($this->clobs[$prepared_query]);
+                                $clob++, next($this->clobs[$prepared_query]))
+                            {
                                 $position = key($this->clobs[$prepared_query]);
                                 $clob_stream = $this->prepared_queries[$prepared_query-1]["Values"][$position-1];
                                 for($value = "";!$this_>endOfLOB($clob_stream);) {
@@ -445,7 +454,7 @@ class MDB_oci8 extends MDB_Common {
                                     }
                                 }
                             }
-                        } else 
+                        } else {
                             $this->uncommitedqueries++;
                         }
                         if (!MDB::isError($success)) {
@@ -453,8 +462,9 @@ class MDB_oci8 extends MDB_Common {
                                 case "SELECT":
                                     $result_value = intval($statement);
                                     $this->current_row[$result_value] = -1;
-                                    if ($limit > 0)
+                                    if ($limit > 0) {
                                         $this->limits[$result_value] = array($first, $limit, 0);
+                                    }
                                     $this->highest_fetched_row[$result_value] = -1;
                                     break;
                                 default:
@@ -465,16 +475,17 @@ class MDB_oci8 extends MDB_Common {
                             $result = $statement;
                         }
                     } else {
-                        return $this->oci8RaiseError(NULL,
-                            'Do query: Could not execute query', OCIError($statement));
+                        return $this->oci8RaiseError(NULL, 'Do query: Could not execute query');
                     }
                 }
             } else {
-                $this->oci8RaiseError(NULL,
-                    'Do query: Could not parse query');
+                return $this->oci8RaiseError(NULL, 'Do query: Could not parse query');
             }
         }
-        for(reset($descriptors), $descriptor = 0;$descriptor < count($descriptors);$descriptor++, next($descriptors)) {
+        for(reset($descriptors), $descriptor = 0;
+            $descriptor < count($descriptors);
+            $descriptor++, next($descriptors))
+        {
             @OCIFreeDesc($descriptors[key($descriptors)]);
         }
         return($result);
@@ -499,7 +510,7 @@ class MDB_oci8 extends MDB_Common {
         $limit = $this->selected_row_limit;
         $this->first_selected_row = $this->selected_row_limit = 0;
         if (!$this->connect($this->user, $this->password, $this->persistent)) {
-            return($this->raiseError())
+            return($this->raiseError());
         }
         return($this->_doQuery($query, $first, $limit));
     }
@@ -524,7 +535,7 @@ class MDB_oci8 extends MDB_Common {
         $limit = $this->selected_row_limit;
         $this->first_selected_row = $this->selected_row_limit = 0;
         if (!$this->connect($this->user, $this->password, $this->persistent)) {
-            return($this->raiseError())
+            return($this->raiseError());
         }
         return($this->_doQuery($query, $first, $limit, $prepared_query));
     }
@@ -633,7 +644,7 @@ class MDB_oci8 extends MDB_Common {
             return($this->highest_fetched_row[$result_value] >= $this->rows[$result_value]-1);
         }
         if (isset($this->row_buffer[$result_value])) {
-            return($this->raiseError())
+            return($this->raiseError());
         }
         if (isset($this->limits[$result_value])) {
             if (!$this->_skipFirstRows($result) || $this->current_row[$result_value] + 1 >= $this->limits[$result_value][1]) {
@@ -642,7 +653,7 @@ class MDB_oci8 extends MDB_Common {
             }
         }
         if (OCIFetchInto($result, $this->row_buffer[$result_value])) {
-            return($this->raiseError())
+            return($this->raiseError());
         }
         unset($this->row_buffer[$result_value]);
         $this->rows[$result_value] = $this->current_row[$result_value] + 1;
@@ -673,7 +684,7 @@ class MDB_oci8 extends MDB_Common {
             $lob_object = $this->fetchResult($result, $row, $field);
             if (gettype($lob_object) != "object") {
                 if (($column = $this->GetColumn($result, $field)) == -1) {
-                    return($this->raiseError())
+                    return($this->raiseError());
                 }
                 if (isset($this->results[intval($result)][$row][$column])) {
                     return $this->raiseError(MDB_ERROR, '', '',
@@ -762,8 +773,8 @@ class MDB_oci8 extends MDB_Common {
     function resultIsNull($result, $row, $field)
     {
         $result_value = intval($result);
-        if (($column = $this->GetColumn($result, $field)) == -1 || !$this->fetchRow($result, $row)) {
-            return($this->raiseError())
+        if (($column = $this->getColumn($result, $field)) == -1 || !$this->fetchRow($result, $row)) {
+            return($this->raiseError());
         }
         $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $row);
         return(!isset($this->results[$result_value][$row][$column]));
@@ -823,12 +834,12 @@ class MDB_oci8 extends MDB_Common {
         }
         if (!isset($this->rows[$result_value])) {
             if (!$this->getColumnNames($result, $column_names)) {
-                return($this->raiseError())
+                return($this->raiseError());
             }
             if (isset($this->limits[$result_value])) {
                 if (!$this->_skipFirstRows($result)) {
                     $this->rows[$result_value] = 0;
-                    return($this->raiseError())
+                    return($this->raiseError());
                 }
                 $limit = $this->limits[$result_value][1];
             } else {
@@ -1379,7 +1390,7 @@ class MDB_oci8 extends MDB_Common {
     function nextId($seq_name, $ondemand = FALSE)
     {
         if (!$this->connect($this->user, $this->password, $this->persistent)) {
-            return($this->raiseError())
+            return($this->raiseError());
         }
         $sequence_name = $this->getSequenceName($seq_name);
         $repeat = 0;
@@ -1419,7 +1430,7 @@ class MDB_oci8 extends MDB_Common {
     function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
         if (!$this->fetchRow($result, $row)) {
-            return($this->raiseError())
+            return($this->raiseError());
         }
         $result_value = intval($result);
         $array = $this->results[$result_value][$row];
