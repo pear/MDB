@@ -923,7 +923,7 @@ class MDB_ibase extends MDB_Common
     {
         $result_value = intval($result);
         if ($this->options['result_buffering']) {
-            if ($rownum == null) {
+            if (is_null($rownum)) {
                 $rownum = $this->results[$result_value]['highest_fetched_row'] + 1;
             }
             if (isset($this->results[$result_value][$rownum])) {
@@ -957,20 +957,16 @@ class MDB_ibase extends MDB_Common
             }
             while ($this->results[$result_value]['current_row'] < $rownum) {
                 $this->results[$result_value]['current_row']++;
-                if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                    $row = @ibase_fetch_assoc($result);
-                    $row = array_change_key_case($row);
-                } else {
-                    $row = @ibase_fetch_row($result);
+                $row = @ibase_fetch_assoc($result);
+                if (!$row) {
+                    return null;
                 }
+                $row = array_change_key_case($row);
                 //NOT SURE IF REALLY OK... basically it doesn't process $row if it's false
                 if (is_array($row)) {
                     foreach ($row as $key => $value_with_space) {
-                        $row[$key] = rtrim($value_with_space);
+                        $row[$key] = strtolower(rtrim($value_with_space));
                     }
-                }
-                if (!$row) {
-                    return null;
                 }
                 $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
             }
@@ -984,17 +980,17 @@ class MDB_ibase extends MDB_Common
         } else {
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                 $row = @ibase_fetch_assoc($result);
-                $row = array_change_key_case($row);
             } else {
                 $row = @ibase_fetch_row($result);
             }
+            if (!$row) {
+                return null;
+            }
+            $row = array_change_key_case($row);
             if (is_array($row)) {
                 foreach ($row as $key => $value_with_space) {
                     $row[$key] = rtrim($value_with_space);
                 }
-            }
-            if (!$row) {
-                return null;
             }
         }
         if (isset($this->results[$result_value]['types'])) {

@@ -961,7 +961,7 @@ class MDB_oci8 extends MDB_Common
     {
         $result_value = intval($result);
         if ($this->options['result_buffering']) {
-            if ($rownum == null) {
+            if (is_null($rownum)) {
                 $rownum = $this->results[$result_value]['highest_fetched_row'] + 1;
             }
             if (isset($this->results[$result_value][$rownum])) {
@@ -995,15 +995,11 @@ class MDB_oci8 extends MDB_Common
             }
             while ($this->results[$result_value]['current_row'] < $rownum) {
                 $this->results[$result_value]['current_row']++;
-                if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                    $moredata = @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS);
-                    $row = array_change_key_case($row);
-                } else {
-                    $moredata = @OCIFetchInto($result, $row, OCI_RETURN_NULLS);
-                }
+                $moredata = @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS);
                 if (!$moredata) {
                     return null;
                 }
+                $row = array_change_key_case($row);
                 $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
             }
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
