@@ -45,6 +45,10 @@
 // $Id$
 //
 
+if(!defined('MDB_MANAGER_COMMON_INCLUDED'))
+{
+    define('MDB_MANAGER_COMMON_INCLUDED', 1);
+
 /**
 * Base class for the management extensions that is extended by each MDB driver
 *
@@ -52,9 +56,8 @@
 * @author  Lukas Smith <smith@dybnet.de>
 */
 
-class MDB_Manager_common
+class MDB_Manager_Common
 {
-
     // }}}
     // {{{ getFieldDeclaration()
 
@@ -709,4 +712,5 @@ class MDB_Manager_common
     }
 }
 
+};
 ?>

@@ -45,6 +45,10 @@
 // $Id$
 //
 
+if(!defined('MDB_MANAGER_MYSQL_INCLUDED'))
+{
+    define('MDB_MANAGER_MYSQL_INCLUDED',1);
+
 require_once 'MDB/Manager/Common.php';
 
 /**
@@ -57,7 +61,6 @@ require_once 'MDB/Manager/Common.php';
 class MDB_Manager_mysql extends MDB_Manager_Common
 {
     // {{{ properties
-
     var $verified_table_types = array();
 
     // }}}
@@ -874,9 +877,6 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      */
     function createSequence(&$db, $seq_name, $start)
     {
-        if(MDB::isError($verify = $this->_verifyTransactionalTableType($db,$db->default_table_type))) {
-            return($verify);
-        }
         $sequence_name = $db->getSequenceName($seq_name);
         $res = $db->query("CREATE TABLE $sequence_name
             (sequence INT DEFAULT 0 NOT NULL AUTO_INCREMENT, PRIMARY KEY (sequence))");
@@ -886,7 +886,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         if ($start == 1) {
             return MDB_OK;
         }
-        $res = $db->query("INSERT INTO $sequence_name (sequence) VALUES (".($start-1).')');
+        $res = $db->query("INSERT INTO $sequence_name (sequence) VALUES (".($start-1).")");
         if (!MDB::isError($res)) {
             return MDB_OK;
         }
@@ -942,6 +942,9 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         }
         return ($sequences);
     }
+
+    // }}}
 }
 
+};
 ?>
