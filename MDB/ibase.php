@@ -391,7 +391,12 @@ class MDB_ibase extends MDB_Common
         if (MDB::isError($connection)) {
             return($connection);
         }
-         $this->connection = $connection;
+        $this->connection = $connection;
+
+        //the if below was added after PEAR::DB. Review me!!
+        if ($this->dbsyntax == 'fbird') {
+            $this->supported['limit'] = 'alter';
+        }
 
         if (!$this->auto_commit && MDB::isError($trans_result = $this->_doQuery('BEGIN'))) {
             ibase_close($this->connection);
@@ -691,7 +696,6 @@ class MDB_ibase extends MDB_Common
 			}
 		}
 		if(is_array($this->row_buffer[$result_value] = @ibase_fetch_row($result))) {
-		//print_r($this->row_buffer[$result_value]);
 			return FALSE;
 		}
 		unset($this->row_buffer[$result_value]);
@@ -747,7 +751,7 @@ class MDB_ibase extends MDB_Common
             return '';
         }
         $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $row);
-        return rtrim($this->results[$result_value][$row][$column]);
+        return rtrim($this->results[$result_value][$row][$column], ' '); //clean from trailing spaces
     }
 
     // }}}
@@ -822,8 +826,9 @@ class MDB_ibase extends MDB_Common
                     $this->results[$result_value][$this->current_row[$result_value]+1][$key] = rtrim($valueWithSpace);
                 }
             }
+
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -842,24 +847,13 @@ class MDB_ibase extends MDB_Common
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'Retrieve LOB: it was not specified a valid lob'));
         }
+
         if (!isset($this->lobs[$lob]['Value'])) {
-            //print_r($this->lobs[$lob]);
             $this->lobs[$lob]['Value'] = $this->fetch($this->lobs[$lob]['Result'],
                                                       $this->lobs[$lob]['Row'],
                                                       $this->lobs[$lob]['Field']);
-			/*
-			if ($blob_handle = @ibase_blob_open($this->lobs[$lob]['Value'])) {
-                $blob_info   = ibase_blob_info($row[0]);
-                $blob_length = $blob_info[0];
-                echo $blob = ibase_blob_get($blob_handle, $blob_length);
-                ibase_blob_close($blob_handle);
-            } else {
-                echo $blob = 'not a blob!';
-            }
-            */
 
-			//print_r($this->lobs[$lob]['Value']);
-            if(!$this->lobs[$lob]['Handle'] = ibase_blob_open($this->lobs[$lob]['Value'])) {
+			if(!$this->lobs[$lob]['Handle'] = ibase_blob_open($this->lobs[$lob]['Value'])) {
 				unset($this->lobs[$lob]['Value']);
 				return($this->raiseError(MDB_ERROR, NULL, NULL,
                     'Retrieve LOB: Could not open fetched large object field' . ibase_errmsg()));
