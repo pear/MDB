@@ -3915,7 +3915,7 @@ class MDB_Common extends PEAR
      * @return mixed MDB_Error or the returned value of the query
      * @access public
      */
-    function &getOne($query, $type = NULL, $params = array(), $param_types = NULL)
+    function getOne($query, $type = NULL, $params = array(), $param_types = NULL)
     {
         if ($type != NULL) {
             $type = array($type);
@@ -3969,7 +3969,7 @@ class MDB_Common extends PEAR
      * 0, or a MDB error code.
      * @access public
      */
-    function &getRow($query, $types = NULL, $params = array(), $param_types = NULL, $fetchmode = MDB_FETCHMODE_DEFAULT)
+    function getRow($query, $types = NULL, $params = array(), $param_types = NULL, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
         settype($params, 'array');
         if (count($params) > 0) {
@@ -4021,7 +4021,7 @@ class MDB_Common extends PEAR
      * row at index 0, or a MDB error code.
      * @access public
      */
-    function &getCol($query, $type = NULL, $params = array(), $param_types = NULL, $colnum = 0)
+    function getCol($query, $type = NULL, $params = array(), $param_types = NULL, $colnum = 0)
     {
         if ($type != NULL) {
             $type = array($type);
@@ -4129,7 +4129,7 @@ class MDB_Common extends PEAR
      * @return array associative array with results from the query.
      * @access public
      */
-    function &getAssoc($query, $types = NULL, $params = array(), $param_types = NULL,
+    function getAssoc($query, $types = NULL, $params = array(), $param_types = NULL,
         $fetchmode = MDB_FETCHMODE_ORDERED, $force_array = FALSE, $group = FALSE)
     {
         settype($params, 'array');
@@ -4179,7 +4179,7 @@ class MDB_Common extends PEAR
      * @return array an nested array, or a MDB error
      * @access public
      */
-    function &getAll($query, $types = NULL, $params = array(), $param_types = NULL, $fetchmode = MDB_FETCHMODE_DEFAULT)
+    function getAll($query, $types = NULL, $params = array(), $param_types = NULL, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
         settype($params, 'array');
         if (count($params) > 0) {

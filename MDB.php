@@ -310,9 +310,9 @@ class MDB
         }
         
         if(!class_exists($class_name)) {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND, NULL, NULL,
-                'Unable to include the '.$include.' file',
-                'MDB_Error', TRUE));
+            $error = PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND, NULL, NULL,
+                'Unable to include the '.$include.' file', 'MDB_Error', TRUE);
+            return($error);
         }
         
         @$db =& new $class_name();

@@ -134,11 +134,13 @@ class MDB_Manager extends PEAR
     {
         // The error is yet a MDB error object
         if(is_object($code)) {
-            return(PEAR::raiseError($code, NULL, NULL, NULL, NULL, NULL, TRUE));
+            $err = PEAR::raiseError($code, NULL, NULL, NULL, NULL, NULL, TRUE);
+            return($err);
         }
         
-        return(PEAR::raiseError(NULL, $code, $mode, $options, $userinfo,
-            'MDB_Error', TRUE));
+        $err = PEAR::raiseError(NULL, $code, $mode, $options, $userinfo,
+            'MDB_Error', TRUE);
+        return($err);
     }
 
     // }}}
