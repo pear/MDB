@@ -47,6 +47,10 @@
 // MDB LOB classes.
 //
 
+if(!defined("MDB_LOB_INCLUDED"))
+{
+    define("MDB_LOB_INCLUDED",1);
+
 $lobs = array();
 
 class MDB_lob extends PEAR
@@ -84,7 +88,7 @@ class MDB_lob extends PEAR
     }
 };
 
-class MDB_result_lob extends MDB_lob
+class MDB_lob_result extends MDB_lob
 {
     var $result_lob = 0;
 
@@ -95,7 +99,7 @@ class MDB_result_lob extends MDB_lob
             return(0);
         }
         $this->result_lob = $arguments["ResultLOB"];
-        return(1);
+        return (DB_OK);
     }
 
     function destroy()
@@ -117,7 +121,7 @@ class MDB_result_lob extends MDB_lob
     }
 };
 
-class MDB_input_file_lob extends MDB_lob
+class MDB_lob_input_file extends MDB_lob
 {
     var $file = 0;
     var $opened_file = 0;
@@ -170,7 +174,7 @@ class MDB_input_file_lob extends MDB_lob
     }
 };
 
-class MDB_output_file_lob extends MDB_lob
+class MDB_lob_output_file extends MDB_lob
 {
     var $file = 0;
     var $opened_file = 0;
@@ -285,17 +289,17 @@ function createLOB(&$arguments, &$lob)
     global $lobs;
 
     $lob = count($lobs)+1;
-    $class = "MDB_lob";
+    $class_name = "MDB_lob";
     if(isset($arguments["Type"])) {
         switch($arguments["Type"]) {
             case "resultlob":
-                $class="MDB_result_lob";
+                $class_name = "MDB_lob_result";
                 break;
             case "inputfile":
-                $class="MDB_input_file_lob";
+                $class_name = "MDB_lob_input_file";
                 break;
             case "outputfile":
-                $class="MDB_output_file_lob";
+                $class_name = "MDB_lob_output_file";
                 break;
             default:
                 if(isset($arguments["Error"])) {
@@ -308,8 +312,9 @@ function createLOB(&$arguments, &$lob)
             $class = $arguments["Class"];
         }
     }
-    $lobs[$lob] = new $class;
+    $lobs[$lob] = new $class_name;
     $lobs[$lob]->lob = $lob;
+
     if(isset($arguments["Database"])) {
         $lobs[$lob]->database = $arguments["Database"];
     }
@@ -352,5 +357,7 @@ function lobError($lob)
     global $lobs;
 
     return($lobs[$lob]->error);
+}
+
 }
 ?>
