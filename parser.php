@@ -150,8 +150,8 @@ class MDB_Parser extends XML_Parser {
         switch($this->element) {
         /* Initialization */
         case 'database-table-initialization-insert-field':
-            if (!$this->init_name || !$this->init_value) {
-                $this->raiseError($xp, 'not properly');
+            if (!$this->init_name) {
+                $this->raiseError($xp, 'field-name has to be specified');
             };
             if (isset($this->init['FIELDS'][$this->init_name])) {
                 $this->raiseError($xp, 'field "'.$this->init_name.'" already filled');
@@ -187,6 +187,9 @@ class MDB_Parser extends XML_Parser {
                     foreach($index['FIELDS'] as $field_name => $field) {
                         if (!isset($this->table['FIELDS'][$field_name])) {
                             $this->raiseError($xp, 'index field "'.$field_name.'" does not exist');
+                        }
+                        if (!isset($this->table['FIELDS'][$field_name]['notnull'])) {
+                            $this->raiseError($xp, 'index field "'.$field_name.'" has to be "notnull"');
                         }
                     }
                 }
@@ -237,6 +240,9 @@ class MDB_Parser extends XML_Parser {
             };
             if (isset($this->field['notnull']) && !$this->is_boolean($this->field['notnull'])) {
                 $this->raiseError($xp, 'field  "notnull" has to be 1 or 0');
+            };
+            if (isset($this->field['notnull']) && !isset($this->field['default'])) {
+                $this->raiseError($xp, 'if field is "notnull", it needs a default value');
             };
             if (isset($this->field['unsigned']) && !$this->is_boolean($this->field['unsigned'])) {
                 $this->raiseError($xp, 'field  "notnull" has to be 1 or 0');
@@ -336,6 +342,9 @@ class MDB_Parser extends XML_Parser {
     {
         if (!isset($this->table['FIELDS'][$field_name])) {
             return;
+        };
+        if ($field_value === '') {
+            return true;
         };
         $field_def = $this->table['FIELDS'][$field_name];
         switch($field_def['type']) {
