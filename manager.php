@@ -92,6 +92,7 @@ class MDB_manager extends PEAR
             'ibase' => array()
         )
     );
+
     // }}}
     // {{{ raiseError()
 
@@ -370,29 +371,31 @@ class MDB_manager extends PEAR
                                             break;
                                         case 'clob':
                                             $lob_definition = array(
-                                                'Database' => $this,
+                                                'Database' => $this->database,
                                                 'Error' => '',
                                                 'Data' => $field
                                             );
-                                            $lob = count($lobs);
-                                            if (MDB::isError($result = $this->database->reateLOB($lob_definition, $lobs[$lob])))
+                                            if (MDB::isError($result = $this->database->reateLob($lob_definition)))
                                             {
                                                 break;
                                             }
-                                            $result = $this->database->setParamCLOB($prepared_query,
+                                            $lob = count($lobs);
+                                            $lobs[$lob] = $result;
+                                            $result = $this->database->setParamClob($prepared_query,
                                                 $field_number, $lobs[$lob], $field_name);
                                             break;
                                         case 'blob':
                                             $lob_definition = array(
-                                                'Database' => $this,
+                                                'Database' => $this->database,
                                                 'Error' => '',
                                                 'Data' => $field
                                             );
-                                            $lob = count($lobs);
-                                            if (MDB::isError($result = $this->database->createLOB($lob_definition, $lobs[$lob]))) {
+                                            if (MDB::isError($result = $this->database->createLob($lob_definition))) {
                                                 break;
                                             }
-                                            $result = $this->database->setParamBLOB($prepared_query,
+                                            $lob = count($lobs);
+                                            $lobs[$lob] = $result;
+                                            $result = $this->database->setParamBlob($prepared_query,
                                                 $field_number, $lobs[$lob], $field_name);
                                             break;
                                         case 'boolean':
@@ -413,7 +416,7 @@ class MDB_manager extends PEAR
                                             break;
                                         case 'float':
                                             $result = $this->database->setParamFloat($prepared_query,
-                                                $field_number,doubleval($field));
+                                                $field_number, doubleval($field));
                                             break;
                                         case 'decimal':
                                             $result = $this->database->setParamDecimal($prepared_query,
@@ -481,6 +484,7 @@ class MDB_manager extends PEAR
                     .$result->getMessage().' ('.$result->getUserinfo(),'))',
                     'MDB_Error', TRUE);
             }
+            return $result;
         }
         return (DB_OK);
     }
@@ -623,6 +627,7 @@ class MDB_manager extends PEAR
             if (MDB::isError($result)) {
                 if($result->getCode() === DB_ERROR_ALREADY_EXISTS) {
                     $this->warnings[] = 'Database allready exists: '.$this->database_definition['name'];
+            /*
                     if ($overwrite) {
                         $this->database->debug('Overwritting Database');
                         $result = $this->database->dropDatabase($this->database_definition['name']);
@@ -633,11 +638,12 @@ class MDB_manager extends PEAR
                         if (MDB::isError($result)) {
                             return $result;
                         }
-                    } else {
+            */
+            //      } else {
                         $result = DB_OK;
-                    }
+            //      }
                 } else {
-                    $this->database->debug('Create database error ');
+                    $this->database->debug('Create database error.');
                     return $result;
                 }
             }
@@ -1620,7 +1626,7 @@ class MDB_manager extends PEAR
             return ('it was not specified a valid database name');
         }
         $this->database_definition = array(
-            'name' => $database,
+            'name' => strtolower($database),
             'create' => 1,
             'TABLES' => array()
         );
@@ -1637,8 +1643,8 @@ class MDB_manager extends PEAR
             $this->database_definition['TABLES'][$table_name] = array('FIELDS' => array());
             for($field = 0; $field < count($fields); $field++)
             {
-                $field_name = $fields[$field];
-                $definition = $this->database->getTableFieldDefinition($table_name, $field_name);
+                $field_name = strtolower($fields[$field]);
+                $definition = $this->database->getTableFieldDefinition($table_name, $fields[$field]);
                 if (MDB::isError($definition)) {
                     return ($definition);
                 }
@@ -1711,7 +1717,7 @@ class MDB_manager extends PEAR
                 if (MDB::isError($definition)) {
                     return($definition);
                 }
-               $this->database_definition['TABLES'][$table_name]['INDEXES'][$index_name] = $definition;
+               $this->database_definition['TABLES'][$table_name]['INDEXES'] = $definition;
             }
         }
         $sequences = $this->database->listSequences();
@@ -1727,7 +1733,7 @@ class MDB_manager extends PEAR
             if (MDB::isError($definition)) {
                 return($definition);
             }
-            $this->database_definition['SEQUENCES'][$sequence_name] = $definition;
+            $this->database_definition['SEQUENCES'] = $definition;
         }
         return(DB_OK);
     }
