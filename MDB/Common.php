@@ -467,7 +467,7 @@ class MDB_Common extends PEAR
     function debug($message)
     {
         if ($this->debug && $this->option['debug_handler']) {
-        	call_user_func($this->option['debug_handler'], $this, $message);
+            call_user_func($this->option['debug_handler'], $this, $message);
         }
     }
 
@@ -510,25 +510,23 @@ class MDB_Common extends PEAR
     /**
      * loads an module
      *
-     * @param string $scope information about what method is being loaded,
-     *      that is used for error messages
      * @param string $module name of the module that should be loaded
      *      (only used for error messages)
      * @param string $include name of the script that includes the module
      * @access private
      */
-    function _loadModule($scope, $module, $include)
+    function _loadModule($module, $include)
     {
         if ($include) {
             $include = 'MDB/Modules/'.$include;
-            if (MDB::isError($debug = $this->getOption('debug')) || $debug > 2) {
+            if ($this->getOption('debug') > 2) {
                 include_once $include;
             } else {
                 @include_once $include;
             }
         } else {
             return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
-                $scope . ': it was not specified an existing ' . $module . ' file (' . $include . ')');
+                'it was not specified an existing ' . $module . ' file (' . $include . ')');
         }
         return MDB_OK;
     }
@@ -539,27 +537,25 @@ class MDB_Common extends PEAR
     /**
      * loads the Manager module
      *
-     * @param string $scope information about what method is being loaded,
-     *                       that is used for error messages
+     * @return object on success a reference to the given module is returned
+     *                and on failure a PEAR error
      * @access public
      */
-    function loadManager($scope = '')
+    function &loadManager()
     {
-        if (isset($this->manager) && is_object($this->manager)) {
-            return MDB_OK;
+        if (!isset($this->manager) || !is_object($this->manager)) {
+            $result = $this->_loadModule('Manager', 'Manager/'.$this->phptype.'.php');
+            if (MDB::isError($result)) {
+                return $result;
+            }
+            $class_name = 'MDB_Manager_'.$this->phptype;
+            if (!class_exists($class_name)) {
+                return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
+                    'Unable to load extension');
+            }
+            @$this->manager = new $class_name;
         }
-        $result = $this->_loadModule($scope, 'Manager',
-            'Manager/'.$this->phptype.'.php');
-        if (MDB::isError($result)) {
-            return $result;
-        }
-        $class_name = 'MDB_Manager_'.$this->phptype;
-        if (!class_exists($class_name)) {
-            return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
-                'Unable to load extension');
-        }
-        @$this->manager = new $class_name;
-        return MDB_OK;
+        return $this->manager;
     }
 
     // }}}
@@ -568,27 +564,25 @@ class MDB_Common extends PEAR
     /**
      * loads the Datatype module
      *
-     * @param string $scope information about what method is being loaded,
-     *                       that is used for error messages
+     * @return object on success a reference to the given module is returned
+     *                and on failure a PEAR error
      * @access public
      */
-    function loadDatatype($scope = '')
+    function &loadDatatype()
     {
-        if (isset($this->datatype) && is_object($this->datatype)) {
-            return MDB_OK;
+        if (!isset($this->datatype) || !is_object($this->datatype)) {
+            $result = $this->_loadModule('Datatype', 'Datatype/'.$this->phptype.'.php');
+            if (MDB::isError($result)) {
+                return $result;
+            }
+            $class_name = 'MDB_Datatype_'.$this->phptype;
+            if (!class_exists($class_name)) {
+                return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
+                    'Unable to load extension');
+            }
+            @$this->datatype = new $class_name;
         }
-        $result = $this->_loadModule($scope, 'Datatype',
-            'Datatype/'.$this->phptype.'.php');
-        if (MDB::isError($result)) {
-            return $result;
-        }
-        $class_name = 'MDB_Datatype_'.$this->phptype;
-        if (!class_exists($class_name)) {
-            return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
-                'Unable to load extension');
-        }
-        @$this->datatype = new $class_name;
-        return MDB_OK;
+        return $this->datatype;
     }
 
     // }}}
@@ -597,26 +591,25 @@ class MDB_Common extends PEAR
     /**
      * loads the Extended module
      *
-     * @param string $scope information about what method is being loaded,
-     *                       that is used for error messages
+     * @return object on success a reference to the given module is returned
+     *                and on failure a PEAR error
      * @access public
      */
-    function loadExtended($scope = '')
+    function &loadExtended()
     {
-        if (isset($this->extended) && is_object($this->extended)) {
-            return MDB_OK;
+        if (!isset($this->extended) || !is_object($this->extended)) {
+            $result = $this->_loadModule('Extended', 'Extended.php');
+            if (MDB::isError($result)) {
+                return $result;
+            }
+            $class_name = 'MDB_Extended';
+            if (!class_exists($class_name)) {
+                return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
+                    'Unable to load extension');
+            }
+            @$this->extended = new $class_name;
         }
-        $result = $this->_loadModule($scope, 'Extended', 'Extended.php');
-        if (MDB::isError($result)) {
-            return $result;
-        }
-        $class_name = 'MDB_Extended';
-        if (!class_exists($class_name)) {
-            return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
-                'Unable to load extension');
-        }
-        @$this->extended = new $class_name;
-        return MDB_OK;
+        return $this->extended;
     }
 
     // }}}
