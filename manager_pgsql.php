@@ -290,7 +290,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      **/
     function listDatabases(&$db)
     {
-        return $db->queryCol('SELECT datname FROM pg_database', NULL, DB_FETCHMODE_ORDERED);
+        return $db->queryCol('SELECT datname FROM pg_database');
     }
 
     // }}}
@@ -305,7 +305,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      **/
     function listUsers(&$db)
     {
-        return $db->queryCol('SELECT usename FROM pg_user', NULL, DB_FETCHMODE_ORDERED);
+        return $db->queryCol('SELECT usename FROM pg_user');
     }
 
     // }}}
@@ -333,7 +333,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
             AND not exists (select 1 from pg_views where viewname = c.relname)
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
             AND c.relname !~ \'^pg_\'';
-        return $db->queryCol($sql, NULL, DB_FETCHMODE_ORDERED);
+        return $db->queryCol($sql);
     }
 
     // }}}
@@ -376,7 +376,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     function listViews(&$db)
     {
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
-        return $db->queryCol('SELECT viewname FROM pg_views', NULL, DB_FETCHMODE_ORDERED);
+        return $db->queryCol('SELECT viewname FROM pg_views');
     }
 
     // }}}
@@ -445,7 +445,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
             AND not exists (select 1 from pg_views where viewname = c.relname)
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
             AND c.relname !~ \'^pg_\'';
-        return $db->queryCol($sql, NULL, DB_FETCHMODE_ORDERED);
+        return $db->queryCol($sql);
     }
 
     // }}}
