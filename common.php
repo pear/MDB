@@ -3410,7 +3410,7 @@ class MDB_common extends PEAR
             $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
         }
         if ($rownum + 1 > $this->numRows($result)) {
-            return $this->raiseError(DB_ERROR, '', '', 'baseFetchInto: Tried to access beyond end of record set');
+            return NULL;
         }
         $columns = $this->numCols($result);
         if (MDB::isError($columns)) {
