@@ -27,10 +27,15 @@ discussion):
 
 ** Current State:
 
+The current release can be found at the PEAR webpage:
+  http://pear.php.net/package-info.php?pacid=54
+
+MDB is still in beta at the moment.
+  
 MDB is based on Metabase but has been reworked severely to better match
 the PEAR DB API and PEAR CS. Currently the mysql driver is very reliable,
 while the pgsql driver is still under development but progressing steadily.
-Once the pgsql driver is done I will soon release MDB 1.0.
+Once the pgsql driver is done I will soon release MDB 1.0 (see Roadmap).
 
 The approach I have taken so far is to take DB.php from 
 PEAR DB and make it create a Metabase object. I have changed the 
@@ -38,13 +43,6 @@ Metabase structure slightly. The formatting has been reworked
 considerably to better fit the final structure (MDB standalone with a 
 BC-wrapper for Metabase and PEAR DB), to fit the PEAR CS and to make it 
 easier for other people to contribute.  
-
-A word of warning: Since quite some time my testing has only comprised 
-of running the two test scripts (see below). Obviously those do not test 
-everything there is. All the more I encourage people to expand these 
-tests (especially the MDB_test.php) or just try out some stuff (MDB 
-should be able to do anything that Metabase can and most of what PEAR 
-can do, allthough there is no wrapper for PEAR).
 
 The metabase_interface.php was been renamed to metabase_wrapper.php and 
 now only serves as a wrapper to keep BC with Metabase. A wrapper will 
@@ -54,6 +52,17 @@ Basically the result is a Metabase that is really close to the PEAR DB
 structure. I have also added any missing methods from PEAR DB. Work on 
 moving the error handling to PEAR error handling is under way but still 
 needs some work.
+
+A word of warning: Since quite some time my testing has only comprised 
+of running the two test scripts (see below). Obviously those do not test 
+everything there is. All the more I encourage people to expand these 
+tests (especially the MDB_test.php) or just try out some stuff (MDB 
+should be able to do anything that Metabase can and most of what PEAR 
+can do, allthough there is no wrapper for PEAR). However, MDB using the
+Metabase Wrapper has been running in my companies cvs without any problems
+for a couple of weeks now.
+
+** Package Content:
 
 The files that make up MDB are:
   MDB.php
@@ -72,8 +81,8 @@ The files that make up MDB are:
 The important pieces for testing right now are:
   driver_test.php (uses driver_test_config.php, setup_test.php, 
                    driver_test.schema, log_test.schema, test.schema)
-  MDB_test.php
-  MDB_pear_wrapper_test.php
+  MDB_test.php (several test calls to MDB's native API)
+  MDB_pear_wrapper_test.php (several calls to the MDB PEAR Wrapper)
 
 Other Included Files
   xml_parser.php (this is actually a seperate project of Manuel Lemos 
@@ -84,20 +93,20 @@ Other Included Files
 
 ** Documentation:
 
-There is currently work underway in terms of including phpdoc comments. 
-But this will probably take until early June to be considered half way 
-complete. Most of the API is borrowed from PEAR DB. Since there 
+There are phpdoc comments for most of the methods in MDB except for the LOB
+support (lob.php) and the XML Schema Manager (manager.php). Most of the API
+is borrowed from PEAR DB, so you can look there for documentation. Since there
 are a large number of new methods available thanks to the Metabase heritage
 of MDB you will also have to take a look in the Metabase documentation 
-(which can be found at the Url mentioned above, but does require that 
-you register with phpclasses). Alot of these Metabase functions have 
+(which can be found at the URL mentioned above, but does require that 
+you register with phpclasses). Most of these Metabase functions have 
 been renamed. Looking at the metabase_wrapper.php file should help finding
 the new method name in MDB.
 
 For example ($db being an MDB object):
-  $converted_value=MetabaseGetTimestampFieldValue($database, $value)
+  $converted_value = MetabaseGetTimestampFieldValue($database, $value);
 would now be
-  $converted_value=$db->getTimestampValue($value)
+  $converted_value = $db->getTimestampValue($value);
 
 If you want to help out with documentation please email me.
 
@@ -108,8 +117,7 @@ to configure the mysql section of driver_test_config.php to fit your
 enviornment
 
 MDB_test.php will require that you setup the following user, with the 
-right to 
-create new databases:
+right to create new databases:
 username = metapear
 password = funky
 
@@ -123,7 +131,7 @@ changed to better match the PEAR CS however. Therefore the best starting
 point is to first take the mysql Metabase driver (metabase_mysql.php) 
 and compare it with MDB's mysql driver (mysql.php) (Note: In order to 
 get the Metabase code you will need to download it from phpclasses using 
-the URl provided at the top). This will give a good idea what changes 
+the URL provided at the top). This will give a good idea what changes 
 you have to make to an existing Metabase driver in order to make it MDB 
 compatible.
 
@@ -131,8 +139,7 @@ Alot of methods have been renamed from the original Metabase API. The best
 place to find the name to what a method has been renamed you should look
 at the metabase_wrapper.php file.
 
-The methods towards the bottom are taken from PEAR DB however. Those 
-have to be copied from the corresponding PEAR DB driver.
+Please also note that some methods have been taken from PEAR DB.
 
 Another alternative would be to take the mysql.php and hack it to fit 
 the new RDBMS. I would however recommend working with the existing 
@@ -142,8 +149,8 @@ advantage of the MDB framework (which is to large parts based on
 Metabase).
 
 In order to test the results driver_test.php will be the most 
-comprehensive. This test suite uses the Metabase Wrapper however. 
-Therefore I recommend getting MDB_test.php to work first and after that 
+comprehensive. This test suite uses the Metabase Wrapper. 
+Therefore, I recommend getting MDB_test.php to work first and after that
 worry about driver_test.php. Also keep in mind that you will have to 
 modify driver_test_config.php before running driver_test.php with the 
 new driver.
@@ -157,13 +164,24 @@ that were introduced during the reformatting and restructuring process.
 I hope I fixed most of them through the help of the Metabase test suite 
 but ...
 
-Roadmap in order of importance (Active help and code contributions are 
-requested 
-for all of following):
-- PEAR Doc comments and Documentation (common.php is now mostly 
-documented)
-- More tests with Metabase and PEAR DB wrapper
-- Add support for more RDBMS (mysql working, pgsql underway)
+** Roadmap:
+
+in order of importance (Active help and code contributions are 
+requested for all of following):
+
+1.0 Release (August)
+- PHPDoc comments (missing in lob.php and manager.php) (lsmith)
+- API cleanups (mainly to lob.php and manager.php) (lsmith)
+- Finish pgsql driver (pgc)
+- More tests with Metabase and PEAR DB wrapper (you)
+
+1.1 Release (Fall 2002)
+- Further cleanups in lob.php and manager.php (lsmith)
+- Add support for more RDBMS (you)
+
+Some time
+- Interactive Application for Schema Reverse Engineering to better handle
+ambiguities that cannot be resolved automatically
 
 ** Credits (never to early for those huh? :-)  ):
 
