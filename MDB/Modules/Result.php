@@ -83,14 +83,14 @@ class MDB_Result
     {
         $this->dbh = &$dbh;
         $this->result = $result;
-        $this->autofree    = $dbh->options['autofree'];
+        $this->autofree    = false;
         $this->fetchmode   = $dbh->fetchmode;
     }
 
     // }}}
     // {{{ fetchRow()
     /**
-     * Fetch and return a row of data (it uses driver->fetchInto for that)
+     * Fetch and return a row of data (it uses driver->fetchRow for that)
      * @param int $fetchmode format of fetched row
      * @param int $rownum    the row number to fetch
      *
