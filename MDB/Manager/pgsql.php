@@ -373,12 +373,6 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     }
 
     // }}}
-    // {{{ createIndex()
-
-    // }}}
-    // {{{ dropIndex()
-
-    // }}}
     // {{{ listTableIndexes()
 
     // }}}
