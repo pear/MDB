@@ -49,10 +49,10 @@ if(!defined('MDB_MANAGER_MYSQL_INCLUDED'))
 {
     define('MDB_MANAGER_MYSQL_INCLUDED', 1);
 
-require_once 'MDB/Manager/Common.php';
+require_once 'MDB/Modules/Manager/Common.php';
 
 /**
-* MDB MySQL driver for the management extensions
+* MDB MySQL driver for the management modules
 *
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
@@ -572,7 +572,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                         $type[0] = 'integer';
                         if($length == '1') {
                             $type[1] = 'boolean';
-                            if (preg_match('/[is|has]/', $field_name)) {
+                            if (preg_match('/^[is|has]/', $field_name)) {
                                 $type = array_reverse($type);
                             }
                         }
