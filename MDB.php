@@ -39,7 +39,7 @@
 // | WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE          |
 // | POSSIBILITY OF SUCH DAMAGE.                                          |
 // +----------------------------------------------------------------------+
-// | Author: Lukas Smith <smith@dybnet.de>                                |
+// | Author: Lukas Smith <smith@backendmedia.com>                         |
 // +----------------------------------------------------------------------+
 //
 // $Id$
@@ -210,8 +210,9 @@ define('MDB_TYPE_BLOB'      , 9);
  * MDB_Manager  This class handles the xml schema management.
  *
  * @package  MDB
+ * @version  $Id$
  * @category Database
- * @author   Lukas Smith <smith@dybnet.de>
+ * @author   Lukas Smith <smith@backendmedia.com>
  */
 class MDB
 {
