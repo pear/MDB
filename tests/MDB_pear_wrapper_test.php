@@ -34,9 +34,9 @@
     echo "<br>field:<br>".$db->getOne($query)."<br>";
 
     // run the query and get a result handler
-    $result = $db->query($query);
+    $result = $db->simpleQuery($query);
     echo "<br>tableInfo() ";
-    Var_Dump::display($result->tableInfo());
+    Var_Dump::display($db->tableInfo($result));
 
     $result = $db->query($query);
     echo "<br>numCols() ";

@@ -264,6 +264,10 @@ class MDB_PEAR_PROXY
         }
     }
 
+    function simpleQuery($query) {
+        return $this->MDB_object->query($query);
+    }
+
     function limitQuery($query, $from, $count)
     {
         $result = $this->MDB_object->limitQuery($query, $from, $count);
