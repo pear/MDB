@@ -77,7 +77,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
             case MDB_TYPE_TIMESTAMP:
                 return substr($value, 0, strlen('YYYY-MM-DD HH:MM:SS'));
             default:
-                return $this->_baseConvertResult($value, $type);
+                return $this->_baseConvertResult($db, $value, $type);
         }
     }
 
