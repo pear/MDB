@@ -134,7 +134,8 @@ class MDB_Manager extends PEAR
     {
         // The error is yet a MDB error object
         if(is_object($code)) {
-            return(PEAR::raiseError($code, NULL, NULL, NULL, NULL, NULL, TRUE));
+            $error =& PEAR::raiseError($code, NULL, NULL, NULL, NULL, NULL, TRUE);
+            return $error;
         }
         
         $error =& PEAR::raiseError(NULL, $code, $mode, $options, $userinfo,
@@ -546,6 +547,7 @@ class MDB_Manager extends PEAR
                 return($result);
             }
             $start = $this->db->fetchOne($result);
+            $this->db->freeResult($result);
             if(MDB::isError($start)) {
                 return($start);
             }
@@ -1963,6 +1965,7 @@ class MDB_Manager extends PEAR
                             return($result);
                         }
                         $result = $this->db->fetchAll($result, MDB_FETCHMODE_ASSOC);
+                        $this->db->freeResult($result);
                         if(MDB::isError($result)) {
                             return($result);
                         }
