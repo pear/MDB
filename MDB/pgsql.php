@@ -185,11 +185,13 @@ class MDB_pgsql extends MDB_common
      * Execute a query
      *
      * @param string $query the SQL query
+     * @param array   $types  array that contains the types of the columns in
+     *                        the result set
      *
      * @return mixed result identifier if query executed, else MDB_error
      * @access public
      */
-    function query($query)
+    function query($query, $types = NULL)
     {
         $this->last_query = $query;
         $this->debug("Query: $query");
@@ -238,6 +240,15 @@ class MDB_pgsql extends MDB_common
             $this->highest_fetched_row[$result] = -1;
         }
         if (is_resource($result)) {
+            if ($types != NULL) {
+                if (!is_array($types)) {
+                    $types = array($types);
+                }
+                if (MDB::isError($err = $this->setResultTypes($result, $types))) {
+                    $this->freeResult($result);
+                    return $err;
+                }
+            }
             return $result;
         }
         return DB_OK;
