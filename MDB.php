@@ -61,6 +61,7 @@ define("DB_ERROR_CANNOT_REPLACE",     -26);
 define("DB_ERROR_CANNOT_ALTER",       -27);
 define("DB_ERROR_MANAGER",            -28);
 define("DB_ERROR_MANAGER_PARSE",      -29);
+define("DB_ERROR_LOADEXTENSION",      -30);
 
 /**
  * Warnings are not detected as errors by MDB::isError(), and are not
@@ -484,6 +485,7 @@ class MDB
                 DB_ERROR_EXTENSION_NOT_FOUND=> 'extension not found',
                 DB_ERROR_MANAGER            => 'MDB_manager error',
                 DB_ERROR_MANAGER_PARSE      => 'MDB_manager schema parseerror',
+                DB_ERROR_LOADEXTENSION      => 'Error while including on demand extension'
             );
         }
 
