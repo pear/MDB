@@ -576,7 +576,7 @@ class MDB
         // Find protocol and hostspec
 
         // $dsn => proto(proto_opts)/database
-        if (preg_match('|^(.+?)\((.*?)\)/?(.*?)$|', $dsn, $match)) {
+        if (preg_match('|^([^(]+)\((.*?)\)/?(.*?)$|', $dsn, $match)) {
             $proto       = $match[1];
             $proto_opts  = (!empty($match[2])) ? $match[2] : FALSE;
             $dsn         = $match[3];
