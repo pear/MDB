@@ -47,50 +47,51 @@
 require_once 'PEAR.php';
 
 /**
- * The method mapErrorCode in each DB_dbtype implementation maps
+ * The method mapErrorCode in each MDB_dbtype implementation maps
  * native error codes to one of these.
  *
  * If you add an error code here, make sure you also add a textual
  * version of it in MDB::errorMessage().
  */
 
-define('DB_OK',                         1);
-define('DB_ERROR',                     -1);
-define('DB_ERROR_SYNTAX',              -2);
-define('DB_ERROR_CONSTRAINT',          -3);
-define('DB_ERROR_NOT_FOUND',           -4);
-define('DB_ERROR_ALREADY_EXISTS',      -5);
-define('DB_ERROR_UNSUPPORTED',         -6);
-define('DB_ERROR_MISMATCH',            -7);
-define('DB_ERROR_INVALID',             -8);
-define('DB_ERROR_NOT_CAPABLE',         -9);
-define('DB_ERROR_TRUNCATED',          -10);
-define('DB_ERROR_INVALID_NUMBER',     -11);
-define('DB_ERROR_INVALID_DATE',       -12);
-define('DB_ERROR_DIVZERO',            -13);
-define('DB_ERROR_NODBSELECTED',       -14);
-define('DB_ERROR_CANNOT_CREATE',      -15);
-define('DB_ERROR_CANNOT_DELETE',      -16);
-define('DB_ERROR_CANNOT_DROP',        -17);
-define('DB_ERROR_NOSUCHTABLE',        -18);
-define('DB_ERROR_NOSUCHFIELD',        -19);
-define('DB_ERROR_NEED_MORE_DATA',     -20);
-define('DB_ERROR_NOT_LOCKED',         -21);
-define('DB_ERROR_VALUE_COUNT_ON_ROW', -22);
-define('DB_ERROR_INVALID_DSN',        -23);
-define('DB_ERROR_CONNECT_FAILED',     -24);
-define('DB_ERROR_EXTENSION_NOT_FOUND',-25);
-define('DB_ERROR_NOSUCHDB',           -26);
-define('DB_ERROR_ACCESS_VIOLATION',   -27);
-define('DB_ERROR_CANNOT_REPLACE',     -28);
-define('DB_ERROR_CANNOT_ALTER',       -29);
-define('DB_ERROR_MANAGER',            -30);
-define('DB_ERROR_MANAGER_PARSE',      -31);
-define('DB_ERROR_LOADEXTENSION',      -32);
+define('MDB_OK',                         1);
+define('MDB_ERROR',                     -1);
+define('MDB_ERROR_SYNTAX',              -2);
+define('MDB_ERROR_CONSTRAINT',          -3);
+define('MDB_ERROR_NOT_FOUND',           -4);
+define('MDB_ERROR_ALREADY_EXISTS',      -5);
+define('MDB_ERROR_UNSUPPORTED',         -6);
+define('MDB_ERROR_MISMATCH',            -7);
+define('MDB_ERROR_INVALID',             -8);
+define('MDB_ERROR_NOT_CAPABLE',         -9);
+define('MDB_ERROR_TRUNCATED',          -10);
+define('MDB_ERROR_INVALID_NUMBER',     -11);
+define('MDB_ERROR_INVALID_DATE',       -12);
+define('MDB_ERROR_DIVZERO',            -13);
+define('MDB_ERROR_NODBSELECTED',       -14);
+define('MDB_ERROR_CANNOT_CREATE',      -15);
+define('MDB_ERROR_CANNOT_DELETE',      -16);
+define('MDB_ERROR_CANNOT_DROP',        -17);
+define('MDB_ERROR_NOSUCHTABLE',        -18);
+define('MDB_ERROR_NOSUCHFIELD',        -19);
+define('MDB_ERROR_NEED_MORE_DATA',     -20);
+define('MDB_ERROR_NOT_LOCKED',         -21);
+define('MDB_ERROR_VALUE_COUNT_ON_ROW', -22);
+define('MDB_ERROR_INVALID_DSN',        -23);
+define('MDB_ERROR_CONNECT_FAILED',     -24);
+define('MDB_ERROR_EXTENSION_NOT_FOUND',-25);
+define('MDB_ERROR_NOSUCHDB',           -26);
+define('MDB_ERROR_ACCESS_VIOLATION',   -27);
+define('MDB_ERROR_CANNOT_REPLACE',     -28);
+define('MDB_ERROR_CANNOT_ALTER',       -29);
+define('MDB_ERROR_MANAGER',            -30);
+define('MDB_ERROR_MANAGER_PARSE',      -31);
+define('MDB_ERROR_LOADEXTENSION',      -32);
 
 /**
+ * WARNING: not implemented
  * These constants are used when storing information about prepared
- * statements (using the 'prepare' method in DB_dbtype).
+ * statements (using the 'prepare' method in MDB_dbtype).
  *
  * The prepare/execute model in DB is mostly borrowed from the ODBC
  * extension, in a query the '?' character means a scalar parameter.
@@ -100,83 +101,72 @@ define('DB_ERROR_LOADEXTENSION',      -32);
  * database and such). The "!" char means a parameter that must be
  * left as it is.
  * They modify the quote behavior:
- * DB_PARAM_SCALAR (?) => 'original string quoted'
- * DB_PARAM_OPAQUE (&) => 'string from file quoted'
- * DB_PARAM_MISC   (!) => original string
+ * MDB_PARAM_SCALAR (?) => 'original string quoted'
+ * MDB_PARAM_OPAQUE (&) => 'string from file quoted'
+ * MDB_PARAM_MISC   (!) => original string
  */
 
-define('DB_PARAM_SCALAR', 1);
-define('DB_PARAM_OPAQUE', 2);
-define('DB_PARAM_MISC',   3);
+define('MDB_PARAM_SCALAR', 1);
+define('MDB_PARAM_OPAQUE', 2);
+define('MDB_PARAM_MISC',   3);
 
 /**
+ * WARNING: Not implemented.
  * These constants define different ways of returning binary data
  * from queries.  Again, this model has been borrowed from the ODBC
  * extension.
  *
- * DB_BINMODE_PASSTHRU  sends the data directly through to the browser
+ * MDB_BINMODE_PASSTHRU  sends the data directly through to the browser
  *                      when data is fetched from the database.
  *
- * DB_BINMODE_RETURN    lets you return data as usual.
+ * MDB_BINMODE_RETURN    lets you return data as usual.
  *
- * DB_BINMODE_CONVERT   returns data as well, only it is converted to
+ * MDB_BINMODE_CONVERT   returns data as well, only it is converted to
  *                      hex format, for example the string '123'
  *                      would become '313233'.
  */
 
-define('DB_BINMODE_PASSTHRU', 1);
-define('DB_BINMODE_RETURN',   2);
-define('DB_BINMODE_CONVERT',  3);
+define('MDB_BINMODE_PASSTHRU', 1);
+define('MDB_BINMODE_RETURN',   2);
+define('MDB_BINMODE_CONVERT',  3);
 
 /**
  * This is a special constant that tells DB the user hasn't specified
  * any particular get mode, so the default should be used.
  */
 
-define('DB_FETCHMODE_DEFAULT', 0);
+define('MDB_FETCHMODE_DEFAULT', 0);
 
 /**
  * Column data indexed by numbers, ordered from 0 and up
  */
 
-define('DB_FETCHMODE_ORDERED',  1);
+define('MDB_FETCHMODE_ORDERED',  1);
 
 /**
  * Column data indexed by column names
  */
 
-define('DB_FETCHMODE_ASSOC',    2);
+define('MDB_FETCHMODE_ASSOC',    2);
 
 /**
  * For multi-dimensional results: normally the first level of arrays
  * is the row number, and the second level indexed by column number or name.
- * DB_FETCHMODE_FLIPPED switches this order, so the first level of arrays
+ * MDB_FETCHMODE_FLIPPED switches this order, so the first level of arrays
  * is the column name, and the second level the row number.
  */
 
-define('DB_FETCHMODE_FLIPPED',  4);
-
-/* for compatibility */
-
-define('DB_GETMODE_ORDERED', DB_FETCHMODE_ORDERED);
-define('DB_GETMODE_ASSOC',   DB_FETCHMODE_ASSOC);
-define('DB_GETMODE_FLIPPED', DB_FETCHMODE_FLIPPED);
+define('MDB_FETCHMODE_FLIPPED',  4);
 
 /**
  * These are constants for the tableInfo-function
  * they are bitwised or'ed. so if there are more constants to be defined
- * in the future, adjust DB_TABLEINFO_FULL accordingly
+ * in the future, adjust MDB_TABLEINFO_FULL accordingly
  */
 
-define('DB_TABLEINFO_ORDER',      1);
-define('DB_TABLEINFO_ORDERTABLE', 2);
-define('DB_TABLEINFO_FULL',       3);
-
-/*
- * Used by autoPrepare()
- */
-define('DB_AUTOQUERY_INSERT', 1);
-define('DB_AUTOQUERY_UPDATE', 2);
+define('MDB_TABLEINFO_ORDER',      1);
+define('MDB_TABLEINFO_ORDERTABLE', 2);
+define('MDB_TABLEINFO_FULL',       3);
 
 /**
  * The main 'MDB' class is simply a container class with some static
@@ -227,7 +217,7 @@ class MDB
         $classname = "MDB_driver_${type}";
 
         if (!class_exists($classname)) {
-            return PEAR::raiseError(NULL, DB_ERROR_NOT_FOUND,
+            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
                                     NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
         $db =& new $class_name;
@@ -289,12 +279,12 @@ class MDB
                     || !strcmp($include = $options['includepath'],''))
                 {
                     if (isset($options['includepath'])) {
-                        return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
+                        return PEAR::raiseError(NULL, MDB_ERROR_INVALID_DSN,
                             NULL, NULL,
                             'no valid DBMS driver include path specified',
                             'MDB_Error', TRUE);
                     } else {
-                        return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
+                        return PEAR::raiseError(NULL, MDB_ERROR_INVALID_DSN,
                             NULL, NULL, 'no existing DBMS driver specified',
                             'MDB_Error', TRUE);
                     }
@@ -302,7 +292,7 @@ class MDB
                 if (!isset($options['classname'])
                     || !strcmp($class_name = $options['classname'],''))
                 {
-                    return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
+                    return PEAR::raiseError(NULL, MDB_ERROR_INVALID_DSN,
                         NULL, NULL, 'no existing DBMS driver specified',
                         'MDB_Error', TRUE);
                 }
@@ -328,11 +318,11 @@ class MDB
                     if ($directory) {
                         closedir($directory);
                     }
-                    return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
+                    return PEAR::raiseError(NULL, MDB_ERROR_INVALID_DSN,
                         NULL, NULL, 'no existing DBMS driver specified',
                         'MDB_Error', TRUE);
                 } else {
-                    return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
+                    return PEAR::raiseError(NULL, MDB_ERROR_INVALID_DSN,
                         NULL, NULL, 'no valid DBMS driver include path specified'
                         , 'MDB_Error', TRUE);
                 }
@@ -340,7 +330,7 @@ class MDB
             @include_once($include_path.$separator.$include);
         }
         if (!class_exists($class_name)) {
-            return PEAR::raiseError(NULL, DB_ERROR_NOT_FOUND,
+            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
                 NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
         $db =& new $class_name($dsninfo, $options);
@@ -427,38 +417,38 @@ class MDB
         static $errorMessages;
         if (!isset($errorMessages)) {
             $errorMessages = array(
-                DB_ERROR                    => 'unknown error',
-                DB_ERROR_ALREADY_EXISTS     => 'already exists',
-                DB_ERROR_CANNOT_CREATE      => 'can not create',
-                DB_ERROR_CANNOT_ALTER       => 'can not alter',
-                DB_ERROR_CANNOT_REPLACE     => 'can not replace',
-                DB_ERROR_CANNOT_DELETE      => 'can not delete',
-                DB_ERROR_CANNOT_DROP        => 'can not drop',
-                DB_ERROR_CONSTRAINT         => 'constraint violation',
-                DB_ERROR_DIVZERO            => 'division by zero',
-                DB_ERROR_INVALID            => 'invalid',
-                DB_ERROR_INVALID_DATE       => 'invalid date or time',
-                DB_ERROR_INVALID_NUMBER     => 'invalid number',
-                DB_ERROR_MISMATCH           => 'mismatch',
-                DB_ERROR_NODBSELECTED       => 'no database selected',
-                DB_ERROR_NOSUCHFIELD        => 'no such field',
-                DB_ERROR_NOSUCHTABLE        => 'no such table',
-                DB_ERROR_NOT_CAPABLE        => 'DB backend not capable',
-                DB_ERROR_NOT_FOUND          => 'not found',
-                DB_ERROR_NOT_LOCKED         => 'not locked',
-                DB_ERROR_SYNTAX             => 'syntax error',
-                DB_ERROR_UNSUPPORTED        => 'not supported',
-                DB_ERROR_VALUE_COUNT_ON_ROW => 'value count on row',
-                DB_ERROR_INVALID_DSN        => 'invalid DSN',
-                DB_ERROR_CONNECT_FAILED     => 'connect failed',
-                DB_OK                       => 'no error',
-                DB_ERROR_NEED_MORE_DATA     => 'insufficient data supplied',
-                DB_ERROR_EXTENSION_NOT_FOUND=> 'extension not found',
-                DB_ERROR_NOSUCHDB           => 'no such database',
-                DB_ERROR_ACCESS_VIOLATION   => 'insufficient permissions',
-                DB_ERROR_MANAGER            => 'MDB_manager error',
-                DB_ERROR_MANAGER_PARSE      => 'MDB_manager schema parse error',
-                DB_ERROR_LOADEXTENSION      => 'Error while including on demand extension'
+                MDB_ERROR                    => 'unknown error',
+                MDB_ERROR_ALREADY_EXISTS     => 'already exists',
+                MDB_ERROR_CANNOT_CREATE      => 'can not create',
+                MDB_ERROR_CANNOT_ALTER       => 'can not alter',
+                MDB_ERROR_CANNOT_REPLACE     => 'can not replace',
+                MDB_ERROR_CANNOT_DELETE      => 'can not delete',
+                MDB_ERROR_CANNOT_DROP        => 'can not drop',
+                MDB_ERROR_CONSTRAINT         => 'constraint violation',
+                MDB_ERROR_DIVZERO            => 'division by zero',
+                MDB_ERROR_INVALID            => 'invalid',
+                MDB_ERROR_INVALID_DATE       => 'invalid date or time',
+                MDB_ERROR_INVALID_NUMBER     => 'invalid number',
+                MDB_ERROR_MISMATCH           => 'mismatch',
+                MDB_ERROR_NODBSELECTED       => 'no database selected',
+                MDB_ERROR_NOSUCHFIELD        => 'no such field',
+                MDB_ERROR_NOSUCHTABLE        => 'no such table',
+                MDB_ERROR_NOT_CAPABLE        => 'DB backend not capable',
+                MDB_ERROR_NOT_FOUND          => 'not found',
+                MDB_ERROR_NOT_LOCKED         => 'not locked',
+                MDB_ERROR_SYNTAX             => 'syntax error',
+                MDB_ERROR_UNSUPPORTED        => 'not supported',
+                MDB_ERROR_VALUE_COUNT_ON_ROW => 'value count on row',
+                MDB_ERROR_INVALID_DSN        => 'invalid DSN',
+                MDB_ERROR_CONNECT_FAILED     => 'connect failed',
+                MDB_OK                       => 'no error',
+                MDB_ERROR_NEED_MORE_DATA     => 'insufficient data supplied',
+                MDB_ERROR_EXTENSION_NOT_FOUND=> 'extension not found',
+                MDB_ERROR_NOSUCHDB           => 'no such database',
+                MDB_ERROR_ACCESS_VIOLATION   => 'insufficient permissions',
+                MDB_ERROR_MANAGER            => 'MDB_manager error',
+                MDB_ERROR_MANAGER_PARSE      => 'MDB_manager schema parse error',
+                MDB_ERROR_LOADEXTENSION      => 'Error while including on demand extension'
             );
         }
 
@@ -467,7 +457,7 @@ class MDB
         }
 
         return isset($errorMessages[$value]) ?
-           $errorMessages[$value] : $errorMessages[DB_ERROR];
+           $errorMessages[$value] : $errorMessages[MDB_ERROR];
     }
 
     // }}}
@@ -672,7 +662,7 @@ class MDB_Error extends PEAR_Error
             $this->PEAR_Error('MDB Error: '.MDB::errorMessage($code), $code,
                 $mode, $level, $debuginfo);
         } else {
-            $this->PEAR_Error("MDB Error: $code", DB_ERROR, $mode, $level,
+            $this->PEAR_Error("MDB Error: $code", MDB_ERROR, $mode, $level,
                 $debuginfo);
         }
     }

@@ -423,7 +423,7 @@ class MDB_Parser extends XML_Parser {
         $line = @xml_get_current_line_number($xp);
         $column = @xml_get_current_column_number($xp);
         $error .= "Byte: $byte; Line: $line; Col: $column\n";
-        $this->error = PEAR::raiseError(null, DB_ERROR_MANAGER_PARSE,  null, null,
+        $this->error = PEAR::raiseError(NULL, MDB_ERROR_MANAGER_PARSE,  NULL, NULL,
             $error, 'MDB_Error', TRUE);
         return FALSE;
     }
@@ -442,13 +442,13 @@ class MDB_Parser extends XML_Parser {
         case 'N':
         case 'n':
         case 'no':
-        case 'false':
+        case 'FALSE':
             $value = 0;
             break;
         case 'Y':
         case 'y':
         case 'yes':
-        case 'true':
+        case 'TRUE':
             $value = 1;
             break;
         default:

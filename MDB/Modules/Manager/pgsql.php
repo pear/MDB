@@ -65,7 +65,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      *
      * @param object    $dbs        database object that is extended by this class
      * @param string $name name of the database that should be created
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
     function createDatabase(&$db, $name)
@@ -81,7 +81,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      *
      * @param object    $dbs        database object that is extended by this class
      * @param string $name name of the database that should be dropped
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
     function dropDatabase(&$db, $name)
@@ -120,20 +120,20 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      *                                 'length' => 12
      *                             )
      *                         );
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
     function createTable(&$db, $name, $fields)
     {
         if (!isset($name) || !strcmp($name, '')) {
-            return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'no valid table name specified');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no valid table name specified');
         }
         if (count($fields) == 0) {
-            return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "' . $name . '"');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "' . $name . '"');
         }
         $query_fields = '';
         if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
-            return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'unkown error');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'unkown error');
         }
         return ($db->query("CREATE TABLE $name ($query_fields)"));
     }
@@ -233,7 +233,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      * @param boolean $check indicates whether the function should just check if the DBMS driver
      *                              can perform the requested table alterations if the value is TRUE or
      *                              actually perform them otherwise.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
     function alterTable(&$db, $name, &$changes, $check)
@@ -244,18 +244,18 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
                     case 'AddedFields':
                         break;
                     case 'RemovedFields':
-                        return($db->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'database server does not support dropping table columns'));
+                        return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'database server does not support dropping table columns'));
                     case 'name':
                     case 'RenamedFields':
                     case 'ChangedFields':
                     default:
-                        return($db->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'change type "'.key($changes).'\" not yet supported'));
+                        return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'change type "'.key($changes).'\" not yet supported'));
                 }
             }
-            return (DB_OK);
+            return (MDB_OK);
         } else {
             if (isSet($changes[$change = 'name']) || isSet($changes[$change = 'RenamedFields']) || isSet($changes[$change = 'ChangedFields'])) {
-                return($db->raiseError(DB_ERROR_UNSUPPORTED, '', '', "change type \"$change\" not yet supported"));
+                return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', "change type \"$change\" not yet supported"));
             }
             $query = '';
             if (isSet($changes['AddedFields'])) {
@@ -274,7 +274,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
                     }
                 }
             }
-            return (DB_OK);
+            return (MDB_OK);
         }
     }
 
@@ -285,7 +285,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      * list all databases
      *
      * @param object    $dbs        database object that is extended by this class
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      **/
     function listDatabases(&$db)
@@ -300,7 +300,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      * list all users
      *
      * @param object    $dbs        database object that is extended by this class
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      **/
     function listUsers(&$db)
@@ -315,7 +315,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      * list all tables in the current database
      *
      * @param object    $dbs        database object that is extended by this class
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      **/
     function listTables(&$db)
@@ -344,7 +344,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      *
      * @param object    $dbs        database object that is extended by this class
      * @param string $table name of table that should be used in method
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTableFields(&$db, $table)
@@ -370,7 +370,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      * list the views in the database
      *
      * @param object    $dbs        database object that is extended by this class
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
     function listViews(&$db)
@@ -394,7 +394,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      * @param object    $dbs        database object that is extended by this class
      * @param string $seq_name name of the sequence to be created
      * @param string $start start value of the sequence; default is 1
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
     function createSequence(&$db, $seq_name, $start)
@@ -411,7 +411,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      *
      * @param object    $dbs        database object that is extended by this class
      * @param string $seq_name name of the sequence to be dropped
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
     function dropSequence(&$db, $seq_name)
@@ -427,7 +427,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      * list all sequences in the current database
      *
      * @param object    $dbs        database object that is extended by this class
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      **/
     function listSequences(&$db)

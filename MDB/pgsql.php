@@ -112,11 +112,11 @@ class MDB_driver_pgsql extends MDB_common {
                     }
                     error_reporting($error_reporting);
                 } else {
-                    $err = $this->raiseError(DB_ERROR, NULL, NULL, 'Setup: '.pg_ErrorMessage($connection));
+                    $err = $this->raiseError(MDB_ERROR, NULL, NULL, 'Setup: '.pg_ErrorMessage($connection));
                 }
                 pg_Close($connection);
             } else {
-                $err = $this->raiseError(DB_ERROR, NULL, NULL, 'Setup: could not execute BEGIN');
+                $err = $this->raiseError(MDB_ERROR, NULL, NULL, 'Setup: could not execute BEGIN');
             }
             if (isset($err) && MDB::isError($err)) {
                 return ($err);
@@ -134,7 +134,7 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param $nativecode the native error code, as returned by the backend
      * database extension (string or integer)
-     * @return int a portable DB error code, or FALSE if this DB
+     * @return int a portable MDB error code, or FALSE if this DB
      * implementation has no mapping for the given error code.
      */
     function errorCode($errormsg)
@@ -142,13 +142,13 @@ class MDB_driver_pgsql extends MDB_common {
         static $error_regexps;
         if (empty($error_regexps)) {
             $error_regexps = array(
-                '/(Table does not exist\.|Relation [\"\'].*[\"\'] does not exist|sequence does not exist|class ".+" not found)$/' => DB_ERROR_NOSUCHTABLE,
-                '/Relation [\"\'].*[\"\'] already exists|Cannot insert a duplicate key into (a )?unique index.*/'      => DB_ERROR_ALREADY_EXISTS,
-                '/divide by zero$/'                     => DB_ERROR_DIVZERO,
-                '/pg_atoi: error in .*: can\'t parse /' => DB_ERROR_INVALID_NUMBER,
-                '/ttribute [\"\'].*[\"\'] not found$|Relation [\"\'].*[\"\'] does not have attribute [\"\'].*[\"\']/' => DB_ERROR_NOSUCHFIELD,
-                '/parser: parse error at or near \"/'   => DB_ERROR_SYNTAX,
-                '/referential integrity violation/'     => DB_ERROR_CONSTRAINT
+                '/(Table does not exist\.|Relation [\"\'].*[\"\'] does not exist|sequence does not exist|class ".+" not found)$/' => MDB_ERROR_NOSUCHTABLE,
+                '/Relation [\"\'].*[\"\'] already exists|Cannot insert a duplicate key into (a )?unique index.*/'      => MDB_ERROR_ALREADY_EXISTS,
+                '/divide by zero$/'                     => MDB_ERROR_DIVZERO,
+                '/pg_atoi: error in .*: can\'t parse /' => MDB_ERROR_INVALID_NUMBER,
+                '/ttribute [\"\'].*[\"\'] not found$|Relation [\"\'].*[\"\'] does not have attribute [\"\'].*[\"\']/' => MDB_ERROR_NOSUCHFIELD,
+                '/parser: parse error at or near \"/'   => MDB_ERROR_SYNTAX,
+                '/referential integrity violation/'     => MDB_ERROR_CONSTRAINT
             );
         }
         foreach ($error_regexps as $regexp => $code) {
@@ -156,8 +156,8 @@ class MDB_driver_pgsql extends MDB_common {
                 return $code;
             }
         }
-        // Fall back to DB_ERROR if there was no mapping.
-        return DB_ERROR;
+        // Fall back to MDB_ERROR if there was no mapping.
+        return MDB_ERROR;
     }
 
     // }}}
@@ -185,14 +185,14 @@ class MDB_driver_pgsql extends MDB_common {
      *     statement. If this argument is 0 a transaction implicitly started.
      *     Otherwise, if a transaction is in progress it is ended by committing
      *     any database changes that were pending.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function autoCommit($auto_commit)
     {
         $this->debug('AutoCommit: '.($auto_commit ? 'On' : 'Off'));
         if (((!$this->auto_commit) == (!$auto_commit))) {
-            return (DB_OK);
+            return (MDB_OK);
         }
         if ($this->connection) {
             if (MDB::isError($result = $this->_doQuery($auto_commit ? 'END' : 'BEGIN')))
@@ -211,14 +211,14 @@ class MDB_driver_pgsql extends MDB_common {
      * disabled, otherwise it will fail. Therefore, a new transaction is
      * implicitly started after committing the pending changes.
      *
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function commit()
     {
          $this->debug('Commit Transaction');
         if ($this->auto_commit) {
-            return ($this->raiseError(DB_ERROR, '', '', 'Commit: transaction changes are being auto commited'));
+            return ($this->raiseError(MDB_ERROR, '', '', 'Commit: transaction changes are being auto commited'));
         }
         return ($this->_doQuery('COMMIT') && $this->_doQuery('BEGIN'));
     }
@@ -232,14 +232,14 @@ class MDB_driver_pgsql extends MDB_common {
      * disabled, otherwise it will fail. Therefore, a new transaction is
      * implicitly started after canceling the pending changes.
      *
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function rollback()
     {
          $this->debug('Rollback Transaction');
         if ($this->auto_commit) {
-            return ($this->raiseError(DB_ERROR, '', '', 'Rollback: transactions can not be rolled back when changes are auto commited'));
+            return ($this->raiseError(MDB_ERROR, '', '', 'Rollback: transactions can not be rolled back when changes are auto commited'));
         }
         return ($this->_doQuery('ROLLBACK') && $this->_doQuery('BEGIN'));
     }
@@ -257,7 +257,7 @@ class MDB_driver_pgsql extends MDB_common {
     {
         $function = ($persistent ? 'pg_pconnect' : 'pg_connect');
         if (!function_exists($function)) {
-            return ($this->raiseError(DB_ERROR_UNSUPPORTED, NULL, NULL, 'doConnect: PostgreSQL support is not available in this PHP configuration'));
+            return ($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'doConnect: PostgreSQL support is not available in this PHP configuration'));
         }
         $port = (isset($this->options['port']) ? $this->options['port'] : '');
         if ($database_name == '') {
@@ -284,7 +284,7 @@ class MDB_driver_pgsql extends MDB_common {
         } else {
             $error_msg = 'Could not connect to PostgreSQL server';
         }
-        return ($this->raiseError(DB_ERROR_CONNECT_FAILED, '', '', 'doConnect: '.$error_msg));
+        return ($this->raiseError(MDB_ERROR_CONNECT_FAILED, '', '', 'doConnect: '.$error_msg));
     }
 
     // }}}
@@ -305,7 +305,7 @@ class MDB_driver_pgsql extends MDB_common {
                 && !strcmp($this->selected_database, $this->database_name)
                 && ($this->opened_persistent == $this->options['persistent']))
             {
-                return (DB_OK);
+                return (MDB_OK);
             }
             pg_Close($this->connection);
             $this->affected_rows = -1;
@@ -327,7 +327,7 @@ class MDB_driver_pgsql extends MDB_common {
         $this->connected_port = $port;
         $this->selected_database = $this->database_name;
         $this->opened_persistent = $this->options['persistent'];
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -388,10 +388,10 @@ class MDB_driver_pgsql extends MDB_common {
     function _standaloneQuery($query)
     {
         if (($connection = $this->_doConnect('template1', 0)) == 0) {
-            return $this->raiseError(DB_ERROR_CONNECT_FAILED, NULL, NULL, '_standaloneQuery: Cannot connect to template1');
+            return $this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL, '_standaloneQuery: Cannot connect to template1');
         }
         if (!($success = @pg_Exec($connection, $query))) {
-            $this->raiseError(DB_ERROR, NULL, NULL, '_standaloneQuery: ' . pg_ErrorMessage($connection));
+            $this->raiseError(MDB_ERROR, NULL, NULL, '_standaloneQuery: ' . pg_ErrorMessage($connection));
         }
         pg_Close($connection);
         return ($success);
@@ -401,7 +401,7 @@ class MDB_driver_pgsql extends MDB_common {
     // {{{ query()
 
     /**
-     * Execute a query
+     * Send a query to the database and return any results
      *
      * @param string $query the SQL query
      * @param array $types array that contains the types of the columns in
@@ -426,7 +426,7 @@ class MDB_driver_pgsql extends MDB_common {
             0, 6) == 'select')
         {
              if ($this->auto_commit && MDB::isError($this->_doQuery('BEGIN'))) {
-                 return $this->raiseError(DB_ERROR);
+                 return $this->raiseError(MDB_ERROR);
              }
              $result = $this->_doQuery('DECLARE select_cursor SCROLL CURSOR FOR '.$query);
              if (!MDB::isError($result)) {
@@ -453,7 +453,7 @@ class MDB_driver_pgsql extends MDB_common {
         }
         if ($ismanip) {
             $this->affected_rows = @pg_cmdtuples($result);
-            return DB_OK;
+            return MDB_OK;
         } elseif  (preg_match('/^\s*\(?\s*SELECT\s+/si', $query) && !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query)) {
             $this->highest_fetched_row[$result] = -1;
             if ($types != NULL) {
@@ -468,9 +468,9 @@ class MDB_driver_pgsql extends MDB_common {
             return $result;
         } else {
             $this->affected_rows = 0;
-            return DB_OK;
+            return MDB_OK;
         }
-        return $this->raiseError(DB_ERROR);
+        return $this->raiseError(MDB_ERROR);
     }
 
     // }}}
@@ -480,13 +480,13 @@ class MDB_driver_pgsql extends MDB_common {
     * check if the end of the result set has been reached
     *
     * @param resource    $result result identifier
-    * @return mixed TRUE or FALSE on sucess, a DB error on failure
+    * @return mixed TRUE or FALSE on sucess, a MDB error on failure
     * @access public
     */
     function endOfResult($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return $this->RaiseError(DB_ERROR, '', '', 'End of result attempted to check the end of an unknown result');
+            return $this->RaiseError(MDB_ERROR, '', '', 'End of result attempted to check the end of an unknown result');
         }
         return ($this->highest_fetched_row[$result] >= $this->numRows($result) - 1);
     }
@@ -499,18 +499,18 @@ class MDB_driver_pgsql extends MDB_common {
      * fetch a float value from a result set
      *
      * @param int $lob handle to a lob created by the createLob() function
-     * @return mixed DB_Ok on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function retrieveLob($lob)
     {
         if (!isset($this->lobs[$lob])) {
-            return ($this->raiseError(DB_ERROR_INVALID, NULL, NULL, 'Retrieve LOB: did not specified a valid lob'));
+            return ($this->raiseError(MDB_ERROR_INVALID, NULL, NULL, 'Retrieve LOB: did not specified a valid lob'));
         }
         if (!isset($this->lobs[$lob]['Value'])) {
             if ($this->auto_commit) {
                 if (!@pg_exec($this->connection, 'BEGIN')) {
-                    return ($this->raiseError(DB_ERROR,  NULL, NULL, 'Retrieve LOB: ' . pg_ErrorMessage($this->connection)));
+                    return ($this->raiseError(MDB_ERROR,  NULL, NULL, 'Retrieve LOB: ' . pg_ErrorMessage($this->connection)));
                 }
                 $this->lobs[$lob]['InTransaction'] = 1;
             }
@@ -521,10 +521,10 @@ class MDB_driver_pgsql extends MDB_common {
                     unset($this->lobs[$lob]['InTransaction']);
                 }
                 unset($this->lobs[$lob]['Value']);
-                return ($this->raiseError(DB_ERROR, NULL, NULL, 'Retrieve LOB: ' . pg_ErrorMessage($this->connection)));
+                return ($this->raiseError(MDB_ERROR, NULL, NULL, 'Retrieve LOB: ' . pg_ErrorMessage($this->connection)));
             }
         }
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -535,7 +535,7 @@ class MDB_driver_pgsql extends MDB_common {
      * therefore there is no more data to be read for the its input stream.
      *
      * @param int    $lob handle to a lob created by the createLob() function
-     * @return mixed TRUE or FALSE on success, a DB error on failure
+     * @return mixed TRUE or FALSE on success, a MDB error on failure
      * @access public
      */
     function endOfResultLob($lob)
@@ -558,7 +558,7 @@ class MDB_driver_pgsql extends MDB_common {
      *      read from the large object input stream
      * @param int $length integer value that indicates the largest ammount of
      *      data to be read from the large object input stream.
-     * @return mixed length on success, a DB error on failure
+     * @return mixed length on success, a MDB error on failure
      * @access public
      */
     function readResultLob($lob, &$data, $length)
@@ -569,7 +569,7 @@ class MDB_driver_pgsql extends MDB_common {
         }
         $data = pg_loread($this->lobs[$lob]['Handle'], $length);
         if (gettype($data) != 'string') {
-            $this->raiseError(DB_ERROR, NULL, NULL, 'Read Result LOB: ' . pg_ErrorMessage($this->connection));
+            $this->raiseError(MDB_ERROR, NULL, NULL, 'Read Result LOB: ' . pg_ErrorMessage($this->connection));
         }
         if (($length = strlen($data)) == 0) {
             $this->lobs[$lob]['EndOfLOB'] = 1;
@@ -609,8 +609,8 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed content of the specified data cell, a DB error on failure,
-     *       a DB error on failure
+     * @return mixed content of the specified data cell, a MDB error on failure,
+     *       a MDB error on failure
      * @access public
      */
     function fetchClob($result, $row, $field)
@@ -627,7 +627,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed content of the specified data cell, a DB error on failure
+     * @return mixed content of the specified data cell, a MDB error on failure
      * @access public
      */
     function fetchBlob($result, $row, $field)
@@ -645,7 +645,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource    $result result identifier
      * @param int    $row    number of the row where the data can be found
      * @param int    $field    field number where the data can be found
-     * @return mixed TRUE or FALSE on success, a DB error on failure
+     * @return mixed TRUE or FALSE on success, a MDB error on failure
      * @access public
      */
     function resultIsNull($result, $row, $field)
@@ -660,8 +660,8 @@ class MDB_driver_pgsql extends MDB_common {
     /**
      * returns the number of rows in a result object
      *
-     * @param object DB_Result the result object to check
-     * @return mixed DB_Error or the number of rows
+     * @param ressource $result a valid result ressouce pointer
+     * @return mixed MDB_Error or the number of rows
      * @access public
      */
     function numRows($result)
@@ -912,7 +912,7 @@ class MDB_driver_pgsql extends MDB_common {
             return $connect;
         }
         if ($this->auto_commit && !@pg_Exec($this->connection, 'BEGIN')) {
-            return $this->raiseError(DB_ERROR, NULL, NULL, 'getLobValue: error starting transaction');
+            return $this->raiseError(MDB_ERROR, NULL, NULL, 'getLobValue: error starting transaction');
         }
         if (($lo = pg_locreate($this->connection))) {
             if (($handle = pg_loopen($this->connection, $lo, 'w'))) {
@@ -921,7 +921,7 @@ class MDB_driver_pgsql extends MDB_common {
                         break;
                     }
                     if (!pg_lowrite($handle, $data)) {
-                        $result = $this->raiseError(DB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
+                        $result = $this->raiseError(MDB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
                         break;
                     }
                 }
@@ -930,13 +930,13 @@ class MDB_driver_pgsql extends MDB_common {
                     $value = strval($lo);
                 }
             } else {
-                $result = $this->raiseError(DB_ERROR, NULL, NULL, 'Get LOB field value: ' .  pg_ErrorMessage($this->connection));
+                $result = $this->raiseError(MDB_ERROR, NULL, NULL, 'Get LOB field value: ' .  pg_ErrorMessage($this->connection));
             }
             if (MDB::isError($result)) {
                 $result = pg_lounlink($this->connection, $lo);
             }
         } else {
-            $result = $this->raiseError(DB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
+            $result = $this->raiseError(MDB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
         }
         if ($this->auto_commit) {
             @pg_Exec($this->connection, 'END');
@@ -974,13 +974,13 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
-     * @return DB_OK
+     * @return MDB_OK
      * @access public
      */
     function freeClobValue($prepared_query, $clob)
     {
         unset($this->lobs[$clob]);
-        return DB_OK;
+        return MDB_OK;
     }
 
     // }}}
@@ -1010,13 +1010,13 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
-     * @return DB_OK
+     * @return MDB_OK
      * @access public
      */
     function freeBlobValue($prepared_query, $blob)
     {
         unset($this->lobs[$blob]);
-        return DB_OK;
+        return MDB_OK;
     }
 
     // }}}
@@ -1066,13 +1066,13 @@ class MDB_driver_pgsql extends MDB_common {
      *      respective numbers of the columns starting from 0. Some DBMS may
      *      not return any columns when the result set does not contain any
      *      rows.
-     *     a DB error on failure
+     *     a MDB error on failure
      * @access public
      */
     function getColumnNames($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return ($this->raiseError(DB_ERROR, NULL, NULL, 'Get Column Names: specified an nonexistant result set'));
+            return ($this->raiseError(MDB_ERROR, NULL, NULL, 'Get Column Names: specified an nonexistant result set'));
         }
         if (!isset($this->columns[$result])) {
             $this->columns[$result] = array();
@@ -1091,14 +1091,14 @@ class MDB_driver_pgsql extends MDB_common {
      * Count the number of columns returned by the DBMS in a query result.
      *
      * @param resource $result result identifier
-     * @return mixed integer value with the number of columns, a DB error
+     * @return mixed integer value with the number of columns, a MDB error
      *      on failure
      * @access public
      */
     function numCols($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return $this->raiseError(DB_ERROR, NULL, NULL, 'numCols: specified an nonexistant result set');
+            return $this->raiseError(MDB_ERROR, NULL, NULL, 'numCols: specified an nonexistant result set');
         }
         return (pg_numfields($result));
     }
@@ -1111,7 +1111,7 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param mixed $value value to be converted
      * @param int $type constant that specifies which type to convert to
-     * @return mixed converted value or a DB error on failure
+     * @return mixed converted value or a MDB error on failure
      * @access public
      */
     function convertResult($value, $type)
@@ -1144,7 +1144,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param boolean $ondemand when TRUE the seqence is
      *                          automatic created, if it
      *                          not exists
-     * @return mixed DB_Error or id
+     * @return mixed MDB_Error or id
      * @access public
      */
     function nextId($seq_name, $ondemand = TRUE)
@@ -1155,7 +1155,7 @@ class MDB_driver_pgsql extends MDB_common {
             $this->pushErrorHandling(PEAR_ERROR_RETURN);
             $result = $this->query("SELECT NEXTVAL('$seqname')");
             $this->popErrorHandling();
-            if ($ondemand && MDB::isError($result) && $result->getCode() == DB_ERROR_NOSUCHTABLE) {
+            if ($ondemand && MDB::isError($result) && $result->getCode() == MDB_ERROR_NOSUCHTABLE) {
                 $repeat = 1;
                 $result = $this->createSequence($seq_name);
                 if (MDB::isError($result)) {
@@ -1169,7 +1169,7 @@ class MDB_driver_pgsql extends MDB_common {
         if (MDB::isError($result)) {
             return $this->raiseError($result);
         }
-        $arr = $this->fetchInto($result, DB_FETCHMODE_ORDERED);
+        $arr = $this->fetchInto($result, MDB_FETCHMODE_ORDERED);
         $this->freeResult($result);
         return ($arr[0]);
     }
@@ -1181,17 +1181,17 @@ class MDB_driver_pgsql extends MDB_common {
      * returns the current id of a sequence
      *
      * @param string  $seq_name name of the sequence
-     * @return mixed DB_Error or id
+     * @return mixed MDB_Error or id
      * @access public
      */
     function currId($seq_name)
     {
         $seqname = $this->getSequenceName($seq_name);
         if (MDB::isError($result = $this->queryOne("SELECT last_value FROM $seqname"))) {
-            return $this->raiseError(DB_ERROR, NULL, NULL, 'currId: Unable to select from ' . $seqname) ;
+            return $this->raiseError(MDB_ERROR, NULL, NULL, 'currId: Unable to select from ' . $seqname) ;
         }
         if (!is_int($result)) {
-            return ($this->raiseError(DB_ERROR, NULL, NULL, 'currId: could not find value in sequence table'));
+            return ($this->raiseError(MDB_ERROR, NULL, NULL, 'currId: could not find value in sequence table'));
         }
         return ($result);
     }
@@ -1205,7 +1205,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed string on success, a DB error on failure
+     * @return mixed string on success, a MDB error on failure
      * @access public
      */
     function fetch($result, $row, $field)
@@ -1241,7 +1241,7 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param resource    $result    result identifier
      * @param mixed $mode depends on implementation
-     * @return array an nested array, or a DB error
+     * @return array an nested array, or a MDB error
      * @access public
      */
     function tableInfo($result, $mode = NULL)
@@ -1261,7 +1261,7 @@ class MDB_driver_pgsql extends MDB_common {
          *    [0]['len']    field length
          *    [0]['flags']  field flags
          *
-         * - mode is DB_TABLEINFO_ORDER
+         * - mode is MDB_TABLEINFO_ORDER
          * $result[]:
          *    ['num_fields'] number of metadata records
          *    [0]['table']  table name
@@ -1273,18 +1273,18 @@ class MDB_driver_pgsql extends MDB_common {
          *    The last one is used, if you have a field name, but no index.
          *    Test:  if (isset($result['meta']['myfield'])) { ...
          *
-         * - mode is DB_TABLEINFO_ORDERTABLE
+         * - mode is MDB_TABLEINFO_ORDERTABLE
          *     the same as above. but additionally
          *    ['ordertable'][table name][field name] index of field
          *       named 'field name'
          *
          *       this is, because if you have fields from different
          *       tables with the same field name * they override each
-         *       other with DB_TABLEINFO_ORDER
+         *       other with MDB_TABLEINFO_ORDER
          *
-         *       you can combine DB_TABLEINFO_ORDER and
-         *       DB_TABLEINFO_ORDERTABLE with DB_TABLEINFO_ORDER |
-         *       DB_TABLEINFO_ORDERTABLE * or with DB_TABLEINFO_FULL
+         *       you can combine MDB_TABLEINFO_ORDER and
+         *       MDB_TABLEINFO_ORDERTABLE with MDB_TABLEINFO_ORDER |
+         *       MDB_TABLEINFO_ORDERTABLE * or with MDB_TABLEINFO_FULL
          **/
         
         // if $result is a string, then we want information about a
@@ -1321,10 +1321,10 @@ class MDB_driver_pgsql extends MDB_common {
                 $res[$i]['type'] = @pg_fieldtype ($id, $i);
                 $res[$i]['len'] = @pg_fieldsize ($id, $i);
                 $res[$i]['flags'] = (is_string($result)) ? $this->_pgFieldFlags($id, $i, $result) : '';
-                if ($mode &DB_TABLEINFO_ORDER) {
+                if ($mode &MDB_TABLEINFO_ORDER) {
                     $res['order'][$res[$i]['name']] = $i;
                 }
-                if ($mode &DB_TABLEINFO_ORDERTABLE) {
+                if ($mode &MDB_TABLEINFO_ORDERTABLE) {
                     $res['ordertable'][$res[$i]['table']][$res[$i]['name']] = $i;
                 }
             }
@@ -1346,10 +1346,10 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource  $result     result identifier
      * @param int       $fetchmode  how the array data should be indexed
      * @param int       $rownum     the row number to fetch
-     * @return int data array on success, a DB error on failure
+     * @return int data array on success, a MDB error on failure
      * @access public
      */
-    function fetchInto($result, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
+    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
         if ($rownum == NULL) {
             ++$this->highest_fetched_row[$result];
@@ -1360,10 +1360,10 @@ class MDB_driver_pgsql extends MDB_common {
         if ($rownum + 1 > $this->numRows($result)) {
             return NULL;
         }
-        if ($fetchmode == DB_FETCHMODE_DEFAULT) {
+        if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
-        if ($fetchmode & DB_FETCHMODE_ASSOC) {
+        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
             $array = @pg_fetch_array($result, $rownum, PGSQL_ASSOC);
         } else {
             $array = @pg_fetch_row($result, $rownum);

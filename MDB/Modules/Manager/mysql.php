@@ -68,7 +68,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      *
      * @param object    $dbs        database object that is extended by this class
      * @param string $table_type name of the table handler
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access private
      */
     function _verifyTransactionalTableType(&$db, $table_type)
@@ -90,9 +90,9 @@ class MDB_manager_mysql_class extends MDB_manager_common
             case 'MRG_MYISAM':
             case 'MYISAM':
             case '':
-                return(DB_OK);
+                return(MDB_OK);
             default:
-                return($db->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+                return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
                     'Verify transactional table',
                     $table_type.' is not a supported table type'));
         }
@@ -102,22 +102,22 @@ class MDB_manager_mysql_class extends MDB_manager_common
         if(isset($this->verified_table_types[$table_type])
             && $this->verified_table_types[$table_type] == $db->connection)
         {
-            return(DB_OK);
+            return(MDB_OK);
         }
-        if(MDB::isError($has = $db->queryAll("SHOW VARIABLES LIKE '$check'", NULL, DB_FETCHMODE_ORDERED))) {
+        if(MDB::isError($has = $db->queryAll("SHOW VARIABLES LIKE '$check'", NULL, MDB_FETCHMODE_ORDERED))) {
             return($db->raiseError());
         }
         if(count($has) == 0) {
-            return($db->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+            return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
                 'Verify transactional table',"could not tell if ".$table_type.' is a supported table type'));
         }
         if(strcmp($has[0][1], 'YES')) {
-            return($db->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+            return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
                 'Verify transactional table',
                 $table_type.' is not a supported table type by this MySQL database server'));
         }
         $this->verified_table_types[$table_type] = $db->connection;
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -128,7 +128,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      *
      * @param object    $dbs        database object that is extended by this class
      * @param string $name name of the database that should be created
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function createDatabase(&$db, $name)
@@ -140,7 +140,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
             return $db->mysqlRaiseError();
         }
 
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -151,7 +151,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      *
      * @param object    $dbs        database object that is extended by this class
      * @param string $name name of the database that should be dropped
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function dropDatabase(&$db, $name)
@@ -162,7 +162,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
         if (!mysql_drop_db($name, $db->connection)) {
             return $db->mysqlRaiseError();
         }
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -196,22 +196,22 @@ class MDB_manager_mysql_class extends MDB_manager_common
      *                                'length' => 12
      *                            )
      *                        );
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function createTable(&$db, $name, $fields)
     {
         if (!isset($name) || !strcmp($name, '')) {
-            return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'no valid table name specified');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no valid table name specified');
         }
         if (count($fields) == 0) {
-            return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "'.$name.'"');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "'.$name.'"');
         }
         if(MDB::isError($verify = $this->_verifyTransactionalTableType($db, $db->default_table_type))) {
             return($verify);
         }
         if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
-            return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'unkown error');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'unkown error');
         }
         if (isset($db->supported['Transactions'])
             && $db->default_table_type=='BDB')
@@ -321,7 +321,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      *                             actually perform them otherwise.
      * @access public
      *
-      * @return mixed DB_OK on success, a DB error on failure
+      * @return mixed MDB_OK on success, a MDB error on failure
      */
     function alterTable(&$db, $name, $changes, $check)
     {
@@ -338,11 +338,11 @@ class MDB_manager_mysql_class extends MDB_manager_common
                     case 'name':
                         break;
                     default:
-                        return $db->raiseError(DB_ERROR_CANNOT_ALTER, '', '',
+                        return $db->raiseError(MDB_ERROR_CANNOT_ALTER, '', '',
                             'Alter table: change type "'.Key($changes).'" not yet supported');
                 }
             }
-            return (DB_OK);
+            return (MDB_OK);
         } else {
             $query = (isset($changes['name']) ? 'RENAME AS '.$changes['name'] : '');
             if (isset($changes['AddedFields'])) {
@@ -421,7 +421,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      * list all databases
      *
      * @param object    $dbs        database object that is extended by this class
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listDatabases(&$db)
@@ -440,7 +440,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      * list all users
      *
      * @param object    $dbs        database object that is extended by this class
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listUsers(&$db)
@@ -459,7 +459,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      * list all tables in the current database
      *
      * @param object    $dbs        database object that is extended by this class
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTables(&$db)
@@ -484,7 +484,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      *
      * @param object    $dbs        database object that is extended by this class
      * @param string $table name of table that should be used in method
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTableFields(&$db, $table)
@@ -500,7 +500,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
         }
         if(!isset($columns['field'])) {
             $db->freeResult($result);
-            return $db->raiseError(DB_ERROR_MANAGER, '', '',
+            return $db->raiseError(MDB_ERROR_MANAGER, '', '',
                 'List table fields: show columns does not return the table field names');
         }
         $field_column = $columns['field'];
@@ -522,13 +522,13 @@ class MDB_manager_mysql_class extends MDB_manager_common
      * @param object    $dbs        database object that is extended by this class
      * @param string    $table         name of table that should be used in method
      * @param string    $field_name     name of field that should be used in method
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function getTableFieldDefinition(&$db, $table, $field_name)
     {
         if ($field_name == $db->dummy_primary_key) {
-            return $db->raiseError(DB_ERROR_MANAGER, '', '',
+            return $db->raiseError(MDB_ERROR_MANAGER, '', '',
                 'Get table field definiton: '.$db->dummy_primary_key.' is an hidden column');
         }
         $result = $db->query("SHOW COLUMNS FROM $table");
@@ -544,7 +544,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
             || !isset($columns[$column = 'type']))
         {
             $db->freeResult($result);
-            return $db->raiseError(DB_ERROR_MANAGER, '', '',
+            return $db->raiseError(MDB_ERROR_MANAGER, '', '',
                 'Get table field definition: show columns does not return the column '.$column);
         }
         $field_column = $columns['field'];
@@ -635,7 +635,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
                         $type[1] = 'date';
                         break;
                     default:
-                        return $db->raiseError(DB_ERROR_MANAGER, '', '',
+                        return $db->raiseError(MDB_ERROR_MANAGER, '', '',
                             'List table fields: unknown database attribute type');
                 }
                 unset($notnull);
@@ -682,7 +682,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
                     && $row[$columns['key']] == 'PRI')
                 {
                     // check that its not just a unique field
-                    if(MDB::isError($indexes = $db->queryAll("SHOW INDEX FROM $table", NULL, DB_FETCHMODE_ASSOC))) {
+                    if(MDB::isError($indexes = $db->queryAll("SHOW INDEX FROM $table", NULL, MDB_FETCHMODE_ASSOC))) {
                         return($indexes);
                     }
                     $is_primary = FALSE;
@@ -710,7 +710,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
         if(MDB::isError($row)) {
             return($row);
         }
-        return $db->raiseError(DB_ERROR_MANAGER, '', '',
+        return $db->raiseError(MDB_ERROR_MANAGER, '', '',
             'Get table field definition: it was not specified an existing table column');
     }
 
@@ -747,7 +747,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      *                                            'last_login' => array()
      *                                        )
      *                                    )
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function createIndex(&$db, $table, $name, $definition)
@@ -775,7 +775,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      * @param object    $dbs        database object that is extended by this class
      * @param string    $table         name of table that should be used in method
      * @param string    $name         name of the index to be dropped
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function dropIndex(&$db, $table, $name)
@@ -791,7 +791,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      *
      * @param object    $dbs        database object that is extended by this class
      * @param string    $table      name of table that should be used in method
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTableIndexes(&$db, $table)
@@ -824,19 +824,19 @@ class MDB_manager_mysql_class extends MDB_manager_common
      * @param object    $dbs        database object that is extended by this class
      * @param string    $table      name of table that should be used in method
      * @param string    $index_name name of index that should be used in method
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function getTableIndexDefinition(&$db, $table, $index_name)
     {
         if($index_name == 'PRIMARY') {
-            return $db->raiseError(DB_ERROR_MANAGER, '', '', 'Get table index definition: PRIMARY is an hidden index');
+            return $db->raiseError(MDB_ERROR_MANAGER, '', '', 'Get table index definition: PRIMARY is an hidden index');
         }
         if(MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
             return($result);
         }
         $definition = array();
-        while (is_array($row = $db->fetchInto($result, DB_FETCHMODE_ASSOC))) {
+        while (is_array($row = $db->fetchInto($result, MDB_FETCHMODE_ASSOC))) {
             $key_name = $row['Key_name'];
             if(!strcmp($index_name, $key_name)) {
                 if(!$row['Non_unique']) {
@@ -851,7 +851,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
         }
         $db->freeResult($result);
         if (!isset($definition['FIELDS'])) {
-            return $db->raiseError(DB_ERROR_MANAGER, '', '', 'Get table index definition: it was not specified an existing table index');
+            return $db->raiseError(MDB_ERROR_MANAGER, '', '', 'Get table index definition: it was not specified an existing table index');
         }
         return ($definition);
     }
@@ -865,7 +865,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      * @param object    $dbs        database object that is extended by this class
      * @param string    $seq_name     name of the sequence to be created
      * @param string    $start         start value of the sequence; default is 1
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function createSequence(&$db, $seq_name, $start)
@@ -880,20 +880,20 @@ class MDB_manager_mysql_class extends MDB_manager_common
             return $res;
         }
         if ($start == 1) {
-            return DB_OK;
+            return MDB_OK;
         }
         $res = $db->query("INSERT INTO $sequence_name (sequence) VALUES (".($start-1).')');
         if (!MDB::isError($res)) {
-            return DB_OK;
+            return MDB_OK;
         }
         // Handle error
         $result = $db->query("DROP TABLE $sequence_name");
         if (MDB::isError($result)) {
-            return $db->raiseError(DB_ERROR, '', '',
+            return $db->raiseError(MDB_ERROR, '', '',
                 'Create sequence: could not drop inconsistent sequence table ('.
                 $result->getMessage().' ('.$result->getUserinfo().'))');
         }
-        return $db->raiseError(DB_ERROR, '', '',
+        return $db->raiseError(MDB_ERROR, '', '',
             'Create sequence: could not create sequence table ('.
             $res->getMessage().' ('.$res->getUserinfo().'))');
     }
@@ -906,7 +906,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      *
      * @param object    $dbs        database object that is extended by this class
      * @param string    $seq_name     name of the sequence to be dropped
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function dropSequence(&$db, $seq_name)
@@ -922,7 +922,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      * list all sequences in the current database
      *
      * @param object    $dbs        database object that is extended by this class
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listSequences(&$db)

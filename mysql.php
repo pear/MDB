@@ -134,21 +134,21 @@ class MDB_driver_mysql extends MDB_common
         $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
         
         $this->errorcode_map = array(
-            1004 => DB_ERROR_CANNOT_CREATE,
-            1005 => DB_ERROR_CANNOT_CREATE,
-            1006 => DB_ERROR_CANNOT_CREATE,
-            1007 => DB_ERROR_ALREADY_EXISTS,
-            1008 => DB_ERROR_CANNOT_DROP,
-            1046 => DB_ERROR_NODBSELECTED,
-            1050 => DB_ERROR_ALREADY_EXISTS,
-            1051 => DB_ERROR_NOSUCHTABLE,
-            1054 => DB_ERROR_NOSUCHFIELD,
-            1062 => DB_ERROR_ALREADY_EXISTS,
-            1064 => DB_ERROR_SYNTAX,
-            1100 => DB_ERROR_NOT_LOCKED,
-            1136 => DB_ERROR_VALUE_COUNT_ON_ROW,
-            1146 => DB_ERROR_NOSUCHTABLE,
-            1048 => DB_ERROR_CONSTRAINT,
+            1004 => MDB_ERROR_CANNOT_CREATE,
+            1005 => MDB_ERROR_CANNOT_CREATE,
+            1006 => MDB_ERROR_CANNOT_CREATE,
+            1007 => MDB_ERROR_ALREADY_EXISTS,
+            1008 => MDB_ERROR_CANNOT_DROP,
+            1046 => MDB_ERROR_NODBSELECTED,
+            1050 => MDB_ERROR_ALREADY_EXISTS,
+            1051 => MDB_ERROR_NOSUCHTABLE,
+            1054 => MDB_ERROR_NOSUCHFIELD,
+            1062 => MDB_ERROR_ALREADY_EXISTS,
+            1064 => MDB_ERROR_SYNTAX,
+            1100 => MDB_ERROR_NOT_LOCKED,
+            1136 => MDB_ERROR_VALUE_COUNT_ON_ROW,
+            1146 => MDB_ERROR_NOSUCHTABLE,
+            1048 => MDB_ERROR_CONSTRAINT,
         );
     }
 
@@ -194,17 +194,17 @@ class MDB_driver_mysql extends MDB_common
      *
      * @access public
      *
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      */
     function autoCommit($auto_commit)
     {
         $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
         if (!isset($this->supported['Transactions'])) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
                 'Auto-commit transactions: transactions are not in use');
         }
         if (((!$this->auto_commit) == (!$auto_commit))) {
-            return (DB_OK);
+            return (MDB_OK);
         }
         if ($this->connection) {
             if ($auto_commit) {
@@ -238,17 +238,17 @@ class MDB_driver_mysql extends MDB_common
      *
      * @access public
      *
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      */
     function commit()
     {
         $this->debug("Commit Transaction");
         if (!isset($this->supported['Transactions'])) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
                 'Commit transactions: transactions are not in use');
         }
         if ($this->auto_commit) {
-            return $this->raiseError(DB_ERROR, '', '',
+            return $this->raiseError(MDB_ERROR, '', '',
             'Commit transactions: transaction changes are being auto commited');
         }
         return ($this->query('COMMIT'));
@@ -265,17 +265,17 @@ class MDB_driver_mysql extends MDB_common
      *
      * @access public
      *
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      */
     function rollback()
     {
         $this->debug("Rollback Transaction");
         if (!isset($this->supported['Transactions'])) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
                 'Rollback transactions: transactions are not in use');
         }
         if ($this->auto_commit) {
-            return $this->raiseError(DB_ERROR, '', '',
+            return $this->raiseError(MDB_ERROR, '', '',
                 'Rollback transactions: transactions can not be rolled back when changes are auto commited');
         }
         return ($this->query('ROLLBACK'));
@@ -299,7 +299,7 @@ class MDB_driver_mysql extends MDB_common
                 && !strcmp($this->connected_port, $port)
                 && $this->opened_persistent == $this->options['persistent'])
             {
-                return (DB_OK);
+                return (MDB_OK);
             }
             mysql_close($this->connection);
             $this->connection = 0;
@@ -308,7 +308,7 @@ class MDB_driver_mysql extends MDB_common
         $this->fixed_float = 30;
         $function = ($this->options['persistent'] ? 'mysql_pconnect' : 'mysql_connect');
         if (!function_exists($function)) {
-            return ($this->raiseError(DB_ERROR_UNSUPPORTED));
+            return ($this->raiseError(MDB_ERROR_UNSUPPORTED));
         }
 
         @ini_set('track_errors', TRUE);
@@ -317,7 +317,7 @@ class MDB_driver_mysql extends MDB_common
             $this->user, $this->password);
         @ini_restore('track_errors');
         if ($this->connection <= 0) {
-            return ($this->raiseError(DB_ERROR_CONNECT_FAILED, '', '',
+            return ($this->raiseError(MDB_ERROR_CONNECT_FAILED, '', '',
                     $php_errormsg));
         }
 
@@ -351,7 +351,7 @@ class MDB_driver_mysql extends MDB_common
         $this->connected_password = $this->password;
         $this->connected_port = $port;
         $this->opened_persistent = $this->options['persistent'];
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -386,8 +386,7 @@ class MDB_driver_mysql extends MDB_common
     // {{{ query()
 
     /**
-     * Send a query to the database and return any results with a
-     * DB_result object.
+     * Send a query to the database and return any results
      *
      * @access public
      *
@@ -395,7 +394,7 @@ class MDB_driver_mysql extends MDB_common
      * @param array   $types  array that contains the types of the columns in
      *                        the result set
      *
-     * @return mixed a result handle or DB_OK on success, a DB error on failure
+     * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      */
     function query($query, $types = NULL)
     {
@@ -427,7 +426,7 @@ class MDB_driver_mysql extends MDB_common
         if ($result = mysql_query($query, $this->connection)) {
             if ($ismanip) {
                 $this->affected_rows = mysql_affected_rows($this->connection);
-                return DB_OK;
+                return MDB_OK;
             } else {
                 $this->highest_fetched_row[$result] = -1;
                 if ($types != NULL) {
@@ -545,7 +544,7 @@ class MDB_driver_mysql extends MDB_common
      *
      *    Default: 0
      *
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      */
     function replace($table, $fields)
     {
@@ -563,7 +562,7 @@ class MDB_driver_mysql extends MDB_common
                 $value = 'NULL';
             } else {
                 if (!isset($fields[$name]['Value'])) {
-                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
+                    return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
                         'no value for field "'.$name.'" specified');
                 }
                 switch(isset($fields[$name]['Type']) ? $fields[$name]['Type'] : 'text') {
@@ -592,21 +591,21 @@ class MDB_driver_mysql extends MDB_common
                         $value = $this->getTimestampValue($fields[$name]['Value']);
                         break;
                     default:
-                        return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
+                        return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
                             'no supported type for field "'.$name.'" specified');
                 }
             }
             $values .= $value;
             if (isset($fields[$name]['Key']) && $fields[$name]['Key']) {
                 if ($value == 'NULL') {
-                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
+                    return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
                         'key values may not be NULL');
                 }
                 $keys++;
             }
         }
         if ($keys == 0) {
-            return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
+            return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
                 'not specified which fields are keys');
         }
         return ($this->query("REPLACE INTO $table ($query) VALUES ($values)"));
@@ -628,14 +627,14 @@ class MDB_driver_mysql extends MDB_common
      *                              columns when the result set does not
      *                              contain any rows.
      *
-     *                              a DB error on failure
+     *                              a MDB error on failure
      * @access public
      */
     function getColumnNames($result)
     {
         $result_value = intval($result);
         if (!isset($this->highest_fetched_row[$result_value])) {
-            return $this->raiseError(DB_ERROR_INVALID, '', '',
+            return $this->raiseError(MDB_ERROR_INVALID, '', '',
                 'Get column names: it was specified an inexisting result set');
         }
         if (!isset($this->columns[$result_value])) {
@@ -656,13 +655,13 @@ class MDB_driver_mysql extends MDB_common
      *
      * @param resource    $result        result identifier
      * @access public
-     * @return mixed integer value with the number of columns, a DB error
+     * @return mixed integer value with the number of columns, a MDB error
      *                       on failure
      */
     function numCols($result)
     {
         if (!isset($this->highest_fetched_row[intval($result)])) {
-            return $this->raiseError(DB_ERROR_INVALID, '', '',
+            return $this->raiseError(MDB_ERROR_INVALID, '', '',
                 'numCols: it was specified an inexisting result set');
         }
         return (mysql_num_fields($result));
@@ -675,13 +674,13 @@ class MDB_driver_mysql extends MDB_common
     * check if the end of the result set has been reached
     *
     * @param resource    $result result identifier
-    * @return mixed TRUE or FALSE on sucess, a DB error on failure
+    * @return mixed TRUE or FALSE on sucess, a MDB error on failure
     * @access public
     */
     function endOfResult($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return $this->raiseError(DB_ERROR, '', '',
+            return $this->raiseError(MDB_ERROR, '', '',
                 'End of result: attempted to check the end of an unknown result');
         }
         return ($this->highest_fetched_row[$result] >= $this->numRows($result)-1);
@@ -696,7 +695,7 @@ class MDB_driver_mysql extends MDB_common
     * @param resource    $result result identifier
     * @param int    $row    number of the row where the data can be found
     * @param int    $field    field number where the data can be found
-    * @return mixed string on success, a DB error on failure
+    * @return mixed string on success, a MDB error on failure
     * @access public
     */
     function fetch($result, $row, $field)
@@ -721,8 +720,8 @@ class MDB_driver_mysql extends MDB_common
     * @param resource    $result result identifier
     * @param int    $row    number of the row where the data can be found
     * @param int    $field    field number where the data can be found
-    * @return mixed content of the specified data cell, a DB error on failure,
-    *               a DB error on failure
+    * @return mixed content of the specified data cell, a MDB error on failure,
+    *               a MDB error on failure
     * @access public
     */
     function fetchClob($result, $row, $field)
@@ -739,7 +738,7 @@ class MDB_driver_mysql extends MDB_common
     * @param resource    $result result identifier
     * @param int    $row    number of the row where the data can be found
     * @param int    $field    field number where the data can be found
-    * @return mixed content of the specified data cell, a DB error on failure
+    * @return mixed content of the specified data cell, a MDB error on failure
     * @access public
     */
     function fetchBlob($result, $row, $field)
@@ -784,8 +783,8 @@ class MDB_driver_mysql extends MDB_common
     /**
     * returns the number of rows in a result object
     *
-    * @param object DB_Result the result object to check
-    * @return mixed DB_Error or the number of rows
+     * @param ressource $result a valid result ressouce pointer
+    * @return mixed MDB_Error or the number of rows
     * @access public
     */
     function numRows($result)
@@ -1162,13 +1161,13 @@ class MDB_driver_mysql extends MDB_common
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $clob
      * @param string    $value
-     * @return DB_OK
+     * @return MDB_OK
      * @access public
      */
     function freeClobValue($prepared_query, $clob, &$value)
     {
         unset($value);
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -1206,13 +1205,13 @@ class MDB_driver_mysql extends MDB_common
      *
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
-     * @return DB_OK
+     * @return MDB_OK
      * @access public
      */
     function freeBlobValue($prepared_query, $blob)
     {
         unset($value);
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -1260,7 +1259,7 @@ class MDB_driver_mysql extends MDB_common
      *                          automatic created, if it
      *                          not exists
      *
-     * @return mixed DB_Error or id
+     * @return mixed MDB_Error or id
      * @access public
      */
     function nextId($seq_name, $ondemand = FALSE)
@@ -1268,13 +1267,13 @@ class MDB_driver_mysql extends MDB_common
         $sequence_name = $this->getSequenceName($seq_name);
         $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
         if ($ondemand && MDB::isError($result) &&
-            $result->getCode() == DB_ERROR_NOSUCHTABLE)
+            $result->getCode() == MDB_ERROR_NOSUCHTABLE)
         {
             $result = $this->createSequence($seq_name);
             // Since createSequence initializes the ID to be 1,
             // we do not need to retrieve the ID again (or we will get 2)
             if (MDB::isError($result)) {
-                return $this->raiseError(DB_ERROR, '', '',
+                return $this->raiseError(MDB_ERROR, '', '',
                     'Next ID: on demand sequence could not be created');
             } else {
                 // First ID of a newly created sequence is 1
@@ -1297,7 +1296,7 @@ class MDB_driver_mysql extends MDB_common
      * returns the current id of a sequence
      *
      * @param string  $seq_name name of the sequence
-     * @return mixed DB_Error or id
+     * @return mixed MDB_Error or id
      * @access public
      */
     function currId($seq_name)
@@ -1322,10 +1321,10 @@ class MDB_driver_mysql extends MDB_common
      * @param resource  $result     result identifier
      * @param int       $fetchmode  how the array data should be indexed
      * @param int       $rownum     the row number to fetch
-     * @return int data array on success, a DB error on failure
+     * @return int data array on success, a MDB error on failure
      * @access public
      */
-    function fetchInto($result, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
+    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
         if ($rownum == NULL) {
             ++$this->highest_fetched_row[$result];
@@ -1335,10 +1334,10 @@ class MDB_driver_mysql extends MDB_common
             }
             $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
         }
-        if ($fetchmode == DB_FETCHMODE_DEFAULT) {
+        if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
-        if ($fetchmode & DB_FETCHMODE_ASSOC) {
+        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
             $array = @mysql_fetch_array($result, MYSQL_ASSOC);
         } else {
             $array = @mysql_fetch_row($result);
@@ -1383,7 +1382,7 @@ class MDB_driver_mysql extends MDB_common
     *
     * @param resource    $result    result identifier
     * @param mixed $mode depends on implementation
-    * @return array an nested array, or a DB error
+    * @return array an nested array, or a MDB error
     * @access public
     */
     function tableInfo($result, $mode = NULL) {
@@ -1402,7 +1401,7 @@ class MDB_driver_mysql extends MDB_common
          *   [0]['len']    field length
          *   [0]['flags']  field flags
          *
-         * - mode is DB_TABLEINFO_ORDER
+         * - mode is MDB_TABLEINFO_ORDER
          * $result[]:
          *   ['num_fields'] number of metadata records
          *   [0]['table']  table name
@@ -1414,18 +1413,18 @@ class MDB_driver_mysql extends MDB_common
          *   The last one is used, if you have a field name, but no index.
          *   Test:  if (isset($result['meta']['myfield'])) { ...
          *
-         * - mode is DB_TABLEINFO_ORDERTABLE
+         * - mode is MDB_TABLEINFO_ORDERTABLE
          *    the same as above. but additionally
          *   ['ordertable'][table name][field name] index of field
          *      named 'field name'
          *
          *      this is, because if you have fields from different
          *      tables with the same field name * they override each
-         *      other with DB_TABLEINFO_ORDER
+         *      other with MDB_TABLEINFO_ORDER
          *
-         *      you can combine DB_TABLEINFO_ORDER and
-         *      DB_TABLEINFO_ORDERTABLE with DB_TABLEINFO_ORDER |
-         *      DB_TABLEINFO_ORDERTABLE * or with DB_TABLEINFO_FULL
+         *      you can combine MDB_TABLEINFO_ORDER and
+         *      MDB_TABLEINFO_ORDERTABLE with MDB_TABLEINFO_ORDER |
+         *      MDB_TABLEINFO_ORDERTABLE * or with MDB_TABLEINFO_FULL
          */
 
         // if $result is a string, then we want information about a
@@ -1463,10 +1462,10 @@ class MDB_driver_mysql extends MDB_common
                 $res[$i]['type'] = @mysql_field_type  ($id, $i);
                 $res[$i]['len']  = @mysql_field_len   ($id, $i);
                 $res[$i]['flags'] = @mysql_field_flags ($id, $i);
-                if ($mode & DB_TABLEINFO_ORDER) {
+                if ($mode & MDB_TABLEINFO_ORDER) {
                     $res['order'][$res[$i]['name']] = $i;
                 }
-                if ($mode & DB_TABLEINFO_ORDERTABLE) {
+                if ($mode & MDB_TABLEINFO_ORDERTABLE) {
                     $res['ordertable'][$res[$i]['table']][$res[$i]['name']] = $i;
                 }
             }

@@ -29,7 +29,7 @@
     $dsn['hostspec'] = $host;
     $dsn['phptype'] = $db_type;
     // MDB::connect will return a Pear DB object on success
-    // or a Pear DB Error object on error
+    // or a Pear MDB error object on error
     // You can also set to TRUE the second param
     // if you want a persistent connection:
     // $db = MDB::connect($dsn, TRUE);
@@ -76,7 +76,7 @@
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get column:0 and free the result
-    $array = $db->fetchCol($result, DB_FETCHMODE_DEFAULT, 2);
+    $array = $db->fetchCol($result, MDB_FETCHMODE_DEFAULT, 2);
     echo '<br>get column #2 (counting from 0):<br>';
     echo Var_Dump::display($array).'<br>';
     // run the query and get a result handler
@@ -87,7 +87,7 @@
     $result = $db->query($query);
     $types = array('integer', 'text', 'timestamp');
     $db->setResultTypes($result, $types);
-    $array = $db->fetchAll($result, DB_FETCHMODE_FLIPPED);
+    $array = $db->fetchAll($result, MDB_FETCHMODE_FLIPPED);
     echo '<br>all with result set flipped:<br>';
     echo Var_Dump::display($array).'<br>';
     // save some time with this function
@@ -98,7 +98,7 @@
     // run the query with the offset 1 and count 1 and get a result handler
     $result = $db->limitQuery($query, 1, 1);
     // lets just get everything but with an associative array and free the result
-    $array = $db->fetchAll($result, DB_FETCHMODE_ASSOC);
+    $array = $db->fetchAll($result, MDB_FETCHMODE_ASSOC);
     echo '<br>associative array with offset 1 and count 1:<br>';
     echo Var_Dump::display($array).'<br>';
     // lets create a sequence
@@ -136,17 +136,17 @@
     echo '<br>see getOne in action:<br>';
     echo Var_Dump::display($db->getOne('SELECT trans_en FROM numbers WHERE number = ?','text',$array)).'<br>';
     echo '<br>see getRow in action:<br>';
-    $db->setFetchmode(DB_FETCHMODE_ASSOC);
-    echo '<br>default fetchmode ist now DB_FETCHMODE_ASSOC<br>';
+    $db->setFetchmode(MDB_FETCHMODE_ASSOC);
+    echo '<br>default fetchmode ist now MDB_FETCHMODE_ASSOC<br>';
     echo Var_Dump::display($db->getRow('SELECT * FROM numbers WHERE number = ?',array('integer','text','text'),$array));
-    echo 'default fetchmode ist now DB_FETCHMODE_ORDERED<br>';
-    $db->setFetchmode(DB_FETCHMODE_ORDERED);
+    echo 'default fetchmode ist now MDB_FETCHMODE_ORDERED<br>';
+    $db->setFetchmode(MDB_FETCHMODE_ORDERED);
     echo '<br>see getCol in action:<br>';
     echo Var_Dump::display($db->getCol('SELECT * FROM numbers','text', NULL, NULL, 1)).'<br>';
     echo '<br>see getAll in action:<br>';
     echo Var_Dump::display($db->getAll('SELECT * FROM test',array('integer','text','text'))).'<br>';
     echo '<br>see getAssoc in action:<br>';
-    echo Var_Dump::display($db->getAssoc('SELECT * FROM test',array('integer','text','text'), NULL, NULL, DB_FETCHMODE_ASSOC)).'<br>';
+    echo Var_Dump::display($db->getAssoc('SELECT * FROM test',array('integer','text','text'), NULL, NULL, MDB_FETCHMODE_ASSOC)).'<br>';
     echo 'tableInfo on a string:<br>';
     echo Var_Dump::display($db->tableInfo('numbers')).'<br>';
     echo '<br>just a simple update query:<br>';

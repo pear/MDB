@@ -106,7 +106,7 @@ function defaultDebugOutput($database, $message)
 }
 
 /**
- * MDB_common: Base class that is extended by each DB driver
+ * MDB_common: Base class that is extended by each MDB driver
  *
  * @package MDB
  * @author Lukas Smith <smith@dybnet.de>
@@ -168,7 +168,7 @@ class MDB_common extends PEAR {
         $this->PEAR('MDB_Error');
         $this->supported = array();
         $this->errorcode_map = array();
-        $this->fetchmode = DB_FETCHMODE_ORDERED;
+        $this->fetchmode = MDB_FETCHMODE_ORDERED;
 
         if (isset($dsninfo['hostspec'])) {
             $this->host = $dsninfo['hostspec'];
@@ -218,13 +218,13 @@ class MDB_common extends PEAR {
     // {{{ errorCode()
 
     /**
-     * Map native error codes to DB's portable ones.  Requires that
+     * Map native error codes to MDB's portable ones.  Requires that
      * the DB implementation's constructor fills in the $errorcode_map
      * property.
      *
      * @param mixed $nativecode the native error code, as returned by the
      *      backend database extension (string or integer)
-     * @return int a portable DB error code, or FALSE if this DB
+     * @return int a portable MDB error code, or FALSE if this MDB
      *      implementation has no mapping for the given error code.
      * @access public
      */
@@ -233,18 +233,18 @@ class MDB_common extends PEAR {
         if (isset($this->errorcode_map[$nativecode])) {
             return $this->errorcode_map[$nativecode];
         }
-        // Fall back to DB_ERROR if there was no mapping.
-        return DB_ERROR;
+        // Fall back to MDB_ERROR if there was no mapping.
+        return MDB_ERROR;
     }
 
     // }}}
     // {{{ errorMessage()
 
     /**
-     * Map a DB error code to a textual message.  This is actually
-     * just a wrapper for DB::errorMessage().
+     * Map a MDB error code to a textual message.  This is actually
+     * just a wrapper for MDB::errorMessage().
      *
-     * @param integer $dbcode the DB error code
+     * @param integer $dbcode the MDB error code
      * @return string the corresponding error message, of FALSE
      *      if the error code was unknown
      * @access public
@@ -278,10 +278,10 @@ class MDB_common extends PEAR {
      * @access public
      * @see PEAR_Error
      */
-    function &raiseError($code = DB_ERROR, $mode = NULL, $options = NULL,
+    function &raiseError($code = MDB_ERROR, $mode = NULL, $options = NULL,
         $userinfo = NULL, $nativecode = NULL)
     {
-        // The error is yet a DB error object
+        // The error is yet a MDB error object
         if (is_object($code)) {
             return PEAR::raiseError($code, NULL, NULL, NULL, NULL, NULL, TRUE);
         }
@@ -304,12 +304,12 @@ class MDB_common extends PEAR {
     /**
      * returns an errormessage, provides by the database
      *
-     * @return mixed DB_Error or message
+     * @return mixed MDB_Error or message
      * @access public
      */
     function errorNative()
     {
-        return $this->raiseError(DB_ERROR_NOT_CAPABLE);
+        return $this->raiseError(MDB_ERROR_NOT_CAPABLE);
     }
 
     // }}}
@@ -349,16 +349,16 @@ class MDB_common extends PEAR {
      *
      * @param string $option option name
      * @param mixed $value value for the option
-     * @return mixed DB_OK or DB_Error
+     * @return mixed MDB_OK or MDB_Error
      * @access public
      */
     function setOption($option, $value)
     {
         if (isset($this->options[$option])) {
             $this->options[$option] = $value;
-            return DB_OK;
+            return MDB_OK;
         }
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', "unknown option $option");
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '', "unknown option $option");
     }
 
     // }}}
@@ -376,7 +376,7 @@ class MDB_common extends PEAR {
         if (isset($this->options[$option])) {
             return $this->options[$option];
         }
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', "unknown option $option");
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '', "unknown option $option");
     }
 
     // }}}
@@ -558,16 +558,16 @@ class MDB_common extends PEAR {
                     if ($directory) {
                         closedir($directory);
                     }
-                    return $this->raiseError(DB_ERROR_LOADEXTENSION, '', '',
+                    return $this->raiseError(MDB_ERROR_LOADEXTENSION, '', '',
                         $scope . ': it was not specified an existing ' . $extension . ' file (' . $include . ')');
                 } else {
-                    return $this->raiseError(DB_ERROR_LOADEXTENSION, '', '',
+                    return $this->raiseError(MDB_ERROR_LOADEXTENSION, '', '',
                         $scope . ': it was not specified a valid ' . $extension . ' include path');
                 }
             }
             include($include_path . $separator . $include);
         }
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -583,14 +583,14 @@ class MDB_common extends PEAR {
     function loadLob($scope = '')
     {
         if (defined('MDB_LOB_INCLUDED')) {
-            return (DB_OK);
+            return (MDB_OK);
         }
         $result = $this->_loadExtension($scope, 'lob',
             'MDB_LOB_INCLUDED', 'lob.php');
         if (MDB::isError($result)) {
             return($result);
         }
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -606,7 +606,7 @@ class MDB_common extends PEAR {
     function loadManager($scope = '')
     {
         if (isset($this->manager)) {
-            return (DB_OK);
+            return (MDB_OK);
         }
         $result = $this->_loadExtension($scope, 'database manager',
             'MDB_MANAGER_COMMON_INCLUDED', 'manager_common.php');
@@ -615,7 +615,7 @@ class MDB_common extends PEAR {
         }
         if (strlen($this->manager_class_name)) {
             if (strlen($this->manager_include) == 0)
-                return $this->raiseError(DB_LOADEXTENSION, '', '', $scope . ': no valid database manager include file');
+                return $this->raiseError(MDB_LOADEXTENSION, '', '', $scope . ': no valid database manager include file');
             $result = $this->_loadExtension($scope, 'database manager',
                 $this->manager_included_constant, $this->manager_include);
             if (MDB::isError($result)) {
@@ -626,7 +626,7 @@ class MDB_common extends PEAR {
             $class_name = 'MDB_manager_common';
         }
         $this->manager = new $class_name;
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -636,7 +636,7 @@ class MDB_common extends PEAR {
      * register the shutdown function to automatically commit open transactions
      *
      * @param string $auto_commit
-     * @return DB _OK
+     * @return MDB _OK
      * @access private
      */
     function _registerTransactionShutdown($auto_commit)
@@ -647,7 +647,7 @@ class MDB_common extends PEAR {
             register_shutdown_function('_shutdownTransactions');
             $registered_transactions_shutdown = 1;
         }
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -662,13 +662,13 @@ class MDB_common extends PEAR {
      *      statement. If this argument is 0 a transaction implicitly started.
      *      Otherwise, if a transaction is in progress it is ended by committing
      *      any database changes that were pending.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function autoCommit($auto_commit)
     {
         $this->debug("AutoCommit: " . ($auto_commit ? "On" : "Off"));
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
             'Auto-commit transactions: transactions are not supported');
     }
 
@@ -681,13 +681,13 @@ class MDB_common extends PEAR {
      * disabled, otherwise it will fail. Therefore, a new transaction is
      * implicitly started after committing the pending changes.
      *
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function commit()
     {
         $this->debug("Commit Transaction");
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
             'Commit transaction: commiting transactions are not supported');
     }
 
@@ -700,13 +700,13 @@ class MDB_common extends PEAR {
      * disabled, otherwise it will fail. Therefore, a new transaction is
      * implicitly started after canceling the pending changes.
      *
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function rollback()
     {
         $this->debug("Rollback Transaction");
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
             'Rollback transaction: rolling back transactions are not supported');
     }
 
@@ -766,7 +766,7 @@ class MDB_common extends PEAR {
      * create a new database
      *
      * @param string $name name of the database that should be created
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function createDatabase($name)
@@ -785,7 +785,7 @@ class MDB_common extends PEAR {
      * drop an existing database
      *
      * @param string $name name of the database that should be dropped
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function dropDatabase($name)
@@ -827,7 +827,7 @@ class MDB_common extends PEAR {
      *                'length' => 12
      *            )
      *        );
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function createTable($name, $fields)
@@ -846,7 +846,7 @@ class MDB_common extends PEAR {
      * drop an existing table
      *
      * @param string $name name of the table that should be dropped
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function dropTable($name)
@@ -950,7 +950,7 @@ class MDB_common extends PEAR {
      * @param boolean $check indicates whether the function should just check
      *       if the DBMS driver can perform the requested table alterations if
      *       the value is TRUE or actually perform them otherwise.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function alterTable($name, $changes, $check)
@@ -968,7 +968,7 @@ class MDB_common extends PEAR {
     /**
      * list all databases
      *
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listDatabases()
@@ -986,7 +986,7 @@ class MDB_common extends PEAR {
     /**
      * list all users
      *
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listUsers()
@@ -1004,7 +1004,7 @@ class MDB_common extends PEAR {
     /**
      * list all viewes in the current database
      *
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listViews()
@@ -1022,7 +1022,7 @@ class MDB_common extends PEAR {
     /**
      * list all functions in the current database
      *
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listFunctions()
@@ -1040,7 +1040,7 @@ class MDB_common extends PEAR {
     /**
      * list all tables in the current database
      *
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTables()
@@ -1059,7 +1059,7 @@ class MDB_common extends PEAR {
      * list all fields in a tables in the current database
      *
      * @param string $table name of table that should be used in method
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTableFields($table)
@@ -1079,7 +1079,7 @@ class MDB_common extends PEAR {
      *
      * @param string $table name of table that should be used in method
      * @param string $fields name of field that should be used in method
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function getTableFieldDefinition($table, $field)
@@ -1108,7 +1108,7 @@ class MDB_common extends PEAR {
      *       notnull
      *           Boolean flag that indicates whether this field is constrained
      *           to not be set to NULL.
-     * @return mixed string on success, a DB error on failure
+     * @return mixed string on success, a MDB error on failure
      * @access public
      */
     function getFieldDeclaration($field_name, $field)
@@ -1145,7 +1145,7 @@ class MDB_common extends PEAR {
      *       notnull
      *           Boolean flag that indicates whether this field is constrained
      *           to not be set to NULL.
-     * @return mixed string on success, a DB error on failure
+     * @return mixed string on success, a MDB error on failure
      * @access public
      */
     function getFieldDeclarationList($fields)
@@ -1208,7 +1208,7 @@ class MDB_common extends PEAR {
      *                  'last_login' => array()
      *              )
      *          )
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function createIndex($table, $name, $definition)
@@ -1228,7 +1228,7 @@ class MDB_common extends PEAR {
      *
      * @param string $table name of table that should be used in method
      * @param string $name name of the index to be dropped
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function dropIndex($table, $name)
@@ -1247,7 +1247,7 @@ class MDB_common extends PEAR {
      * list all indexes in a table
      *
      * @param string $table name of table that should be used in method
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTableIndexes($table)
@@ -1267,7 +1267,7 @@ class MDB_common extends PEAR {
      *
      * @param string $table name of table that should be used in method
      * @param string $index name of index that should be used in method
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function getTableIndexDefinition($table, $index)
@@ -1287,7 +1287,7 @@ class MDB_common extends PEAR {
      *
      * @param string $name name of the sequence to be created
      * @param string $start start value of the sequence; default is 1
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function createSequence($name, $start = 1)
@@ -1306,7 +1306,7 @@ class MDB_common extends PEAR {
      * drop existing sequence
      *
      * @param string $name name of the sequence to be dropped
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function dropSequence($name)
@@ -1324,7 +1324,7 @@ class MDB_common extends PEAR {
     /**
      * list all tables in the current database
      *
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listSequences()
@@ -1343,7 +1343,7 @@ class MDB_common extends PEAR {
      * get the stucture of a sequence into an array
      *
      * @param string $sequence name of sequence that should be used in method
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function getSequenceDefinition($sequence)
@@ -1359,17 +1359,16 @@ class MDB_common extends PEAR {
     // {{{ query()
 
     /**
-     * Send a query to the database and return any results with a
-     * DB_result object.
+     * Send a query to the database and return any results
      *
      * @param string $query the SQL query
-     * @return mixed a result handle or DB_OK on success, a DB error on failure
+     * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access public
      */
     function query($query)
     {
         $this->debug("Query: $query");
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Query: database queries are not implemented');
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'Query: database queries are not implemented');
     }
 
     // }}}
@@ -1380,26 +1379,26 @@ class MDB_common extends PEAR {
      *
      * @param string $first first row to select
      * @param string $limit number of rows to select
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function setSelectedRowRange($first, $limit)
     {
         if (!isset($this->supported['SelectRowRanges'])) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
                 'Set selected row range: selecting row ranges is not supported by this driver');
         }
         if (gettype($first) != 'integer' || $first < 0) {
-            return $this->raiseError(DB_ERROR_SYNTAX, '', '',
+            return $this->raiseError(MDB_ERROR_SYNTAX, '', '',
                 'Set selected row range: it was not specified a valid first selected range row');
         }
         if (gettype($limit) != 'integer' || $limit < 1) {
-            return $this->raiseError(DB_ERROR_SYNTAX, '', '',
+            return $this->raiseError(MDB_ERROR_SYNTAX, '', '',
                 'Set selected row range: it was not specified a valid selected range row limit');
         }
         $this->first_selected_row = $first;
         $this->selected_row_limit = $limit;
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -1411,7 +1410,7 @@ class MDB_common extends PEAR {
      * @param string $query query
      * @param integer $from the row to start to fetching
      * @param integer $count the numbers of rows to fetch
-     * @return mixed a DB_Result object or a DB_Error
+     * @return mixed a valid ressource pointer or a MDB_Error
      * @access public
      */
     function limitQuery($query, $from, $count)
@@ -1438,7 +1437,7 @@ class MDB_common extends PEAR {
         if ($this->supported['SubSelects'] == 1) {
             return ($query);
         }
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Subselect: subselect not implemented');
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'Subselect: subselect not implemented');
     }
 
     // }}}
@@ -1502,13 +1501,13 @@ class MDB_common extends PEAR {
      *           part of unique index they may not be NULL.
      *
      *           Default: 0
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function replace($table, $fields)
     {
         if (!$this->supported['Replace']) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Replace: replace query is not supported');
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'Replace: replace query is not supported');
         }
         $count = count($fields);
         for($keys = 0, $condition = $update = $insert = $values = '', reset($fields), $field = 0;
@@ -1526,7 +1525,7 @@ class MDB_common extends PEAR {
                 $value = 'NULL';
             } else {
                 if (!isset($fields[$name]['Value'])) {
-                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
+                    return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
                         'no value for field "' . $name . '" specified');
                 }
                 switch (isset($fields[$name]['Type']) ? $fields[$name]['Type'] : 'text') {
@@ -1555,7 +1554,7 @@ class MDB_common extends PEAR {
                         $value = $this->getTimestampValue($fields[$name]['Value']);
                         break;
                     default:
-                        return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
+                        return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
                             'no supported type for field "' . $name . '" specified');
                 }
             }
@@ -1563,7 +1562,7 @@ class MDB_common extends PEAR {
             $values .= $value;
             if (isset($fields[$name]['Key']) && $fields[$name]['Key']) {
                 if ($value == 'NULL') {
-                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
+                    return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
                         'key values may not be NULL');
                 }
                 $condition .= ($keys ? ' AND ' : ' WHERE ') . $name . '=' . $value;
@@ -1571,7 +1570,7 @@ class MDB_common extends PEAR {
             }
         }
         if ($keys == 0) {
-            return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
+            return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
                 'not specified which fields are keys');
         }
         if (!($in_transaction = $this->in_transaction) && MDB::isError($result = $this->autoCommit(FALSE))) {
@@ -1589,7 +1588,7 @@ class MDB_common extends PEAR {
                     $affected_rows = $this->affected_rows * 2;
                     break;
                 default:
-                    $success = $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
+                    $success = $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
                         'replace keys are not unique');
                     break;
             }
@@ -1635,7 +1634,7 @@ class MDB_common extends PEAR {
             $position < strlen($query) && gettype($question = strpos($query, '?', $position)) == 'integer';) {
             if (gettype($quote = strpos($query, "'", $position)) == 'integer' && $quote < $question) {
                 if (gettype($end_quote = strpos($query, "'", $quote + 1)) != 'integer') {
-                    return $this->raiseError(DB_ERROR_SYNTAX, '', '',
+                    return $this->raiseError(MDB_ERROR_SYNTAX, '', '',
                         'Prepare query: query with an unterminated text string specified');
                 }
                 switch ($this->escape_quotes) {
@@ -1686,14 +1685,14 @@ class MDB_common extends PEAR {
     function _validatePreparedQuery($prepared_query)
     {
         if ($prepared_query < 1 || $prepared_query > count($this->prepared_queries)) {
-            return $this->raiseError(DB_ERROR_INVALID, '', '',
+            return $this->raiseError(MDB_ERROR_INVALID, '', '',
                 'Validate prepared query: invalid prepared query');
         }
         if (gettype($this->prepared_queries[$prepared_query-1]) != 'array') {
-            return $this->raiseError(DB_ERROR_INVALID, '', '',
+            return $this->raiseError(MDB_ERROR_INVALID, '', '',
                 'Validate prepared query: prepared query was already freed');
         }
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -1704,7 +1703,7 @@ class MDB_common extends PEAR {
      *
      * @param int $prepared_query argument is a handle that was returned by
      *       the function prepareQuery()
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function freePreparedQuery($prepared_query)
@@ -1714,7 +1713,7 @@ class MDB_common extends PEAR {
             return $result;
         }
         $this->prepared_queries[$prepared_query-1] = '';
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -1728,7 +1727,7 @@ class MDB_common extends PEAR {
      * @param string $query query to be executed
      * @param array $types array that contains the types of the columns in
      *       the result set
-     * @return mixed a result handle or DB_OK on success, a DB error on failure
+     * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access private
      */
     function _executePreparedQuery($prepared_query, $query, $types = NULL)
@@ -1746,7 +1745,7 @@ class MDB_common extends PEAR {
      *       the function prepareQuery()
      * @param array $types array that contains the types of the columns in the
      *       result set
-     * @return mixed a result handle or DB_OK on success, a DB error on failure
+     * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access public
      */
     function executeQuery($prepared_query, $types = NULL)
@@ -1760,7 +1759,7 @@ class MDB_common extends PEAR {
             $position < count($this->prepared_queries[$index]['Positions']);
             $position++) {
             if (!isset($this->prepared_queries[$index]['Values'][$position])) {
-                return $this->raiseError(DB_ERROR_NEED_MORE_DATA, '', '',
+                return $this->raiseError(MDB_ERROR_NEED_MORE_DATA, '', '',
                     'Execute query: it was not defined query argument ' . ($position + 1));
             }
             $current_position = $this->prepared_queries[$index]['Positions'][$position];
@@ -1834,7 +1833,7 @@ class MDB_common extends PEAR {
      *        the query
      * @param array $param_types array that contains the types of the values
      *        defined in $params
-     * @return mixed a new result handle or a DB_Error when fail
+     * @return mixed a new result handle or a MDB_Error when fail
      * @access public
      * @see prepare()
      */
@@ -1863,7 +1862,7 @@ class MDB_common extends PEAR {
      *        data to insert into the query
      * @param array $parAM_types array that contains the types of the values
      *        defined in $params
-     * @return mixed a result handle or DB_OK on success, a DB error on failure
+     * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access public
      * @see prepare(), execute()
      */
@@ -1875,7 +1874,7 @@ class MDB_common extends PEAR {
                 return $result;
             }
         }
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -1898,7 +1897,7 @@ class MDB_common extends PEAR {
      *       parameter is a NULL
      * @param string $field name of the field that is meant to be assigned
      *       with this parameter value when it is of type clob or blob
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function setParam($prepared_query, $parameter, $type, $value, $is_NULL = 0, $field = '')
@@ -1909,14 +1908,14 @@ class MDB_common extends PEAR {
         }
         $index = $prepared_query - 1;
         if ($parameter < 1 || $parameter > count($this->prepared_queries[$index]['Positions'])) {
-            return $this->raiseError(DB_ERROR_SYNTAX, '', '',
+            return $this->raiseError(MDB_ERROR_SYNTAX, '', '',
                 'Query set: it was not specified a valid argument number');
         }
         $this->prepared_queries[$index]['Values'][$parameter-1] = $value;
         $this->prepared_queries[$index]['Types'][$parameter-1] = $type;
         $this->prepared_queries[$index]['Fields'][$parameter-1] = $field;
         $this->prepared_queries[$index]['IsNULL'][$parameter-1] = $is_NULL;
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -1931,7 +1930,7 @@ class MDB_common extends PEAR {
      *       for setParam() the array elements must use keys corresponding to
      *       the number of the position of the parameter.
      * @param array $types array thats specifies the types of the fields
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
@@ -1989,7 +1988,7 @@ class MDB_common extends PEAR {
                 }
             }
         }
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -2005,7 +2004,7 @@ class MDB_common extends PEAR {
      * @param string $type designation of the type of the parameter to be set.
      *       The designation of the currently supported types is list in the
      *       usage of the function  setParam()
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
@@ -2026,7 +2025,7 @@ class MDB_common extends PEAR {
      *       statement. The order number of the first parameter is 1.
      * @param string $value text value that is meant to be assigned to
      *       specified parameter.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
@@ -2050,7 +2049,7 @@ class MDB_common extends PEAR {
      *       to be assigned to specified parameter.
      * @param string $field name of the field of a INSERT or UPDATE query to
      *       which it will be assigned the value to specified parameter.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
@@ -2074,7 +2073,7 @@ class MDB_common extends PEAR {
      *       to be assigned to specified parameter.
      * @param string $field name of the field of a INSERT or UPDATE query to
      *       which it will be assigned the value to specified parameter.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
@@ -2095,7 +2094,7 @@ class MDB_common extends PEAR {
      *       statement. The order number of the first parameter is 1.
      * @param int $value an integer value that is meant to be assigned to
      *       specified parameter.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
@@ -2116,7 +2115,7 @@ class MDB_common extends PEAR {
      *       statement. The order number of the first parameter is 1.
      * @param boolean $value boolean value that is meant to be assigned to
      *       specified parameter.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
@@ -2137,7 +2136,7 @@ class MDB_common extends PEAR {
      *       statement. The order number of the first parameter is 1.
      * @param string $value date value that is meant to be assigned to
      *       specified parameter.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
@@ -2158,7 +2157,7 @@ class MDB_common extends PEAR {
      *       statement. The order number of the first parameter is 1.
      * @param string $value time stamp value that is meant to be assigned to
      *       specified parameter.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
@@ -2179,7 +2178,7 @@ class MDB_common extends PEAR {
      *       statement. The order number of the first parameter is 1.
      * @param string $value time value that is meant to be assigned to
      *       specified parameter.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
@@ -2200,7 +2199,7 @@ class MDB_common extends PEAR {
      *       statement. The order number of the first parameter is 1.
      * @param string $value float value that is meant to be assigned to
      *       specified parameter.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
@@ -2221,7 +2220,7 @@ class MDB_common extends PEAR {
      *       statement. The order number of the first parameter is 1.
      * @param string $value decimal value that is meant to be assigned to
      *       specified parameter.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
@@ -2250,13 +2249,13 @@ class MDB_common extends PEAR {
      *       in the result set, the remaining columns are assumed to be of the
      *       type text. Currently, the types clob and blob are not fully
      *       supported.
-     * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function setResultTypes($result, $types)
     {
         if (isset($this->result_types[$result])) {
-            return $this->raiseError(DB_ERROR_INVALID, '', '',
+            return $this->raiseError(MDB_ERROR_INVALID, '', '',
                 'Set result types: attempted to redefine the types of the columns of a result set');
         }
         $columns = $this->numCols($result);
@@ -2264,7 +2263,7 @@ class MDB_common extends PEAR {
             return $columns;
         }
         if ($columns < count($types)) {
-            return $this->raiseError(DB_ERROR_SYNTAX, '', '',
+            return $this->raiseError(MDB_ERROR_SYNTAX, '', '',
                 'Set result types: it were specified more result types (' . count($types) . ') than result columns (' . $columns . ')');
         }
         $valid_types = array(
@@ -2281,7 +2280,7 @@ class MDB_common extends PEAR {
         );
         for($column = 0; $column < count($types); $column++) {
             if (!isset($valid_types[$types[$column]])) {
-                return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+                return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
                     'Set result types: ' . $types[$column] . ' is not a supported column type');
             }
             $this->result_types[$result][$column] = $valid_types[$types[$column]];
@@ -2290,7 +2289,7 @@ class MDB_common extends PEAR {
             $this->result_types[$result][$column] = MDB_TYPE_TEXT;
             $column++;
         }
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -2299,13 +2298,13 @@ class MDB_common extends PEAR {
     /**
      * returns the affected rows of a query
      *
-     * @return mixed DB_Error or number of rows
+     * @return mixed MDB_Error or number of rows
      * @access public
      */
     function affectedRows()
     {
         if ($this->affected_rows == -1) {
-            return $this->raiseError(DB_ERROR_NEED_MORE_DATA);
+            return $this->raiseError(MDB_ERROR_NEED_MORE_DATA);
         }
         return ($this->affected_rows);
     }
@@ -2323,12 +2322,12 @@ class MDB_common extends PEAR {
      *       respective numbers of the columns starting from 0. Some DBMS may
      *       not return any columns when the result set does not contain any
      *       rows.
-     *      a DB error on failure
+     *      a MDB error on failure
      * @access public
      */
     function getColumnNames($result)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
             'Get column names: obtaining result column names is not implemented');
     }
 
@@ -2339,13 +2338,13 @@ class MDB_common extends PEAR {
      * Count the number of columns returned by the DBMS in a query result.
      *
      * @param resource $result result identifier
-     * @return mixed integer value with the number of columns, a DB error
+     * @return mixed integer value with the number of columns, a MDB error
      *       on failure
      * @access public
      */
     function numCols($result)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
             'Number of columns: obtaining the number of result columns is not implemented');
     }
 
@@ -2356,12 +2355,12 @@ class MDB_common extends PEAR {
      * check if the end of the result set has been reached
      *
      * @param resource $result result identifier
-     * @return mixed TRUE or FALSE on sucess, a DB error on failure
+     * @return mixed TRUE or FALSE on sucess, a MDB error on failure
      * @access public
      */
     function endOfResult($result)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
             'End of result: end of result method not implemented');
     }
 
@@ -2372,18 +2371,18 @@ class MDB_common extends PEAR {
      * Sets which fetch mode should be used by default on queries
      * on this connection.
      *
-     * @param integer $fetchmode DB_FETCHMODE_ORDERED or DB_FETCHMODE_ASSOC,
-     *       possibly bit-wise OR'ed with DB_FETCHMODE_FLIPPED.
+     * @param integer $fetchmode MDB_FETCHMODE_ORDERED or MDB_FETCHMODE_ASSOC,
+     *       possibly bit-wise OR'ed with MDB_FETCHMODE_FLIPPED.
      * @access public
-     * @see DB_FETCHMODE_ORDERED
-     * @see DB_FETCHMODE_ASSOC
-     * @see DB_FETCHMODE_FLIPPED
+     * @see MDB_FETCHMODE_ORDERED
+     * @see MDB_FETCHMODE_ASSOC
+     * @see MDB_FETCHMODE_FLIPPED
      */
     function setFetchMode($fetchmode)
     {
         switch ($fetchmode) {
-            case DB_FETCHMODE_ORDERED:
-            case DB_FETCHMODE_ASSOC:
+            case MDB_FETCHMODE_ORDERED:
+            case MDB_FETCHMODE_ASSOC:
                 $this->fetchmode = $fetchmode;
                 break;
             default:
@@ -2400,12 +2399,12 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed string on success, a DB error on failure
+     * @return mixed string on success, a MDB error on failure
      * @access public
      */
     function fetch($result, $row, $field)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
             'Fetch: fetch result method not implemented');
     }
 
@@ -2418,7 +2417,7 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed string on success, a DB error on failure
+     * @return mixed string on success, a MDB error on failure
      * @access public
      */
     function fetchLob($result, $row, $field)
@@ -2435,7 +2434,7 @@ class MDB_common extends PEAR {
             'ResultLOB' => $lob
             );
         if (MDB::isError($clob = $this->createLob($character_lob))) {
-            return $this->raiseError(DB_ERROR, '', '',
+            return $this->raiseError(MDB_ERROR, '', '',
                 'Fetch LOB result: ' . $character_lob['Error']);
         }
         return ($clob);
@@ -2448,19 +2447,19 @@ class MDB_common extends PEAR {
      * fetch a float value from a result set
      *
      * @param int $lob handle to a lob created by the createLob() function
-     * @return mixed DB_Ok on success, a DB error on failure
+     * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function retrieveLob($lob)
     {
         if (!isset($this->lobs[$lob])) {
-            return $this->raiseError(DB_ERROR_NEED_MORE_DATA, '', '',
+            return $this->raiseError(MDB_ERROR_NEED_MORE_DATA, '', '',
                 'Fetch LOB result: it was not specified a valid lob');
         }
         if (!isset($this->lobs[$lob]['Value'])) {
             $this->lobs[$lob]['Value'] = $this->fetch($this->lobs[$lob]['Result'], $this->lobs[$lob]['Row'], $this->lobs[$lob]['Field']);
         }
-        return (DB_OK);
+        return (MDB_OK);
     }
 
     // }}}
@@ -2471,7 +2470,7 @@ class MDB_common extends PEAR {
      * therefore there is no more data to be read for the its input stream.
      *
      * @param int $lob handle to a lob created by the createLob() function
-     * @return mixed TRUE or FALSE on success, a DB error on failure
+     * @return mixed TRUE or FALSE on success, a MDB error on failure
      * @access public
      */
     function endOfResultLob($lob)
@@ -2494,7 +2493,7 @@ class MDB_common extends PEAR {
      *       read from the large object input stream
      * @param int $length integer value that indicates the largest ammount of
      *       data to be read from the large object input stream.
-     * @return mixed length on success, a DB error on failure
+     * @return mixed length on success, a MDB error on failure
      * @access public
      */
     function readResultLob($lob, &$data, $length)
@@ -2535,13 +2534,13 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed content of the specified data cell, a DB error on failure,
-     *        a DB error on failure
+     * @return mixed content of the specified data cell, a MDB error on failure,
+     *        a MDB error on failure
      * @access public
      */
     function fetchClob($result, $row, $field)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
             'fetch clob result method is not implemented');
     }
 
@@ -2554,12 +2553,12 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed content of the specified data cell, a DB error on failure
+     * @return mixed content of the specified data cell, a MDB error on failure
      * @access public
      */
     function fetchBlob($result, $row, $field)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
             'fetch blob result method is not implemented');
     }
 
@@ -2573,7 +2572,7 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed TRUE or FALSE on success, a DB error on failure
+     * @return mixed TRUE or FALSE on success, a MDB error on failure
      * @access public
      */
     function resultIsNull($result, $row, $field)
@@ -2593,7 +2592,7 @@ class MDB_common extends PEAR {
      *
      * @param mixed $value refernce to a value to be converted
      * @param int $type constant that specifies which type to convert to
-     * @return object a DB error on failure
+     * @return object a MDB error on failure
      * @access private
      */
     function _baseConvertResult($value, $type)
@@ -2618,10 +2617,10 @@ class MDB_common extends PEAR {
             case MDB_TYPE_CLOB:
                 return ($value);
             case MDB_TYPE_BLOB:
-                return $this->raiseError(DB_ERROR_INVALID, '', '',
+                return $this->raiseError(MDB_ERROR_INVALID, '', '',
                     'BaseConvertResult: attempt to convert result value to an unsupported type ' . $type);
             default:
-                return $this->raiseError(DB_ERROR_INVALID, '', '',
+                return $this->raiseError(MDB_ERROR_INVALID, '', '',
                     'BaseConvertResult: attempt to convert result value to an unknown type ' . $type);
         }
     }
@@ -2634,7 +2633,7 @@ class MDB_common extends PEAR {
      *
      * @param mixed $value value to be converted
      * @param int $type constant that specifies which type to convert to
-     * @return mixed converted value or a DB error on failure
+     * @return mixed converted value or a MDB error on failure
      * @access public
      */
     function convertResult($value, $type)
@@ -2650,7 +2649,7 @@ class MDB_common extends PEAR {
      *
      * @param resource $result result identifier
      * @param array $row array with data
-     * @return mixed DB_Ok on success,  a DB error on failure
+     * @return mixed MDB_OK on success,  a MDB error on failure
      * @access public
      */
     function convertResultRow($result, $row)
@@ -2692,7 +2691,7 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed content of the specified data cell, a DB error on failure
+     * @return mixed content of the specified data cell, a MDB error on failure
      * @access public
      */
     function fetchDate($result, $row, $field)
@@ -2710,7 +2709,7 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed content of the specified data cell, a DB error on failure
+     * @return mixed content of the specified data cell, a MDB error on failure
      * @access public
      */
     function fetchTimestamp($result, $row, $field)
@@ -2728,7 +2727,7 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed content of the specified data cell, a DB error on failure
+     * @return mixed content of the specified data cell, a MDB error on failure
      * @access public
      */
     function fetchTime($result, $row, $field)
@@ -2746,7 +2745,7 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed content of the specified data cell, a DB error on failure
+     * @return mixed content of the specified data cell, a MDB error on failure
      * @access public
      */
     function fetchBoolean($result, $row, $field)
@@ -2764,7 +2763,7 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed content of the specified data cell, a DB error on failure
+     * @return mixed content of the specified data cell, a MDB error on failure
      * @access public
      */
     function fetchFloat($result, $row, $field)
@@ -2782,7 +2781,7 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     * @return mixed content of the specified data cell, a DB error on failure
+     * @return mixed content of the specified data cell, a MDB error on failure
      * @access public
      */
     function fetchDecimal($result, $row, $field)
@@ -2797,13 +2796,13 @@ class MDB_common extends PEAR {
     /**
      * returns the number of rows in a result object
      *
-     * @param object $ DB_Result the result object to check
-     * @return mixed DB_Error or the number of rows
+     * @param ressource $result a valid result ressouce pointer
+     * @return mixed MDB_Error or the number of rows
      * @access public
      */
     function numRows($result)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Num Rows: number of rows method not implemented');
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'Num Rows: number of rows method not implemented');
     }
 
     // }}}
@@ -2818,7 +2817,7 @@ class MDB_common extends PEAR {
      */
     function freeResult($result)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Free Result: free result method not implemented');
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'Free Result: free result method not implemented');
     }
 
     // }}}
@@ -3159,7 +3158,7 @@ class MDB_common extends PEAR {
      */
     function getClobValue($prepared_query, $parameter, $clob)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
             'Get CLOB field value: prepared queries with values of type "clob" are not yet supported');
     }
 
@@ -3194,7 +3193,7 @@ class MDB_common extends PEAR {
      */
     function getBlobValue($prepared_query, $parameter, $blob)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
             'Get BLOB field value: prepared queries with values of type "blob" are not yet supported');
     }
 
@@ -3393,12 +3392,12 @@ class MDB_common extends PEAR {
      * @param boolean $ondemand when TRUE the seqence is
      *                           automatic created, if it
      *                           not exists
-     * @return mixed DB_Error or id
+     * @return mixed MDB_Error or id
      * @access public
      */
     function nextId($seq_name, $ondemand = FALSE)
     {
-        return $this->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
+        return $this->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
             'Next Sequence: getting next sequence value not supported');
     }
 
@@ -3409,19 +3408,19 @@ class MDB_common extends PEAR {
      * returns the current id of a sequence
      *
      * @param string $seq_name name of the sequence
-     * @return mixed DB_Error or id
+     * @return mixed MDB_Error or id
      * @access public
      */
     function currId($seq_name)
     {
         $this->warnings[] = 'database does not support getting current
             sequence value, the sequence value was incremented';
-        expectError(DB_ERROR_NOT_CAPABLE);
+        expectError(MDB_ERROR_NOT_CAPABLE);
         $id = $this->nextId($seq_name);
-        popExpectError(DB_ERROR_NOT_CAPABLE);
+        popExpectError(MDB_ERROR_NOT_CAPABLE);
         if (MDB::isError($id)) {
-            if ($id->getCode() == DB_ERROR_NOT_CAPABLE) {
-                return $this->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
+            if ($id->getCode() == MDB_ERROR_NOT_CAPABLE) {
+                return $this->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
                     'Current Sequence: getting current sequence value not supported');
             }
             return $id;
@@ -3438,18 +3437,18 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $fetchmode ignored
      * @param int $rownum the row number to fetch
-     * @return int data array or NULL on success, a DB error on failure
+     * @return int data array or NULL on success, a MDB error on failure
      * @access public
      */
-    function fetchInto($result, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
+    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
         if (MDB::isError($result)) {
-            return $this->raiseError(DB_ERROR_NEED_MORE_DATA, '', '',
+            return $this->raiseError(MDB_ERROR_NEED_MORE_DATA, '', '',
                 'Fetch field: it was not specified a valid result set');
         }
         if (MDB::isError($this->endOfResult($result))) {
             $this->freeResult($result);
-            $res = $this->raiseError(DB_ERROR_NEED_MORE_DATA, '', '',
+            $res = $this->raiseError(MDB_ERROR_NEED_MORE_DATA, '', '',
                 'Fetch field: result set is empty');
         }
         if ($rownum == NULL) {
@@ -3494,7 +3493,7 @@ class MDB_common extends PEAR {
      * Fetch and return a field of data (it uses fetchInto for that)
      *
      * @param resource $result result identifier
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function fetchOne($result)
@@ -3518,10 +3517,10 @@ class MDB_common extends PEAR {
      * @param resource $result result identifier
      * @param int $fetchmode how the array data should be indexed
      * @param int $rownum the row number to fetch
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function fetchRow($result, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
+    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
         $res = $this->fetchInto($result, $fetchmode, $rownum);
         if (!$this->options['autofree'] && $res != NULL) {
@@ -3538,12 +3537,12 @@ class MDB_common extends PEAR {
      *
      * @param resource $result result identifier
      * @param int $colnum the row number to fetch
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function fetchCol($result, $colnum = 0)
     {
-        $fetchmode = is_int($colnum) ? DB_FETCHMODE_ORDERED : DB_FETCHMODE_ASSOC;
+        $fetchmode = is_int($colnum) ? MDB_FETCHMODE_ORDERED : MDB_FETCHMODE_ASSOC;
         $column = array();
         while (is_array($res = $this->fetchInto($result, $fetchmode, NULL))) {
             $column[] = $res[$colnum];
@@ -3574,24 +3573,24 @@ class MDB_common extends PEAR {
      *       wrapped in another array.  If the same key value (in the first
      *       column) repeats itself, the values will be appended to this array
      *       instead of overwriting the existing values.
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      * @see getAssoc()
      */
-    function fetchAll($result, $fetchmode = DB_FETCHMODE_DEFAULT, $rekey = FALSE, $force_array = FALSE, $group = FALSE)
+    function fetchAll($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rekey = FALSE, $force_array = FALSE, $group = FALSE)
     {
         if ($rekey) {
             $cols = $this->numCols($result);
             if (MDB::isError($cols))
                 return $cols;
             if ($cols < 2) {
-                return $this->raiseError(DB_ERROR_TRUNCATED);
+                return $this->raiseError(MDB_ERROR_TRUNCATED);
             }
         }
         $all = array(); 
         while (is_array($res = $this->fetchInto($result, $fetchmode, NULL))) {
             if ($rekey) {
-                if ($fetchmode & DB_FETCHMODE_ASSOC) {
+                if ($fetchmode & MDB_FETCHMODE_ASSOC) {
                     reset($res);
                     $key = current($res);
                     unset($res[key($res)]);
@@ -3607,7 +3606,7 @@ class MDB_common extends PEAR {
                     $all[$key] = $res;
                 }
             } else {
-                if ($fetchmode & DB_FETCHMODE_FLIPPED) {
+                if ($fetchmode & MDB_FETCHMODE_FLIPPED) {
                     foreach ($res as $key => $val) {
                         $all[$key][] = $val;
                     }
@@ -3638,7 +3637,7 @@ class MDB_common extends PEAR {
      *       datatype of the result set field, so that an eventual conversion
      *       may be performed. The default datatype is text, meaning that no
      *       conversion is performed
-     * @return mixed field value on success, a DB error on failure
+     * @return mixed field value on success, a MDB error on failure
      * @access public
      */
     function queryOne($query, $type = NULL)
@@ -3667,10 +3666,10 @@ class MDB_common extends PEAR {
      *       conversions may be performed. The default list of datatypes is
      *       empty, meaning that no conversion is performed.
      * @param int $fetchmode how the array data should be indexed
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function queryRow($query, $types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT)
+    function queryRow($query, $types = NULL, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
         $result = $this->query($query, $types);
         if (MDB::isError($result)) {
@@ -3693,7 +3692,7 @@ class MDB_common extends PEAR {
      *       may be performed. The default datatype is text, meaning that no
      *       conversion is performed
      * @param int $colnum the row number to fetch
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function queryCol($query, $type = NULL, $colnum = 0)
@@ -3731,10 +3730,10 @@ class MDB_common extends PEAR {
      *       wrapped in another array.  If the same key value (in the first
      *       column) repeats itself, the values will be appended to this array
      *       instead of overwriting the existing values.
-     * @return mixed data array on success, a DB error on failure
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function queryAll($query, $types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT,
+    function queryAll($query, $types = NULL, $fetchmode = MDB_FETCHMODE_DEFAULT,
         $rekey = FALSE, $force_array = FALSE, $group = FALSE)
     {
         if (MDB::isError($result = $this->query($query, $types))) {
@@ -3758,7 +3757,7 @@ class MDB_common extends PEAR {
      *       with this array as execute parameters
      * @param array $param_types array that contains the types of the values
      *       defined in $params
-     * @return mixed DB_Error or the returned value of the query
+     * @return mixed MDB_Error or the returned value of the query
      * @access public
      */
     function &getOne($query, $type = NULL, $params = array(), $param_types = NULL)
@@ -3782,7 +3781,7 @@ class MDB_common extends PEAR {
             return $result;
         }
 
-        $value = $this->fetchOne($result, DB_FETCHMODE_ORDERED);
+        $value = $this->fetchOne($result, MDB_FETCHMODE_ORDERED);
         if (MDB::isError($value)) {
             return $value;
         }
@@ -3812,10 +3811,10 @@ class MDB_common extends PEAR {
      *       defined in $params
      * @param integer $fetchmode the fetch mode to use
      * @return array the first row of results as an array indexed from
-     * 0, or a DB error code.
+     * 0, or a MDB error code.
      * @access public
      */
-    function &getRow($query, $types = NULL, $params = array(), $param_types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT)
+    function &getRow($query, $types = NULL, $params = array(), $param_types = NULL, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
         settype($params, "array");
         if (count($params) > 0) {
@@ -3864,7 +3863,7 @@ class MDB_common extends PEAR {
      * @param mixed $colnum which column to return (integer [column number,
      *       starting at 0] or string [column name])
      * @return array an indexed array with the data from the first
-     * row at index 0, or a DB error code.
+     * row at index 0, or a MDB error code.
      * @access public
      */
     function &getCol($query, $type = NULL, $params = array(), $param_types = NULL, $colnum = 0)
@@ -3913,9 +3912,9 @@ class MDB_common extends PEAR {
      * will be an array of the values from column 2-n.  If the result
      * set contains only two columns, the returned value will be a
      * scalar with the value of the second column (unless forced to an
-     * array with the $force_array parameter).  A DB error code is
+     * array with the $force_array parameter).  A MDB error code is
      * returned on errors.  If the result set contains fewer than two
-     * columns, a DB_ERROR_TRUNCATED error is returned.
+     * columns, a MDB_ERROR_TRUNCATED error is returned.
      *
      * For example, if the table "mytable" contains:
      *
@@ -3945,7 +3944,7 @@ class MDB_common extends PEAR {
      * overwrite like this.  Example:
      *
      * getAssoc('SELECT category,id,name FROM mytable', NULL, NULL
-     *           DB_FETCHMODE_ASSOC, FALSE, TRUE) returns:
+     *           MDB_FETCHMODE_ASSOC, FALSE, TRUE) returns:
      *    array(
      *      '1' => array(array('id' => '4', 'name' => 'number four'),
      *                   array('id' => '6', 'name' => 'number six')
@@ -3976,7 +3975,7 @@ class MDB_common extends PEAR {
      * @access public
      */
     function &getAssoc($query, $types = NULL, $params = array(), $param_types = NULL,
-        $fetchmode = DB_FETCHMODE_ORDERED, $force_array = FALSE, $group = FALSE)
+        $fetchmode = MDB_FETCHMODE_ORDERED, $force_array = FALSE, $group = FALSE)
     {
         settype($params, "array");
         if (count($params) > 0) {
@@ -4022,10 +4021,10 @@ class MDB_common extends PEAR {
      * @param array $param_types array that contains the types of the values
      *       defined in $params
      * @param integer $fetchmode the fetch mode to use
-     * @return array an nested array, or a DB error
+     * @return array an nested array, or a MDB error
      * @access public
      */
-    function &getAll($query, $types = NULL, $params = array(), $param_types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT)
+    function &getAll($query, $types = NULL, $params = array(), $param_types = NULL, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
         settype($params, "array");
         if (count($params) > 0) {
@@ -4065,12 +4064,12 @@ class MDB_common extends PEAR {
      *
      * @param resource $result result identifier
      * @param mixed $mode depends on implementation
-     * @return array an nested array, or a DB error
+     * @return array an nested array, or a MDB error
      * @access public
      */
     function tableInfo($result, $mode = NULL)
     {
-        return $this->raiseError(DB_ERROR_NOT_CAPABLE);
+        return $this->raiseError(MDB_ERROR_NOT_CAPABLE);
     }
 
     // }}}

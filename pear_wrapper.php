@@ -47,6 +47,71 @@
 
 require_once (dirname(__FILE__).'/MDB.php');
 
+/*
+ * The method mapErrorCode in each MDB_dbtype implementation maps
+ * native error codes to one of these.
+ *
+ * If you add an error code here, make sure you also add a textual
+ * version of it in DB::errorMessage().
+ */
+
+define('DB_OK',                         MDB_OK);
+define('DB_ERROR',                      MDB_ERROR);
+define('DB_ERROR_SYNTAX',               MDB_ERROR_SYNTAX);
+define('DB_ERROR_CONSTRAINT',           MDB_ERROR_CONSTRAINT);
+define('DB_ERROR_NOT_FOUND',            MDB_ERROR_NOT_FOUND);
+define('DB_ERROR_ALREADY_EXISTS',       MDB_ERROR_ALREADY_EXISTS);
+define('DB_ERROR_UNSUPPORTED',          MDB_ERROR_UNSUPPORTED);
+define('DB_ERROR_MISMATCH',             MDB_ERROR_MISMATCH);
+define('DB_ERROR_INVALID',              MDB_ERROR_INVALID);
+define('DB_ERROR_NOT_CAPABLE',          MDB_ERROR_NOT_CAPABLE);
+define('DB_ERROR_TRUNCATED',            MDB_ERROR_TRUNCATED);
+define('DB_ERROR_INVALID_NUMBER',       MDB_ERROR_INVALID_NUMBER);
+define('DB_ERROR_INVALID_DATE',         MDB_ERROR_INVALID_DATE);
+define('DB_ERROR_DIVZERO',              MDB_ERROR_DIVZERO);
+define('DB_ERROR_NODBSELECTED',         MDB_ERROR_NODBSELECTED);
+define('DB_ERROR_CANNOT_CREATE',        MDB_ERROR_CANNOT_CREATE);
+define('DB_ERROR_CANNOT_DELETE',        MDB_ERROR_CANNOT_DELETE);
+define('DB_ERROR_CANNOT_DROP',          MDB_ERROR_CANNOT_DROP);
+define('DB_ERROR_NOSUCHTABLE',          MDB_ERROR_NOSUCHTABLE);
+define('DB_ERROR_NOSUCHFIELD',          MDB_ERROR_NOSUCHFIELD);
+define('DB_ERROR_NEED_MORE_DATA',       MDB_ERROR_NEED_MORE_DATA);
+define('DB_ERROR_NOT_LOCKED',           MDB_ERROR_NOT_LOCKED);
+define('DB_ERROR_VALUE_COUNT_ON_ROW',   MDB_ERROR_VALUE_COUNT_ON_ROW);
+define('DB_ERROR_INVALID_DSN',          MDB_ERROR_INVALID_DSN);
+define('DB_ERROR_CONNECT_FAILED',       MDB_ERROR_CONNECT_FAILED);
+define('DB_ERROR_EXTENSION_NOT_FOUND',  MDB_ERROR_EXTENSION_NOT_FOUND);
+define('DB_ERROR_ACCESS_VIOLATION',     MDB_ERROR_ACCESS_VIOLATION);
+define('DB_ERROR_NOSUCHDB',             MDB_ERROR_NOSUCHDB);
+
+define('DB_WARNING',           -1000);
+define('DB_WARNING_READ_ONLY', -1001);
+
+define('DB_PARAM_SCALAR',   MDB_PARAM_SCALAR);
+define('DB_PARAM_OPAQUE',   MDB_PARAM_OPAQUE);
+define('DB_PARAM_MISC',     MDB_PARAM_MISC);
+
+define('DB_BINMODE_PASSTHRU',   MDB_BINMODE_PASSTHRU);
+define('DB_BINMODE_RETURN',     MDB_BINMODE_RETURN);
+define('DB_BINMODE_CONVERT',    MDB_BINMODE_CONVERT);
+
+define('DB_FETCHMODE_DEFAULT',      MDB_FETCHMODE_DEFAULT);
+define('DB_FETCHMODE_ORDERED',      MDB_FETCHMODE_ORDERED);
+define('DB_FETCHMODE_ASSOC',        MDB_FETCHMODE_ASSOC);
+define('DB_FETCHMODE_OBJECT',       3);
+define('DB_FETCHMODE_FLIPPED',      MDB_FETCHMODE_FLIPPED);
+
+define('DB_GETMODE_ORDERED', DB_FETCHMODE_ORDERED);
+define('DB_GETMODE_ASSOC',   DB_FETCHMODE_ASSOC);
+define('DB_GETMODE_FLIPPED', DB_FETCHMODE_FLIPPED);
+
+define('DB_TABLEINFO_ORDER',        MDB_TABLEINFO_ORDER);
+define('DB_TABLEINFO_ORDERTABLE',   MDB_TABLEINFO_ORDERTABLE);
+define('DB_TABLEINFO_FULL',         MDB_TABLEINFO_FULL);
+
+define('DB_AUTOQUERY_INSERT', 1);
+define('DB_AUTOQUERY_UPDATE', 2);
+
 /**
 * Wrapper that makes MDB behave like PEAR DB
 *
