@@ -124,7 +124,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
         switch($field['type'])
         {
             case 'text':
-                $length = (isset($field['length']) ? $field['length'] : (!MDB::isError($db->getOption('default_text_field_length')) ? $db->getOptions('default_text_field_length') : 4000));
+                $length = (isset($field['length']) ? $field['length'] : (!MDB::isError($length = $db->options['default_text_field_length']) ? $length : 4000));
                 return 'VARCHAR ('.$length.')';
             case 'clob':
                 return 'BLOB SUB_TYPE 1';

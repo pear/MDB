@@ -80,8 +80,8 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     function createDatabase($name)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $DatabaseDevice = isset($db->options['database_device']) ? $db->options['database_device'] : 'DEFAULT';
-        $DatabaseSize = isset($db->options['database_size']) ? "=".$db->options['database_size'] : '';
+        $DatabaseDevice = ($db->options['database_device']) ? $db->options['database_device'] : 'DEFAULT';
+        $DatabaseSize = ($db->options['database_size']) ? "=".$db->options['database_size'] : '';
         return $db->standaloneQuery("CREATE DATABASE $name ON ".$DatabaseDevice.$DatabaseSize);
     }
 
