@@ -415,7 +415,7 @@ class MDB_mssql extends MDB_Common
             }
             if ($result = $this->_doQuery($query)) {
                 if ($ismanip) {
-                    $this->affected_rows = mssql_affected_rows($this->connection);
+                    $this->affected_rows = mssql_rows_affected($this->connection);
                     return MDB_OK;
                 } else {
                     $this->results[intval($result)]['highest_fetched_row'] = -1;

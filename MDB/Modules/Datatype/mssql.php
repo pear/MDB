@@ -73,7 +73,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
     {
         switch($type) {
             case METABASE_TYPE_BOOLEAN:
-                return $value == '1') ? true : false;
+                return ($value == '1') ? true : false;
             case METABASE_TYPE_DATE:
                 if (strlen($value) > 10) {
                     $value = substr($value,0,10);
@@ -124,7 +124,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
         if (isset($field['unsigned'])) {
             $this->warning =
                 "unsigned integer field \"$name\" is being declared as signed integer";
-        ]
+        }
         return "$name INT"
             .(isset($field['default']) ? ' DEFAULT '
             .$field['default'] : '')
