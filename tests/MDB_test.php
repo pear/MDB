@@ -16,8 +16,14 @@
     //$pass = "";
     $host = 'localhost';
     $db_name = 'metapear_test_db';
+    if(isset($_GET["db_type"])) {
+    $db_type = $_GET["db_type"];
+  } else {
     $db_type = "mysql";
+  }
+  echo $db_type."<br>";
 
+/*
     // just for kicks you can mess up this part to see some pear error handling
     $dsn["username"] = $user;
     $dsn["password"] = $pass;
@@ -34,7 +40,7 @@
     // in that case MDb will just compare the two schemas and make any necessary modifications to the existing DB
     $result = $manager->updateDatabase($input_file, $input_file.".before", $dsn, $database_variables);
     echo "updating database from xml schema file<br>";
-
+*/
 
     // Data Source Name: This is the universal connection string
     $dsn = "$db_type://$user:$pass@$host/$db_name";
@@ -56,7 +62,7 @@
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get row:0 column:0 and free the result
-    $db->fetchField($result, $field);
+    $db->fetchOne($result, $field);
     echo "<br>field:<br>".$field."<br>";
     // run the query and get a result handler
     $result = $db->query($query);
@@ -146,8 +152,17 @@
     echo Var_Dump::display($db->tableInfo("numbers"))."<br>";
     echo "<br>just a simple delete query:<br>";
     echo Var_Dump::display($db->query("DELETE FROM numbers"))."<br>";
-
-
+  // subselect test
+    $sub_select = $db->subSelect("SELECT test_name from test WHERE test_name = ".$db->getTextFieldValue('gummihuhn'), TRUE);
+  $query_with_subselect = "SELECT * FROM test WHERE test_name IN (".$sub_select.")";
+  // run the query and get a result handler
+    echo $query_with_subselect."<br>";
+  $result = $db->query($query_with_subselect);
+    $db->fetchAll($result, &$array);
+    echo "<br>all with subselect:<br>";
+    echo Var_Dump::display($array)."<br>";
+  
+  /*
     // ok now lets create a new xml schema file from the existing DB
     // we will not use the 'metapear_test_db.schema' for this
     // this feature is especially interesting for people that have an existing Db and want to move to MDB's xml schema management
@@ -169,4 +184,5 @@
     if($manager->database) {
         echo $manager->database->debugOutput();
     }
+  */
 ?>
