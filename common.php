@@ -287,7 +287,8 @@ class MDB_common extends PEAR
         }
         $query_fields = "";
         if (!$this->getFieldList($fields, $query_fields)) {
-            return(0);
+            // XXX needs more checking
+            return $this->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'unkown error');
         }
         return($this->query("CREATE TABLE $name ($query_fields)"));
     }
@@ -299,7 +300,8 @@ class MDB_common extends PEAR
 
     function alterTable($name, &$changes, $check)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Alter table: database table alterations are not supported");
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+            "Alter table: database table alterations are not supported");
     }
 
     function query($query)

@@ -42,6 +42,9 @@ define("DB_ERROR_INVALID_DSN",        -23);
 define("DB_ERROR_CONNECT_FAILED",     -24);
 define("DB_ERROR_EXTENSION_NOT_FOUND",-25);
 define("DB_ERROR_CANNOT_REPLACE",     -26);
+define("DB_ERROR_CANNOT_ALTER",       -27);
+define("DB_ERROR_MANAGER",            -28);
+define("DB_ERROR_MANAGER_PARSE",      -29);
 
 /*
  * Warnings are not detected as errors by MDB::isError(), and are not
@@ -428,6 +431,7 @@ class MDB
                 DB_ERROR                    => 'unknown error',
                 DB_ERROR_ALREADY_EXISTS     => 'already exists',
                 DB_ERROR_CANNOT_CREATE      => 'can not create',
+                DB_ERROR_CANNOT_ALTER       => 'can not alter',
                 DB_ERROR_CANNOT_REPLACE     => 'can not replace',
                 DB_ERROR_CANNOT_DELETE      => 'can not delete',
                 DB_ERROR_CANNOT_DROP        => 'can not drop',
@@ -453,6 +457,8 @@ class MDB
                 DB_WARNING_READ_ONLY        => 'read only',
                 DB_ERROR_NEED_MORE_DATA     => 'insufficient data supplied',
                 DB_ERROR_EXTENSION_NOT_FOUND=> 'extension not found',
+                DB_ERROR_MANAGER            => 'MDB_manager error',
+                DB_ERROR_MANAGER_PARSE      => 'MDB_manager schema parseerror',
             );
         }
 
