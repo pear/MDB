@@ -82,47 +82,6 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getTypeDeclaration()
-
-    /**
-     * Obtain DBMS specific native datatype as a string
-     * 
-     * @param object    &$db reference to driver MDB object
-     * @param string $field associative array with the name of the properties
-     *        of the field being declared as array indexes. Currently, the types
-     *        of supported field properties are as follows:
-     * 
-     * @return string with the correct RDBMS native type
-     * @access public 
-     */
-    function getTypeDeclaration(&$db, $field)
-    {
-        switch ($field['type']) {
-            case 'integer':
-                return 'INTEGER';
-            case 'text':
-                return 'VARCHAR ('.(isset($field['length']) ? $field['length'] : (isset($db->options['default_text_field_length']) ? $db->options['default_text_field_length'] : 4000)).')';
-            case 'clob':
-                return 'BLOB SUB_TYPE 1';
-            case 'blob':
-                return 'BLOB SUB_TYPE 0';
-            case 'boolean':
-                return 'CHAR (1)';
-            case 'date':
-                return 'DATE';
-            case 'time':
-                return 'TIME';
-            case 'timestamp':
-                return 'TIMESTAMP';
-            case 'float':
-                return 'DOUBLE PRECISION';
-            case 'decimal':
-                return 'DECIMAL(18,'.$db->decimal_places .')';
-        }
-        return '';
-    }
-
-    // }}}
     // {{{ getTextDeclaration()
 
     /**
@@ -152,10 +111,11 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      */
     function getTextDeclaration(&$db, $name, $field)
     {
-        return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['default']) ? ' DEFAULT '.
-               $this->getTextValue($db, $field['default']) : '').
-               (IsSet($field['notnull']) ? ' NOT NULL' : '');
+        $type = 'VARCHAR ('.(isset($field['length']) ? $field['length'] : (isset($db->options['default_text_field_length']) ? $db->options['default_text_field_length'] : 4000)).')';
+        $default = isset($field['default']) ? ' DEFAULT TIME'.
+            $this->getTextValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' '.$type.$default.$notnull;
     }
 
     // }}}
@@ -185,8 +145,8 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      */
     function getCLOBDeclaration(&$db, $name, $field)
     {
-        return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['notnull']) ? ' NOT NULL' : '');
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' BLOB SUB_TYPE 1'.$notnull;
     }
 
     // }}}
@@ -216,9 +176,8 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      */
     function getBLOBDeclaration(&$db, $name, $field)
     {
-        return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['notnull']) ? ' NOT NULL' : '');
-    }
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' BLOB SUB_TYPE 0'.$notnull;    }
 
     // }}}
     // {{{ getDateDeclaration()
@@ -245,9 +204,43 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      */
     function getDateDeclaration(&$db, $name, $field)
     {
-        return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['default']) ? ' DEFAULT "'.$field['default'].'"' : '')
-               .(isset($field['notnull']) ? ' NOT NULL' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getDateValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' DATE'.$default.$notnull;
+    }
+
+    // }}}
+    // {{{ getTimestampDeclaration()
+
+    /**
+     * Obtain DBMS specific SQL code portion needed to declare an timestamp
+     * type field to be used in statements like CREATE TABLE.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param string  $name   name the field to be declared.
+     * @param string  $field  associative array with the name of the properties
+     *                        of the field being declared as array indexes.
+     *                        Currently, the types of supported field
+     *                        properties are as follows:
+     *
+     *                       default
+     *                        Time stamp value to be used as default for this
+     *                        field.
+     *
+     *                       notnull
+     *                        Boolean flag that indicates whether this field is
+     *                        constrained to not be set to null.
+     * @return string  DBMS specific SQL code portion that should be used to
+     *                 declare the specified field.
+     * @access public
+     */
+    function getTimestampDeclaration(&$db, $name, $field)
+    {
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getTimestampValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' TIMESTAMP'.$default.$notnull;
     }
 
     // }}}
@@ -275,9 +268,10 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      */
     function getTimeDeclaration(&$db, $name, $field)
     {
-        return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['default']) ? ' DEFAULT "'.$field['default'].'"' : '')
-               .(isset($field['notnull']) ? ' NOT NULL' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getTimeValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' TIME'.$default.$notnull;
     }
 
     // }}}
@@ -305,9 +299,10 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      */
     function getFloatDeclaration(&$db, $name, $field)
     {
-        return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($db, $field['default']) : '')
-               .(isset($field['notnull']) ? ' NOT NULL' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getFloatValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' DOUBLE PRECISION'.$default.$notnull;
     }
 
     // }}}
@@ -335,10 +330,10 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      */
     function getDecimalDeclaration(&$db, $name, $field)
     {
-        return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['default']) ? ' DEFAULT '
-               .$this->getDecimalValue($db, $field['default']) : '')
-               .(isset($field['notnull']) ? ' NOT NULL' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getDecimalValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' DECIMAL(18,'.$db->decimal_places .')'.$default.$notnull;
     }
 
     // }}}
@@ -361,8 +356,8 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
         if (MDB::isError($connect = $db->connect())) {
             return $connect;
         }
-        $prepared_query = $lob['prepared_query'];
-        $parameter = $lob['parameter'];
+        $prepared_query = $GLOBALS['_MDB_LOBs'][$clob_stream]->prepared_query;
+        $parameter = $GLOBALS['_MDB_LOBs'][$clob_stream]->parameter;
         $success = 1;   // REMOVE ME
         $value   = '';  // DEAL WITH ME
         if (!$db->transaction_id = ibase_trans(IBASE_COMMITTED, $db->connection)) {

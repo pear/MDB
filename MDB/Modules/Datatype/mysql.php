@@ -106,10 +106,11 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      */
     function getIntegerDeclaration(&$db, $name, $field)
     {
-        return "$name INT".
-           (isset($field['unsigned']) ? ' UNSIGNED' : '').
-           (isset($field['default']) ? ' DEFAULT '.$field['default'] : '').
-           (isset($field['notnull']) ? ' NOT NULL' : '')
+        $unsigned = isset($field['unsigned']) ? ' UNSIGNED' : '';
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getIntegerValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' INT'.$unsigned.$default.$notnull;
        ;
     }
 
@@ -160,8 +161,9 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
         } else {
             $type = 'LONGTEXT';
         }
-        return "$name $type".
-            (isset($field['notnull']) ? ' NOT NULL' : '');
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' '.$type.$notnull;
+        
     }
 
     // }}}
@@ -212,8 +214,8 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
         else {
             $type = 'LONGBLOB';
         }
-        return "$name $type".
-            (isset($field['notnull']) ? ' NOT NULL' : '');
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' '.$type.$notnull;
     }
 
     // }}}
@@ -242,10 +244,10 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      */
     function getDateDeclaration(&$db, $name, $field)
     {
-        return "$name DATE".
-            (isset($field['default']) ? " DEFAULT '".$field['default']."'" : '').
-            (isset($field['notnull']) ? ' NOT NULL' : '')
-        ;
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getDateValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' DATE'.$default.$notnull;
     }
 
     // }}}
@@ -275,10 +277,10 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      */
     function getTimestampDeclaration(&$db, $name, $field)
     {
-        return "$name DATETIME".
-           (isset($field['default']) ? " DEFAULT '".$field['default']."'" : '').
-           (isset($field['notnull']) ? ' NOT NULL' : '')
-       ;
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getTimestampValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' DATETIME'.$default.$notnull;
     }
 
     // }}}
@@ -307,10 +309,10 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      */
     function getTimeDeclaration(&$db, $name, $field)
     {
-        return "$name TIME".
-            (isset($field['default']) ? " DEFAULT '".$field['default']."'" : '').
-            (isset($field['notnull']) ? ' NOT NULL' : '')
-        ;
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getTimeValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' TIME'.$default.$notnull;
     }
 
     // }}}
@@ -340,13 +342,11 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      */
     function getFloatDeclaration(&$db, $name, $field)
     {
-        return "$name DOUBLE".
-            ($db->options['fixed_float'] ?
-                '('.($db->options['fixed_float'] + 2).','.$db->options['fixed_float'].')' : '').
-            (isset($field['default']) ?
-                ' DEFAULT '.$this->getFloatValue($db, $field['default']) : '').
-            (isset($field['notnull']) ? ' NOT NULL' : '')
-        ;
+        $type = 'DOUBLE'.($db->fixed_float ? '('.($db->fixed_float + 2).','.$db->fixed_float.')' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getFloatValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' '.$type.$default.$notnull;
     }
 
     // }}}
@@ -376,11 +376,11 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      */
     function getDecimalDeclaration(&$db, $name, $field)
     {
-        return $name.' DECIMAL(18,'.$db->decimal_places.')'
-            .(isset($field['default']) ?
-                ' DEFAULT '.$this->getDecimalValue($db, $field['default']) : '')
-            .(isset($field['notnull']) ? ' NOT NULL' : '')
-        ;
+        $type = 'DECIMAL(18,'.$db->decimal_places.')';
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getDecimalValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' '.$type.$default.$notnull;
     }
 
     // }}}

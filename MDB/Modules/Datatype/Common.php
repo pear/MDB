@@ -221,7 +221,8 @@ class MDB_Datatype_Common
                 ) {
                     continue;
                 }
-                switch ($type = $db->results[$result_value]['types'][$current_column]) {
+                $type = $db->results[$result_value]['types'][$current_column];
+                switch ($type) {
                     case MDB_TYPE_TEXT:
                         break;
                     case MDB_TYPE_INTEGER:
@@ -270,10 +271,12 @@ class MDB_Datatype_Common
     function getIntegerDeclaration(&$db, $name, $field)
     {
         if (isset($field['unsigned'])) {
-            $db->warnings[] = "unsigned integer field \"$name\" is being
-                declared as signed integer";
+            $db->warnings[] = "unsigned integer field \"$name\" is being declared as signed integer";
         }
-        return "$name INT" . (isset($field['default']) ? ' DEFAULT ' . $field['default'] : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getIntegerValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' INT'.$default.$notnull;
     }
 
     // }}}
@@ -306,7 +309,11 @@ class MDB_Datatype_Common
      */
     function getTextDeclaration(&$db, $name, $field)
     {
-        return (isset($field['length']) ? "$name CHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? ' DEFAULT ' . $this->getTextValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getTextValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        $type = isset($field['length']) ? 'CHAR ('.$field['length'].')' : 'TEXT';
+        return $name.' '.$type.$default.$notnull;
     }
 
     // }}}
@@ -336,7 +343,9 @@ class MDB_Datatype_Common
      */
     function getCLOBDeclaration(&$db, $name, $field)
     {
-        return (isset($field['length']) ? "$name CHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? ' DEFAULT ' . $this->getTextValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        $type = isset($field['length']) ? 'CHAR ('.$field['length'].')' : 'TEXT';
+        return $name.' '.$type.$notnull;
     }
 
     // }}}
@@ -366,7 +375,9 @@ class MDB_Datatype_Common
      */
     function getBLOBDeclaration(&$db, $name, $field)
     {
-        return (isset($field['length']) ? "$name CHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? ' DEFAULT ' . $this->getTextValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        $type = isset($field['length']) ? 'CHAR ('.$field['length'].')' : 'TEXT';
+        return $name.' '.$type.$notnull;
     }
 
     // }}}
@@ -394,7 +405,10 @@ class MDB_Datatype_Common
      */
     function getBooleanDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (1)" . (isset($field['default']) ? ' DEFAULT ' . $this->getBooleanValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getBooleanValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' CHAR (1)'.$default.$notnull;
     }
 
     // }}}
@@ -422,7 +436,10 @@ class MDB_Datatype_Common
      */
     function getDateDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (" . strlen('YYYY-MM-DD') . ')' . (isset($field['default']) ? ' DEFAULT ' . $this->getDateValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getDateValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' CHAR ('.strlen('YYYY-MM-DD').')'.$default.$notnull;
     }
 
     // }}}
@@ -450,7 +467,10 @@ class MDB_Datatype_Common
      */
     function getTimestampDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (" . strlen('YYYY-MM-DD HH:MM:SS') . ')' . (isset($field['default']) ? ' DEFAULT ' . $this->getTimestampValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getTimestampValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' CHAR ('.strlen('YYYY-MM-DD HH:MM:SS').')'.$default.$notnull;
     }
 
     // }}}
@@ -478,7 +498,10 @@ class MDB_Datatype_Common
      */
     function getTimeDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (" . strlen('HH:MM:SS') . ')' . (isset($field['default']) ? ' DEFAULT ' . $this->getTimeValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getTimeValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' CHAR ('.strlen('HH:MM:SS').')'.$default.$notnull;
     }
 
     // }}}
@@ -506,7 +529,10 @@ class MDB_Datatype_Common
      */
     function getFloatDeclaration(&$db, $name, $field)
     {
-        return "$name TEXT " . (isset($field['default']) ? ' DEFAULT ' . $this->getFloatValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getFloatValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' TEXT'.$default.$notnull;
     }
 
     // }}}
@@ -534,7 +560,10 @@ class MDB_Datatype_Common
      */
     function getDecimalDeclaration(&$db, $name, $field)
     {
-        return "$name TEXT " . (isset($field['default']) ? ' DEFAULT ' . $this->getDecimalValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getDecimalValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' TEXT'.$default.$notnull;
     }
 
     // }}}

@@ -90,48 +90,6 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getIntegerDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an integer type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param string  $name   name the field to be declared.
-     * @param string  $field  associative array with the name of the properties
-     *                        of the field being declared as array indexes.
-     *                        Currently, the types of supported field
-     *                        properties are as follows:
-     *
-     *                       unsigned
-     *                        Boolean flag that indicates whether the field
-     *                        should be declared as unsigned integer if
-     *                        possible.
-     *
-     *                       default
-     *                        Integer value to be used as default for this
-     *                        field.
-     *
-     *                       notnull
-     *                        Boolean flag that indicates whether this field is
-     *                        constrained to not be set to null.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *                 declare the specified field.
-     * @access public
-     */
-    function getIntegerDeclaration(&$db, $name, $field)
-    {
-        if (isset($field['unsigned'])) {
-            $db->warning =
-                "unsigned integer field \"$name\" is being declared as signed integer";
-        }
-        return "$name INT"
-            .(isset($field['default']) ? ' DEFAULT '
-            .$field['default'] : '')
-            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
-    }
-
-    // }}}
     // {{{ getTextDeclaration()
 
     /**
@@ -161,11 +119,11 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getTextDeclaration(&$db, $name, $field)
     {
-        return (isset($field['length']) ? "$name VARCHAR ("
-            .$field['length'].')' : "$name TEXT")
-            .(isset($field['default']) ? ' DEFAULT '
-            .$this->getTextValue($db, $field['default']) : '')
-            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
+        $type = isset($field['length']) ? 'VARCHAR ('.$field['length'].')' : 'TEXT';
+        $default = isset($field['default']) ? ' DEFAULT TIME'.
+            $this->getTextValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' '.$type.$default.$notnull;
     }
 
     // }}}
@@ -207,7 +165,8 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
         } else {
             $type = 'TEXT';
         }
-        return "$name $type".(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' '.$type.$default;
     }
 
     // }}}
@@ -249,7 +208,8 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
         } else {
             $type = 'IMAGE';
         }
-        return "$name $type".(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' '.$type.$default;
     }
 
     // }}}
@@ -277,107 +237,10 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getBooleanDeclaration(&$db, $name, $field)
     {
-        return "$name BIT"
-            .(isset($field['default']) ? ' DEFAULT '
-            .$field['default'] : '')
-            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
-    }
-
-    // }}}
-    // {{{ getDateDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an date type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param string  $name   name the field to be declared.
-     * @param string  $field  associative array with the name of the properties
-     *                        of the field being declared as array indexes.
-     *                        Currently, the types of supported field properties
-     *                        are as follows:
-     *
-     *                       default
-     *                        Date value to be used as default for this field.
-     *
-     *                       notnull
-     *                        Boolean flag that indicates whether this field is
-     *                        constrained to not be set to null.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *                 declare the specified field.
-     * @access public
-     */
-    function getDateDeclaration(&$db, $name, $field)
-    {
-        return "$name CHAR (".strlen('YYYY-MM-DD').')'
-            .(isset($field['default']) ? ' DEFAULT '
-            .$this->getDateValue($db, $field['default']) : '')
-            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
-    }
-
-    // }}}
-    // {{{ getTimestampDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an timestamp
-     * type field to be used in statements like CREATE TABLE.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param string  $name   name the field to be declared.
-     * @param string  $field  associative array with the name of the properties
-     *                        of the field being declared as array indexes.
-     *                        Currently, the types of supported field
-     *                        properties are as follows:
-     *
-     *                       default
-     *                        Time stamp value to be used as default for this
-     *                        field.
-     *
-     *                       notnull
-     *                        Boolean flag that indicates whether this field is
-     *                        constrained to not be set to null.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *                 declare the specified field.
-     * @access public
-     */
-    function getTimestampDeclaration(&$db, $name, $field)
-    {
-        return "$name CHAR (".strlen('YYYY-MM-DD HH:MM:SS').')'
-            .(isset($field['default']) ? ' DEFAULT '
-            .$this->getTimestampValue($db, $field['default']) : '')
-            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
-    }
-
-    // }}}
-    // {{{ getTimeDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an time type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param string  $name   name the field to be declared.
-     * @param string  $field  associative array with the name of the properties
-     *                        of the field being declared as array indexes.
-     *                        Currently, the types of supported field
-     *                        properties are as follows:
-     *
-     *                       default
-     *                        Time value to be used as default for this field.
-     *
-     *                       notnull
-     *                        Boolean flag that indicates whether this field is
-     *                        constrained to not be set to null.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *                 declare the specified field.
-     * @access public
-     */
-    function getTimeDeclaration(&$db, $name, $field)
-    {
-        return "$name CHAR (".strlen('HH:MM:SS').')'
-            .(isset($field['default']) ? ' DEFAULT '
-            .$this->getTimeValue($db, $field['default']) : '')
-            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getBooleanValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' BIT'.$default.$notnull;
     }
 
     // }}}
@@ -407,9 +270,10 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getFloatDeclaration(&$db, $name, $field)
     {
-        return "$name FLOAT"
-            .(isset($field['default']) ? ' DEFAULT '.$field['default'] : '')
-            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getFloatValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' FLOAT'.$default.$notnull;
     }
 
     // }}}
@@ -439,10 +303,11 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getDecimalDeclaration(&$db, $name, $field)
     {
-        return "$name DECIMAL(18,".$db->decimal_places.')'
-            .(isset($field['default']) ? ' DEFAULT '
-            .$this->getDecimalValue($db, $field['default']) : '')
-            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
+        $type = 'DECIMAL(18,'.$db->decimal_places.')';
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getDecimalValue($db, $field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        return $name.' '.$type.$default.$notnull;
     }
 
     // }}}
