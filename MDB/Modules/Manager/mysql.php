@@ -147,7 +147,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
 
     function listTables(&$db, &$tables)
     {
-        $result = $db->queryColumn("SHOW TABLES", $table_names);
+        $result = $db->queryCol("SHOW TABLES", $table_names);
         if(MDB::isError($result)) {
             return $result;
         }
@@ -175,8 +175,8 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
             $db->freeResult($result);
             return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table fields: show columns does not return the table field names');
         }
-        $field_column=$columns["field"];
-        for($fields=array(), $field = 0; !$db->endOfResult($result); ++$field) {
+        $field_column = $columns["field"];
+        for($fields = array(), $field = 0; !$db->endOfResult($result); ++$field) {
             $field_name = $db->fetch($result, $field, $field_column);
             if ($field_name != $db->dummy_primary_key)
                 $fields[] = $field_name;
@@ -208,7 +208,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
         }
         $field_column = $columns["field"];
         $type_column = $columns["type"];
-        while ($success = DB_OK === $db->fetchInto($result, $row)) {
+        while (DB_OK === $res = $db->fetchInto($result, $row)) {
             if ($field_name == strtolower($row[$field_column])) {
                 $db_type = strtolower($row[$type_column]);
                 $db_type = strtok($db_type, "(), ");
@@ -295,7 +295,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
                 if (isset($columns["null"])
                     && $row[$columns["null"]] != "YES")
                 {
-                    $notnull=1;
+                    $notnull = 1;
                 }
                 unset($default);
                 if (isset($columns["default"])
@@ -319,9 +319,11 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
                 return(1);
             }
         }
-        $db->freeResult($result);
-        if($success === DB_OK) {
-            return(0);
+        if(!$db->autofree) {
+            $db->freeResult($result);
+        }
+        if(MDB::IsError($res)) {
+            return($res);
         }
         return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table fields: it was not specified an existing table column');
     }
@@ -382,7 +384,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
 
     function listSequences(&$db, &$sequences)
     {
-        $result = $db->queryColumn("SHOW TABLES", $sequences);
+        $result = $db->queryCol("SHOW TABLES", $sequences);
         if(MDB::isError($result)) {
             return $result;
         }
