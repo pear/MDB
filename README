@@ -45,10 +45,12 @@ lob.php
 manager.php
 parser.php
 metabase_wrapper.php
+pear_wrapper.php
 
 The important pieces for testing right now are:
 driver_test.php (uses driver_test_config.php, setup_test.php, driver_test.schema, log_test.schema, test.schema)
 MDB_test.php
+MDB_pear_wrapper_test.php
 
 Other Included Files
 xml_parser.php (this is actually a seperate project of Manuel Lemos that is used for the schema management)
@@ -63,6 +65,8 @@ MDB_test.php will require that you setup a database and a table with a few rows.
 Depending how you name those you will have to change a few things here and there.
 If I find the time it would probably be smart to show off the XML schema manager to get rid of this requirement. :-)
 
+MDB_pear_wrapper_test.php makes use of the same DB settings as MDB_test.php but uses the pear wrapper for its tests.
+
 Some thoughts:
 This merger is very far along allready. Now is the time to decide what features should end up in MDB
 and what should be moved to the wrappers because it may not be needed anymore.
@@ -76,7 +80,7 @@ Roadmap (Active help and code contributions are requested for all of following):
 - Modularization (loading extended features on demand)
 - Making MDB PEAR CS compatible
 - PEAR Doc comments and Documentation
-- Create a PEAR wrapper and finish up the Metabase wrapper
+- Finish up the Metabase wrapper and PEAR DB wrapper
 - Add support for more RDBMS
 
 Credits (never to early for those huh? :-)  ):
