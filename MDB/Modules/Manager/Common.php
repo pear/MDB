@@ -56,7 +56,7 @@ class MDB_manager_common extends PEAR
 {
 
     // }}}
-    // {{{ getField()
+    // {{{ getFieldDeclaration()
 
     /**
      * create a new database
@@ -74,11 +74,11 @@ class MDB_manager_common extends PEAR
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
      * 
-     * @access private
+     * @access public
      *
      * @return mixed string on success, a DB error on failure
      */
-    function getField(&$db, $field_name, &$field)
+    function getFieldDeclaration(&$db, $field_name, &$field)
     {
         if (!strcmp($field_name, "")) {
             return $db->raiseError(DB_ERROR_NOSUCHFIELD, "", "", "Get field: it was not specified a valid field name (\"$field_name\")");
@@ -147,7 +147,7 @@ class MDB_manager_common extends PEAR
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
      * 
-     * @access private
+     * @access public
      *
      * @return mixed string on success, a DB error on failure
      */
@@ -161,7 +161,7 @@ class MDB_manager_common extends PEAR
                 $query_fields.= ", ";
             }
             $field_name = key($fields);
-            $query = $this->getField(&$db, $field_name, $fields[$field_name]);
+            $query = $this->getFieldDeclaration(&$db, $field_name, $fields[$field_name]);
             if (MDB::isError($query)) {
                 return $query;
             }

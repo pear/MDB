@@ -119,11 +119,11 @@ class MDB_manager extends PEAR
     function closeSetup()
     {
         if (is_object($this->database) && !MDB::isError($this->database)) {
-            $this->database->close();
+            $this->database->_close();
         }
     }
 
-    function getField(&$field, $field_name, $declaration, &$query)
+    function getFieldDeclaration(&$field, $field_name, $declaration, &$query)
     {
         if (!strcmp($field_name, "")) {
             return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
@@ -217,7 +217,7 @@ class MDB_manager extends PEAR
                 $query_fields .= ", ";
             }
             $field_name = key($fields);
-            $result = $this->getField($fields[$field_name], $field_name, $declaration, $query);
+            $result = $this->getFieldDeclaration($fields[$field_name], $field_name, $declaration, $query);
             if (MDB::isError($result)) {
                 return $result;
             }
@@ -256,7 +256,7 @@ class MDB_manager extends PEAR
                             }
                             $field_name = key($fields);
                             $field = $table["FIELDS"][$field_name];
-                            $result = $this->getField($field, $field_name, 0, $query);
+                            $result = $this->getFieldDeclaration($field, $field_name, 0, $query);
                             if (MDB::isError($result)) {
                                 return $result;
                             }
@@ -273,7 +273,7 @@ class MDB_manager extends PEAR
                             {
                                 $field_name = key($fields);
                                 $field = $table["FIELDS"][$field_name];
-                                $result = $this->getField($field, $field_name, 0, $query);
+                                $result = $this->getFieldDeclaration($field, $field_name, 0, $query);
                                 if (MDB::isError($result)) {
                                     return $result;
                                 }
@@ -620,7 +620,7 @@ class MDB_manager extends PEAR
                     if (isset($previous_fields[$was_field_name])) {
                         if (strcmp($was_field_name, $field_name)) {
                             $field_declaration = $fields[$field_name];
-                            $result = $this->getField($field_declaration, $field_name, 1, $query);
+                            $result = $this->getFieldDeclaration($field_declaration, $field_name, 1, $query);
                             if (MDB::isError($result)) {
                                 return $result;
                             }
@@ -705,7 +705,7 @@ class MDB_manager extends PEAR
                         }
                         if (count($change)) {
                             $field_declaration = $fields[$field_name];
-                            $result = $this->getField($field_declaration, $field_name, 1, $query);
+                            $result = $this->getFieldDeclaration($field_declaration, $field_name, 1, $query);
                             if (MDB::isError($result)) {
                                 return $result;
                             }
@@ -722,7 +722,7 @@ class MDB_manager extends PEAR
                                 'MDB_Error', TRUE);
                         }
                         $field_declaration = $fields[$field_name];
-                        $result = $this->getField($field_declaration, $field_name, 1, $query);
+                        $result = $this->getFieldDeclaration($field_declaration, $field_name, 1, $query);
                         if (MDB::isError($result)) {
                             return $result;
                         }
