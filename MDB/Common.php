@@ -482,7 +482,8 @@ class MDB_Common extends PEAR
                 return $this->raiseError(MDB_ERROR, null, null,
                     "no result class defined");
             }
-            return new $class_name($this, $result);
+            $res_obj = new $class_name($this, $result);
+            return $res_obj;
         }
         return $result;
     }
@@ -1321,33 +1322,6 @@ class MDB_Common extends PEAR
         }
         unset($this->blobs[$prepared_query]);
         return $success;
-    }
-
-    // }}}
-    // {{{ execute()
-
-    /**
-     * Executes a prepared SQL query
-     * With execute() the generic query of prepare is assigned with the given
-     * data array. The values of the array inserted into the query in the same
-     * order like the array order
-     *
-     * @param resource $prepared_query query handle from prepare()
-     * @param array $types array that contains the types of the columns in
-     *        the result set
-     * @param array $params numeric array containing the data to insert into
-     *        the query
-     * @param array $param_types array that contains the types of the values
-     *        defined in $params
-     * @return mixed a new result handle or a MDB_Error when fail
-     * @access public
-     * @see prepare()
-     */
-    function execute($prepared_query, $types = null, $params = false, $param_types = null)
-    {
-        $this->setParamArray($prepared_query, $params, $param_types);
-
-        return $this->executeQuery($prepared_query, $types);
     }
 
     // }}}
