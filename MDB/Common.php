@@ -819,7 +819,7 @@ class MDB_Common extends PEAR
             default:
                 $dsn = $this->phptype.'://'.$this->dsn['username'];':'.
                     $this->dsn['password'].'@'.$this->dsn['hostspec'].
-                    (this->dsn['port'] ? (':'.$this->dsn['port']) : '').
+                    ($this->dsn['port'] ? (':'.$this->dsn['port']) : '').
                     '/'.$this->database_name;
                 break;
         }
