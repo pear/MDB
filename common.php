@@ -3676,7 +3676,6 @@ class MDB_common extends PEAR
                 return $this->raiseError(DB_ERROR_TRUNCATED);
             }
         }
-        $row = 0;
         $all = array();
         while (DB_OK === $res = $this->fetchInto($result, $array, $fetchmode, NULL)) {
             if ($rekey) {
@@ -3687,18 +3686,17 @@ class MDB_common extends PEAR
                 } else {
                     $key = array_shift($array);
                 }
-                if (!$force_array && sizeof($array) == 1) {
+                if (!$force_array && sizeof($array) <= 1) {
                     $array = $array[0];
                 }
                 if ($group) {
-                    $all[$key][$row] = $array;
+                    $all[$key][] = $array;
                 } else {
                     $all[$key] = $array;
                 }
             } else {
-                $all[$row] = $array;
+                $all[] = $array;
             }
-            $row++;
         }
         if(!$this->autofree) {
             $this->freeResult($result);
