@@ -60,31 +60,37 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     function setUp() {
         global $dsn, $options, $database;
         $this->dsn = $dsn;
+        unset($this->dsn['database']);
         $this->database = $database;
         $this->manager =& new MDB_Manager;
-        $this->manager->connect($dsn, $options);
+        $this->manager->connect($this->dsn, $options);
+        if (MDB::isError($this->manager)) {
+            $this->assertTrue(FALSE, 'Could not connect to manager in setUp');
+            exit;
+        }
+        $this->fields = array(
+            'user_name',
+            'user_password',
+            'subscribed',
+            'user_id',
+            'quota',
+            'weight',
+            'access_date',
+            'access_time',
+            'approved'
+        );
         
-        $this->fields = array('user_name',
-                        'user_password',
-                        'subscribed',
-                        'user_id',
-                        'quota',
-                        'weight',
-                        'access_date',
-                        'access_time',
-                        'approved'
-                        );
-        
-        $this->types = array('text',
-                       'text',
-                       'boolean',
-                       'text',
-                       'decimal',
-                       'float',
-                       'date',
-                       'time',
-                       'timestamp'
-                       );
+        $this->types = array(
+           'text',
+           'text',
+           'boolean',
+           'text',
+           'decimal',
+           'float',
+           'date',
+           'time',
+           'timestamp'
+       );
     }
 
     function tearDown() {
@@ -97,22 +103,22 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
 
     function methodExists(&$class, $name) {
         if (array_key_exists(strtolower($name), array_flip(get_class_methods($class)))) {
-            return TRUE;
+            return(TRUE);
         }
-        $this->assertTrue(FALSE, 'method '. $name . ' not implemented in ' . get_class($class));
-        return FALSE;
+        $this->assertTrue(FALSE, 'method '. $name.' not implemented in '.get_class($class));
+        return(FALSE);
     }
 
     // test the manager
     function testManager() {
         if ($this->methodExists($this->manager, 'updateDatabase')) {
             $input_file = 'driver_test.schema';
-            $backup_file = $input_file . '.before';
-            $result = $this->manager->updateDatabase($input_file, $backup_file, array('create'=>'1', 'name'=>$this->database));
+            $backup_file = $input_file.'.before';
+            $result = $this->manager->updateDatabase($input_file, $backup_file, array('create' =>'1', 'name' =>$this->database));
             if(!MDB::isError($result)) {
                 $input_file = 'lob_test.schema';
-                $backup_file = $input_file . '.before';
-                $result = $this->manager->updateDatabase($input_file, $backup_file, array('create'=>'1', 'name'=>$this->database));
+                $backup_file = $input_file.'.before';
+                $result = $this->manager->updateDatabase($input_file, $backup_file, array('create' =>'1', 'name' =>$this->database));
             }
             $this->assertTrue(!MDB::isError($result), 'Error creating/updating database');
         }

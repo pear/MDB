@@ -111,7 +111,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
     function insertTestValues($prepared_query, &$data) {
         for ($i = 0; $i < count($this->fields); $i++) {
-            $func = 'setParam' . $this->types[$i];
+            $func = 'setParam'.$this->types[$i];
             $this->db->$func($prepared_query, ($i + 1), $data[$this->fields[$i]]);
         }
     }
@@ -126,22 +126,22 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
         for ($row = 0; $row < $total_rows; $row++) {
-            $data[$row]["user_name"] = "user_$row";
-            $data[$row]["user_password"] = "somepassword";
-            $data[$row]["subscribed"] = $row % 2;
-            $data[$row]["user_id"] = $row;
-            $data[$row]["quota"] = sprintf("%.2f",strval(1+($row+1)/100));
-            $data[$row]["weight"] = sqrt($row);
-            $data[$row]["access_date"] = MDB_date::mdbToday();
-            $data[$row]["access_time"] = MDB_date::mdbTime();
-            $data[$row]["approved"] = MDB_date::mdbNow();
+            $data[$row]['user_name'] = "user_$row";
+            $data[$row]['user_password'] = 'somepassword';
+            $data[$row]['subscribed'] = $row % 2;
+            $data[$row]['user_id'] = $row;
+            $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
+            $data[$row]['weight'] = sqrt($row);
+            $data[$row]['access_date'] = MDB_date::mdbToday();
+            $data[$row]['access_time'] = MDB_date::mdbTime();
+            $data[$row]['approved'] = MDB_date::mdbNow();
 
             $this->insertTestValues($prepared_query, $data[$row]);
 
             $result = $this->db->executeQuery($prepared_query);
             
             if (MDB::isError($result)) {
-                $this->assertTrue(FALSE, 'Error executing prepared query' . $result->getMessage());
+                $this->assertTrue(FALSE, 'Error executing prepared query'.$result->getMessage());
             }
         }
 
@@ -150,7 +150,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         $result = $this->db->query('SELECT * FROM users');
 
         if (MDB::isError($result)) {
-            $this->assertTrue(FALSE, 'Error selecting from users' . $result->getMessage());
+            $this->assertTrue(FALSE, 'Error selecting from users'.$result->getMessage());
         }
 
         $this->db->setFetchMode(MDB_FETCHMODE_ASSOC);

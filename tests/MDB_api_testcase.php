@@ -63,7 +63,6 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $this->database = $database;
         $this->db =& MDB::connect($dsn, $options);
         if (MDB::isError($this->db)) {
-            print_r($this->db);
             $this->assertTrue(FALSE, 'Could not connect to database in setUp');
             exit;
         }
@@ -101,10 +100,10 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
 
     function methodExists($name) {
         if (array_key_exists(strtolower($name), array_flip(get_class_methods($this->db)))) {
-            return TRUE;
+            return(TRUE);
         }
-        $this->assertTrue(FALSE, 'method '. $name . ' not implemented in ' . get_class($this->db));
-        return FALSE;
+        $this->assertTrue(FALSE, 'method '. $name.' not implemented in '.get_class($this->db));
+        return(FALSE);
     }
 
     //test stuff in common.php
@@ -151,18 +150,18 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         if (!$this->methodExists('loadManager')) {
             return;
         }
-        $this->assertTrue(!MDB::isError($this->db->loadManager("Create database")));
+        $this->assertTrue(!MDB::isError($this->db->loadManager('Create database')));
     }
 
     // test of the driver
     // helper function so that we don't have to write out a query a million times
     function standardQuery() {
-        $query ="SELECT * FROM users";
+        $query = 'SELECT * FROM users';
         // run the query and get a result handler
         if (!MDB::isError($this->db)) {
-            return $this->db->query($query);
+            return($this->db->query($query));
         }
-        return FALSE;
+        return(FALSE);
     }
 
     function testQuery() {

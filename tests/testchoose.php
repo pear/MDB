@@ -10,13 +10,13 @@ if(!defined('PATH_SEPARATOR')) {
 }
 ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
 
-require_once 'PHPUnit.php';
-require_once 'test_setup.php';
-require_once 'testUtils.php';
+require_once('PHPUnit.php');
+require_once('test_setup.php');
+require_once('testUtils.php');
 
 $output = '';
 foreach ($testcases as $testcase) {
-    include_once $testcase . '.php';
+    include_once($testcase.'.php');
     $output .= "<div class=\"testlineup\">\n";
     $output .= "<h1>TestCase : $testcase</h1>\n";
     $testmethods[$testcase] = getTests($testcase);
@@ -36,7 +36,7 @@ foreach ($testcases as $testcase) {
 
 <form method="post" action="test.php">
 <?php
-echo $output;
+echo($output);
 ?>
 <input type="submit">
 </form>

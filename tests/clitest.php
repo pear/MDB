@@ -67,16 +67,16 @@ if(!defined('PATH_SEPARATOR')) {
 }
 ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
 
-require_once 'PHPUnit.php';
-require_once 'test_setup.php';
-require_once 'testUtils.php';
-require_once 'MDB.php';
+require_once('PHPUnit.php');
+require_once('test_setup.php');
+require_once('testUtils.php');
+require_once('MDB.php');
 
 MDB::loadFile('Manager');
 MDB::loadFile('Date');
 
 foreach ($testcases as $testcase) {
-    include_once $testcase . '.php';
+    include_once($testcase.'.php');
 }
 
 $database = 'driver_test';
@@ -120,7 +120,7 @@ foreach ($dbarray as $db) {
     }
 }
 
-require_once 'Console_TestListener.php';
+require_once('Console_TestListener.php');
 $result = new PHPUnit_TestResult;
 $result->addListener(new Console_TestListener);
 
