@@ -4,11 +4,27 @@
 </head>
 <body>
 <center><h1>MDB data types</h1></center>
+<hr />
 <ul>
 <p><b>Author:</b> Manuel Lemos (<a href="mailto:mlemos@acm.org">mlemos@acm.org</a>)</p>
 <p><b>Version control:</b> <tt>@(#) $Id$</tt></p>
+<h2>Contents</h2>
+<li><a href="#4.0">Introduction</a></li>
 <ul>
+<li><a href="#5.1.1">Text data type</a></li>
+<li><a href="#5.1.2">Boolean data type</a></li>
+<li><a href="#5.1.3">Integer data type</a></li>
+<li><a href="#5.1.4">Decimal data type</a></li>
+<li><a href="#5.1.5">Float data type</a></li>
+<li><a href="#5.1.6">Date data type</a></li>
+<li><a href="#5.1.7">Time data type</a></li>
+<li><a href="#5.1.8">Time stamp data type</a></li>
+<li><a href="#5.1.9">Large object (file) data types</a></li>
+</ul>
+</ul>
+</ul>
 <hr />
+<h1><a name="4.0">Introduction</a></h1>
 <p>All <i>DBMS</i> provide multiple choice of data types for the information that can be stored in their database table fields.  However, the set of data types made available varies from <i>DBMS</i> to <i>DBMS</i>.</p>
 <p>To simplify the interface with the <i>DBMS</i> supported by <b>MDB</b> it was defined a base set of data types that applications may access independently of the underlying <i>DBMS</i>.</p>
 <p>The <b>MDB</b> applications programming interface takes care of mapping data types when managing database options.  It is also able to convert that is sent to and received from the underlying <i>DBMS</i> using the respective driver.</p>
