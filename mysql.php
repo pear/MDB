@@ -73,7 +73,7 @@ class MDB_driver_mysql extends MDB_common
     var $dummy_primary_key = 'dummy_primary_key';
     var $manager_class_name = 'MDB_manager_mysql_class';
     var $manager_include = 'manager_mysql.php';
-    var $manager_included_constant = 'MDB_MANAGER_MYSQL_INCLUDED'; 
+    var $manager_included_constant = 'MDB_MANAGER_MYSQL_INCLUDED';
     var $default_table_type = '';
 
     // }}}
@@ -185,24 +185,24 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Define whether database changes done on the database be automatically
      * committed. This function may also implicitly start or end a transaction.
-     * 
+     *
      * @param boolean $auto_commit    flag that indicates whether the database
      *                                changes should be committed right after
      *                                executing every query statement. If this
      *                                argument is 0 a transaction implicitly
      *                                started. Otherwise, if a transaction is
-     *                                in progress it is ended by committing any 
+     *                                in progress it is ended by committing any
      *                                database changes that were pending.
-     * 
+     *
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
-     */ 
+     */
     function autoCommit($auto_commit)
     {
         $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
         if (!isset($this->supported['Transactions'])) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 
+            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
                 'Auto-commit transactions: transactions are not in use');
         }
         if (((!$this->auto_commit) == (!$auto_commit))) {
@@ -236,20 +236,20 @@ class MDB_driver_mysql extends MDB_common
      * progress. This function may only be called when auto-committing is
      * disabled, otherwise it will fail. Therefore, a new transaction is
      * implicitly started after committing the pending changes.
-     * 
+     *
      * @access public
-     * 
+     *
      * @return mixed DB_OK on success, a DB error on failure
-     */ 
+     */
     function commit()
     {
         $this->debug("Commit Transaction");
         if (!isset($this->supported['Transactions'])) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 
+            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
                 'Commit transactions: transactions are not in use');
         }
         if ($this->auto_commit) {
-            return $this->raiseError(DB_ERROR, '', '', 
+            return $this->raiseError(DB_ERROR, '', '',
             'Commit transactions: transaction changes are being auto commited');
         }
         return ($this->query('COMMIT'));
@@ -262,26 +262,26 @@ class MDB_driver_mysql extends MDB_common
      * progress. This function may only be called when auto-committing is
      * disabled, otherwise it will fail. Therefore, a new transaction is
      * implicitly started after canceling the pending changes.
-     * 
+     *
      * @access public
-     * 
+     *
      * @return mixed DB_OK on success, a DB error on failure
-     */ 
+     */
     function rollback()
     {
         $this->debug("Rollback Transaction");
         if (!isset($this->supported['Transactions'])) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 
+            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
                 'Rollback transactions: transactions are not in use');
         }
         if ($this->auto_commit) {
-            return $this->raiseError(DB_ERROR, '', '', 
+            return $this->raiseError(DB_ERROR, '', '',
                 'Rollback transactions: transactions can not be rolled back when changes are auto commited');
         }
         return ($this->query('ROLLBACK'));
     }
 
-    // }}} 
+    // }}}
     // {{{ connect()
     /**
      * Connect to the database
@@ -312,7 +312,7 @@ class MDB_driver_mysql extends MDB_common
 
         @ini_set('track_errors', TRUE);
         $this->connection = @$function(
-            $this->host.(!strcmp($port,'') ? '' : ':'.$port), 
+            $this->host.(!strcmp($port,'') ? '' : ':'.$port),
             $this->user, $this->password);
         @ini_restore('track_errors');
         if ($this->connection <= 0) {
@@ -357,7 +357,7 @@ class MDB_driver_mysql extends MDB_common
     // {{{ _close()
     /**
      * all the RDBMS specific things needed close a DB connection
-     * 
+     *
      * @access private
      *
      */
@@ -392,7 +392,7 @@ class MDB_driver_mysql extends MDB_common
      * @param string  $query  the SQL query
      * @param array   $types  array that contains the types of the columns in
      *                        the result set
-     * 
+     *
      * @return mixed a result handle or DB_OK on success, a DB error on failure
      */
     function query($query, $types = NULL)
@@ -414,10 +414,10 @@ class MDB_driver_mysql extends MDB_common
         }
 
         if (!$ismanip && $limit > 0 &&
-            substr(strtolower(ltrim($query)), 
+            substr(strtolower(ltrim($query)),
             0, 6) == 'select')
         {
-            $query.=" LIMIT $first,$limit";
+            $query .= " LIMIT $first,$limit";
         }
         if (mysql_select_db($this->database_name, $this->connection)
             && ($result = mysql_query($query, $this->connection)))
@@ -453,7 +453,7 @@ class MDB_driver_mysql extends MDB_common
      *                      return a column
      * @param string $quote determines if the data needs to be quoted before
      *                      being returned
-     * 
+     *
      * @return string the query
      */
     function subSelect($query, $quote = FALSE)
@@ -493,56 +493,56 @@ class MDB_driver_mysql extends MDB_common
      *
      * @param string $table name of the table on which the REPLACE query will
      *  be executed.
-     * @param array $fields associative array that describes the fields and the 
+     * @param array $fields associative array that describes the fields and the
      *  values that will be inserted or updated in the specified table. The
      *  indexes of the array are the names of all the fields of the table. The
      *  values of the array are also associative arrays that describe the
      *  values and other properties of the table fields.
      *
      *  Here follows a list of field properties that need to be specified:
-     *                        
+     *
      *    Value:
      *          Value to be assigned to the specified field. This value may be
      *          of specified in database independent type format as this
      *          function can perform the necessary datatype conversions.
-     *                        
+     *
      *    Default:
      *          this property is required unless the Null property
      *          is set to 1.
-     *                        
+     *
      *    Type
      *          Name of the type of the field. Currently, all types Metabase
      *          are supported except for clob and blob.
-     *                        
+     *
      *    Default: text
-     *                        
+     *
      *    Null
      *          Boolean property that indicates that the value for this field
      *          should be set to NULL.
-     *                        
+     *
      *          The default value for fields missing in INSERT queries may be
      *          specified the definition of a table. Often, the default value
      *          is already NULL, but since the REPLACE may be emulated using
      *          an UPDATE query, make sure that all fields of the table are
      *          listed in this function argument array.
-     *                        
+     *
      *    Default: 0
-     *                        
+     *
      *    Key
      *          Boolean property that indicates that this field should be
      *          handled as a primary key or at least as part of the compound
      *          unique index of the table that will determine the row that will
      *          updated if it exists or inserted a new row otherwise.
-     *                        
-     *          This function will fail if no key field is specified or if the 
+     *
+     *          This function will fail if no key field is specified or if the
      *          value of a key field is set to NULL because fields that are
      *          part of unique index they may not be NULL.
-     *                        
+     *
      *    Default: 0
-     * 
+     *
      * @return mixed DB_OK on success, a DB error on failure
      */
-    function replace($table, &$fields)
+    function replace($table, $fields)
     {
         $count = count($fields);
         for($keys = 0, $query = $values = '',reset($fields), $field = 0;
@@ -558,7 +558,7 @@ class MDB_driver_mysql extends MDB_common
                 $value = 'NULL';
             } else {
                 if (!isset($fields[$name]['Value'])) {
-                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '', 
+                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
                         'no value for field "'.$name.'" specified');
                 }
                 switch(isset($fields[$name]['Type']) ? $fields[$name]['Type'] : 'text') {
@@ -587,21 +587,21 @@ class MDB_driver_mysql extends MDB_common
                         $value = $this->getTimestampValue($fields[$name]['Value']);
                         break;
                     default:
-                        return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '', 
+                        return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
                             'no supported type for field "'.$name.'" specified');
                 }
             }
             $values .= $value;
             if (isset($fields[$name]['Key']) && $fields[$name]['Key']) {
                 if ($value == 'NULL') {
-                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '', 
+                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
                         'key values may not be NULL');
                 }
                 $keys++;
             }
         }
         if ($keys == 0) {
-            return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '', 
+            return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
                 'not specified which fields are keys');
         }
         return ($this->query("REPLACE INTO $table ($query) VALUES ($values)"));
@@ -611,9 +611,9 @@ class MDB_driver_mysql extends MDB_common
     // {{{ getColumnNames()
     /**
      * Retrieve the names of columns returned by the DBMS in a query result.
-     * 
+     *
      * @param resource   $result    result identifier
-     * 
+     *
      * @access public
      *
      * @return mixed                an associative array variable
@@ -624,14 +624,14 @@ class MDB_driver_mysql extends MDB_common
      *                              from 0. Some DBMS may not return any
      *                              columns when the result set does not
      *                              contain any rows.
-     * 
+     *
      *                              a DB error on failure
-     */ 
+     */
     function getColumnNames($result)
     {
         $result_value = intval($result);
         if (!isset($this->highest_fetched_row[$result_value])) {
-            return $this->raiseError(DB_ERROR_INVALID, '', '', 
+            return $this->raiseError(DB_ERROR_INVALID, '', '',
                 'Get column names: it was specified an inexisting result set');
         }
         if (!isset($this->columns[$result_value])) {
@@ -648,18 +648,18 @@ class MDB_driver_mysql extends MDB_common
     // {{{ numCols()
     /**
      * Count the number of columns returned by the DBMS in a query result.
-     * 
+     *
      * @param resource    $result        result identifier
-     *  
+     *
      * @access public
      *
      * @return mixed integer value with the number of columns, a DB error
      *                       on failure
-     */ 
+     */
     function numCols($result)
     {
         if (!isset($this->highest_fetched_row[intval($result)])) {
-            return $this->raiseError(DB_ERROR_INVALID, '', '', 
+            return $this->raiseError(DB_ERROR_INVALID, '', '',
                 'numCols: it was specified an inexisting result set');
         }
         return (mysql_num_fields($result));
@@ -669,7 +669,7 @@ class MDB_driver_mysql extends MDB_common
     // {{{ endOfResult()
     /**
     * check if the end of the result set has been reached
-    * 
+    *
     * @param resource    $result result identifier
     *
     * @return mixed TRUE or FALSE on sucess, a DB error on failure
@@ -679,7 +679,7 @@ class MDB_driver_mysql extends MDB_common
     function endOfResult($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return $this->raiseError(DB_ERROR, '', '', 
+            return $this->raiseError(DB_ERROR, '', '',
                 'End of result: attempted to check the end of an unknown result');
         }
         return ($this->highest_fetched_row[$result] >= $this->numRows($result)-1);
@@ -689,10 +689,10 @@ class MDB_driver_mysql extends MDB_common
     // {{{ fetch()
     /**
     * fetch value from a result set
-    * 
+    *
     * @param resource    $result result identifier
     * @param int    $row    number of the row where the data can be found
-    * @param int    $field    field number where the data can be found 
+    * @param int    $field    field number where the data can be found
     *
     * @return mixed string on success, a DB error on failure
     *
@@ -715,10 +715,10 @@ class MDB_driver_mysql extends MDB_common
     // {{{ fetchClob()
     /**
     * fetch a clob value from a result set
-    * 
+    *
     * @param resource    $result result identifier
     * @param int    $row    number of the row where the data can be found
-    * @param int    $field    field number where the data can be found 
+    * @param int    $field    field number where the data can be found
     *
     * @return mixed content of the specified data cell, a DB error on failure,
     *               a DB error on failure
@@ -734,10 +734,10 @@ class MDB_driver_mysql extends MDB_common
     // {{{ fetchBlob()
     /**
     * fetch a blob value from a result set
-    * 
+    *
     * @param resource    $result result identifier
     * @param int    $row    number of the row where the data can be found
-    * @param int    $field    field number where the data can be found 
+    * @param int    $field    field number where the data can be found
     *
     * @return mixed content of the specified data cell, a DB error on failure
     *
@@ -752,7 +752,7 @@ class MDB_driver_mysql extends MDB_common
     // {{{ convertResult()
     /**
     * convert a value to a RDBMS indepdenant MDB type
-    * 
+    *
     * @param mixed  $value   value to be converted
     * @param int    $type    constant that specifies which type to convert to
     *
@@ -826,7 +826,7 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Obtain DBMS specific SQL code portion needed to declare an integer type
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -845,13 +845,13 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     * 
+     *
      * @access public
      *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
      */
-    function getIntegerDeclaration($name, &$field)
+    function getIntegerDeclaration($name, $field)
     {
         return ("$name INT".
                 (isset($field['unsigned']) ? ' UNSIGNED' : '').
@@ -865,7 +865,7 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
      * large object type field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the
      *                        properties of the field being declared as array
@@ -881,13 +881,13 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field
      *                        is constrained to not be set to NULL.
-     * 
+     *
      * @access public
      *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
      */
-    function getClobDeclaration($name, &$field)
+    function getClobDeclaration($name, $field)
     {
         if (isset($field['length'])) {
             $length = $field['length'];
@@ -916,7 +916,7 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
      * object type field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -928,17 +928,17 @@ class MDB_driver_mysql extends MDB_common
      *                        of the large object field. If this argument is
      *                        missing the field should be declared to have the
      *                        longest length allowed by the DBMS.
-     * 
+     *
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     * 
+     *
      * @access public
      *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
      */
-    function getBlobDeclaration($name, &$field)
+    function getBlobDeclaration($name, $field)
     {
         if (isset($field['length'])) {
             $length = $field['length'];
@@ -968,7 +968,7 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Obtain DBMS specific SQL code portion needed to declare an date type
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -981,13 +981,13 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     * 
+     *
      * @access public
      *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
      */
-    function getDateDeclaration($name, &$field)
+    function getDateDeclaration($name, $field)
     {
         return ("$name DATE".
                 (isset($field['default']) ? " DEFAULT '".$field['default']."'" : '').
@@ -1000,7 +1000,7 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Obtain DBMS specific SQL code portion needed to declare an timestamp
      * type field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -1014,13 +1014,13 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     * 
+     *
      * @access public
      *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
      */
-    function getTimestampDeclaration($name, &$field)
+    function getTimestampDeclaration($name, $field)
     {
         return ("$name DATETIME".
                 (isset($field['default']) ? " DEFAULT '".$field['default']."'" : '').
@@ -1033,7 +1033,7 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Obtain DBMS specific SQL code portion needed to declare an time type
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -1046,13 +1046,13 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     * 
+     *
      * @access public
      *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
      */
-    function getTimeDeclaration($name, &$field)
+    function getTimeDeclaration($name, $field)
     {
         return ("$name TIME".
                 (isset($field['default']) ? " DEFAULT '".$field['default']."'" : '').
@@ -1065,7 +1065,7 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Obtain DBMS specific SQL code portion needed to declare an float type
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -1079,13 +1079,13 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     * 
+     *
      * @access public
      *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
      */
-    function getFloatDeclaration($name, &$field)
+    function getFloatDeclaration($name, $field)
     {
         if (isset($this->options['fixedfloat'])) {
             $this->fixed_float = $this->options['fixedfloat'];
@@ -1109,7 +1109,7 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Obtain DBMS specific SQL code portion needed to declare an decimal type
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -1123,13 +1123,13 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     * 
+     *
      * @access public
      *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
      */
-    function getDecimalDeclaration($name, &$field)
+    function getDecimalDeclaration($name, $field)
     {
         return ("$name BIGINT".
                 (isset($field['default']) ?
@@ -1143,23 +1143,23 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
-     * 
+     *
      * @param resource  $prepared_query query handle from prepare()
      * @param           $parameter
      * @param           $clob
-     * 
+     *
      * @access public
      *
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
-     */    
+     */
     function getClobValue($prepared_query, $parameter, $clob)
     {
         $value = "'";
         while(!endOfLob($clob)) {
             if (readLob($clob, $data, $this->options['lob_buffer_length']) < 0) {
                 $value = '';
-                return $this->raiseError(DB_ERROR, '', '', 
+                return $this->raiseError(DB_ERROR, '', '',
                     'Get CLOB field value: '.LobError($clob));
             }
             $value .= $this->_quote($data);
@@ -1172,12 +1172,12 @@ class MDB_driver_mysql extends MDB_common
     // {{{ freeClobValue()
     /**
      * free a chracter large object
-     * 
+     *
      * @param resource  $prepared_query query handle from prepare()
-     * @param string    $clob             
-     * @param string    $value             
+     * @param string    $clob
+     * @param string    $value
 
-     * 
+     *
      * @access public
      */
     function freeClobValue($prepared_query, $clob, &$value)
@@ -1191,11 +1191,11 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
-     * 
+     *
      * @param resource  $prepared_query query handle from prepare()
      * @param           $parameter
      * @param           $blob
-     * 
+     *
      * @access public
      *
      * @return string  text string that represents the given argument value in
@@ -1207,7 +1207,7 @@ class MDB_driver_mysql extends MDB_common
         while(!endOfLob($blob)) {
             if (!readLob($blob, $data, $this->options['lob_buffer_length'])) {
                 $value = '';
-                return $this->raiseError(DB_ERROR, '', '', 
+                return $this->raiseError(DB_ERROR, '', '',
                     'Get BLOB field value: '.LobError($blob));
             }
             $value .= addslashes($data);
@@ -1220,11 +1220,11 @@ class MDB_driver_mysql extends MDB_common
     // {{{ freeBlobValue()
     /**
      * free a binary large object
-     * 
+     *
      * @param resource  $prepared_query query handle from prepare()
-     * @param string    $blob             
+     * @param string    $blob
 
-     * 
+     *
      * @access public
      */
     function freeBlobValue($prepared_query, $blob)
@@ -1238,9 +1238,9 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
-     * 
+     *
      * @param string  $value text string value that is intended to be converted.
-     * 
+     *
      * @access public
      *
      * @return string  text string that represents the given argument value in
@@ -1256,9 +1256,9 @@ class MDB_driver_mysql extends MDB_common
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
-     * 
+     *
      * @param string  $value text string value that is intended to be converted.
-     * 
+     *
      * @access public
      *
      * @return string  text string that represents the given argument value in
@@ -1292,7 +1292,7 @@ class MDB_driver_mysql extends MDB_common
             // Since createSequence initializes the ID to be 1,
             // we do not need to retrieve the ID again (or we will get 2)
             if (MDB::isError($result)) {
-                return $this->raiseError(DB_ERROR, '', '', 
+                return $this->raiseError(DB_ERROR, '', '',
                     'Next ID: on demand sequence could not be created');
             } else {
                 // First ID of a newly created sequence is 1
@@ -1340,7 +1340,7 @@ class MDB_driver_mysql extends MDB_common
      * @param int       $rownum     the row number to fetch
      *
      * @return int data array on success, a DB error on failure
-     * 
+     *
      * @access public
      */
     function fetchInto($result, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
@@ -1368,8 +1368,8 @@ class MDB_driver_mysql extends MDB_common
             }
             return $this->mysqlRaiseError($errno);
         }
-        if (!$this->convertResultRow($result, $array)) {
-            return $this->raiseError();
+        if (isset($this->result_types[$result])) {
+            $array = $this->convertResultRow($result, $array);
         }
         return ($array);
     }

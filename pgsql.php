@@ -69,9 +69,9 @@ class MDB_driver_pgsql extends MDB_common {
     var $escape_quotes = '\\';
     var $manager_class_name = 'MDB_manager_pgsql_class';
     var $manager_include = 'manager_pgsql.php';
-    var $manager_included_constant = 'MDB_MANAGER_PGSQL_INCLUDED'; 
+    var $manager_included_constant = 'MDB_MANAGER_PGSQL_INCLUDED';
 
-    // }}} 
+    // }}}
     // {{{ constructor
     /**
      * Constructor
@@ -160,7 +160,7 @@ class MDB_driver_pgsql extends MDB_common {
         return DB_ERROR;
     }
 
-    // }}} 
+    // }}}
     // {{{ pgsqlRaiseError()
     function pgsqlRaiseError($errno = NULL)
     {
@@ -245,12 +245,12 @@ class MDB_driver_pgsql extends MDB_common {
         return ($this->_doQuery('ROLLBACK') && $this->_doQuery('BEGIN'));
     }
 
-    // }}} 
+    // }}}
     // {{{ _doConnect
     /**
      * Does the grunt work of connecting to the database
      *
-     * @access private 
+     * @access private
      * @return mixed connection resource on success, MDB_Error on failure
      **/
     function _doConnect($database_name, $persistent)
@@ -279,7 +279,7 @@ class MDB_driver_pgsql extends MDB_common {
         return ($this->raiseError(DB_ERROR_CONNECT_FAILED, '', '', 'doConnect: ' . isset($php_errormsg) ? $php_errormsg : 'Could not connect to PostgreSQL server'));
     }
 
-    // }}} 
+    // }}}
     // {{{ connect()
     /**
      * Connect to the database
@@ -319,7 +319,7 @@ class MDB_driver_pgsql extends MDB_common {
         return (DB_OK);
     }
 
-    // }}} 
+    // }}}
     // {{{ _close()
     /**
      * Close the database connection
@@ -336,14 +336,14 @@ class MDB_driver_pgsql extends MDB_common {
         }
     }
 
-    // }}} 
+    // }}}
     // {{{ _doQuery()
     /**
      * Execute a query
      * @param string $query the SQL query
      *
      * @return mixed result identifier if query executed, else MDB_error
-     * @access private 
+     * @access private
      **/
     function _doQuery($query)
     {
@@ -356,7 +356,7 @@ class MDB_driver_pgsql extends MDB_common {
         return ($result);
     }
 
-    // }}} 
+    // }}}
     // {{{ query()
     /**
      * Execute a query
@@ -364,7 +364,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param array $types array that contains the types of the columns in
      *                         the result set
      * @return mixed result identifier if query executed, else MDB_error
-     * @access public 
+     * @access public
      **/
     function query($query, $types = NULL)
     {
@@ -379,35 +379,35 @@ class MDB_driver_pgsql extends MDB_common {
         }
 
         if (!$ismanip && $limit > 0 &&
-            substr(strtolower(ltrim($query)), 0, 6) == 'select')
+            substr(strtolower(ltrim($query)),
+            0, 6) == 'select')
         {
-            if ($this->auto_commit && MDB::isError($this->_doQuery('BEGIN'))) {
-                return $this->raiseError(DB_ERROR);
-            }
-            $result = $this->_doQuery('DECLARE select_cursor SCROLL CURSOR FOR '.$query);
-            if (!MDB::isError($result)) {
-                if ($first > 0 && MDB::isError($result = $this->_doQuery("MOVE FORWARD $first FROM select_cursor"))) {
-                    $this->freeResult($result);
-                    return $result;
-                }
-                if (MDB::isError($result = $this->_doQuery("FETCH FORWARD $limit FROM select_cursor"))) {
-                    $this->freeResult($result);
-                    return $result;
-                }
-            } else {
-                return $result;
-            }
-            if ($this->auto_commit && MDB::isError($result2 = $this->_doQuery('END'))) {
-                $this->freeResult($result);
-                return $result2;
-            }
-        } else {
+             if ($this->auto_commit && MDB::isError($this->_doQuery('BEGIN'))) {
+                 return $this->raiseError(DB_ERROR);
+             }
+             $result = $this->_doQuery('DECLARE select_cursor SCROLL CURSOR FOR '.$query);
+             if (!MDB::isError($result)) {
+                 if ($first > 0 && MDB::isError($result = $this->_doQuery("MOVE FORWARD $first FROM select_cursor"))) {
+                     $this->freeResult($result);
+                     return $result;
+                 }
+                 if (MDB::isError($result = $this->_doQuery("FETCH FORWARD $limit FROM select_cursor"))) {
+                     $this->freeResult($result);
+                     return $result;
+                 }
+             } else {
+                 return $result;
+             }
+             if ($this->auto_commit && MDB::isError($result2 = $this->_doQuery('END'))) {
+                 $this->freeResult($result);
+                 return $result2;
+             }
+         } else {
             $result = $this->_doQuery($query);
             if (MDB::isError($result)) {
                 return $result;
             }
         }
-
         if ($ismanip) {
             $this->affected_rows = @pg_cmdtuples($result);
             return DB_OK;
@@ -434,7 +434,7 @@ class MDB_driver_pgsql extends MDB_common {
     // {{{ endOfResult()
     /**
     * check if the end of the result set has been reached
-    * 
+    *
     * @param resource    $result result identifier
     *
     * @return mixed TRUE or FALSE on sucess, a DB error on failure
@@ -656,7 +656,7 @@ class MDB_driver_pgsql extends MDB_common {
     // }}}
     // {{{ _standaloneQuery()
     /**
-     * 
+     *
      *
      * @param string $query
      *
@@ -702,7 +702,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getTextDeclaration($name, &$field)
+    function getTextDeclaration($name, $field)
     {
         return ((isset($field['length']) ? "$name VARCHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? " DEFAULT '" . $field['default'] . "'" : '') . (isset($field['notNULL']) ? ' NOT NULL' : ''));
     }
@@ -732,7 +732,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getClobDeclaration($name, &$field)
+    function getClobDeclaration($name, $field)
     {
         return ("$name OID".(isset($field['notNULL']) ? ' NOT NULL' : ''));
     }
@@ -762,7 +762,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getBlobDeclaration($name, &$field)
+    function getBlobDeclaration($name, $field)
     {
         return ("$name OID".(isset($field['notNULL']) ? ' NOT NULL' : ''));
     }
@@ -790,7 +790,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getDateDeclaration($name, &$field)
+    function getDateDeclaration($name, $field)
     {
         return ($name.' DATE'.(isset($field['default']) ? ' DEFAULT \''.$field['default'] . "'" : '').(isset($field['notNULL']) ? ' NOT NULL' : ''));
     }
@@ -818,7 +818,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getTimeDeclaration($name, &$field)
+    function getTimeDeclaration($name, $field)
     {
         return ($name.' TIME'.(isset($field['default']) ? ' DEFAULT \''.$field['default'].'\'' : '').(isset($field['notNULL']) ? ' NOT NULL' : ''));
     }
@@ -846,7 +846,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getFloatDeclaration($name, &$field)
+    function getFloatDeclaration($name, $field)
     {
         return ("$name FLOAT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '').(isset($field['notNULL']) ? ' NOT NULL' : ''));
     }
@@ -874,7 +874,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getDecimalDeclaration($name, &$field)
+    function getDecimalDeclaration($name, $field)
     {
         return ("$name INT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '').(isset($field['notNULL']) ? ' NOT NULL' : ''));
     }
@@ -1252,7 +1252,7 @@ class MDB_driver_pgsql extends MDB_common {
 
         /**
          * depending on $mode, metadata returns the following values:
-         * 
+         *
          * - mode is FALSE (default):
          * $result[]:
          *    [0]['table']  table name
@@ -1260,7 +1260,7 @@ class MDB_driver_pgsql extends MDB_common {
          *    [0]['type']   field type
          *    [0]['len']    field length
          *    [0]['flags']  field flags
-         * 
+         *
          * - mode is DB_TABLEINFO_ORDER
          * $result[]:
          *    ['num_fields'] number of metadata records
@@ -1272,22 +1272,22 @@ class MDB_driver_pgsql extends MDB_common {
          *    ['order'][field name]  index of field named 'field name'
          *    The last one is used, if you have a field name, but no index.
          *    Test:  if (isset($result['meta']['myfield'])) { ...
-         * 
+         *
          * - mode is DB_TABLEINFO_ORDERTABLE
          *     the same as above. but additionally
          *    ['ordertable'][table name][field name] index of field
          *       named 'field name'
-         * 
+         *
          *       this is, because if you have fields from different
          *       tables with the same field name * they override each
          *       other with DB_TABLEINFO_ORDER
-         * 
+         *
          *       you can combine DB_TABLEINFO_ORDER and
          *       DB_TABLEINFO_ORDERTABLE with DB_TABLEINFO_ORDER |
          *       DB_TABLEINFO_ORDERTABLE * or with DB_TABLEINFO_FULL
-         **/ 
+         **/
 
-        // if $result is a string, then we want information about a 
+        // if $result is a string, then we want information about a
         // table without a resultset
         if (is_string($result)) {
             $id = pg_exec($this->connection, "SELECT * FROM $result");
@@ -1301,7 +1301,7 @@ class MDB_driver_pgsql extends MDB_common {
             }
         }
 
-        $count = @pg_numfields($id); 
+        $count = @pg_numfields($id);
 
         // made this IF due to performance (one if is faster than $count if's)
         if (empty($mode)) {
@@ -1347,7 +1347,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param int       $rownum     the row number to fetch
      *
      * @return int data array on success, a DB error on failure
-     * 
+     *
      * @access public
      */
     function fetchInto($result, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
@@ -1376,13 +1376,13 @@ class MDB_driver_pgsql extends MDB_common {
             }
             return $this->pgsqlRaiseError($errno);
         }
-        if (!$this->convertResultRow($result, $array)) {
-            return $this->raiseError();
+        if (isset($this->result_types[$result])) {
+            $array = $this->convertResultRow($result, $array);
         }
         return ($array);
     }
 
-    // }}} 
+    // }}}
     // {{{ _pgFieldFlags()
     /**
      * Flags of a Field
@@ -1390,7 +1390,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param int $num_field the field number
      * @return string The flags of the field ('not_NULL', 'default_xx', 'primary_key',
      *                 'unique' and 'multiple_key' are supported)
-     * @access private 
+     * @access private
      **/
     function _pgFieldFlags($resource, $num_field, $table_name)
     {

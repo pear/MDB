@@ -288,7 +288,7 @@ class MDB_PEAR_PROXY
 
     function executeMultiple( $stmt, &$data )
     {
-        return $this->MDB_object->executeMultiple($stmt, NULL, &$data);
+        return $this->MDB_object->executeMultiple($stmt, NULL, $data);
     }
 
     function &query($query, $params = array()) {
