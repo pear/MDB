@@ -153,7 +153,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     function getTextDeclaration(&$db, $name, $field)
     {
         return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($field['default']) : '')
+               .(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($db, $field['default']) : '')
                .(IsSet($field['notnull']) ? ' NOT NULL' : '');
     }
 
@@ -305,7 +305,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     function getFloatDeclaration(&$db, $name, $field)
     {
         return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '')
+               .(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($db, $field['default']) : '')
                .(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
@@ -335,7 +335,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     function getDecimalDeclaration(&$db, $name, $field)
     {
         return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '')
+               .(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($db, $field['default']) : '')
                .(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
@@ -417,7 +417,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      */
     function getClobValue(&$db, $prepared_query, $parameter, $clob)
     {
-        return $this->_getLobValue($prepared_query, $parameter, $clob);
+        return $this->_getLobValue($db, $prepared_query, $parameter, $clob);
     }
 
     // }}}
@@ -455,7 +455,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      */
     function getBlobValue(&$db, $prepared_query, $parameter, $blob)
     {
-        return $this->_getLobValue($prepared_query, $parameter, $blob);
+        return $this->_getLobValue($db, $prepared_query, $parameter, $blob);
     }
 
     // }}}

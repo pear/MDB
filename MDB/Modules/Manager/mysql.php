@@ -105,7 +105,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             return MDB_OK;
         }
         if (MDB::isError($has = $db->queryAll("SHOW VARIABLES LIKE '$check'", null, MDB_FETCHMODE_ORDERED))) {
-            return $db->raiseError();
+            return $has;
         }
         if (count($has) == 0) {
             return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
@@ -212,7 +212,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         if (MDB::isError($verify = $this->_verifyTransactionalTableType($db, $db->default_table_type))) {
             return $verify;
         }
-        if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
+        if (MDB::isError($query_fields = $this->getFieldDeclarationList($db, $fields))) {
             return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'unkown error');
         }
         if (isset($db->supported['Transactions'])

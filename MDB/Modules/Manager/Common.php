@@ -196,7 +196,7 @@ class MDB_Manager_Common
         if (count($fields) == 0) {
             return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no fields specified for table "'.$name.'"');
         }
-        if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
+        if (MDB::isError($query_fields = $this->getFieldDeclarationList($db, $fields))) {
             return $query_fields;
         }
         return $db->query("CREATE TABLE $name ($query_fields)");

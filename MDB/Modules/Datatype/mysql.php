@@ -346,10 +346,10 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
     function getFloatDeclaration(&$db, $name, $field)
     {
         return "$name DOUBLE".
-            ($db->options['fixedfloat'] ?
-                '('.($db->options['fixedfloat'] + 2).','.$db->options['fixedfloat'].')' : '').
+            ($db->options['fixed_float'] ?
+                '('.($db->options['fixed_float'] + 2).','.$db->options['fixed_float'].')' : '').
             (isset($field['default']) ?
-                ' DEFAULT '.$this->getFloatValue($field['default']) : '').
+                ' DEFAULT '.$this->getFloatValue($db, $field['default']) : '').
             (isset($field['notnull']) ? ' NOT NULL' : '')
         ;
     }
@@ -383,7 +383,7 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
     {
         return "$name BIGINT".
             (isset($field['default']) ?
-                ' DEFAULT '.$this->getDecimalValue($field['default']) : '').
+                ' DEFAULT '.$this->getDecimalValue($db, $field['default']) : '').
             (isset($field['notnull']) ? ' NOT NULL' : '')
         ;
     }

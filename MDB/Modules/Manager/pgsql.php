@@ -130,7 +130,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no fields specified for table "'.$name.'"');
         }
         $query_fields = '';
-        if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
+        if (MDB::isError($query_fields = $this->getFieldDeclarationList($db, $fields))) {
             return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'unkown error');
         }
         return $db->query("CREATE TABLE $name ($query_fields)");

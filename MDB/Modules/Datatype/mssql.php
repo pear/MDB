@@ -159,7 +159,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getTextDeclaration(&$db, $name, $field)
     {
-        return (isset($field["length"]) ? "$name VARCHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->getTextValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return (isset($field["length"]) ? "$name VARCHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->getTextValue($db, $field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
 
     // }}}
@@ -300,7 +300,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getDateDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (".strlen("YYYY-MM-DD").")".(isset($field["default"]) ? " DEFAULT ".$this->getDateValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name CHAR (".strlen("YYYY-MM-DD").")".(isset($field["default"]) ? " DEFAULT ".$this->getDateValue($db, $field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
 
     // }}}
@@ -330,7 +330,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getTimestampDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (".strlen("YYYY-MM-DD HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimestampValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name CHAR (".strlen("YYYY-MM-DD HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimestampValue($db, $field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
 
     // }}}
@@ -359,7 +359,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getTimeDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (".strlen("HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimeValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name CHAR (".strlen("HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimeValue($db, $field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
 
     // }}}
@@ -419,7 +419,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getDecimalDeclaration(&$db, $name, $field)
     {
-        return "$name DECIMAL(18,".$db->decimal_places.")".(isset($field["default"]) ? " DEFAULT ".$this->getDecimalValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name DECIMAL(18,".$db->decimal_places.")".(isset($field["default"]) ? " DEFAULT ".$this->getDecimalValue($db, $field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
 
     // }}}

@@ -321,8 +321,8 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      */
     function getFloatDeclaration(&$db, $name, $field)
     {
-        if (isset($db->options['fixedfloat'])) {
-            $db->fixed_float = $db->options['fixedfloat'];
+        if (isset($db->options['fixed_float'])) {
+            $db->fixed_float = $db->options['fixed_float'];
         } else {
             if ($db->connection == 0) {
                 // XXX needs more checking
@@ -333,7 +333,7 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
                 ($db->fixed_float ?
                  '('.($db->fixed_float + 2).','.$db->fixed_float.')' : '').
                 (isset($field['default']) ?
-                 ' DEFAULT '.$this->getFloatValue($field['default']) : '').
+                 ' DEFAULT '.$this->getFloatValue($db, $field['default']) : '').
                 (isset($field['notnull']) ? ' NOT NULL' : '')
                ;
     }
@@ -367,7 +367,7 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
     {
         return "$name REAL".
                 (isset($field['default']) ?
-                 ' DEFAULT '.$this->getDecimalValue($field['default']) : '').
+                 ' DEFAULT '.$this->getDecimalValue($db, $field['default']) : '').
                  (isset($field['notnull']) ? ' NOT NULL' : '')
                ;
     }

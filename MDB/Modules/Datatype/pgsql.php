@@ -72,7 +72,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     {
         switch ($type) {
             case MDB_TYPE_BOOLEAN:
-                return strcmp($value, 'Y') ? false : true;
+                return $value == 't' ? true : false;
             case MDB_TYPE_DECIMAL:
                 return sprintf('%.'.$db->decimal_places.'f',doubleval($value)/$db->decimal_factor);
             case MDB_TYPE_FLOAT:
@@ -182,6 +182,34 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     }
 
     // }}}
+    // {{{ getBooleanDeclaration()
+
+    /**
+     * Obtain DBMS specific SQL code portion needed to declare a boolean type
+     * field to be used in statements like CREATE TABLE.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param string $name name the field to be declared.
+     * @param string $field associative array with the name of the properties
+     *       of the field being declared as array indexes. Currently, the types
+     *       of supported field properties are as follows:
+     *
+     *       default
+     *           Boolean value to be used as default for this field.
+     *
+     *       notnullL
+     *           Boolean flag that indicates whether this field is constrained
+     *           to not be set to null.
+     * @return string DBMS specific SQL code portion that should be used to
+     *       declare the specified field.
+     * @access public
+     */
+    function getBooleanDeclaration(&$db, $name, $field)
+    {
+        return "$name BOOLEAN" . (isset($field['default']) ? ' DEFAULT ' . $this->getBooleanValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+    }
+
+    // }}}
     // {{{ getDateDeclaration()
 
     /**
@@ -262,7 +290,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      */
     function getFloatDeclaration(&$db, $name, $field)
     {
-        return "$name FLOAT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : '');
+        return "$name FLOAT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($db, $field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -290,7 +318,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      */
     function getDecimalDeclaration(&$db, $name, $field)
     {
-        return "$name INT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : '');
+        return "$name INT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($db, $field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -424,6 +452,24 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     {
         unset($this->lobs[$blob]);
         return MDB_OK;
+    }
+
+    // }}}
+    // {{{ getBooleanValue()
+
+    /**
+     * Convert a text value into a DBMS specific format that is suitable to
+     * compose query statements.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param string $value text string value that is intended to be converted.
+     * @return string text string that represents the given argument value in
+     *       a DBMS specific format.
+     * @access public
+     */
+    function getBooleanValue(&$db, $value)
+    {
+        return ($value === null) ? 'NULL' : ($value ? "'t'" : "'f'");
     }
 
     // }}}
