@@ -101,7 +101,7 @@ function defaultDebugOutput($database, $message)
     global $databases;
 
     $databases[$database]->debug_output.="$database $message".
-                           $databases[$database]->log_line_break;
+                           $databases[$database]->options['log_line_break'];
 }
 
 /*
@@ -110,13 +110,10 @@ function defaultDebugOutput($database, $message)
  */
 class MDB_common extends PEAR
 {
-    /* PUBLIC DATA */
-
     var $database = 0;
     var $host = "";
     var $user = "";
     var $password = "";
-    var $options = array();
     var $supported = array();
     var $persistent = 1;
     var $database_name = "";
@@ -124,25 +121,25 @@ class MDB_common extends PEAR
     var $affected_rows = -1;
     var $auto_commit = 1;
     var $prepared_queries = array();
-    var $decimal_places = 2;
     var $first_selected_row = 0;
     var $selected_row_limit = 0;
-    var $lob_buffer_length = 8000;
-    var $escape_quotes = "";
-    var $log_line_break = "\n";
     var $last_query = "";
-    var $autofree = FALSE;
-
-    /* PRIVATE DATA */
+    var $options = array(
+        'persistent' => FALSE,
+        'debug' => 0,
+        'seqname_format' => '%s_seq',
+        'autofree' => FALSE,
+        'lob_buffer_length' => 8000,
+        'log_line_break' => '\n',
+        'escape_quotes' => '',
+        'autofree' => FALSE,
+        'decimal_places' => 2
+    );
 
     var $lobs = array();
     var $clobs = array();
     var $blobs = array();
-    var $last_error = "";
     var $in_transaction = 0;
-    var $debug = "";
-    var $debug_output = "";
-    var $pass_debug_handle = 0;
     var $fetchmodes = array();
     var $error_handler = "";
     var $manager;
@@ -151,6 +148,10 @@ class MDB_common extends PEAR
     var $manager_include = "";
     var $manager_class_name = "";
 
+    var $last_error = "";
+    var $debug = "";
+    var $debug_output = "";
+    var $pass_debug_handle = 0;
     // }}}
     // {{{ constructor
     /**
@@ -278,18 +279,18 @@ class MDB_common extends PEAR
     // }}}
     // {{{ setOption()
     /**
-     * set the option for the db class
-     *
-     * @param string $option option name
-     * @param mixed  $value value for the option
-     *
-     * @return mixed a result handle or DB_OK on success, a DB error on failure
-     */
+    * set the option for the db class
+    *
+    * @param string $option option name
+    * @param mixed  $value value for the option
+    *
+    * @return mixed DB_OK or DB_Error
+    */
     function setOption($option, $value)
     {
-        if (isset($this->$option)) {
-            $this->$option = $value;
-            return (DB_OK);
+        if (isset($this->options[$option])) {
+            $this->options[$option] = $value;
+            return DB_OK;
         }
         return $this->raiseError("unknown option $option");
     }
@@ -297,16 +298,16 @@ class MDB_common extends PEAR
     // }}}
     // {{{ getOption()
     /**
-     * returns the value of an option
-     *
-     * @param string $option option name
-     *
-     * @return mixed the option value
-     */
+    * returns the value of an option
+    *
+    * @param string $option option name
+    *
+    * @return mixed the option value
+    */
     function getOption($option)
     {
-        if (isset($this->$option)) {
-            return $this->$option;
+        if (isset($this->options[$option])) {
+            return $this->options[$option];
         }
         return $this->raiseError("unknown option $option");
     }
@@ -3419,20 +3420,37 @@ class MDB_common extends PEAR
     }
 
     // }}}
+    // {{{ getSequenceName()
+    /**
+     * adds sequence name formating to a sequence name
+     *
+     * @param string  $sqn     name of the sequence
+     *
+     * @return string formatted sequence name
+     */
+    function getSequenceName($sqn)
+    {
+        return sprintf($this->options["seqname_format"],
+                       preg_replace('/[^a-z0-9_]/i', '_', $sqn));
+    }
+
+    // }}}
     // {{{ nextId()
     /**
      * returns the next free id of a sequence
      * renamed for PEAR
      * used to be: getSequenceNextValue
      *
-     * @param string  $name     name of the sequence
+     * @param string  $seq_name name of the sequence
+     * @param int     $value    reference to a var into
+     *                          which the Id will be stored
      * @param boolean $ondemand when true the seqence is
      *                          automatic created, if it
      *                          not exists
      *
      * @return mixed DB_Error or id
      */
-    function nextId($name, $ondemand = FALSE)
+    function nextId($seq_name, &$value, $ondemand = FALSE)
     {
          return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "",
             'Next Sequence: getting next sequence value not supported');
@@ -3445,11 +3463,13 @@ class MDB_common extends PEAR
      * renamed for PEAR
      * used to be: getSequenceCurrentValue
      *
-     * @param string  $name     name of the sequence
+     * @param string  $seq_name name of the sequence
+     * @param int     $value    reference to a var into
+     *                          which the Id will be stored
      *
      * @return mixed DB_Error or id
      */
-    function currId($name)
+    function currId($seq_name, &$value)
     {
         return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "",
             'Current Sequence: getting current sequence value not supported');
@@ -3489,7 +3509,7 @@ class MDB_common extends PEAR
                 $res = $this->fetch($result, $rownum, $column);
                 if (MDB::isError($res)) {
                     if($res->getMessage() == '') {
-                        if($this->autofree) {
+                        if($this->options['autofree']) {
                             $this->freeResult($result);
                         }
                         return NULL;
@@ -3561,7 +3581,7 @@ class MDB_common extends PEAR
             $res = $this->fetchInto($result, $value, $fetchmode, NULL);
             $value = $value[0];
         }
-        if(!$this->autofree || $value == NULL) {
+        if(!$this->options['autofree'] || $value == NULL) {
             $this->freeResult($result);
         }
         return ($res);
@@ -3597,7 +3617,7 @@ class MDB_common extends PEAR
         }
         $row = array();
         $res = $this->fetchInto($result, $row, $fetchmode, $rownum);
-        if(!$this->autofree || $row == NULL) {
+        if(!$this->options['autofree'] || $row == NULL) {
             $this->freeResult($result);
         }
         return ($res);
@@ -3630,7 +3650,7 @@ class MDB_common extends PEAR
         while(DB_OK === $res = $this->fetchInto($result, $temp, $fetchmode, NULL)) {
             $column[] = $temp[$colnum];
         }
-        if(!$this->autofree) {
+        if(!$this->options['autofree']) {
             $this->freeResult($result);
         }
         if($res != NULL) {
@@ -3701,7 +3721,7 @@ class MDB_common extends PEAR
                 $all[] = $array;
             }
         }
-        if(!$this->autofree) {
+        if(!$this->options['autofree']) {
             $this->freeResult($result);
         }
         if($res != NULL) {
