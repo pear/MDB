@@ -72,11 +72,6 @@ class MDB_fbsql extends MDB_Common
     var $highest_fetched_row = array();
     var $columns = array();
 
-    // MySQL specific class variable
-    var $default_table_type = '';
-    var $fixed_float = 0;
-    var $dummy_primary_key = 'dummy_primary_key';
-
     // }}}
     // {{{ constructor
 
@@ -117,7 +112,6 @@ class MDB_fbsql extends MDB_Common
             1100 => MDB_ERROR_NOT_LOCKED,
             1136 => MDB_ERROR_VALUE_COUNT_ON_ROW,
             1146 => MDB_ERROR_NOSUCHTABLE,
-            1048 => MDB_ERROR_CONSTRAINT,
         );
     }
 
@@ -310,22 +304,6 @@ class MDB_fbsql extends MDB_Common
                 $php_errormsg));
         }
 
-        if (isset($this->options['fixedfloat'])) {
-            $this->fixed_float = $this->options['fixedfloat'];
-        } else {
-            if (($result = fbsql_query('SELECT VERSION()', $this->connection))) {
-                $version = explode('.',fbsql_result($result,0,0));
-                $major = intval($version[0]);
-                $minor = intval($version[1]);
-                $revision = intval($version[2]);
-                if ($major > 3 || ($major == 3 && $minor >= 23
-                    && ($minor > 23 || $revision >= 6)))
-                {
-                    $this->fixed_float = 0;
-                }
-                fbsql_free_result($result);
-            }
-        }
         if (isset($this->supported['Transactions']) && !$this->auto_commit) {
             if (!fbsql_query('SET AUTOCOMMIT FALSE', $this->connection)) {
                 fbsql_close($this->connection);
@@ -360,12 +338,11 @@ class MDB_fbsql extends MDB_Common
             fbsql_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
-
             if (isset($result) && MDB::isError($result)) {
                 return($result);
             }
-            global $_MDB_databases;
-            $_MDB_databases[$this->database] = '';
+
+            $GLOBALS['_MDB_databases'][$this->database] = '';
             return(TRUE);
         }
         return(FALSE);
@@ -380,7 +357,7 @@ class MDB_fbsql extends MDB_Common
      * @access public
      *
      * @param string  $query  the SQL query
-     * @param array   $types  array that contains the types of the columns in
+     * @param mixed   $types  array that contains the types of the columns in
      *                        the result set
      *
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
