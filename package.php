@@ -111,7 +111,7 @@ $package->addMaintainer('manuel', 'contributor', 'Manuel Lemos', 'mlemos@acm.org
 $package->addMaintainer('fmk', 'contributor', 'Frank M. Kromann', 'frank@kromann.info');
 $package->addMaintainer('quipo', 'contributor', 'Lorenzo Alberton', 'l.alberton@quipo.it');
 
-$package->addDependency('php', '4.1.0', 'ge', 'pkg', false);
+$package->addDependency('php', '4.1.0', 'ge', 'php', false);
 $package->addDependency('PEAR', '1.0b1', 'ge', 'pkg', false);
 $package->addDependency('XML_Parser', true, 'has', 'pkg', false);
 
