@@ -85,11 +85,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                        'time',
                        'timestamp'
                        );
-        $this->clearTable();
+        $this->clearTables();
     }
 
     function tearDown() {
-        $this->clearTable();
+        //$this->clearTables();
         unset($this->dsn);
         if (!MDB::isError($this->db)) {
             $this->db->disconnect();
@@ -105,10 +105,21 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         return FALSE;
     }
 
-    function clearTable() {
+    function clearTables() {
         if (MDB::isError($this->db->query('DELETE FROM users'))) {
             $this->assertTrue(FALSE, 'Error deleting from table users');
         }
+        if (MDB::isError($this->db->query('DELETE FROM files'))) {
+            $this->assertTrue(FALSE, 'Error deleting from table users');
+        }
+    }
+
+    function supported($feature) {
+        if (!$this->db->support($feature)) {
+            $this->assertTrue(FALSE, 'This database does not support' . $feature);
+            return FALSE;
+        }
+        return TRUE;
     }
 
     function insertTestValues($prepared_query, &$data) {
@@ -338,7 +349,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $is_null = FALSE;
             }
 
-            $this->clearTable();
+            $this->clearTables();
 
             $result = $this->db->query("INSERT INTO users (user_name,user_password,user_id) VALUES ($value,$value,0)");
 
@@ -389,7 +400,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                             );
 
         for($string=0; $string < count($test_strings); $string++) {
-            $this->clearTable();
+            $this->clearTables();
 
             $value = $this->db->getTextValue($test_strings[$string]);
 
@@ -420,8 +431,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Test the use of setSelectedRowRange to return paged queries
      */
     function testRanges() {
-        if (!$this->db->support('SelectRowRanges')) {
-            $this->assertTrue(FALSE, 'This database does not support paged queries');
+        if (!$this->supported('SelectRowRanges')) {
             return;
         }
         
@@ -500,8 +510,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Test the handling of sequences
      */
     function testSequences() {
-        if (!$this->db->support('Sequences')) {
-            $this->assertTrue(FALSE, 'This database does not support sequences');
+        if (!$this->supported('Sequences')) {
             return;
         }
 
@@ -554,10 +563,10 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * The replace method emulates the replace query of mysql
      */
     function testReplace() {
-        if (!$this->db->support('Replace')) {
-            $this->assertTrue(FALSE, 'This database does not support Replace');
+        if (!$this->supported('Replace')) {
             return;
         }
+
         $row = 1234;
         $data = array();
         $data["user_name"] = "user_$row";
@@ -671,8 +680,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Test affected rows methods
      */
     function testAffectedRows() {
-        if (!$this->db->support('AffectedRows')) {
-            $this->assertTrue(FALSE, 'This database does not support AffectedRows');
+        if (!$this->supported('AffectedRows')) {
             return;
         }
 
@@ -751,11 +759,10 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Testing transaction support
      */
     function testTransactions() {
-        if (!$this->db->support('Transactions')) {
-            $this->assertTrue(FALSE, 'This database does not support Transactions');
+        if (!$this->supported('Transactions')) {
             return;
         }
-        
+
         $this->db->autoCommit(0);
 
         $row = 0;
@@ -813,6 +820,92 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         }
 
         $this->assertTrue($this->db->endOfResult($result), 'Transaction end with implicit commit when re-enabling auto-commit did not make permanent the rows that were deleted');
+        $this->db->freeResult($result);
+    }
+
+    /**
+     * Testing LOB storage
+     */
+    function testLobStorage() {
+        if (!$this->supported('LOBs')) {
+            return;
+        }
+
+        $prepared_query = $this->db->prepareQuery("INSERT INTO files (document,picture) VALUES (?,?)");
+
+        $character_lob = array(
+                              "Database" => $this->db,
+                              "Error" => "",
+                              "Data" => ""
+                              );
+        for ($code=32; $code <= 127; $code++) {
+            $character_lob["Data"] .= chr($code);
+        }
+        $binary_lob = array(
+                            "Database" => $this->db,
+                            "Error" => "",
+                            "Data" => ""
+                            );
+        for ($code=0; $code <= 255; $code++) {
+            $binary_lob["Data"] .= chr($code);
+        }
+
+        $clob = $this->db->createLob($character_lob);
+
+        $this->assertTrue(!MDB::isError($clob), 'Error creating character LOB: ' . $character_lob['Error']);
+
+        $blob = $this->db->createLob($binary_lob);
+        
+        $this->assertTrue(!MDB::isError($blob), 'Error creating binary LOB: ' . $binary_lob['Error']);
+
+        $this->db->setParamClob($prepared_query, 1, $clob, 'document');
+        $this->db->setParamBlob($prepared_query, 2, $blob, 'picture');
+
+        $result = $this->db->executeQuery($prepared_query);
+        
+        $this->assertTrue(!MDB::isError($result), 'Error executing prepared query');
+        
+        $this->db->destroyLob($blob);
+        $this->db->destroyLob($clob);
+        $this->db->freePreparedQuery($prepared_query);
+
+        $result = $this->db->query('SELECT document, picture FROM files');
+        if (MDB::isError($result)) {
+            $this->assertTrue(FALSE, 'Error selecting from files' . $result->getMessage());
+        }
+
+        $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result too soon.');
+        
+        $clob = $this->db->fetchClob($result, 0, 'document');
+
+        if (!MDB::isError($clob)) {
+            for ($value = ''; !$this->db->endOfLob($clob);) {
+                $this->assertTrue(($this->db->readLob($clob, $data, 8000) >= 0), 'Could not read CLOB');
+                $value .= $data;
+            }
+
+            $this->db->destroyLob($clob);
+
+            $this->assertEquals($value, $character_lob['Data'], "Retrieved character LOB value (\"" . $value . "\") is different from what was stored (\"" . $character_lob["Data"] ."\")");
+        } else {
+            $this->assertTrue(FALSE, 'Error retrieving CLOB result');
+        }
+
+        $blob = $this->db->fetchBlob($result, 0, 'picture');
+
+        if (!MDB::isError($blob)) {
+            for ($value = ''; !$this->db->endOfLob($clob);) {
+                $this->assertTrue(($this->db->readLob($blob, $data, 8000) >= 0), 'Could not read BLOB');
+                $value .= $data;
+            }
+
+            $this->db->destroyLob($blob);
+
+            $this->assertEquals($value, $binary_lob['Data'], "Retrieved binary LOB value (\"" . $value . "\") is different from what was stored (\"" . $binary_lob["Data"] ."\")");
+        } else {
+            $this->assertTrue(FALSE, 'Error retrieving CLOB result');
+        }
+
         $this->db->freeResult($result);
     }
 
