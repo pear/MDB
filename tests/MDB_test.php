@@ -21,6 +21,14 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     // only including this to output result data
     require_once('Var_Dump.php');
 
+    PEAR::setErrorHandling(PEAR_ERROR_CALLBACK, 'handle_pear_error');
+    function handle_pear_error ($error_obj)
+    {
+        print '<pre><b>PEAR-Error</b><br />';
+        echo $error_obj->getMessage().': '.$error_obj->getUserinfo();
+        print '</pre>';
+    }
+
     // just for kicks you can mess up this part to see some pear error handling
     $user = 'metapear';
     $pass = 'funky';
