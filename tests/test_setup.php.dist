@@ -1,10 +1,5 @@
 <?php
 
-// if you get a max execution exceed error uncomment the following line
-// and modify the time limit as needed
-//set_time_limit(100);
-
-
 $testcases = array(
     'MDB_manager_testcase',
     'MDB_api_testcase',
@@ -12,17 +7,8 @@ $testcases = array(
     'MDB_bugs_testcase',
 );
 
-$dbarray[] = array(
-    'dsn' => array(
-        'phptype' => 'pgsql',
-        'username' => 'username',
-        'password' => 'password',
-        'hostspec' => 'hostname',
-    ),
-    'options' => array(
-    )
-);
-$dbarray[] = array(
+// use a user that has full permissions on a database named "driver_test"
+$mysql = array(
     'dsn' => array(
         'phptype' => 'mysql',
         'username' => 'username',
@@ -34,6 +20,66 @@ $dbarray[] = array(
     )
 );
 
+$pgsql = array(
+    'dsn' => array(
+        'phptype' => 'pgsql',
+        'username' => 'username',
+        'password' => 'password',
+        'hostspec' => 'hostname',
+    )
+);
+
+$oci8 = array(
+    'dsn' => array(
+        'phptype' => 'oci8',
+        'username' => '',
+        'password' => 'password',
+        'hostspec' => 'hostname',
+    ),
+    'options' => array(
+        'DBAUser' => 'username',
+        'DBApassword' => 'password'
+    )
+);
+
+// must be a user with system administrator privileges
+$mssql = array(
+    'dsn' => array(
+        'phptype' => 'mssql',
+        'username' => 'username',
+        'password' => 'password',
+        'hostspec' => 'hostname',
+    )
+);
+
+$fbsql] = array(
+    'dsn' => array(
+        'phptype' => 'fbsql',
+        'username' => 'username',
+        'password' => 'password',
+        'hostspec' => 'hostname',
+    )
+);
+
+
+$ibase = array(
+    'dsn' => array(
+        'phptype' => 'ibase',
+        'username' => 'username',
+        'password' => 'password',
+        'hostspec' => 'hostname',
+    )
+);
+
+$dbarray = array();
+#$dbarray[] = $mysql;
+#$dbarray[] = $pgsql;
+#$dbarray[] = $oci8;
+#$dbarray[] = $mssql;
+#$dbarray[] = $fbsql;
+#$dbarray[] = $ibase;
+
 // you may need to uncomment the line and modify the multiplier as you see fit
 #set_time_limit(60*count($dbarray));
+
 ?>
