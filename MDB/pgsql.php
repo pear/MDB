@@ -1241,32 +1241,30 @@ class MDB_pgsql extends MDB_Common
      */
     function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        if ($rownum == NULL) {
-            ++$this->highest_fetched_row[$result];
-            $rownum = $this->highest_fetched_row[$result];
-        } else {
-            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
-        }
-        if ($rownum + 1 > $this->numRows($result)) {
-            return(NULL);
-        }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
-        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-            $array = @pg_fetch_array($result, $rownum, PGSQL_ASSOC);
+        if ($rownum == NULL) {
+            ++$this->highest_fetched_row[$result];
+            $rownum = $this->highest_fetched_row[$result];
+            if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+                $array = @pg_fetch_assoc($result);
+            } else {
+                $array = @pg_fetch_row($result);
+            }
         } else {
-            $array = @pg_fetch_row($result, $rownum);
+            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
+            if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+                $array = @pg_fetch_assoc($result, $rownum);
+            } else {
+                $array = @pg_fetch_row($result, $rownum);
+            }
         }
         if (!$array) {
-            $errno = @pg_errormessage($this->connection);
-            if (!$errno) {
-                if ($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
-                return(NULL);
+            if ($this->options['autofree']) {
+                $this->freeResult($result);
             }
-            return($this->pgsqlRaiseError($errno));
+            return(NULL);
         }
         if (isset($this->result_types[$result])) {
             $array = $this->convertResultRow($result, $array);
