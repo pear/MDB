@@ -2080,7 +2080,7 @@ class MDB_common extends PEAR
     }
 
     // }}}
-    // {{{ setParamClob()
+    // {{{ setParamBlob()
 
     /**
      * Set a parameter of a prepared query with a binary large object value.
@@ -4252,6 +4252,8 @@ class MDB_common extends PEAR
         $class_name = 'MDB_lob';
         if (isset($arguments['Type'])) {
             switch ($arguments['Type']) {
+                case 'data':
+                    break;
                 case 'resultlob':
                     $class_name = 'MDB_lob_result';
                     break;
