@@ -1679,9 +1679,7 @@ class MDB_Common extends PEAR
     function fetchOne($result)
     {
         $row = $this->fetchRow($result, MDB_FETCHMODE_ORDERED);
-        if (!$this->options['autofree'] || $row != null) {
-            $this->freeResult($result);
-        }
+
         if (is_array($row)) {
             return $row[0];
         }
