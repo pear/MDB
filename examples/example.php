@@ -61,7 +61,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
         die (__LINE__.$db->getMessage());
     }
 /*
-    MDB::loadFile('Manager');
+    MDB::loadClass('Manager');
     $manager =& new MDB_Manager;
     $input_file = 'metapear_test_db.schema';
     // you can either pass a dsn string, a dsn array or an exisiting db connection
