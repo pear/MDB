@@ -327,12 +327,8 @@ class MDB_ibase extends MDB_Common
      */
     function _getDatabaseFile($database_name)
     {
-        if (isset($this->options['database_path'])) {
-            $this->database_path = $this->options['database_path'];
-        }
-        if (isset($this->options['database_extension'])) {
-            $this->database_extension = $this->options['database_extension'];
-        }
+        $this->database_path = $this->options['database_path'];
+        $this->database_extension = $this->options['database_extension'];
 
         return $this->database_path.$database_name.$this->database_extension;
     }
@@ -635,7 +631,7 @@ class MDB_ibase extends MDB_Common
     function getColumnNames($result)
     {
         $result_value = intval($result);
-        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+        if (!isset($this->results[$result_value])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'getColumnNames: specified an nonexistant result set');
         }
@@ -664,7 +660,7 @@ class MDB_ibase extends MDB_Common
     function numCols($result)
     {
         $result_value = intval($result);
-        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+        if (!isset($this->results[$result_value])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'numCols: specified an nonexistant result set');
         }

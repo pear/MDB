@@ -91,6 +91,9 @@ class MDB_mssql extends MDB_Common
         $this->supported['sub_selects'] = 1;
         $this->supported['transactions'] = 1;
 
+        $db->options['database_device'] = false;
+        $db->options['database_size'] = false;
+
         $this->errorcode_map = array(
             208   => MDB_ERROR_NOSUCHTABLE,
             3701  => MDB_ERROR_NOSUCHTABLE
@@ -459,7 +462,7 @@ class MDB_mssql extends MDB_Common
     function getColumnNames($result)
     {
         $result_value = intval($result);
-        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+        if (!isset($this->results[$result_value])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'getColumnNames: it was specified an inexisting result set');
         }
@@ -487,7 +490,7 @@ class MDB_mssql extends MDB_Common
      */
     function numCols($result)
     {
-        if (!isset($this->results[intval($result)]['highest_fetched_row'])) {
+        if (!isset($this->results[intval($result)])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'numCols: it was specified an inexisting result set');
         }
@@ -508,7 +511,7 @@ class MDB_mssql extends MDB_Common
     {
         if ($this->options['result_buffering']) {
             $result_value = intval($result);
-            if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+            if (!isset($this->results[$result_value])) {
                 return $this->raiseError(MDB_ERROR, null, null,
                     'endOfResult: attempted to check the end of an unknown result');
             }

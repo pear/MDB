@@ -555,7 +555,7 @@ class MDB_pgsql extends MDB_Common
     function getColumnNames($result)
     {
         $result_value = intval($result);
-        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+        if (!isset($this->results[$result_value])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'getColumnNames: specified an nonexistant result set');
         }
@@ -582,7 +582,7 @@ class MDB_pgsql extends MDB_Common
      */
     function numCols($result)
     {
-        if (!isset($this->results[intval($result)]['highest_fetched_row'])) {
+        if (!isset($this->results[intval($result)])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'numCols: specified an nonexistant result set');
         }
@@ -603,7 +603,7 @@ class MDB_pgsql extends MDB_Common
     {
         if ($this->options['result_buffering']) {
             $result_value = intval($result);
-            if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+            if (!isset($this->results[$result_value])) {
                 return $this->raiseError(MDB_ERROR, null, null,
                     'endOfResult: attempted to check the end of an unknown result');
             }
