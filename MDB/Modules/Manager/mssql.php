@@ -45,26 +45,7 @@
 // $Id$
 //
 
-// This is just a skeleton MDB driver.
-
-// In each of the listed methods I have added comments that tell you where
-// to look for a "reference" implementation.
-// Many of the methods below are taken from Metabase. Most of the methods
-// marked as "new in MDB" are actually taken from the latest beta files of
-// Metabase. However these beta files only include a version for MySQL.
-// Some of these methods have been expanded or changed slightly in MDB.
-// Looking in the relevant MDB Wrapper should give you some pointers, some
-// other difference you will only discover by looking at one of the existing
-// MDB driver or the common implementation in common.php.
-// One thing that will definately have to be modified in all "reference"
-// implementations of Metabase methods is the error handling.
-// Anyways don't worry if you are having problems: Lukas Smith is here to help!
-
-if(!defined('MDB_MANAGER_MSSQL_INCLUDED'))
-{
-    define('MDB_MANAGER_MSSQL_INCLUDED',1);
-
-require_once('MDB/Modules/Manager/Common.php');
+require_once 'MDB/Modules/Manager/Common.php';
 
 /**
  * MDB MSSQL driver for the management modules
@@ -81,7 +62,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     /**
      * create a new database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $name name of the database that should be created
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -90,7 +71,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     {
         $DatabaseDevice = isset($db->options["DatabaseDevice"]) ? $db->options["DatabaseDevice"] : "DEFAULT";
         $DatabaseSize = isset($db->options["DatabaseSize"]) ? "=".$db->options["DatabaseSize"] : "";
-        return($db->standaloneQuery("CREATE DATABASE $name ON ".$DatabaseDevice.$DatabaseSize));
+        return $db->standaloneQuery("CREATE DATABASE $name ON ".$DatabaseDevice.$DatabaseSize);
     }
 
     // }}}
@@ -99,14 +80,14 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     /**
      * drop an existing database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $name name of the database that should be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function dropDatabase(&$db, $name)
     {
-        return($db->standaloneQuery("DROP DATABASE $name"));
+        return $db->standaloneQuery("DROP DATABASE $name");
     }
 
     // }}}
@@ -115,7 +96,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     /**
      * alter an existing table
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $name         name of the table that is intended to be changed.
      * @param array $changes     associative array that contains the details of each type
      *                             of change that is intended to be performed. The types of
@@ -224,23 +205,23 @@ class MDB_Manager_mssql extends MDB_Manager_Common
                     case "RenamedFields":
                     case "ChangedFields":
                     default:
-                        return($db->raiseError(MDB_ERROR_CANNOT_ALTER, NULL, NULL,
-                            'Alter table: change type "'.key($changes).'" not yet supported'));
+                        return $db->raiseError(MDB_ERROR_CANNOT_ALTER, null, null,
+                            'Alter table: change type "'.key($changes).'" not yet supported');
                 }
             }
-            return(MDB_OK);
+            return MDB_OK;
         } else {
             if (isset($changes[$change = 'RemovedFields'])
                 || isset($changes[$change = 'name'])
                 || isset($changes[$change = 'RenamedFields'])
                 || isset($changes[$change = 'ChangedFields']))
             {
-                return($db->raiseError(MDB_ERROR_CANNOT_ALTER, NULL, NULL,
-                    'Alter table: change type "'.$change.'" is not supported by the server"'));
+                return $db->raiseError(MDB_ERROR_CANNOT_ALTER, null, null,
+                    'Alter table: change type "'.$change.'" is not supported by the server"');
             }
             $query='';
             if (isset($changes['AddedFields'])) {
-                if(strcmp($query, '')) {
+                if (strcmp($query, '')) {
                     $query.= ', ';
                 }
                 $query.= 'ADD ';
@@ -249,13 +230,13 @@ class MDB_Manager_mssql extends MDB_Manager_Common
                     $field < count($fields);
                     next($fields), $field++)
                 {
-                    if(strcmp($query, '')) {
+                    if (strcmp($query, '')) {
                         $query.= ', ';
                     }
                     $query.= $fields[key($fields)]['Declaration'];
                 }
             }
-            return(strcmp($query, '') ? $db->query("ALTER TABLE $name $query") : MDB_OK);
+            return strcmp($query, '') ? $db->query("ALTER TABLE $name $query") : MDB_OK;
         }
     }
 
@@ -265,7 +246,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     /**
      * create sequence
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $seq_name     name of the sequence to be created
      * @param string    $start         start value of the sequence; default is 1
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -274,7 +255,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     function createSequence(&$db, $seq_name, $start)
     {
         $sequence_name = $db->getSequenceName($seq_name);
-        return($db->query("CREATE TABLE $sequence_name (sequence INT NOT NULL IDENTITY($start,1) PRIMARY KEY CLUSTERED)"));
+        return $db->query("CREATE TABLE $sequence_name (sequence INT NOT NULL IDENTITY($start,1) PRIMARY KEY CLUSTERED)");
     }
 
     // }}}
@@ -283,7 +264,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     /**
      * drop existing sequence
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $seq_name     name of the sequence to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -291,9 +272,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     function dropSequence(&$db, $seq_name)
     {
         $sequence_name = $db->getSequenceName($seq_name);
-        return($db->Query("DROP TABLE $sequence_name"));
+        return $db->Query("DROP TABLE $sequence_name");
     }
-}
-
 }
 ?>

@@ -46,7 +46,7 @@
 // $Id$
 //
 
-require_once('MDB/Common.php');
+require_once 'MDB/Common.php';
 
 /**
  * MDB MSSQL Server driver
@@ -72,12 +72,6 @@ class MDB_mssql extends MDB_Common
     var $highest_fetched_row = array();
     var $columns = array();
 
-/*
-    // MSSQL specific class variable
-    var $default_table_type = '';
-    var $fixed_float = 0;
-    var $dummy_primary_key = 'dummy_primary_key';
-*/
     // }}}
     // {{{ constructor
 
@@ -178,27 +172,27 @@ class MDB_mssql extends MDB_Common
     {
         $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
         if (!isset($this->supported['Transactions'])) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                'Auto-commit transactions: transactions are not in use'));
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                'Auto-commit transactions: transactions are not in use');
         }
         if (((!$this->auto_commit) == (!$auto_commit))) {
-            return(MDB_OK);
+            return MDB_OK;
         }
         if ($this->connection) {
             if ($auto_commit) {
                 $result = $this->query('COMMIT TRANSACTION');
                 if (MDB::isError($result)) {
-                    return($result);
+                    return $result;
                 }
             } else {
                 $result = $this->query('BEGIN TRANSACTION');
                 if (MDB::isError($result)) {
-                    return($result);
+                    return $result;
                 }
             }
         }
         $this->auto_commit = $auto_commit;
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -218,18 +212,18 @@ class MDB_mssql extends MDB_Common
     {
         $this->debug("Commit Transaction");
         if (!isset($this->supported['Transactions'])) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                'Commit transactions: transactions are not in use'));
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                'Commit transactions: transactions are not in use');
         }
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-            'Commit transactions: transaction changes are being auto commited'));
+            return $this->raiseError(MDB_ERROR, null, null,
+            'Commit transactions: transaction changes are being auto commited');
         }
         $result = $this->query('COMMIT TRANSACTION');
         if (MDB::isError($result)) {
-            return($result);
+            return $result;
         }
-        return($this->query('BEGIN TRANSACTION'));
+        return $this->query('BEGIN TRANSACTION');
     }
 
     // }}}
@@ -249,24 +243,24 @@ class MDB_mssql extends MDB_Common
     {
         $this->debug("Rollback Transaction");
         if (!isset($this->supported['Transactions'])) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                'Rollback transactions: transactions are not in use'));
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                'Rollback transactions: transactions are not in use');
         }
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'Rollback transactions: transactions can not be rolled back when changes are auto commited'));
+            return $this->raiseError(MDB_ERROR, null, null,
+                'Rollback transactions: transactions can not be rolled back when changes are auto commited');
         }
         $result = $this->query('COMMIT TRANSACTION');
         if (MDB::isError($result)) {
-            return($result);
+            return $result;
         }
-        return($this->query('ROLLBACK TRANSACTION'));
+        return $this->query('ROLLBACK TRANSACTION');
     }
 
     function _doQuery($query)
     {
         $this->current_row = $this->affected_rows = -1;
-        return(@mssql_query($query, $this->connection));
+        return @mssql_query($query, $this->connection);
     }
 
     // }}}
@@ -275,60 +269,60 @@ class MDB_mssql extends MDB_Common
     /**
      * Connect to the database
      *
-     * @return TRUE on success, MDB_Error on failure
+     * @return true on success, MDB_Error on failure
      **/
     function connect()
     {
         $port = (isset($this->port) ? $this->port : '');
-        if($this->connection != 0) {
+        if ($this->connection != 0) {
             if (!strcmp($this->connected_host, $this->host)
                 && !strcmp($this->connected_user, $this->user)
                 && !strcmp($this->connected_password, $this->password)
                 && !strcmp($this->connected_port, $port)
                 && $this->opened_persistent == $this->options['persistent'])
             {
-                return(MDB_OK);
+                return MDB_OK;
             }
             mssql_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
         }
 
-        if(PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', TRUE));
+        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+            return PEAR::raiseError(null, MDB_ERROR_NOT_FOUND,
+                null, null, 'extension '.$this->phptype.' is not compiled into PHP',
+                'MDB_Error', true);
         }
 
         $function = ($this->options['persistent'] ? 'mssql_pconnect' : 'mssql_connect');
         if (!function_exists($function)) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED));
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED);
         }
 
-        @ini_set('track_errors', TRUE);
+        @ini_set('track_errors', true);
         $this->connection = @$function(
             $this->host.(!strcmp($port,'') ? '' : ':'.$port),
             $this->user, $this->password);
         @ini_restore('track_errors');
         if ($this->connection <= 0) {
-            return($this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL,
-                $php_errormsg));
+            return $this->raiseError(MDB_ERROR_CONNECT_FAILED, null, null,
+                $php_errormsg);
         }
 
-        if(isset($this->supported['Transactions']) && !$this->auto_commit
+        if (isset($this->supported['Transactions']) && !$this->auto_commit
             && !$this->_doQuery("BEGIN TRANSACTION"))
         {
             mssql_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
-            return($this->raiseError("Connect: Could not begin the initial transaction"));
+            return $this->raiseError("Connect: Could not begin the initial transaction");
         }
         $this->connected_host = $this->host;
         $this->connected_user = $this->user;
         $this->connected_password = $this->password;
         $this->connected_port = $port;
         $this->opened_persistent = $this->getoption('persistent');
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -350,30 +344,30 @@ class MDB_mssql extends MDB_Common
             $this->affected_rows = $this->current_row = -1;
 
             if (isset($result) && MDB::isError($result)) {
-                return($result);
+                return $result;
             }
             global $_MDB_databases;
             $_MDB_databases[$this->database] = '';
-            return(TRUE);
+            return true;
         }
-        return(FALSE);
+        return false;
     }
 
     function standaloneQuery($query)
     {
-        if(!function_exists("mssql_connect")) {
-            return($this->raiseError("Query: Microsoft SQL server support is not available in this PHP configuration"));
+        if (!function_exists("mssql_connect")) {
+            return $this->raiseError("Query: Microsoft SQL server support is not available in this PHP configuration");
         }
         $connection = mssql_connect($this->host,$this->user,$this->password);
-        if($connection == 0) {
-            return($this->mssqlRaiseError("Query: Could not connect to the Microsoft SQL server"));
+        if ($connection == 0) {
+            return $this->mssqlRaiseError("Query: Could not connect to the Microsoft SQL server");
         }
         $result = @mssql_query($query, $connection);
-        if(!$result) {
+        if (!$result) {
             $this->mssqlRaiseError("Query: Could not query a Microsoft SQL server");
         }
         mssql_close($connection);
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -390,7 +384,7 @@ class MDB_mssql extends MDB_Common
      *
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      */
-    function query($query, $types = NULL)
+    function query($query, $types = null)
     {
         $this->debug("Query: $query");
         if ($this->database_name) {
@@ -403,41 +397,42 @@ class MDB_mssql extends MDB_Common
             $last_connection = $this->connection;
             $result = $this->connect();
             if (MDB::isError($result)) {
-                return($result);
+                return $result;
             }
-            if($limit > 0) {
+            if ($limit > 0) {
                 if ($ismanip) {
                     eregi_replace('SELECT', "SELECT TOP $limit", $query);
                 }
             }
-            if( $last_connection != $this->connection
+            if ( $last_connection != $this->connection
                 || !strcmp($this->selected_database, '')
                 || strcmp($this->selected_database, $this->database_name))
             {
-                if(!mssql_select_db($this->database_name, $this->connection)) {
-                return($this->mssqlRaiseError());
+                if (!mssql_select_db($this->database_name, $this->connection)) {
+                    return $this->mssqlRaiseError();
+                }
             }
             if ($result = $this->_doQuery($query)) {
                 if ($ismanip) {
                     $this->affected_rows = mssql_affected_rows($this->connection);
-                    return(MDB_OK);
+                    return MDB_OK;
                 } else {
                     $this->highest_fetched_row[$result] = -1;
-                    if ($types != NULL) {
+                    if ($types != null) {
                         if (!is_array($types)) {
                             $types = array($types);
                         }
                         if (MDB::isError($err = $this->setResultTypes($result, $types))) {
                             $this->freeResult($result);
-                            return($err);
+                            return $err;
                         }
                     }
-                    return($result);
+                    return $result;
                 }
             }
         }
 
-        return($this->mssqlRaiseError());
+        return $this->mssqlRaiseError();
     }
 
     // }}}
@@ -463,8 +458,8 @@ class MDB_mssql extends MDB_Common
     {
         $result_value = intval($result);
         if (!isset($this->highest_fetched_row[$result_value])) {
-            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
-                'Get column names: it was specified an inexisting result set'));
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'Get column names: it was specified an inexisting result set');
         }
         if (!isset($this->columns[$result_value])) {
             $this->columns[$result_value] = array();
@@ -473,7 +468,7 @@ class MDB_mssql extends MDB_Common
                 $this->columns[$result_value][strtolower(mssql_field_name($result, $column))] = $column;
             }
         }
-        return($this->columns[$result_value]);
+        return $this->columns[$result_value];
     }
 
     // }}}
@@ -490,10 +485,10 @@ class MDB_mssql extends MDB_Common
     function numCols($result)
     {
         if (!isset($this->highest_fetched_row[intval($result)])) {
-            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
-                'numCols: it was specified an inexisting result set'));
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'numCols: it was specified an inexisting result set');
         }
-        return(mssql_num_fields($result));
+        return mssql_num_fields($result);
     }
 
     // }}}
@@ -503,110 +498,16 @@ class MDB_mssql extends MDB_Common
     * check if the end of the result set has been reached
     *
     * @param resource    $result result identifier
-    * @return mixed TRUE or FALSE on sucess, a MDB error on failure
+    * @return mixed true or false on sucess, a MDB error on failure
     * @access public
     */
     function endOfResult($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'End of result: attempted to check the end of an unknown result'));
+            return $this->raiseError(MDB_ERROR, null, null,
+                'End of result: attempted to check the end of an unknown result');
         }
-        return($this->highest_fetched_row[$result] >= $this->numRows($result)-1);
-    }
-
-    // }}}
-    // {{{ fetch()
-
-    /**
-    * fetch value from a result set
-    *
-    * @param resource    $result result identifier
-    * @param int    $row    number of the row where the data can be found
-    * @param int    $field    field number where the data can be found
-    * @return mixed string on success, a MDB error on failure
-    * @access public
-    */
-    function fetch($result, $row, $field)
-    {
-        $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
-        $res = @mssql_result($result, $row, $field);
-        if ($res === FALSE && $res != NULL) {
-            return($this->mssqlRaiseError($errno));
-        }
-        return($res);
-    }
-
-    // }}}
-    // {{{ fetchClob()
-
-    /**
-    * fetch a clob value from a result set
-    *
-    * @param resource    $result result identifier
-    * @param int    $row    number of the row where the data can be found
-    * @param int    $field    field number where the data can be found
-    * @return mixed content of the specified data cell, a MDB error on failure,
-    *               a MDB error on failure
-    * @access public
-    */
-    function fetchClob($result, $row, $field)
-    {
-        return($this->fetchLob($result, $row, $field));
-    }
-
-    // }}}
-    // {{{ fetchBlob()
-
-    /**
-    * fetch a blob value from a result set
-    *
-    * @param resource    $result result identifier
-    * @param int    $row    number of the row where the data can be found
-    * @param int    $field    field number where the data can be found
-    * @return mixed content of the specified data cell, a MDB error on failure
-    * @access public
-    */
-    function fetchBlob($result, $row, $field)
-    {
-        return($this->fetchLob($result, $row, $field));
-    }
-
-    // }}}
-    // {{{ convertResult()
-
-    /**
-    * convert a value to a RDBMS indepdenant MDB type
-    *
-    * @param mixed  $value   value to be converted
-    * @param int    $type    constant that specifies which type to convert to
-    * @return mixed converted value
-    * @access public
-    */
-    function convertResult($value, $type)
-    {
-        switch($type) {
-            case METABASE_TYPE_BOOLEAN:
-                return(strcmp($value,"1") ? 0 : 1);
-            case METABASE_TYPE_DECIMAL:
-                return($valur);
-            case METABASE_TYPE_FLOAT:
-                return(doubleval($value));
-            case METABASE_TYPE_DATE:
-                if(strlen($value) > 10) {
-                    $value=substr($value,0,10);
-                }
-                return($value);
-            case METABASE_TYPE_TIME:
-                if(strlen($value) > 8) {
-                    $value=substr($value,11,8);
-                }
-                return($value);
-            case METABASE_TYPE_TIMESTAMP:
-                return($value);
-            default:
-                return($this->baseConvertResult($value,$type));
-        }
+        return $this->highest_fetched_row[$result] >= $this->numRows($result)-1;
     }
 
     // }}}
@@ -621,7 +522,7 @@ class MDB_mssql extends MDB_Common
     */
     function numRows($result)
     {
-        return(isset($this->ranges[$result]) ? count($this->ranges[$result]) : mssql_num_rows($result));
+        return isset($this->ranges[$result]) ? count($this->ranges[$result]) : mssql_num_rows($result);
     }
 
     // }}}
@@ -631,489 +532,27 @@ class MDB_mssql extends MDB_Common
      * Free the internal resources associated with $result.
      *
      * @param $result result identifier
-     * @return boolean TRUE on success, FALSE if $result is invalid
+     * @return boolean true on success, false if $result is invalid
      * @access public
      */
     function freeResult($result)
     {
-        if(isset($this->fetched_row[$result])) {
+        if (isset($this->fetched_row[$result])) {
             unset($this->fetched_row[$result]);
         }
-        if(isset($this->ranges[$result])) {
+        if (isset($this->ranges[$result])) {
             unset($this->ranges[$result]);
         }
-        if(isset($this->highest_fetched_row[$result])) {
+        if (isset($this->highest_fetched_row[$result])) {
             unset($this->highest_fetched_row[$result]);
         }
-        if(isset($this->columns[$result])) {
+        if (isset($this->columns[$result])) {
             unset($this->columns[$result]);
         }
-        if(isset($this->result_types[$result])) {
+        if (isset($this->result_types[$result])) {
             unset($this->result_types[$result]);
         }
-        return(mssql_free_result($result));
-    }
-
-    // }}}
-    // {{{ getIntegerDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an integer type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param string  $name   name the field to be declared.
-     * @param string  $field  associative array with the name of the properties
-     *                        of the field being declared as array indexes.
-     *                        Currently, the types of supported field
-     *                        properties are as follows:
-     *
-     *                       unsigned
-     *                        Boolean flag that indicates whether the field
-     *                        should be declared as unsigned integer if
-     *                        possible.
-     *
-     *                       default
-     *                        Integer value to be used as default for this
-     *                        field.
-     *
-     *                       notnull
-     *                        Boolean flag that indicates whether this field is
-     *                        constrained to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *                 declare the specified field.
-     * @access public
-     */
-    function getIntegerDeclaration($name, $field)
-    {
-        if (isset($field['unsigned'])) {
-            $this->warnings[] = "unsigned integer field \"$name\" is being
-                declared as signed integer";
-        }
-        return("$name INT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
-    }
-    }
-
-    // }}}
-    // {{{ getTextDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an text type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param string $name name the field to be declared.
-     * @param string $field associative array with the name of the properties
-     *       of the field being declared as array indexes. Currently, the types
-     *       of supported field properties are as follows:
-     *
-     *       length
-     *           Integer value that determines the maximum length of the text
-     *           field. If this argument is missing the field should be
-     *           declared to have the longest length allowed by the DBMS.
-     *
-     *       default
-     *           Text value to be used as default for this field.
-     *
-     *       notnull
-     *           Boolean flag that indicates whether this field is constrained
-     *           to not be set to NULL.
-     * @return string DBMS specific SQL code portion that should be used to
-     *       declare the specified field.
-     * @access public
-     */
-    function getTextDeclaration($name, $field)
-    {
-        return((isset($field["length"]) ? "$name VARCHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->GetTextFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
-    }
-
-    // }}}
-    // {{{ getClobDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an character
-     * large object type field to be used in statements like CREATE TABLE.
-     *
-     * @param string  $name   name the field to be declared.
-     * @param string  $field  associative array with the name of the
-     *                        properties of the field being declared as array
-     *                        indexes. Currently, the types of supported field
-     *                        properties are as follows:
-     *
-     *                       length
-     *                        Integer value that determines the maximum length
-     *                        of the large object field. If this argument is
-     *                        missing the field should be declared to have the
-     *                        longest length allowed by the DBMS.
-     *
-     *                       notnull
-     *                        Boolean flag that indicates whether this field
-     *                        is constrained to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *                 declare the specified field.
-     * @access public
-     */
-    function getClobDeclaration($name, $field)
-    {
-        if (isset($field["length"])) {
-            $length = $field["length"];
-            if ($length <= 8000) {
-                $type = "VARCHAR($length)";
-            } else {
-                $type = "TEXT";
-            }
-        } else {
-            $type = "TEXT";
-        }
-        return("$name $type".(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
-    }
-
-    // }}}
-    // {{{ getBlobDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an binary large
-     * object type field to be used in statements like CREATE TABLE.
-     *
-     * @param string  $name   name the field to be declared.
-     * @param string  $field  associative array with the name of the properties
-     *                        of the field being declared as array indexes.
-     *                        Currently, the types of supported field
-     *                        properties are as follows:
-     *
-     *                       length
-     *                        Integer value that determines the maximum length
-     *                        of the large object field. If this argument is
-     *                        missing the field should be declared to have the
-     *                        longest length allowed by the DBMS.
-     *
-     *                       notnull
-     *                        Boolean flag that indicates whether this field is
-     *                        constrained to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *                 declare the specified field.
-     * @access public
-     */
-    function getBlobDeclaration($name, $field)
-    {
-        if(isset($field["length"])) {
-            $length = $field["length"];
-            if($length <= 8000) {
-                $type = "VARBINARY($length)";
-            } else {
-                $type = "IMAGE";
-            }
-        } else {
-            $type = "IMAGE";
-        }
-        return("$name $type".(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
-    }
-
-    // }}}
-    // {{{ getBooleanDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare a boolean type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param string $name name the field to be declared.
-     * @param string $field associative array with the name of the properties
-     *       of the field being declared as array indexes. Currently, the types
-     *       of supported field properties are as follows:
-     *
-     *       default
-     *           Boolean value to be used as default for this field.
-     *
-     *       notnullL
-     *           Boolean flag that indicates whether this field is constrained
-     *           to not be set to NULL.
-     * @return string DBMS specific SQL code portion that should be used to
-     *       declare the specified field.
-     * @access public
-     */
-    function getBooleanDeclaration($name, $field)
-    {
-        return("$name BIT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
-    }
-
-    // }}}
-    // {{{ getDateDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an date type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param string  $name   name the field to be declared.
-     * @param string  $field  associative array with the name of the properties
-     *                        of the field being declared as array indexes.
-     *                        Currently, the types of supported field properties
-     *                        are as follows:
-     *
-     *                       default
-     *                        Date value to be used as default for this field.
-     *
-     *                       notnull
-     *                        Boolean flag that indicates whether this field is
-     *                        constrained to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *                 declare the specified field.
-     * @access public
-     */
-    function getDateDeclaration($name, $field)
-    {
-        return("$name CHAR (".strlen("YYYY-MM-DD").")".(isset($field["default"]) ? " DEFAULT ".$this->getDateValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
-    }
-
-    // }}}
-    // {{{ getTimestampDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an timestamp
-     * type field to be used in statements like CREATE TABLE.
-     *
-     * @param string  $name   name the field to be declared.
-     * @param string  $field  associative array with the name of the properties
-     *                        of the field being declared as array indexes.
-     *                        Currently, the types of supported field
-     *                        properties are as follows:
-     *
-     *                       default
-     *                        Time stamp value to be used as default for this
-     *                        field.
-     *
-     *                       notnull
-     *                        Boolean flag that indicates whether this field is
-     *                        constrained to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *                 declare the specified field.
-     * @access public
-     */
-    function getTimestampDeclaration($name, $field)
-    {
-        return("$name CHAR (".strlen("YYYY-MM-DD HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimestampValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
-    }
-
-    // }}}
-    // {{{ getTimeDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an time type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param string  $name   name the field to be declared.
-     * @param string  $field  associative array with the name of the properties
-     *                        of the field being declared as array indexes.
-     *                        Currently, the types of supported field
-     *                        properties are as follows:
-     *
-     *                       default
-     *                        Time value to be used as default for this field.
-     *
-     *                       notnull
-     *                        Boolean flag that indicates whether this field is
-     *                        constrained to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *                 declare the specified field.
-     * @access public
-     */
-    function getTimeDeclaration($name, $field)
-    {
-        return("$name CHAR (".strlen("HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimeValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
-    }
-
-    // }}}
-    // {{{ getFloatDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an float type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param string  $name   name the field to be declared.
-     * @param string  $field  associative array with the name of the properties
-     *                        of the field being declared as array indexes.
-     *                        Currently, the types of supported field
-     *                        properties are as follows:
-     *
-     *                       default
-     *                        Integer value to be used as default for this
-     *                        field.
-     *
-     *                       notnull
-     *                        Boolean flag that indicates whether this field is
-     *                        constrained to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *                 declare the specified field.
-     * @access public
-     */
-    function getFloatDeclaration($name, $field)
-    {
-        return("$name FLOAT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
-    }
-
-    // }}}
-    // {{{ getDecimalDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an decimal type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param string  $name   name the field to be declared.
-     * @param string  $field  associative array with the name of the properties
-     *                        of the field being declared as array indexes.
-     *                        Currently, the types of supported field
-     *                        properties are as follows:
-     *
-     *                       default
-     *                        Integer value to be used as default for this
-     *                        field.
-     *
-     *                       notnull
-     *                        Boolean flag that indicates whether this field is
-     *                        constrained to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *                 declare the specified field.
-     * @access public
-     */
-    function getDecimalDeclaration($name, $field)
-    {
-        return("$name DECIMAL(18,".$this->decimal_places.")".(isset($field["default"]) ? " DEFAULT ".$this->getDecimalValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
-    }
-
-    // }}}
-    // {{{ getClobValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
-     * @param           $clob
-     * @return string  text string that represents the given argument value in
-     *                 a DBMS specific format.
-     * @access public
-     */
-    function getClobValue($prepared_query, $parameter, $clob)
-    {
-		$value="'";
-        while(!$this->endOfLob($clob)) {
-            if (MDB::isError($result = $this->readLob($clob, $data, $this->options['lob_buffer_length']))) {
-                return($result);
-			}
-            $value .= $this->_quote($data);
-        }
-        $value .= "'";
-        return($value);
-    }
-
-    // }}}
-    // {{{ freeClobValue()
-
-    /**
-     * free a character large object
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param string    $clob
-     * @return MDB_OK
-     * @access public
-     */
-    function freeClobValue($prepared_query, $clob)
-    {
-        unset($this->lobs[$clob]);
-        return(MDB_OK);
-    }
-
-    // }}}
-    // {{{ getBlobValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
-     * @param           $blob
-     * @return string  text string that represents the given argument value in
-     *                 a DBMS specific format.
-     * @access public
-     */
-    function getBlobValue($prepared_query, $parameter, $blob)
-    {
-        $value = "0x";
-        while(!$this->endOfLob($blob))
-        {
-            if (MDB::isError($result = $this->readLob($blob, $data, $this->options['lob_buffer_length']))) {
-                return($result);
-            }
-            $value.= Bin2Hex($data);
-        }
-        return($value);
-    }
-
-    // }}}
-    // {{{ freeBlobValue()
-
-    /**
-     * free a binary large object
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param string    $blob
-     * @return MDB_OK
-     * @access public
-     */
-    function freeBlobValue($prepared_query, $blob)
-    {
-        unset($this->lobs[$blob]);
-        return(MDB_OK);
-    }
-
-    // }}}
-    // {{{ getBooleanValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param string $value text string value that is intended to be converted.
-     * @return string text string that represents the given argument value in
-     *       a DBMS specific format.
-     * @access public
-     */
-    function getBooleanValue($value)
-    {
-        return(($value === NULL) ? 'NULL' : $value);
-    }
-
-    // }}}
-    // {{{ getFloatValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param string  $value text string value that is intended to be converted.
-     * @return string  text string that represents the given argument value in
-     *                 a DBMS specific format.
-     * @access public
-     */
-    function getFloatValue($value)
-    {
-        return(($value === NULL) ? 'NULL' : $value);
-    }
-
-    // }}}
-    // {{{ getDecimalValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param string  $value text string value that is intended to be converted.
-     * @return string  text string that represents the given argument value in
-     *                 a DBMS specific format.
-     * @access public
-     */
-    function getDecimalValue($value)
-    {
-        return(($value === NULL) ? 'NULL' : $value);
+        return mssql_free_result($result);
     }
 
     // }}}
@@ -1130,11 +569,11 @@ class MDB_mssql extends MDB_Common
      * @return mixed MDB_Error or id
      * @access public
      */
-    function nextId($seq_name, $ondemand = TRUE)
+    function nextId($seq_name, $ondemand = true)
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
-        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
+        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (null)");
         $this->popExpect();
         if ($ondemand && MDB::isError($result) &&
             $result->getCode() == MDB_ERROR_NOSUCHTABLE)
@@ -1144,11 +583,11 @@ class MDB_mssql extends MDB_Common
             // sequence at 2
             $result = $this->createSequence($seq_name, 2);
             if (MDB::isError($result)) {
-                return($this->raiseError(MDB_ERROR, NULL, NULL,
-                    'Next ID: on demand sequence could not be created'));
+                return $this->raiseError(MDB_ERROR, null, null,
+                    'Next ID: on demand sequence could not be created');
             } else {
                 // First ID of a newly created sequence is 1
-                return(1);
+                return 1;
             }
         }
         $value = intval(mssql_insert_id($this->connection));
@@ -1156,7 +595,7 @@ class MDB_mssql extends MDB_Common
         if (MDB::isError($res)) {
             $this->warnings[] = 'Next ID: could not delete previous sequence table values';
         }
-        return($value);
+        return $value;
     }
 
     // }}}
@@ -1174,10 +613,10 @@ class MDB_mssql extends MDB_Common
         $sequence_name = $this->getSequenceName($seq_name);
         $result = $this->query("SELECT MAX(sequence) FROM $sequence_name", 'integer');
         if (MDB::isError($result)) {
-            return($result);
+            return $result;
         }
 
-        return($this->fetchOne($result));
+        return $this->fetchOne($result);
     }
 
     // }}}
@@ -1192,13 +631,13 @@ class MDB_mssql extends MDB_Common
      * @return int data array on success, a MDB error on failure
      * @access public
      */
-    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
+    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
-        if ($rownum == NULL) {
+        if ($rownum == null) {
             ++$this->highest_fetched_row[$result];
         } else {
             if (!@mssql_data_seek($result, $rownum)) {
-                return(NULL);
+                return null;
             }
             $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
         }
@@ -1213,17 +652,17 @@ class MDB_mssql extends MDB_Common
         if (!$array) {
             $errno = @mssql_errno($this->connection);
             if (!$errno) {
-                if($this->options['autofree']) {
+                if ($this->options['autofree']) {
                     $this->freeResult($result);
                 }
-                return(NULL);
+                return null;
             }
-            return($this->mssqlRaiseError($errno));
+            return $this->mssqlRaiseError($errno);
         }
         if (isset($this->result_types[$result])) {
             $array = $this->convertResultRow($result, $array);
         }
-        return($array);
+        return $array;
     }
 
     // }}}
@@ -1239,7 +678,7 @@ class MDB_mssql extends MDB_Common
      */
     function nextResult($result)
     {
-        return(mssql_next_result($result));
+        return mssql_next_result($result);
     }
 
     // }}}
@@ -1253,7 +692,8 @@ class MDB_mssql extends MDB_Common
     * @return array an nested array, or a MDB error
     * @access public
     */
-    function tableInfo($result, $mode = NULL) {
+    function tableInfo($result, $mode = null)
+    {
         $count = 0;
         $id     = 0;
         $res  = array();
@@ -1301,12 +741,12 @@ class MDB_mssql extends MDB_Common
             $id = @mssql_list_fields($this->database_name,
                 $result, $this->connection);
             if (empty($id)) {
-                return($this->mssqlRaiseError());
+                return $this->mssqlRaiseError();
             }
         } else { // else we want information about a resultset
             $id = $result;
             if (empty($id)) {
-                return($this->mssqlRaiseError());
+                return $this->mssqlRaiseError();
             }
         }
 
@@ -1343,7 +783,7 @@ class MDB_mssql extends MDB_Common
         if (is_string($result)) {
             @mssql_free_result($id);
         }
-        return($res);
+        return $res;
     }
 }
 

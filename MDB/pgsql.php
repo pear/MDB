@@ -44,7 +44,7 @@
 //
 // $Id$
 
-require_once('MDB/Common.php');
+require_once 'MDB/Common.php';
 
 /**
  * MDB PostGreSQL driver
@@ -104,7 +104,7 @@ class MDB_pgsql extends MDB_Common
      *
      * @param $nativecode the native error code, as returned by the backend
      * database extension (string or integer)
-     * @return int a portable MDB error code, or FALSE if this DB
+     * @return int a portable MDB error code, or false if this DB
      * implementation has no mapping for the given error code.
      */
     function errorCode($errormsg)
@@ -123,11 +123,11 @@ class MDB_pgsql extends MDB_Common
         }
         foreach ($error_regexps as $regexp => $code) {
             if (preg_match($regexp, $errormsg)) {
-                return($code);
+                return $code;
             }
         }
         // Fall back to MDB_ERROR if there was no mapping.
-        return(MDB_ERROR);
+        return MDB_ERROR;
     }
 
     // }}}
@@ -144,15 +144,15 @@ class MDB_pgsql extends MDB_Common
      * @see PEAR_Error
      */
 
-    function pgsqlRaiseError($errno = NULL)
+    function pgsqlRaiseError($errno = null)
     {
         $native = $this->errorNative();
-        if ($errno === NULL) {
+        if ($errno === null) {
             $err = $this->errorCode($native);
         } else {
             $err = $errno;
         }
-        return($this->raiseError($err, NULL, NULL, NULL, $native));
+        return $this->raiseError($err, null, null, null, $native);
     }
 
     // }}}
@@ -191,15 +191,15 @@ class MDB_pgsql extends MDB_Common
     {
         $this->debug('AutoCommit: '.($auto_commit ? 'On' : 'Off'));
         if (((!$this->auto_commit) == (!$auto_commit))) {
-            return(MDB_OK);
+            return MDB_OK;
         }
         if ($this->connection) {
             if (MDB::isError($result = $this->_doQuery($auto_commit ? 'END' : 'BEGIN')))
-                return($result);
+                return $result;
         }
         $this->auto_commit = $auto_commit;
         $this->in_transaction = !$auto_commit;
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -218,9 +218,9 @@ class MDB_pgsql extends MDB_Common
     {
          $this->debug('Commit Transaction');
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'Commit: transaction changes are being auto commited'));
+            return $this->raiseError(MDB_ERROR, null, null, 'Commit: transaction changes are being auto commited');
         }
-        return($this->_doQuery('COMMIT') && $this->_doQuery('BEGIN'));
+        return $this->_doQuery('COMMIT') && $this->_doQuery('BEGIN');
     }
 
     // }}}
@@ -239,9 +239,9 @@ class MDB_pgsql extends MDB_Common
     {
          $this->debug('Rollback Transaction');
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'Rollback: transactions can not be rolled back when changes are auto commited'));
+            return $this->raiseError(MDB_ERROR, null, null, 'Rollback: transactions can not be rolled back when changes are auto commited');
         }
-        return($this->_doQuery('ROLLBACK') && $this->_doQuery('BEGIN'));
+        return $this->_doQuery('ROLLBACK') && $this->_doQuery('BEGIN');
     }
 
     // }}}
@@ -257,7 +257,7 @@ class MDB_pgsql extends MDB_Common
     {
         $function = ($persistent ? 'pg_pconnect' : 'pg_connect');
         if (!function_exists($function)) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'doConnect: PostgreSQL support is not available in this PHP configuration'));
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'doConnect: PostgreSQL support is not available in this PHP configuration');
         }
         $port = (isset($this->port) ? $this->port : '');
         if ($database_name == '') {
@@ -277,14 +277,14 @@ class MDB_pgsql extends MDB_Common
             $connect_string .= ' password='.$this->password;
         }
         if (($connection = @$function($connect_string)) > 0) {
-            return($connection);
+            return $connection;
         }
         if (isset($php_errormsg)) {
             $error_msg = $php_errormsg;
         } else {
             $error_msg = 'Could not connect to PostgreSQL server';
         }
-        return($this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL, 'doConnect: '.$error_msg));
+        return $this->raiseError(MDB_ERROR_CONNECT_FAILED, null, null, 'doConnect: '.$error_msg);
     }
 
     // }}}
@@ -293,32 +293,32 @@ class MDB_pgsql extends MDB_Common
     /**
      * Connect to the database
      *
-     * @return TRUE on success, MDB_Error on failure
+     * @return true on success, MDB_Error on failure
      * @access public
      **/
     function connect()
     {
         $port = (isset($this->options['port']) ? $this->options['port'] : '');
-        if($this->connection != 0) {
+        if ($this->connection != 0) {
             if (!strcmp($this->connected_host, $this->host)
                 && !strcmp($this->connected_port, $port)
                 && !strcmp($this->selected_database, $this->database_name)
                 && ($this->opened_persistent == $this->options['persistent']))
             {
-                return(MDB_OK);
+                return MDB_OK;
             }
             pg_Close($this->connection);
             $this->affected_rows = -1;
             $this->connection = 0;
         }
 
-        if(PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', TRUE));
+        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+            return PEAR::raiseError(null, MDB_ERROR_NOT_FOUND,
+                null, null, 'extension '.$this->phptype.' is not compiled into PHP',
+                'MDB_Error', true);
         }
 
-        if(function_exists('pg_cmdTuples')) {
+        if (function_exists('pg_cmdTuples')) {
             $connection = $this->_doConnect('template1', 0);
             if (!MDB::isError($connection)) {
                 if (($result = @pg_Exec($connection, 'BEGIN'))) {
@@ -329,19 +329,19 @@ class MDB_pgsql extends MDB_Common
                     }
                     error_reporting($error_reporting);
                 } else {
-                    $err = $this->raiseError(MDB_ERROR, NULL, NULL, 'Setup: '.pg_ErrorMessage($connection));
+                    $err = $this->raiseError(MDB_ERROR, null, null, 'Setup: '.pg_ErrorMessage($connection));
                 }
                 pg_Close($connection);
             } else {
-                $err = $this->raiseError(MDB_ERROR, NULL, NULL, 'Setup: could not execute BEGIN');
+                $err = $this->raiseError(MDB_ERROR, null, null, 'Setup: could not execute BEGIN');
             }
             if (isset($err) && MDB::isError($err)) {
-                return($err);
+                return $err;
             }
         }
         $connection = $this->_doConnect($this->database_name, $this->options['persistent']);
         if (MDB::isError($connection)) {
-            return($connection);
+            return $connection;
         }
         $this->connection = $connection;
         
@@ -349,13 +349,13 @@ class MDB_pgsql extends MDB_Common
             pg_Close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
-            return($trans_result);
+            return $trans_result;
         }
         $this->connected_host = $this->host;
         $this->connected_port = $port;
         $this->selected_database = $this->database_name;
         $this->opened_persistent = $this->options['persistent'];
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -378,9 +378,9 @@ class MDB_pgsql extends MDB_Common
             
             global $_MDB_databases;
             $_MDB_databases[$this->database] = '';
-            return(MDB_OK);
+            return MDB_OK;
         }
-        return(MDB_ERROR);
+        return MDB_ERROR;
     }
 
     // }}}
@@ -398,9 +398,9 @@ class MDB_pgsql extends MDB_Common
             $this->affected_rows = (isset($this->supported['AffectedRows']) ? pg_cmdTuples($result) : -1);
         } else {
             $error = pg_ErrorMessage($this->connection);
-            return($this->pgsqlRaiseError());
+            return $this->pgsqlRaiseError();
         }
-        return($result);
+        return $result;
     }
 
     // }}}
@@ -416,13 +416,13 @@ class MDB_pgsql extends MDB_Common
     function _standaloneQuery($query)
     {
         if (($connection = $this->_doConnect('template1', 0)) == 0) {
-            return($this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL, '_standaloneQuery: Cannot connect to template1'));
+            return $this->raiseError(MDB_ERROR_CONNECT_FAILED, null, null, '_standaloneQuery: Cannot connect to template1');
         }
         if (!($result = @pg_Exec($connection, $query))) {
-            $this->raiseError(MDB_ERROR, NULL, NULL, '_standaloneQuery: ' . pg_ErrorMessage($connection));
+            $this->raiseError(MDB_ERROR, null, null, '_standaloneQuery: ' . pg_ErrorMessage($connection));
         }
         pg_Close($connection);
-        return($result);
+        return $result;
     }
 
     // }}}
@@ -437,7 +437,7 @@ class MDB_pgsql extends MDB_Common
      * @return mixed result identifier if query executed, else MDB_error
      * @access public
      **/
-    function query($query, $types = NULL)
+    function query($query, $types = null)
     {
         $this->debug("Query: $query");
         $ismanip = MDB::isManip($query);
@@ -446,7 +446,7 @@ class MDB_pgsql extends MDB_Common
         $this->first_selected_row = $this->selected_row_limit = 0;
         $connected = $this->connect();
         if (MDB::isError($connected)) {
-            return($connected);
+            return $connected;
         }
         
         if (!$ismanip && $limit > 0 &&
@@ -454,51 +454,51 @@ class MDB_pgsql extends MDB_Common
             0, 6) == 'select')
         {
              if ($this->auto_commit && MDB::isError($this->_doQuery('BEGIN'))) {
-                 return($this->raiseError(MDB_ERROR));
+                 return $this->raiseError(MDB_ERROR);
              }
              $result = $this->_doQuery('DECLARE select_cursor SCROLL CURSOR FOR '.$query);
              if (!MDB::isError($result)) {
                  if ($first > 0 && MDB::isError($result = $this->_doQuery("MOVE FORWARD $first FROM select_cursor"))) {
                      $this->freeResult($result);
-                     return($result);
+                     return $result;
                  }
                  if (MDB::isError($result = $this->_doQuery("FETCH FORWARD $limit FROM select_cursor"))) {
                      $this->freeResult($result);
-                     return($result);
+                     return $result;
                  }
              } else {
-                 return($result);
+                 return $result;
              }
              if ($this->auto_commit && MDB::isError($result2 = $this->_doQuery('END'))) {
                  $this->freeResult($result);
-                 return($result2);
+                 return $result2;
              }
          } else {
             $result = $this->_doQuery($query);
             if (MDB::isError($result)) {
-                return($result);
+                return $result;
             }
         }
         if ($ismanip) {
             $this->affected_rows = @pg_cmdtuples($result);
-            return(MDB_OK);
+            return MDB_OK;
         } elseif  (preg_match('/^\s*\(?\s*SELECT\s+/si', $query) && !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query)) {
             $this->highest_fetched_row[$result] = -1;
-            if ($types != NULL) {
+            if ($types != null) {
                 if (!is_array($types)) {
                     $types = array($types);
                 }
                 if (MDB::isError($err = $this->setResultTypes($result, $types))) {
                     $this->freeResult($result);
-                    return($err);
+                    return $err;
                 }
             }
-            return($result);
+            return $result;
         } else {
             $this->affected_rows = 0;
-            return(MDB_OK);
+            return MDB_OK;
         }
-        return($this->raiseError(MDB_ERROR));
+        return $this->raiseError(MDB_ERROR);
     }
 
     // }}}
@@ -520,7 +520,7 @@ class MDB_pgsql extends MDB_Common
     function getColumnNames($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'Get Column Names: specified an nonexistant result set'));
+            return $this->raiseError(MDB_ERROR, null, null, 'Get Column Names: specified an nonexistant result set');
         }
         if (!isset($this->columns[$result])) {
             $this->columns[$result] = array();
@@ -529,7 +529,7 @@ class MDB_pgsql extends MDB_Common
                 $this->columns[$result][strtolower(pg_fieldname($result, $column))] = $column;
             }
         }
-        return($this->columns[$result]);
+        return $this->columns[$result];
     }
 
     // }}}
@@ -546,9 +546,9 @@ class MDB_pgsql extends MDB_Common
     function numCols($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'numCols: specified an nonexistant result set'));
+            return $this->raiseError(MDB_ERROR, null, null, 'numCols: specified an nonexistant result set');
         }
-        return(pg_numfields($result));
+        return pg_numfields($result);
     }
 
     // }}}
@@ -558,211 +558,15 @@ class MDB_pgsql extends MDB_Common
     * check if the end of the result set has been reached
     *
     * @param resource    $result result identifier
-    * @return mixed TRUE or FALSE on sucess, a MDB error on failure
+    * @return mixed true or false on sucess, a MDB error on failure
     * @access public
     */
     function endOfResult($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return($this->RaiseError(MDB_ERROR, NULL, NULL, 'End of result attempted to check the end of an unknown result'));
+            return $this->RaiseError(MDB_ERROR, null, null, 'End of result attempted to check the end of an unknown result');
         }
-        return($this->highest_fetched_row[$result] >= $this->numRows($result) - 1);
-    }
-
-    // }}}
-    // {{{ fetch()
-
-    /**
-     * fetch value from a result set
-     *
-     * @param resource $result result identifier
-     * @param int $row number of the row where the data can be found
-     * @param int $field field number where the data can be found
-     * @return mixed string on success, a MDB error on failure
-     * @access public
-     */
-    function fetch($result, $row, $field)
-    {
-        $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
-        $res = @pg_result($result, $row, $field);
-        if ($res === FALSE && $res != NULL) {
-            return($this->pgsqlRaiseError());
-        }
-        return($res);
-    }
-
-    // }}}
-    // {{{ _retrieveLob()
-
-    /**
-     * fetch a float value from a result set
-     *
-     * @param int $lob handle to a lob created by the createLob() function
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access private
-     */
-    function _retrieveLob($lob)
-    {
-        if (!isset($this->lobs[$lob])) {
-            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL, 'Retrieve LOB: did not specified a valid lob'));
-        }
-        if (!isset($this->lobs[$lob]['Value'])) {
-            if ($this->auto_commit) {
-                if (!@pg_exec($this->connection, 'BEGIN')) {
-                    return($this->raiseError(MDB_ERROR,  NULL, NULL, 'Retrieve LOB: ' . pg_ErrorMessage($this->connection)));
-                }
-                $this->lobs[$lob]['InTransaction'] = 1;
-            }
-            $this->lobs[$lob]['Value'] = $this->fetch($this->lobs[$lob]['Result'], $this->lobs[$lob]['Row'], $this->lobs[$lob]['Field']);
-            if (!($this->lobs[$lob]['Handle'] = @pg_loopen($this->connection, $this->lobs[$lob]['Value'], 'r'))) {
-                if (isset($this->lobs[$lob]['InTransaction'])) {
-                    @pg_Exec($this->connection, 'END');
-                    unset($this->lobs[$lob]['InTransaction']);
-                }
-                unset($this->lobs[$lob]['Value']);
-                return($this->raiseError(MDB_ERROR, NULL, NULL, 'Retrieve LOB: ' . pg_ErrorMessage($this->connection)));
-            }
-        }
-        return(MDB_OK);
-    }
-
-    // }}}
-    // {{{ endOfResultLob()
-
-    /**
-     * Determine whether it was reached the end of the large object and
-     * therefore there is no more data to be read for the its input stream.
-     *
-     * @param int    $lob handle to a lob created by the createLob() function
-     * @return mixed TRUE or FALSE on success, a MDB error on failure
-     * @access public
-     */
-    function endOfResultLob($lob)
-    {
-        $lobresult = $this->_retrieveLob($lob);
-        if (MDB::isError($lobresult)) {
-            return($lobresult);
-        }
-        return(isset($this->lobs[$lob]['EndOfLOB']));
-    }
-
-    // }}}
-    // {{{ _readResultLob()
-
-    /**
-     * Read data from large object input stream.
-     *
-     * @param int $lob handle to a lob created by the createLob() function
-     * @param blob $data reference to a variable that will hold data to be
-     *      read from the large object input stream
-     * @param int $length integer value that indicates the largest ammount of
-     *      data to be read from the large object input stream.
-     * @return mixed length on success, a MDB error on failure
-     * @access private
-     */
-    function _readResultLob($lob, &$data, $length)
-    {
-        $lobresult = $this->_retrieveLob($lob);
-        if (MDB::isError($lobresult)) {
-            return($lobresult);
-        }
-        $data = pg_loread($this->lobs[$lob]['Handle'], $length);
-        if (gettype($data) != 'string') {
-            $this->raiseError(MDB_ERROR, NULL, NULL, 'Read Result LOB: ' . pg_ErrorMessage($this->connection));
-        }
-        if (($length = strlen($data)) == 0) {
-            $this->lobs[$lob]['EndOfLOB'] = 1;
-        }
-        return($length);
-    }
-
-    // }}}
-    // {{{ _destroyResultLob()
-
-    /**
-     * Free any resources allocated during the lifetime of the large object
-     * handler object.
-     *
-     * @param int $lob handle to a lob created by the createLob() function
-     * @access private
-     */
-    function _destroyResultLob($lob)
-    {
-        if (isset($this->lobs[$lob])) {
-            if (isset($this->lobs[$lob]['Value'])) {
-                pg_loclose($this->lobs[$lob]['Handle']);
-                if (isset($this->lobs[$lob]['InTransaction'])) {
-                    @pg_Exec($this->connection, 'END');
-                }
-            }
-            $this->lobs[$lob] = '';
-        }
-    }
-
-    // }}}
-    // {{{ fetchClob()
-
-    /**
-     * fetch a clob value from a result set
-     *
-     * @param resource $result result identifier
-     * @param int $row number of the row where the data can be found
-     * @param int $field field number where the data can be found
-     * @return mixed content of the specified data cell, a MDB error on failure,
-     *       a MDB error on failure
-     * @access public
-     */
-    function fetchClob($result, $row, $field)
-    {
-        return($this->fetchLob($result, $row, $field));
-    }
-
-    // }}}
-    // {{{ fetchBlob()
-
-    /**
-     * fetch a blob value from a result set
-     *
-     * @param resource $result result identifier
-     * @param int $row number of the row where the data can be found
-     * @param int $field field number where the data can be found
-     * @return mixed content of the specified data cell, a MDB error on failure
-     * @access public
-     */
-    function fetchBlob($result, $row, $field)
-    {
-        return($this->fetchLob($result, $row, $field));
-    }
-
-    // }}}
-    // {{{ convertResult()
-
-    /**
-     * convert a value to a RDBMS indepdenant MDB type
-     *
-     * @param mixed $value value to be converted
-     * @param int $type constant that specifies which type to convert to
-     * @return mixed converted value or a MDB error on failure
-     * @access public
-     */
-    function convertResult($value, $type)
-    {
-        switch ($type) {
-            case MDB_TYPE_BOOLEAN:
-                return(strcmp($value, 'Y') ? 0 : 1);
-            case MDB_TYPE_DECIMAL:
-                return(sprintf('%.'.$this->decimal_places.'f',doubleval($value)/$this->decimal_factor));
-            case MDB_TYPE_FLOAT:
-                return doubleval($value);
-            case MDB_TYPE_DATE:
-                return($value);
-            case MDB_TYPE_TIME:
-                return($value);
-            case MDB_TYPE_TIMESTAMP:
-                return substr($value, 0, strlen('YYYY-MM-DD HH:MM:SS'));
-            default:
-                return($this->_baseConvertResult($value, $type));
-        }
+        return $this->highest_fetched_row[$result] >= $this->numRows($result) - 1;
     }
 
     // }}}
@@ -770,18 +574,18 @@ class MDB_pgsql extends MDB_Common
 
     /**
      * Determine whether the value of a query result located in given row and
-     *   field is a NULL.
+     *   field is a null.
      *
      * @param resource    $result result identifier
      * @param int    $row    number of the row where the data can be found
      * @param int    $field    field number where the data can be found
-     * @return mixed TRUE or FALSE on success, a MDB error on failure
+     * @return mixed true or false on success, a MDB error on failure
      * @access public
      */
     function resultIsNull($result, $row, $field)
     {
         $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
-        return(@pg_FieldIsNull($result, $row, $field));
+        return @pg_FieldIsNull($result, $row, $field);
     }
 
     // }}}
@@ -796,7 +600,7 @@ class MDB_pgsql extends MDB_Common
      */
     function numRows($result)
     {
-        return(pg_numrows($result));
+        return pg_numrows($result);
     }
 
     // }}}
@@ -806,381 +610,21 @@ class MDB_pgsql extends MDB_Common
      * Free the internal resources associated with $result.
      *
      * @param $result result identifier
-     * @return boolean TRUE on success, FALSE if $result is invalid
+     * @return boolean true on success, false if $result is invalid
      * @access public
      */
     function freeResult($result)
     {
-        if(isset($this->highest_fetched_row[$result])) {
+        if (isset($this->highest_fetched_row[$result])) {
             unset($this->highest_fetched_row[$result]);
         }
-        if(isset($this->columns[$result])) {
+        if (isset($this->columns[$result])) {
             unset($this->columns[$result]);
         }
-        if(isset($this->result_types[$result])) {
+        if (isset($this->result_types[$result])) {
             unset($this->result_types[$result]);
         }
-        return(pg_freeresult($result));
-    }
-
-    // }}}
-    // {{{ getTextDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an text type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param string $name   name the field to be declared.
-     * @param string $field  associative array with the name of the properties
-     *      of the field being declared as array indexes. Currently, the types
-     *      of supported field properties are as follows:
-     *
-     *      length
-     *          Integer value that determines the maximum length of the text
-     *          field. If this argument is missing the field should be
-     *          declared to have the longest length allowed by the DBMS.
-     *
-     *      default
-     *          Text value to be used as default for this field.
-     *
-     *      notnull
-     *          Boolean flag that indicates whether this field is constrained
-     *          to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *      declare the specified field.
-     * @access public
-     */
-    function getTextDeclaration($name, $field)
-    {
-        return((isset($field['length']) ? "$name VARCHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? " DEFAULT '" . $field['default'] . "'" : '') . (isset($field['notnull']) ? ' NOT NULL' : ''));
-    }
-
-    // }}}
-    // {{{ getClobDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an character
-     * large object type field to be used in statements like CREATE TABLE.
-     *
-     * @param string $name   name the field to be declared.
-     * @param string $field  associative array with the name of the properties
-     *      of the field being declared as array indexes. Currently, the types
-     *      of supported field properties are as follows:
-     *
-     *      length
-     *          Integer value that determines the maximum length of the large
-     *          object field. If this argument is missing the field should be
-     *          declared to have the longest length allowed by the DBMS.
-     *
-     *      notnull
-     *          Boolean flag that indicates whether this field is constrained
-     *          to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *      declare the specified field.
-     * @access public
-     */
-    function getClobDeclaration($name, $field)
-    {
-        return("$name OID".(isset($field['notnull']) ? ' NOT NULL' : ''));
-    }
-
-    // }}}
-    // {{{ getBlobDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare an binary large
-     * object type field to be used in statements like CREATE TABLE.
-     *
-     * @param string $name   name the field to be declared.
-     * @param string $field  associative array with the name of the properties
-     *      of the field being declared as array indexes. Currently, the types
-     *      of supported field properties are as follows:
-     *
-     *      length
-     *          Integer value that determines the maximum length of the large
-     *          object field. If this argument is missing the field should be
-     *          declared to have the longest length allowed by the DBMS.
-     *
-     *      notnull
-     *          Boolean flag that indicates whether this field is constrained
-     *          to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *      declare the specified field.
-     * @access public
-     */
-    function getBlobDeclaration($name, $field)
-    {
-        return("$name OID".(isset($field['notnull']) ? ' NOT NULL' : ''));
-    }
-
-    // }}}
-    // {{{ getDateDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare a date type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param string $name   name the field to be declared.
-     * @param string $field  associative array with the name of the properties
-     *      of the field being declared as array indexes. Currently, the types
-     *      of supported field properties are as follows:
-     *
-     *      default
-     *          Date value to be used as default for this field.
-     *
-     *      notnull
-     *          Boolean flag that indicates whether this field is constrained
-     *          to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *      declare the specified field.
-     * @access public
-     */
-    function getDateDeclaration($name, $field)
-    {
-        return($name.' DATE'.(isset($field['default']) ? ' DEFAULT \''.$field['default'] . "'" : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
-    }
-
-    // }}}
-    // {{{ getTimeDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare a time
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param string $name   name the field to be declared.
-     * @param string $field  associative array with the name of the properties
-     *      of the field being declared as array indexes. Currently, the types
-     *      of supported field properties are as follows:
-     *
-     *      default
-     *          Time value to be used as default for this field.
-     *
-     *      notnull
-     *          Boolean flag that indicates whether this field is constrained
-     *          to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *      declare the specified field.
-     * @access public
-     */
-    function getTimeDeclaration($name, $field)
-    {
-        return($name.' TIME'.(isset($field['default']) ? ' DEFAULT \''.$field['default'].'\'' : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
-    }
-
-    // }}}
-    // {{{ getFloatDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare a float type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param string $name   name the field to be declared.
-     * @param string $field  associative array with the name of the properties
-     *      of the field being declared as array indexes. Currently, the types
-     *      of supported field properties are as follows:
-     *
-     *      default
-     *          Float value to be used as default for this field.
-     *
-     *      notnull
-     *          Boolean flag that indicates whether this field is constrained
-     *          to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *      declare the specified field.
-     * @access public
-     */
-    function getFloatDeclaration($name, $field)
-    {
-        return("$name FLOAT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
-    }
-
-    // }}}
-    // {{{ getDecimalDeclaration()
-
-    /**
-     * Obtain DBMS specific SQL code portion needed to declare a decimal type
-     * field to be used in statements like CREATE TABLE.
-     *
-     * @param string $name   name the field to be declared.
-     * @param string $field  associative array with the name of the properties
-     *      of the field being declared as array indexes. Currently, the types
-     *      of supported field properties are as follows:
-     *
-     *      default
-     *          Decimal value to be used as default for this field.
-     *
-     *      notnull
-     *          Boolean flag that indicates whether this field is constrained
-     *          to not be set to NULL.
-     * @return string  DBMS specific SQL code portion that should be used to
-     *      declare the specified field.
-     * @access public
-     */
-    function getDecimalDeclaration($name, $field)
-    {
-        return("$name INT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
-    }
-
-    // }}}
-    // {{{ _getLobValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
-     * @param           $lob
-     * @return string text string that represents the given argument value in
-     *      a DBMS specific format.
-     * @access private
-     */
-    function _getLobValue($prepared_query, $parameter, $lob)
-    {
-        $connect = $this->connect();
-        if (MDB::isError($connect)) {
-            return($connect);
-        }
-        if ($this->auto_commit && !@pg_Exec($this->connection, 'BEGIN')) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, '_getLobValue: error starting transaction'));
-        }
-        if (($lo = pg_locreate($this->connection))) {
-            if (($handle = pg_loopen($this->connection, $lo, 'w'))) {
-                while (!$this->endOfLob($lob)) {
-                    if (MDB::isError($result = $this->readLob($lob, $data, $this->options['lob_buffer_length']))) {
-                        break;
-                    }
-                    if (!pg_lowrite($handle, $data)) {
-                        $result = $this->raiseError(MDB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
-                        break;
-                    }
-                }
-                pg_loclose($handle);
-                if (!MDB::isError($result)) {
-                    $value = strval($lo);
-                }
-            } else {
-                $result = $this->raiseError(MDB_ERROR, NULL, NULL, 'Get LOB field value: ' .  pg_ErrorMessage($this->connection));
-            }
-            if (MDB::isError($result)) {
-                $result = pg_lounlink($this->connection, $lo);
-            }
-        } else {
-            $result = $this->raiseError(MDB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
-        }
-        if ($this->auto_commit) {
-            @pg_Exec($this->connection, 'END');
-        }
-        if (MDB::isError($result)) {
-            return($result);
-        }
-        return($value);
-    }
-
-    // }}}
-    // {{{ getClobValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
-     * @param           $clob
-     * @return string text string that represents the given argument value in
-     *      a DBMS specific format.
-     * @access public
-     */
-    function getClobValue($prepared_query, $parameter, $clob)
-    {
-        return($this->_getLobValue($prepared_query, $parameter, $clob));
-    }
-
-    // }}}
-    // {{{ freeClobValue()
-
-    /**
-     * free a character large object
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param string    $clob
-     * @return MDB_OK
-     * @access public
-     */
-    function freeClobValue($prepared_query, $clob)
-    {
-        unset($this->lobs[$clob]);
-        return(MDB_OK);
-    }
-
-    // }}}
-    // {{{ getBlobValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
-     * @param           $blob
-     * @return string text string that represents the given argument value in
-     *      a DBMS specific format.
-     * @access public
-     */
-    function getBlobValue($prepared_query, $parameter, $blob)
-    {
-        return($this->_getLobValue($prepared_query, $parameter, $blob));
-    }
-
-    // }}}
-    // {{{ freeBlobValue()
-
-    /**
-     * free a binary large object
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param string    $blob
-     * @return MDB_OK
-     * @access public
-     */
-    function freeBlobValue($prepared_query, $blob)
-    {
-        unset($this->lobs[$blob]);
-        return(MDB_OK);
-    }
-
-    // }}}
-    // {{{ getFloatValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param string $value text string value that is intended to be converted.
-     * @return string text string that represents the given argument value in
-     *      a DBMS specific format.
-     * @access public
-     */
-    function getFloatValue($value)
-    {
-        return(($value === NULL) ? 'NULL' : $value);
-    }
-
-    // }}}
-    // {{{ getDecimalValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param string $value text string value that is intended to be converted.
-     * @return string text string that represents the given argument value in
-     *      a DBMS specific format.
-     * @access public
-     */
-    function getDecimalValue($value)
-    {
-        return(($value === NULL) ? 'NULL' : strval(round($value*$this->decimal_factor)));
+        return pg_freeresult($result);
     }
 
     // }}}
@@ -1190,13 +634,13 @@ class MDB_pgsql extends MDB_Common
      * returns the next free id of a sequence
      *
      * @param string  $seq_name name of the sequence
-     * @param boolean $ondemand when TRUE the seqence is
+     * @param boolean $ondemand when true the seqence is
      *                          automatic created, if it
      *                          not exists
      * @return mixed MDB_Error or id
      * @access public
      */
-    function nextId($seq_name, $ondemand = TRUE)
+    function nextId($seq_name, $ondemand = true)
     {
         $seqname = $this->getSequenceName($seq_name);
         $repeat = 0;
@@ -1208,7 +652,7 @@ class MDB_pgsql extends MDB_Common
                 $repeat = 1;
                 $result = $this->createSequence($seq_name);
                 if (MDB::isError($result)) {
-                    return($this->raiseError($result));
+                    return $this->raiseError($result);
                 }
             } else {
                 $repeat = 0;
@@ -1216,11 +660,11 @@ class MDB_pgsql extends MDB_Common
         }
         while ($repeat);
         if (MDB::isError($result)) {
-            return($this->raiseError($result));
+            return $this->raiseError($result);
         }
         $arr = $this->fetchInto($result, MDB_FETCHMODE_ORDERED);
         $this->freeResult($result);
-        return($arr[0]);
+        return $arr[0];
     }
 
     // }}}
@@ -1237,12 +681,12 @@ class MDB_pgsql extends MDB_Common
     {
         $seqname = $this->getSequenceName($seq_name);
         if (MDB::isError($result = $this->queryOne("SELECT last_value FROM $seqname"))) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'currId: Unable to select from ' . $seqname) );
+            return $this->raiseError(MDB_ERROR, null, null, 'currId: Unable to select from ' . $seqname) ;
         }
         if (!is_numeric($result)) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'currId: could not find value in sequence table'));
+            return $this->raiseError(MDB_ERROR, null, null, 'currId: could not find value in sequence table');
         }
-        return($result);
+        return $result;
     }
 
 
@@ -1255,19 +699,19 @@ class MDB_pgsql extends MDB_Common
      * @param resource $result result identifier
      * @param int $fetchmode ignored
      * @param int $rownum the row number to fetch
-     * @return mixed data array or NULL on success, a MDB error on failure
+     * @return mixed data array or null on success, a MDB error on failure
      * @access public
      */
-    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
+    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
-        if ($rownum == NULL) {
+        if ($rownum == null) {
             ++$this->highest_fetched_row[$result];
             $rownum = $this->highest_fetched_row[$result];
         } else {
             $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
         }
         if ($rownum + 1 > $this->numRows($result)) {
-            return(NULL);
+            return null;
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
@@ -1283,14 +727,14 @@ class MDB_pgsql extends MDB_Common
                 if ($this->options['autofree']) {
                     $this->freeResult($result);
                 }
-                return(NULL);
+                return null;
             }
-            return($this->pgsqlRaiseError($errno));
+            return $this->pgsqlRaiseError($errno);
         }
         if (isset($this->result_types[$result])) {
             $array = $this->convertResultRow($result, $array);
         }
-        return($array);
+        return $array;
     }
 
     // }}}
@@ -1305,7 +749,7 @@ class MDB_pgsql extends MDB_Common
      */
     function nextResult($result)
     {
-        return(FALSE);
+        return false;
     }
 
     // }}}
@@ -1319,7 +763,7 @@ class MDB_pgsql extends MDB_Common
      * @return array an nested array, or a MDB error
      * @access public
      */
-    function tableInfo($result, $mode = NULL)
+    function tableInfo($result, $mode = null)
     {
         $count = 0;
         $id = 0;
@@ -1328,7 +772,7 @@ class MDB_pgsql extends MDB_Common
         /**
          * depending on $mode, metadata returns the following values:
          *
-         * - mode is FALSE (default):
+         * - mode is false (default):
          * $result[]:
          *    [0]['table']  table name
          *    [0]['name']   field name
@@ -1367,12 +811,12 @@ class MDB_pgsql extends MDB_Common
         if (is_string($result)) {
             $id = pg_exec($this->connection, "SELECT * FROM $result LIMIT 0");
             if (empty($id)) {
-                return($this->pgsqlRaiseError());
+                return $this->pgsqlRaiseError();
             }
         } else { // else we want information about a resultset
             $id = $result;
             if (empty($id)) {
-                return($this->pgsqlRaiseError());
+                return $this->pgsqlRaiseError();
             }
         }
         
@@ -1409,7 +853,7 @@ class MDB_pgsql extends MDB_Common
         if (is_string($result) && is_resource($id)) {
             @pg_freeresult($id);
         }
-        return($res);
+        return $res;
     }
 
     // }}}

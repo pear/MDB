@@ -45,10 +45,6 @@
 // $Id$
 //
 
-if(!defined('MDB_MANAGER_COMMON_INCLUDED'))
-{
-    define('MDB_MANAGER_COMMON_INCLUDED', 1);
-
 /**
  * Base class for the management modules that is extended by each MDB driver
  *
@@ -57,7 +53,6 @@ if(!defined('MDB_MANAGER_COMMON_INCLUDED'))
  * @access private
  * @author  Lukas Smith <smith@backendmedia.com>
  */
-
 class MDB_Manager_Common
 {
     // }}}
@@ -66,7 +61,7 @@ class MDB_Manager_Common
     /**
      * get declaration of a field
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $field_name name of the field to be created
      * @param string $field  associative array with the name of the properties
      *      of the field being declared as array indexes. Currently, the types
@@ -77,50 +72,50 @@ class MDB_Manager_Common
      *
      *      notnull
      *          Boolean flag that indicates whether this field is constrained
-     *          to not be set to NULL.
+     *          to not be set to null.
      * @return mixed string on success, a MDB error on failure
      * @access public
      */
     function getFieldDeclaration(&$db, $field_name, $field)
     {
         if (!strcmp($field_name, '')) {
-            return($db->raiseError(MDB_ERROR_NOSUCHFIELD, NULL, NULL,
-                'Get field: it was not specified a valid field name ("'.$field_name.'")'));
+            return $db->raiseError(MDB_ERROR_NOSUCHFIELD, null, null,
+                'Get field: it was not specified a valid field name ("'.$field_name.'")');
         }
         switch($field['type']) {
             case 'integer':
-                return($db->getIntegerDeclaration($field_name, $field));
+                return $db->getIntegerDeclaration($field_name, $field);
                 break;
             case 'text':
-                return($db->getTextDeclaration($field_name, $field));
+                return $db->getTextDeclaration($field_name, $field);
                 break;
             case 'clob':
-                return($db->getClobDeclaration($field_name, $field));
+                return $db->getClobDeclaration($field_name, $field);
                 break;
             case 'blob':
-                return($db->getBlobDeclaration($field_name, $field));
+                return $db->getBlobDeclaration($field_name, $field);
                 break;
             case 'boolean':
-                return($db->getBooleanDeclaration($field_name, $field));
+                return $db->getBooleanDeclaration($field_name, $field);
                 break;
             case 'date':
-                return($db->getDateDeclaration($field_name, $field));
+                return $db->getDateDeclaration($field_name, $field);
                 break;
             case 'timestamp':
-                return($db->getTimestampDeclaration($field_name, $field));
+                return $db->getTimestampDeclaration($field_name, $field);
                 break;
             case 'time':
-                return($db->getTimeDeclaration($field_name, $field));
+                return $db->getTimeDeclaration($field_name, $field);
                 break;
             case 'float':
-                return($db->getFloatDeclaration($field_name, $field));
+                return $db->getFloatDeclaration($field_name, $field);
                 break;
             case 'decimal':
-                return($db->getDecimalDeclaration($field_name, $field));
+                return $db->getDecimalDeclaration($field_name, $field);
                 break;
             default:
-                return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                    'Get field: type "'.$field['type'].'" is not yet supported'));
+                return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                    'Get field: type "'.$field['type'].'" is not yet supported');
                 break;
         }
     }
@@ -131,7 +126,7 @@ class MDB_Manager_Common
     /**
      * get declaration of a number of field in bulk
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $fields  a multidimensional associative array.
              The first dimension determines the field name, while the second
             dimension is keyed with the name of the properties
@@ -143,31 +138,31 @@ class MDB_Manager_Common
      *
      *      notnull
      *          Boolean flag that indicates whether this field is constrained
-     *          to not be set to NULL.
+     *          to not be set to null.
      *
      *      default
      *          Boolean value to be used as default for this field.
      *
      *      notnull
      *          Boolean flag that indicates whether this field is constrained
-     *          to not be set to NULL.
+     *          to not be set to null.
      * @return mixed string on success, a MDB error on failure
      * @access public
      */
     function getFieldDeclarationList(&$db, $fields)
     {
-        if(is_array($fields)) {
+        if (is_array($fields)) {
             foreach($fields as $field_name => $field) {
                 $query = $db->getFieldDeclaration($field_name, $field);
                 if (MDB::isError($query)) {
-                    return($query);
+                    return $query;
                 }
                 $query_fields[] = $query;
             }
-            return(implode(',',$query_fields));
+            return implode(',',$query_fields);
         }
-        return(PEAR::raiseError(NULL, MDB_ERROR_MANAGER, NULL, NULL,
-            'the definition of the table "'.$table_name.'" does not contain any fields', 'MDB_Error', TRUE));
+        return PEAR::raiseError(null, MDB_ERROR_MANAGER, null, null,
+            'the definition of the table "'.$table_name.'" does not contain any fields', 'MDB_Error', true);
     }
 
     // }}}
@@ -175,19 +170,19 @@ class MDB_Manager_Common
     /**
      * list all tables in the current database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $sqn string that containts name of a potential sequence
-     * @return mixed name of the sequence if $sqn is a name of a sequence, else FALSE
+     * @return mixed name of the sequence if $sqn is a name of a sequence, else false
      * @access private
      */
     function _isSequenceName(&$db, $sqn)
     {
         $seq_pattern = '/^'.preg_replace('/%s/', '([a-z0-9_]+)', $db->options['seqname_format']).'$/i';
         $seq_name = preg_replace($seq_pattern, '\\1', $sqn);
-        if($seq_name && $sqn == $db->getSequenceName($seq_name)) {
-            return($seq_name);
+        if ($seq_name && $sqn == $db->getSequenceName($seq_name)) {
+            return $seq_name;
         }
-        return(FALSE);
+        return false;
     }
 
     // }}}
@@ -196,15 +191,15 @@ class MDB_Manager_Common
     /**
      * create a new database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $name name of the database that should be created
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function createDatabase(&$db, $database)
     {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-            'Create database: database creation is not supported'));
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+            'Create database: database creation is not supported');
     }
 
     // }}}
@@ -213,15 +208,15 @@ class MDB_Manager_Common
     /**
      * drop an existing database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $name name of the database that should be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function dropDatabase(&$db, $database)
     {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-            'Drop database: database dropping is not supported'));
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+            'Drop database: database dropping is not supported');
     }
 
     // }}}
@@ -230,7 +225,7 @@ class MDB_Manager_Common
     /**
      * create a new table
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $name     Name of the database that should be created
      * @param array $fields Associative array that contains the definition of each field of the new table
      *                        The indexes of the array entries are the names of the fields of the table an
@@ -261,15 +256,15 @@ class MDB_Manager_Common
     function createTable(&$db, $name, $fields)
     {
         if (!isset($name) || !strcmp($name, '')) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no valid table name specified'));
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no valid table name specified');
         }
         if (count($fields) == 0) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no fields specified for table "'.$name.'"'));
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no fields specified for table "'.$name.'"');
         }
         if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
-            return($query_fields);
+            return $query_fields;
         }
-        return($db->query("CREATE TABLE $name ($query_fields)"));
+        return $db->query("CREATE TABLE $name ($query_fields)");
     }
 
     // }}}
@@ -278,14 +273,14 @@ class MDB_Manager_Common
     /**
      * drop an existing table
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $name name of the table that should be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function dropTable(&$db, $name)
     {
-        return($db->query("DROP TABLE $name"));
+        return $db->query("DROP TABLE $name");
     }
 
     // }}}
@@ -294,7 +289,7 @@ class MDB_Manager_Common
     /**
      * alter an existing table
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $name         name of the table that is intended to be changed.
      * @param array $changes     associative array that contains the details of each type
      *                             of change that is intended to be performed. The types of
@@ -388,8 +383,8 @@ class MDB_Manager_Common
      */
     function alterTable(&$db, $name, $changes, $check)
     {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-            'Alter table: database table alterations are not supported'));
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+            'Alter table: database table alterations are not supported');
     }
 
     // }}}
@@ -398,14 +393,14 @@ class MDB_Manager_Common
     /**
      * list all databases
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listDatabases(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List Databases: list databases is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
+            'List Databases: list databases is not supported');
     }
 
     // }}}
@@ -414,14 +409,14 @@ class MDB_Manager_Common
     /**
      * list all users
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listUsers(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List User: list user is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
+            'List User: list user is not supported');
     }
 
     // }}}
@@ -430,14 +425,14 @@ class MDB_Manager_Common
     /**
      * list all views in the current database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listViews(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List View: list view is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
+            'List View: list view is not supported');
     }
 
     // }}}
@@ -446,14 +441,14 @@ class MDB_Manager_Common
     /**
      * list all functions in the current database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listFunctions(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List Function: list function is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
+            'List Function: list function is not supported');
     }
 
     // }}}
@@ -462,14 +457,14 @@ class MDB_Manager_Common
     /**
      * list all tables in the current database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTables(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List tables: list tables is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
+            'List tables: list tables is not supported');
     }
 
     // }}}
@@ -478,15 +473,15 @@ class MDB_Manager_Common
     /**
      * list all fields in a tables in the current database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $table name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTableFields(&$db, $table)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List table fields: list table fields is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
+            'List table fields: list table fields is not supported');
     }
 
     // }}}
@@ -495,7 +490,7 @@ class MDB_Manager_Common
     /**
      * get the stucture of a field into an array
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $table         name of table that should be used in method
      * @param string    $fields     name of field that should be used in method
      * @return mixed data array on success, a MDB error on failure
@@ -503,8 +498,8 @@ class MDB_Manager_Common
      */
     function getTableFieldDefinition(&$db, $table, $field)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'Get table field definition: table field definition is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
+            'Get table field definition: table field definition is not supported');
     }
 
     // }}}
@@ -513,7 +508,7 @@ class MDB_Manager_Common
     /**
      * get the stucture of a field into an array
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $table         name of the table on which the index is to be created
      * @param string    $name         name of the index to be created
      * @param array     $definition        associative array that defines properties of the index to be created.
@@ -570,7 +565,7 @@ class MDB_Manager_Common
             }
         }
         $query.= ')';
-        return($db->query($query));
+        return $db->query($query);
     }
 
     // }}}
@@ -579,7 +574,7 @@ class MDB_Manager_Common
     /**
      * drop existing index
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $table         name of table that should be used in method
      * @param string    $name         name of the index to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -587,7 +582,7 @@ class MDB_Manager_Common
      */
     function dropIndex(&$db, $table, $name)
     {
-        return($db->query("DROP INDEX $name"));
+        return $db->query("DROP INDEX $name");
     }
 
     // }}}
@@ -596,15 +591,15 @@ class MDB_Manager_Common
     /**
      * list all indexes in a table
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $table      name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTableIndexes(&$db, $table)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List table indexes: List Indexes is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
+            'List table indexes: List Indexes is not supported');
     }
 
     // }}}
@@ -613,7 +608,7 @@ class MDB_Manager_Common
     /**
      * get the stucture of an index into an array
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $table      name of table that should be used in method
      * @param string    $index      name of index that should be used in method
      * @return mixed data array on success, a MDB error on failure
@@ -621,8 +616,8 @@ class MDB_Manager_Common
      */
     function getTableIndexDefinition(&$db, $table, $index)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'Get table index definition: getting index definition is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
+            'Get table index definition: getting index definition is not supported');
     }
 
     // }}}
@@ -631,7 +626,7 @@ class MDB_Manager_Common
     /**
      * create sequence
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $seq_name     name of the sequence to be created
      * @param string    $start         start value of the sequence; default is 1
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -639,8 +634,8 @@ class MDB_Manager_Common
      */
     function createSequence(&$db, $name, $start)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'Create Sequence: sequence creation not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
+            'Create Sequence: sequence creation not supported');
     }
 
     // }}}
@@ -649,15 +644,15 @@ class MDB_Manager_Common
     /**
      * drop existing sequence
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $seq_name     name of the sequence to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
     function dropSequence(&$db, $name)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'Drop Sequence: sequence dropping not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
+            'Drop Sequence: sequence dropping not supported');
     }
 
     // }}}
@@ -666,14 +661,14 @@ class MDB_Manager_Common
     /**
      * list all sequences in the current database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listSequences(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List sequences: List sequences is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
+            'List sequences: List sequences is not supported');
     }
 
     // }}}
@@ -682,7 +677,7 @@ class MDB_Manager_Common
     /**
      * get the stucture of a sequence into an array
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $sequence   name of sequence that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
@@ -694,7 +689,7 @@ class MDB_Manager_Common
     /**
      * get the stucture of a sequence into an array
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $sequence   name of sequence that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
@@ -703,7 +698,7 @@ class MDB_Manager_Common
     {
         $start = $db->currId($sequence);
         if (MDB::isError($start)) {
-            return($start);
+            return $start;
         }
         if ($db->support('CurrId')) {
             $start++;
@@ -712,12 +707,11 @@ class MDB_Manager_Common
                 sequence value,the sequence value was incremented';
         }
         $definition = array();
-        if($start != 1) {
+        if ($start != 1) {
             $definition = array('start' => $start);
         }
-        return($definition);
+        return $definition;
     }
 }
 
-};
 ?>

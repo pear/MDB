@@ -44,10 +44,7 @@
 
 // $Id$
 
-if (!defined('MDB_MANAGER_OCI8_INCLUDED')) {
-    define('MDB_MANAGER_OCI8_INCLUDED', 1);
-
-require_once('MDB/Modules/Manager/Common.php');
+require_once 'MDB/Modules/Manager/Common.php';
 
 /**
  * MDB oci8 driver for the management modules
@@ -63,7 +60,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
     /**
      * create a new database
      * 
-     * @param object $dbs database object that is extended by this class
+     * @param object $db database object that is extended by this class
      * @param string $name name of the database that should be created
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public 
@@ -73,35 +70,35 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
     {
         $user = $db->getOption('DBAUser');
         if (MDB::isError($user)) {
-            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
-                'it was not specified the Oracle DBAUser option'));
+            return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
+                'it was not specified the Oracle DBAUser option');
         }
         $password = $db->getOption('DBAPassword');
         if (MDB::isError($password)) {
-            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
-                'it was not specified the Oracle DBAPassword option'));
+            return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
+                'it was not specified the Oracle DBAPassword option');
         }
         if (!MDB::isError($result = $db->connect($user, $password, 0))) {
             $tablespace = $db->getOption('DefaultTablespace');
-            if(MDB::isError($tablespace)) {
+            if (MDB::isError($tablespace)) {
                 $tablespace = '';
             } else {
                 $tablespace = ' DEFAULT TABLESPACE '.$tablespace;
             }
             if (!MDB::isError($result = $db->_doQuery('CREATE USER '.$db->user.' IDENTIFIED BY '.$db->password.$tablespace))) {
                 if (!MDB::isError($result = $db->_doQuery('GRANT CREATE SESSION, CREATE TABLE,UNLIMITED TABLESPACE,CREATE SEQUENCE TO '.$db->user))) {
-                    return(MDB_OK);
+                    return MDB_OK;
                 } else {
                     if (MDB::isError($result2 = $db->_doQuery('DROP USER '.$db->user.' CASCADE'))) {
-                        return($db->raiseError(MDB_ERROR, '','', 'Create database',
-                            'could not setup the database user ('.$result->getUserinfo().') and then could drop its records ('.$result2->getUserinfo().')'));
+                        return $db->raiseError(MDB_ERROR, '','', 'Create database',
+                            'could not setup the database user ('.$result->getUserinfo().') and then could drop its records ('.$result2->getUserinfo().')');
                     }
-                    return($db->raiseError(MDB_ERROR, '','', 'Create database',
-                        'could not setup the database user ('.$result->getUserinfo().')'));
+                    return $db->raiseError(MDB_ERROR, '','', 'Create database',
+                        'could not setup the database user ('.$result->getUserinfo().')');
                 }
             }
         }
-        return($result);
+        return $result;
     }
 */
 
@@ -111,7 +108,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
     /**
      * drop an existing database
      * 
-     * @param object $dbs database object that is extended by this class
+     * @param object $db database object that is extended by this class
      * @param string $name name of the database that should be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public 
@@ -121,18 +118,18 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
     {
         $user = $db->getOption('DBAUser');
         if (MDB::isError($user)) {
-            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
-                'it was not specified the Oracle DBAUser option'));
+            return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
+                'it was not specified the Oracle DBAUser option');
         }
         $password = $db->getOption('DBAPassword');
         if (MDB::isError($password)) {
-            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
-                'it was not specified the Oracle DBAPassword option'));
+            return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
+                'it was not specified the Oracle DBAPassword option');
         }
         if (MDB::isError($db->connect($user, $password, 0))) {
-            return($result);
+            return $result;
         }
-        return($db->_doQuery('DROP USER '.$db->user.' CASCADE'));
+        return $db->_doQuery('DROP USER '.$db->user.' CASCADE');
     }
 */
 
@@ -142,7 +139,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
     /**
      * alter an existing table
      * 
-     * @param object $dbs database object that is extended by this class
+     * @param object $db database object that is extended by this class
      * @param string $name name of the table that is intended to be changed.
      * @param array $changes associative array that contains the details of each type
      *                              of change that is intended to be performed. The types of
@@ -194,7 +191,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      * 
      *                                 If the default property is meant to be added, removed or changed, there
      *                                  should also be an entry with index ChangedDefault assigned to 1. Similarly,
-     *                                  if the notNULL constraint is to be added or removed, there should also be
+     *                                  if the notnull constraint is to be added or removed, there should also be
      *                                  an entry with index ChangedNotNull assigned to 1.
      * 
      *                                 Additionally, there should be an entry named Declaration that is expected
@@ -229,7 +226,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      *                                     )
      *                                 )
      * @param boolean $check indicates whether the function should just check if the DBMS driver
-     *                              can perform the requested table alterations if the value is TRUE or
+     *                              can perform the requested table alterations if the value is true or
      *                              actually perform them otherwise.
      * @access public 
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -249,11 +246,11 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
                         break;
                     case 'RenamedFields':
                     default:
-                        return($db->raiseError(MDB_ERROR, NULL, NULL, 'Alter table',
-                            'change type "'.key($changes).'" not yet supported'));
+                        return $db->raiseError(MDB_ERROR, null, null, 'Alter table',
+                            'change type "'.key($changes).'" not yet supported');
                 }
             }
-            return(MDB_OK);
+            return MDB_OK;
         } else {
             if (isset($changes['RemovedFields'])) {
                 $query = ' DROP (';
@@ -269,7 +266,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
                 }
                 $query .= ')';
                 if (MDB::isError($result = $db->query("ALTER TABLE $name $query"))) {
-                    return($result);
+                    return $result;
                 }
                 $query = '';
             }
@@ -321,12 +318,12 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
                     }
                 }
             }
-            if($query != '' && MDB::isError($result = $db->query("ALTER TABLE $name $query"))) {
-                return($result);
+            if ($query != '' && MDB::isError($result = $db->query("ALTER TABLE $name $query"))) {
+                return $result;
             }
-            return(MDB_OK);
+            return MDB_OK;
         }
-        return($db->raiseError());
+        return $db->raiseError();
     }
 
     // }}}
@@ -335,7 +332,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
     /**
      * list all databases
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
@@ -348,7 +345,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
             $result[$i]["tablespace_name"] = $this->m_record["tablespace_name"];
             $result[$i]["database"]        = $this->m_database;
         }
-        return($result);
+        return $result;
     }
 
     // }}}
@@ -357,7 +354,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
     /**
      * create sequence
      * 
-     * @param object $dbs database object that is extended by this class
+     * @param object $db database object that is extended by this class
      * @param string $seq_name name of the sequence to be created
      * @param string $start start value of the sequence; default is 1
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -366,7 +363,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
     function createSequence(&$db, $seq_name, $start)
     {
         $sequence_name = $db->getSequenceName($seq_name);
-        return($db->query("CREATE SEQUENCE $sequence_name START WITH $start INCREMENT BY 1".($start < 1 ? " MINVALUE $start" : '')));
+        return $db->query("CREATE SEQUENCE $sequence_name START WITH $start INCREMENT BY 1".($start < 1 ? " MINVALUE $start" : ''));
     }
 
     // }}}
@@ -375,7 +372,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
     /**
      * drop existing sequence
      * 
-     * @param object $dbs database object that is extended by this class
+     * @param object $db database object that is extended by this class
      * @param string $seq_name name of the sequence to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public 
@@ -383,9 +380,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
     function dropSequence(&$db, $seq_name)
     {
         $sequence_name = $db->getSequenceName($seq_name);
-        return($db->query("DROP SEQUENCE $sequence_name"));
+        return $db->query("DROP SEQUENCE $sequence_name");
     }
 }
-
-};
 ?>

@@ -45,11 +45,7 @@
 // $Id$
 //
 
-if(!defined('MDB_MANAGER_MYSQL_INCLUDED'))
-{
-    define('MDB_MANAGER_MYSQL_INCLUDED', 1);
-
-require_once('MDB/Modules/Manager/Common.php');
+require_once 'MDB/Modules/Manager/Common.php';
 
 /**
  * MDB MySQL driver for the management modules
@@ -70,7 +66,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * verify that chosen transactional table hanlder is available in the database
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $table_type name of the table handler
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access private
@@ -94,34 +90,34 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             case 'MRG_MYISAM':
             case 'MYISAM':
             case '':
-                return(MDB_OK);
+                return MDB_OK;
             default:
-                return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+                return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                     'Verify transactional table',
-                    $table_type.' is not a supported table type'));
+                    $table_type.' is not a supported table type');
         }
-        if(MDB::isError($connect = $db->connect())) {
-            return($connect);
+        if (MDB::isError($connect = $db->connect())) {
+            return $connect;
         }
-        if(isset($this->verified_table_types[$table_type])
+        if (isset($this->verified_table_types[$table_type])
             && $this->verified_table_types[$table_type] == $db->connection)
         {
-            return(MDB_OK);
+            return MDB_OK;
         }
-        if(MDB::isError($has = $db->queryAll("SHOW VARIABLES LIKE '$check'", NULL, MDB_FETCHMODE_ORDERED))) {
-            return($db->raiseError());
+        if (MDB::isError($has = $db->queryAll("SHOW VARIABLES LIKE '$check'", null, MDB_FETCHMODE_ORDERED))) {
+            return $db->raiseError();
         }
-        if(count($has) == 0) {
-            return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                'Verify transactional table','could not tell if '.$table_type.' is a supported table type'));
+        if (count($has) == 0) {
+            return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                'Verify transactional table','could not tell if '.$table_type.' is a supported table type');
         }
-        if(strcmp($has[0][1], 'YES')) {
-            return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+        if (strcmp($has[0][1], 'YES')) {
+            return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Verify transactional table',
-                $table_type.' is not a supported table type by this MySQL database server'));
+                $table_type.' is not a supported table type by this MySQL database server');
         }
         $this->verified_table_types[$table_type] = $db->connection;
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -130,7 +126,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * create a new database
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $name name of the database that should be created
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -138,14 +134,14 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     function createDatabase(&$db, $name)
     {
         if (MDB::isError($result = $db->connect())) {
-            return($result);
+            return $result;
         }
         $query = 'CREATE DATABASE '.$name;
-        if(MDB::isError($db->query($query))) {
-            return($db->mysqlRaiseError());
+        if (MDB::isError($db->query($query))) {
+            return $db->mysqlRaiseError();
         }
 
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -154,7 +150,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * drop an existing database
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $name name of the database that should be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -162,13 +158,13 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     function dropDatabase(&$db, $name)
     {
         if (MDB::isError($result = $db->connect())) {
-            return($result);
+            return $result;
         }
         $query = 'DROP DATABASE '.$name;
-        if(MDB::isError($db->query($query))) {
-            return($db->mysqlRaiseError());
+        if (MDB::isError($db->query($query))) {
+            return $db->mysqlRaiseError();
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -177,7 +173,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * create a new table
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $name     Name of the database that should be created
      * @param array $fields Associative array that contains the definition of each field of the new table
      *                        The indexes of the array entries are the names of the fields of the table an
@@ -208,16 +204,16 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     function createTable(&$db, $name, $fields)
     {
         if (!isset($name) || !strcmp($name, '')) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no valid table name specified'));
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no valid table name specified');
         }
         if (count($fields) == 0) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no fields specified for table "'.$name.'"'));
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no fields specified for table "'.$name.'"');
         }
-        if(MDB::isError($verify = $this->_verifyTransactionalTableType($db, $db->default_table_type))) {
-            return($verify);
+        if (MDB::isError($verify = $this->_verifyTransactionalTableType($db, $db->default_table_type))) {
+            return $verify;
         }
         if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'unkown error'));
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'unkown error');
         }
         if (isset($db->supported['Transactions'])
             && $db->default_table_type=='BDB')
@@ -226,7 +222,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         }
         $query = "CREATE TABLE $name ($query_fields)".(strlen($db->default_table_type) ? ' TYPE='.$db->default_table_type : '');
 
-        return($db->query($query));
+        return $db->query($query);
     }
 
     // }}}
@@ -235,7 +231,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * alter an existing table
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $name         name of the table that is intended to be changed.
      * @param array $changes     associative array that contains the details of each type
      *                             of change that is intended to be performed. The types of
@@ -344,11 +340,11 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                     case 'name':
                         break;
                     default:
-                        return($db->raiseError(MDB_ERROR_CANNOT_ALTER, NULL, NULL,
-                            'Alter table: change type "'.Key($changes).'" not yet supported'));
+                        return $db->raiseError(MDB_ERROR_CANNOT_ALTER, null, null,
+                            'Alter table: change type "'.key($changes).'" not yet supported');
                 }
             }
-            return(MDB_OK);
+            return MDB_OK;
         } else {
             $query = (isset($changes['name']) ? 'RENAME AS '.$changes['name'] : '');
             if (isset($changes['AddedFields'])) {
@@ -416,7 +412,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                     $query .= "CHANGE $old_field_name ".$changes['RenamedFields'][$old_field_name]['Declaration'];
                 }
             }
-            return($db->query("ALTER TABLE $name $query"));
+            return $db->query("ALTER TABLE $name $query");
         }
     }
 
@@ -426,17 +422,17 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * list all databases
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listDatabases(&$db)
     {
         $result = $db->queryCol('SHOW DATABASES');
-        if(MDB::isError($result)) {
-            return($result);
+        if (MDB::isError($result)) {
+            return $result;
         }
-        return($result);
+        return $result;
     }
 
     // }}}
@@ -445,17 +441,17 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * list all users
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listUsers(&$db)
     {
         $result = $db->queryCol('SELECT DISTINCT USER FROM USER');
-        if(MDB::isError($result)) {
-            return($result);
+        if (MDB::isError($result)) {
+            return $result;
         }
-        return($result);
+        return $result;
     }
 
     // }}}
@@ -464,22 +460,22 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * list all tables in the current database
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTables(&$db)
     {
         $table_names = $db->queryCol('SHOW TABLES');
-        if(MDB::isError($table_names)) {
-            return($table_names);
+        if (MDB::isError($table_names)) {
+            return $table_names;
         }
         for($i = 0, $j = count($table_names), $tables = array(); $i < $j; ++$i)
         {
             if (!$db->_isSequenceName($table_names[$i]))
                 $tables[] = $table_names[$i];
         }
-        return($tables);
+        return $tables;
     }
 
     // }}}
@@ -488,7 +484,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * list all fields in a tables in the current database
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string $table name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
@@ -496,18 +492,18 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     function listTableFields(&$db, $table)
     {
         $result = $db->query("SHOW COLUMNS FROM $table");
-        if(MDB::isError($result)) {
-            return($result);
+        if (MDB::isError($result)) {
+            return $result;
         }
         $columns = $db->getColumnNames($result);
-        if(MDB::isError($columns)) {
+        if (MDB::isError($columns)) {
             $db->freeResult($columns);
-            return($columns);
+            return $columns;
         }
-        if(!isset($columns['field'])) {
+        if (!isset($columns['field'])) {
             $db->freeResult($result);
-            return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                'List table fields: show columns does not return the table field names'));
+            return $db->raiseError(MDB_ERROR_MANAGER, null, null,
+                'List table fields: show columns does not return the table field names');
         }
         $field_column = $columns['field'];
         for($fields = array(), $field = 0; !$db->endOfResult($result); ++$field) {
@@ -516,212 +512,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                 $fields[] = $field_name;
         }
         $db->freeResult($result);
-        return($fields);
-    }
-
-    // }}}
-    // {{{ getTableFieldDefinition()
-
-    /**
-     * get the stucture of a field into an array
-     *
-     * @param object    $db        database object that is extended by this class
-     * @param string    $table         name of table that should be used in method
-     * @param string    $field_name     name of field that should be used in method
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     */
-    function getTableFieldDefinition(&$db, $table, $field_name)
-    {
-        if ($field_name == $db->dummy_primary_key) {
-            return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                'Get table field definiton: '.$db->dummy_primary_key.' is an hidden column'));
-        }
-        $result = $db->query("SHOW COLUMNS FROM $table");
-        if(MDB::isError($result)) {
-            return($result);
-        }
-        $columns = $db->getColumnNames($result);
-        if(MDB::isError($columns)) {
-            $db->freeResult($columns);
-            return($columns);
-        }
-        if (!isset($columns[$column = 'field'])
-            || !isset($columns[$column = 'type']))
-        {
-            $db->freeResult($result);
-            return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                'Get table field definition: show columns does not return the column '.$column));
-        }
-        $field_column = $columns['field'];
-        $type_column = $columns['type'];
-        while (is_array($row = $db->fetchInto($result))) {
-            if ($field_name == $row[$field_column]) {
-                $db_type = strtolower($row[$type_column]);
-                $db_type = strtok($db_type, '(), ');
-                if ($db_type == 'national') {
-                    $db_type = strtok('(), ');
-                }
-                $length = strtok('(), ');
-                $decimal = strtok('(), ');
-                $type = array();
-                switch($db_type) {
-                    case 'tinyint':
-                    case 'smallint':
-                    case 'mediumint':
-                    case 'int':
-                    case 'integer':
-                    case 'bigint':
-                        $type[0] = 'integer';
-                        if($length == '1') {
-                            $type[1] = 'boolean';
-                            if (preg_match('/^[is|has]/', $field_name)) {
-                                $type = array_reverse($type);
-                            }
-                        }
-                        break;
-                    case 'tinytext':
-                    case 'mediumtext':
-                    case 'longtext':
-                    case 'text':
-                    case 'char':
-                    case 'varchar':
-                        $type[0] = 'text';
-                        if($decimal == 'binary') {
-                            $type[1] = 'blob';
-                        } elseif($length == '1') {
-                            $type[1] = 'boolean';
-                            if (preg_match('/[is|has]/', $field_name)) {
-                                $type = array_reverse($type);
-                            }
-                        } elseif(strstr($db_type, 'text'))
-                            $type[1] = 'clob';
-                        break;
-                    case 'enum':
-                        preg_match_all('/\'.+\'/U',$row[$type_column], $matches);
-                        $length = 0;
-                        if(is_array($matches)) {
-                            foreach($matches[0] as $value) {
-                                $length = max($length, strlen($value)-2);
-                            }
-                        }
-                        unset($decimal);
-                    case 'set':
-                        $type[0] = 'text';
-                        $type[1] = 'integer';
-                        break;
-                    case 'date':
-                        $type[0] = 'date';
-                        break;
-                    case 'datetime':
-                    case 'timestamp':
-                        $type[0] = 'timestamp';
-                        break;
-                    case 'time':
-                        $type[0] = 'time';
-                        break;
-                    case 'float':
-                    case 'double':
-                    case 'real':
-                        $type[0] = 'float';
-                        break;
-                    case 'decimal':
-                    case 'numeric':
-                        $type[0] = 'decimal';
-                        break;
-                    case 'tinyblob':
-                    case 'mediumblob':
-                    case 'longblob':
-                    case 'blob':
-                        $type[0] = 'blob';
-                        $type[1] = 'text';
-                        break;
-                    case 'year':
-                        $type[0] = 'integer';
-                        $type[1] = 'date';
-                        break;
-                    default:
-                        return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                            'List table fields: unknown database attribute type'));
-                }
-                unset($notnull);
-                if (isset($columns['null'])
-                    && $row[$columns['null']] != 'YES')
-                {
-                    $notnull = 1;
-                }
-                unset($default);
-                if (isset($columns['default'])
-                    && isset($row[$columns['default']]))
-                {
-                    $default = $row[$columns['default']];
-                }
-                $definition = array();
-                for($field_choices = array(), $datatype = 0; $datatype < count($type); $datatype++) {
-                    $field_choices[$datatype] = array('type' => $type[$datatype]);
-                    if(isset($notnull)) {
-                        $field_choices[$datatype]['notnull'] = 1;
-                    }
-                    if(isset($default)) {
-                        $field_choices[$datatype]['default'] = $default;
-                    }
-                    if($type[$datatype] != 'boolean'
-                        && $type[$datatype] != 'time'
-                        && $type[$datatype] != 'date'
-                        && $type[$datatype] != 'timestamp')
-                    {
-                        if(strlen($length)) {
-                            $field_choices[$datatype]['length'] = $length;
-                        }
-                    }
-                }
-                $definition[0] = $field_choices;
-                if (isset($columns['extra'])
-                    && isset($row[$columns['extra']])
-                    && $row[$columns['extra']] == 'auto_increment')
-                {
-                    $implicit_sequence = array();
-                    $implicit_sequence['on'] = array();
-                    $implicit_sequence['on']['table'] = $table;
-                    $implicit_sequence['on']['field'] = $field_name;
-                    $definition[1]['name'] = $table.'_'.$field_name;
-                    $definition[1]['definition'] = $implicit_sequence;
-                }
-                if (isset($columns['key'])
-                    && isset($row[$columns['key']])
-                    && $row[$columns['key']] == 'PRI')
-                {
-                    // check that its not just a unique field
-                    if(MDB::isError($indexes = $db->queryAll("SHOW INDEX FROM $table", NULL, MDB_FETCHMODE_ASSOC))) {
-                        return($indexes);
-                    }
-                    $is_primary = FALSE;
-                    foreach($indexes as $index) {
-                        if ($index['Key_name'] == 'PRIMARY' && $index['Column_name'] == $field_name) {
-                            $is_primary = TRUE;
-                            break;
-                        }
-                    }
-                    if($is_primary) {
-                        $implicit_index = array();
-                        $implicit_index['unique'] = 1;
-                        $implicit_index['FIELDS'][$field_name] = '';
-                        $definition[2]['name'] = $field_name;
-                        $definition[2]['definition'] = $implicit_index;
-                    }
-                }
-                $db->freeResult($result);
-                return($definition);
-            }
-        }
-        if(!$db->options['autofree']) {
-            $db->freeResult($result);
-        }
-        if(MDB::isError($row)) {
-            return($row);
-        }
-        return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-            'Get table field definition: it was not specified an existing table column'));
+        return $fields;
     }
 
     // }}}
@@ -730,7 +521,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * get the stucture of a field into an array
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $table         name of the table on which the index is to be created
      * @param string    $name         name of the index to be created
      * @param array     $definition        associative array that defines properties of the index to be created.
@@ -773,7 +564,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             $query .= key($definition['FIELDS']);
         }
         $query .= ')';
-        return($db->query($query));
+        return $db->query($query);
     }
 
     // }}}
@@ -782,7 +573,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * drop existing index
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $table         name of table that should be used in method
      * @param string    $name         name of the index to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -790,7 +581,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      */
     function dropIndex(&$db, $table, $name)
     {
-        return($db->query("ALTER TABLE $table DROP INDEX $name"));
+        return $db->query("ALTER TABLE $table DROP INDEX $name");
     }
 
     // }}}
@@ -799,15 +590,15 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * list all indexes in a table
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $table      name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTableIndexes(&$db, $table)
     {
-        if(MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
-            return($result);
+        if (MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
+            return $result;
         }
         $indexes_all = $db->fetchCol($result, 'Key_name');
         for($found = $indexes = array(), $index = 0, $indexes_all_cnt = count($indexes_all);
@@ -821,48 +612,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                 $found[$indexes_all[$index]] = 1;
             }
         }
-        return($indexes);
-    }
-
-    // }}}
-    // {{{ getTableIndexDefinition()
-
-    /**
-     * get the stucture of an index into an array
-     *
-     * @param object    $db        database object that is extended by this class
-     * @param string    $table      name of table that should be used in method
-     * @param string    $index_name name of index that should be used in method
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     */
-    function getTableIndexDefinition(&$db, $table, $index_name)
-    {
-        if($index_name == 'PRIMARY') {
-            return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL, 'Get table index definition: PRIMARY is an hidden index'));
-        }
-        if(MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
-            return($result);
-        }
-        $definition = array();
-        while (is_array($row = $db->fetchInto($result, MDB_FETCHMODE_ASSOC))) {
-            $key_name = $row['Key_name'];
-            if(!strcmp($index_name, $key_name)) {
-                if(!$row['Non_unique']) {
-                    $definition[$index_name]['unique'] = 1;
-                }
-                $column_name = $row['Column_name'];
-                $definition['FIELDS'][$column_name] = array();
-                if(isset($row['Collation'])) {
-                    $definition['FIELDS'][$column_name]['sorting'] = ($row['Collation'] == 'A' ? 'ascending' : 'descending');
-                }
-            }
-        }
-        $db->freeResult($result);
-        if (!isset($definition['FIELDS'])) {
-            return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL, 'Get table index definition: it was not specified an existing table index'));
-        }
-        return($definition);
+        return $indexes;
     }
 
     // }}}
@@ -871,7 +621,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * create sequence
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $seq_name     name of the sequence to be created
      * @param string    $start         start value of the sequence; default is 1
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -883,25 +633,25 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         $res = $db->query("CREATE TABLE $sequence_name
             (sequence INT DEFAULT 0 NOT NULL AUTO_INCREMENT, PRIMARY KEY (sequence))");
         if (MDB::isError($res)) {
-            return($res);
+            return $res;
         }
         if ($start == 1) {
-            return(MDB_OK);
+            return MDB_OK;
         }
         $res = $db->query("INSERT INTO $sequence_name (sequence) VALUES (".($start-1).')');
         if (!MDB::isError($res)) {
-            return(MDB_OK);
+            return MDB_OK;
         }
         // Handle error
         $result = $db->query("DROP TABLE $sequence_name");
         if (MDB::isError($result)) {
-            return($db->raiseError(MDB_ERROR, NULL, NULL,
+            return $db->raiseError(MDB_ERROR, null, null,
                 'Create sequence: could not drop inconsistent sequence table ('.
-                $result->getMessage().' ('.$result->getUserinfo().'))'));
+                $result->getMessage().' ('.$result->getUserinfo().'))');
         }
-        return($db->raiseError(MDB_ERROR, NULL, NULL,
+        return $db->raiseError(MDB_ERROR, null, null,
             'Create sequence: could not create sequence table ('.
-            $res->getMessage().' ('.$res->getUserinfo().'))'));
+            $res->getMessage().' ('.$res->getUserinfo().'))');
     }
 
     // }}}
@@ -910,7 +660,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * drop existing sequence
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @param string    $seq_name     name of the sequence to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -918,7 +668,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     function dropSequence(&$db, $seq_name)
     {
         $sequence_name = $db->getSequenceName($seq_name);
-        return($db->query("DROP TABLE $sequence_name"));
+        return $db->query("DROP TABLE $sequence_name");
     }
 
     // }}}
@@ -927,26 +677,24 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * list all sequences in the current database
      *
-     * @param object    $db        database object that is extended by this class
+     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listSequences(&$db)
     {
         $table_names = $db->queryCol('SHOW TABLES');
-        if(MDB::isError($table_names)) {
-            return($table_names);
+        if (MDB::isError($table_names)) {
+            return $table_names;
         }
         for($i = 0, $j = count($table_names), $sequences = array(); $i < $j; ++$i)
         {
             if ($sqn = $db->_isSequenceName($table_names[$i]))
                 $sequences[] = $sqn;
         }
-        return($sequences);
+        return $sequences;
     }
 
     // }}}
 }
-
-};
 ?>
