@@ -33,7 +33,7 @@ if(!defined('PATH_SEPARATOR')) {
 }
 ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
 
-require 'MDB.php';
+require_once 'MDB.php';
 MDB::loadFile('metabase_wrapper');
 MDB::loadFile('Manager');
 
