@@ -275,7 +275,7 @@ class MDB_mssql extends MDB_Common
 
         $function = ($this->options['persistent'] ? 'mssql_pconnect' : 'mssql_connect');
 
-        $this->dsn = $dsninfo;
+        $dsninfo = $this->dsn;
         $user = $dsninfo['username'];
         $pw = $dsninfo['password'];
         $dbhost = $dsninfo['hostspec'] ? $dsninfo['hostspec'] : 'localhost';

@@ -131,7 +131,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $type = isset($field['length']) ? 'VARCHAR ('.$field['length'].')' : 'TEXT';
-        $default = isset($field['default']) ? ' DEFAULT TIME'.
+        $default = isset($field['default']) ? ' DEFAULT '.
             $this->getTextValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
         return $name.' '.$type.$default.$notnull;
@@ -177,7 +177,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
             $type = 'TEXT';
         }
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' '.$type.$default;
+        return $name.' '.$type.$notnull;
     }
 
     // }}}
@@ -220,7 +220,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
             $type = 'IMAGE';
         }
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' '.$type.$default;
+        return $name.' '.$type.$notnull;
     }
 
     // }}}
