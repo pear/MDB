@@ -162,7 +162,7 @@ function mdbTime()
  * @param integer $month    month of the date
  * @param integer $day        day of the date
  * @param integer $year        year of the date
- * 
+ *
 *  * @return string a valid MDB timestamp
  *
  * @access public
@@ -176,13 +176,13 @@ function date2Mdbstamp($hour = NULL, $minute = NULL, $second = NULL, $month = NU
 // {{{ unix2Mdbstamp()
 /**
  * convert a unix timestamp into a MDB timestamp
- * 
+ *
  * @param integer $unix_timestamp    a valid unix timestamp
   *
  * @return string a valid MDB timestamp
  *
  * @access public
- */   
+ */
 function unix2Mdbstamp($unix_timestamp)
 {
     return date('Y-m-d H:i:s', $unix_timestamp);
@@ -192,13 +192,13 @@ function unix2Mdbstamp($unix_timestamp)
 // {{{ mdbstamp2Unix()
 /**
  * convert a MDB timestamp into a unix timestamp
- * 
+ *
  * @param integer $mdb_timestamp    a valid MDB timestamp
- * 
+ *
  * @return string current time in the MDB format
  *
  * @access public
- */  
+ */
 function mdbstamp2Unix($mdb_timestamp)
 {
     // 0123456789012345678
@@ -448,7 +448,7 @@ class MDB_common extends PEAR
     /**
      * get all warnings in reverse order.
      * This means that the last warning is the first element in the array
-     * 
+     *
      * @return array with warnings
      *
      * @access public
@@ -740,7 +740,7 @@ class MDB_common extends PEAR
             return (DB_OK);
         }
         $result = $this->_loadExtension($scope, 'database manager',
-                         'MDB_MANAGER_DATABASE_INCLUDED', 'manager_common.php');
+                         'MDB_MANAGER_COMMON_INCLUDED', 'manager_common.php');
         if (MDB::isError($result)) {
             return($result);
         }
@@ -822,7 +822,7 @@ class MDB_common extends PEAR
      */
     function commit()
     {
-         $this->debug("Commit Transaction");
+        $this->debug("Commit Transaction");
         return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
             'Commit transaction: commiting transactions are not supported');
     }
@@ -841,7 +841,7 @@ class MDB_common extends PEAR
      */
     function rollback()
     {
-         $this->debug("Rollback Transaction");
+        $this->debug("Rollback Transaction");
         return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
            'Rollback transaction: rolling back transactions are not supported');
     }
@@ -890,7 +890,7 @@ class MDB_common extends PEAR
      *
      * @return string name of the database previously connected to
      * @access public
-     * 
+     *
      */
     function setDatabase($name)
     {
@@ -973,7 +973,7 @@ class MDB_common extends PEAR
      *
      * @return mixed DB_OK on success, a DB error on failure
      */
-    function createTable($name, &$fields)
+    function createTable($name, $fields)
     {
         $result = $this->loadManager('Create table');
         if (MDB::isError($result)) {
@@ -1098,7 +1098,7 @@ class MDB_common extends PEAR
      *
      * @return mixed DB_OK on success, a DB error on failure
      */
-    function alterTable($name, &$changes, $check)
+    function alterTable($name, $changes, $check)
     {
         $result = $this->loadManager('Alter table');
         if (MDB::isError($result)) {
@@ -1243,7 +1243,7 @@ class MDB_common extends PEAR
     // {{{ getFieldDeclaration()
     /**
      * get declaration of a field
-     * 
+     *
      * @param string $field_name name of the field to be created
      * @param string $field  associative array with the name of the properties
      *      of the field being declared as array indexes. Currently, the types
@@ -1255,12 +1255,12 @@ class MDB_common extends PEAR
      *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     * 
+     *
      * @access public
      *
      * @return mixed string on success, a DB error on failure
      */
-    function getFieldDeclaration($field_name, &$field)
+    function getFieldDeclaration($field_name, $field)
     {
         $result = $this->loadManager('Get table field definition');
         if (MDB::isError($result)) {
@@ -1273,7 +1273,7 @@ class MDB_common extends PEAR
     // {{{ getFieldDeclarationList()
     /**
      * get declaration of a number of field in bulk
-     * 
+     *
      * @param string $fields  a multidimensional associative array.
              The first dimension determines the field name, while the second
             dimension is keyed with the name of the properties
@@ -1293,12 +1293,12 @@ class MDB_common extends PEAR
      *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     * 
+     *
      * @access public
      *
      * @return mixed string on success, a DB error on failure
      */
-    function getFieldDeclarationList(&$fields)
+    function getFieldDeclarationList($fields)
     {
         $result = $this->loadManager('Get table field list');
         if (MDB::isError($result)) {
@@ -1311,13 +1311,13 @@ class MDB_common extends PEAR
     // {{{ _isSequenceName()
     /**
      * list all tables in the current database
-     * 
+     *
      * @param string $sqn string that containts name of a potential sequence
-     * 
+     *
      * @access private
      *
      * @return mixed name of the sequence if $sqn is a name of a sequence, else FALSE
-     */ 
+     */
     function _isSequenceName($sqn)
     {
         $result = $this->loadManager('is sequence name');
@@ -1363,7 +1363,7 @@ class MDB_common extends PEAR
      *
      * @return mixed DB_OK on success, a DB error on failure
      */
-    function createIndex($table, $name, &$definition)
+    function createIndex($table, $name, $definition)
     {
         $result = $this->loadManager('Create index');
         if (MDB::isError($result)) {
@@ -1397,14 +1397,14 @@ class MDB_common extends PEAR
     // {{{ listTableIndexes()
     /**
      * list all indexes in a table
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $table      name of table that should be used in method
      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function listTableIndexes($table)
     {
         $result = $this->loadManager('List table index');
@@ -1418,15 +1418,15 @@ class MDB_common extends PEAR
     // {{{ getTableIndexDefinition()
     /**
      * get the stucture of an index into an array
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $table      name of table that should be used in method
      * @param string    $index      name of index that should be used in method
-      * 
+      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function getTableIndexDefinition($table, $index)
     {
         $result = $this->loadManager('Get table index definition');
@@ -1499,14 +1499,14 @@ class MDB_common extends PEAR
     // {{{ getSequenceDefinition()
     /**
      * get the stucture of a sequence into an array
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $sequence   name of sequence that should be used in method
-      * 
+      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function getSequenceDefinition($sequence)
     {
         $result = $this->loadManager('Get sequence definition');
@@ -1671,7 +1671,7 @@ class MDB_common extends PEAR
      *
      * @return mixed DB_OK on success, a DB error on failure
      */
-    function replace($table, &$fields)
+    function replace($table, $fields)
     {
         if (!$this->supported['Replace']) {
             return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Replace: replace query is not supported');
@@ -2984,7 +2984,7 @@ class MDB_common extends PEAR
      *
      * @access public
      */
-    function convertResultRow($result, &$row)
+    function convertResultRow($result, $row)
     {
         if (isset($this->result_types[$result]))
         {
@@ -3012,7 +3012,7 @@ class MDB_common extends PEAR
                 }
             }
         }
-        return (DB_OK);
+        return ($row);
     }
 
     // }}}
@@ -3188,7 +3188,7 @@ class MDB_common extends PEAR
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getIntegerDeclaration($name, &$field)
+    function getIntegerDeclaration($name, $field)
     {
         if (isset($field['unsigned'])) {
             $this->warnings[] = "unsigned integer field \"$name\" is being declared as signed integer";
@@ -3224,7 +3224,7 @@ class MDB_common extends PEAR
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getTextDeclaration($name, &$field)
+    function getTextDeclaration($name, $field)
     {
         return ((isset($field['length']) ? "$name CHAR (".$field['length'].')' : "$name TEXT").(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
@@ -3254,7 +3254,7 @@ class MDB_common extends PEAR
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getCLOBDeclaration($name, &$field)
+    function getCLOBDeclaration($name, $field)
     {
         return ((isset($field['length']) ? "$name CHAR (".$field['length'].')' : "$name TEXT").(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
@@ -3284,7 +3284,7 @@ class MDB_common extends PEAR
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getBLOBDeclaration($name, &$field)
+    function getBLOBDeclaration($name, $field)
     {
         return ((isset($field['length']) ? "$name CHAR (".$field['length'].')' : "$name TEXT").(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
@@ -3312,7 +3312,7 @@ class MDB_common extends PEAR
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getBooleanDeclaration($name, &$field)
+    function getBooleanDeclaration($name, $field)
     {
         return ("$name CHAR (1)".(isset($field['default']) ? ' DEFAULT '.$this->getBooleanValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
@@ -3340,7 +3340,7 @@ class MDB_common extends PEAR
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getDateDeclaration($name, &$field)
+    function getDateDeclaration($name, $field)
     {
         return ("$name CHAR (".strlen("YYYY-MM-DD").")".(isset($field['default']) ? ' DEFAULT '.$this->getDateValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
@@ -3368,7 +3368,7 @@ class MDB_common extends PEAR
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getTimestampDeclaration($name, &$field)
+    function getTimestampDeclaration($name, $field)
     {
         return ("$name CHAR (".strlen("YYYY-MM-DD HH:MM:SS").")".(isset($field['default']) ? ' DEFAULT '.$this->getTimestampValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
@@ -3396,7 +3396,7 @@ class MDB_common extends PEAR
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getTimeDeclaration($name, &$field)
+    function getTimeDeclaration($name, $field)
     {
         return ("$name CHAR (".strlen("HH:MM:SS").")".(isset($field['default']) ? ' DEFAULT '.$this->getTimeValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
@@ -3424,7 +3424,7 @@ class MDB_common extends PEAR
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getFloatDeclaration($name, &$field)
+    function getFloatDeclaration($name, $field)
     {
         return ("$name TEXT ".(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
@@ -3452,7 +3452,7 @@ class MDB_common extends PEAR
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getDecimalDeclaration($name, &$field)
+    function getDecimalDeclaration($name, $field)
     {
         return ("$name TEXT ".(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
@@ -3838,9 +3838,7 @@ class MDB_common extends PEAR
             $array[$column] = $res;
         }
         if (isset($this->result_types[$result])) {
-            if (!$this->convertResultRow($result, $array)) {
-                return $this->raiseError();
-            }
+            $array = $this->convertResultRow($result, $array);
         }
         return ($array);
     }
