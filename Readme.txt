@@ -25,6 +25,40 @@ discussion):
   metabase-dev@yahoogroups.com
   dev@binarycloud.tigris.org
 
+** Features
+
+MDB provides a common API for all support RDBMS. The main difference to most
+other DB abstraction packages is that MDB goes much further to ensure
+portability. Among other things MDB features:
+* An OO-style query API
+* A DSN (data source name) or array format for specifying database servers
+* Datatype abstraction and on demand datatype conversion
+* Portable error codes
+* Sequential and non sequential row fetching as well as bulk fetching
+* Ordered array and associative array for the fetched rows
+* Prepare/execute (bind) emulation
+* Sequence emulation
+* Replace emulation
+* Limited Subselect emulation
+* Row limit support
+* Transactions support
+* Large Object support
+* Index/Unique support
+* Extension Framework to load advanced functionality on demand
+* Table information interface
+* RDBMS management methods (creating, dropping, altering)
+* RDBMS independent xml based schema definition management
+* Altering of a DB from a changed xml schema
+* Reverse engineering of xml schemas from an existing DB (currently only MySQL)
+* Full integration into the PEAR Framework
+* Wrappers for the PEAR DB and Metabase APIs
+* PHPDoc API documentation
+
+Currently supported RDBMS:
+MySQL
+PostGreSQL
+Other soon to follow. 
+
 ** Current State:
 
 The current release can be found at the PEAR webpage:
@@ -54,7 +88,7 @@ moving the error handling to PEAR error handling is under way but still
 needs some work.
 
 A word of warning: Since quite some time my testing has only comprised
-of running the two test scripts (see below). Obviously those do not test
+of running the three test scripts (see below). Obviously those do not test
 everything there is. All the more I encourage people to expand these
 tests (especially the MDB_test.php) or just try out some stuff (MDB
 should be able to do anything that Metabase can and most of what PEAR
@@ -65,20 +99,21 @@ for a couple of weeks now.
 ** Package Content:
 
 The files that make up MDB are:
-  MDB.php
-  common.php
-  mysql.php
-  pgsql.php
-  manager_common.php
-  manager_mysql.php
-  manager_pgsql.php
-  lob.php
-  manager.php
-  parser.php
-  date.php
-  metabase_wrapper.php
-  pear_wrapper.php
-  reverse_engineer_xml_schema.php
+  MDB.php (core class to include)
+  common.php (base database class, included by each driver)
+  mysql.php (mysql driver, included by MDB.php))
+  pgsql.php (postgresql driver, included by MDB.php)
+  manager_common.php (base class for db management methods)
+  manager_mysql.php (mysql driver for db management methods)
+  manager_pgsql.php (postgresql driver for db management methods)
+  lob.php (large object classes, included on demand)
+  manager.php (XML schema management class)
+  parser.php (XML schema parser, included by manager.php)
+  date.php (date conversion methods)
+  metabase_wrapper.php (wrapper to mimic the Metabase API)
+  pear_wrapper.php (wrapper to mimic the PEAR DB API)
+  reverse_engineer_xml_schema.php (really lame script to help with
+  dumping and creating from to and from xml schema files)
 
 The important pieces for testing right now are:
   driver_test.php (uses driver_test_config.php, setup_test.php,
@@ -94,6 +129,7 @@ Other Included Files
   Readme.txt (you are reading it currently)
 
 ** Documentation:
+PHPDoc generated documentation can be found at: http://www.dybnet.de/MDB/docs/
 
 The entire "public" API and most of the "private" methods (except for some of
 the lob classes) have been documented with PHPDoc comments. Most of the API
@@ -159,15 +195,6 @@ Therefore, I recommend getting MDB_test.php to work first and after that
 worry about driver_test.php. Also keep in mind that you will have to
 modify driver_test_config.php before running driver_test.php with the
 new driver.
-
-** Some thoughts:
-
-This merger is very far along allready. Now is the time to decide what
-features should end up in MDB and what should be moved to the wrappers
-because it may not be needed anymore. There might be little tricky bugs
-that were introduced during the reformatting and restructuring process.
-I hope I fixed most of them through the help of the Metabase test suite
-but ...
 
 ** Roadmap:
 1.0 Release (sometime in August)
