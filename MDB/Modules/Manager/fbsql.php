@@ -62,69 +62,6 @@ require_once('MDB/Modules/Manager/Common.php');
  */
 class MDB_Manager_fbsql extends MDB_Manager_Common
 {
-    // {{{ properties
-    var $verified_table_types = array();
-
-    // }}}
-    // {{{ _verifyTransactionalTableType()
-
-    /**
-     * verify that chosen transactional table hanlder is available in the database
-     *
-     * @param object    $dbs        database object that is extended by this class
-     * @param string $table_type name of the table handler
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access private
-     */
-    function _verifyTransactionalTableType(&$db, $table_type)
-    {
-        switch(strtoupper($table_type)) {
-            case 'BERKELEYDB':
-            case 'BDB':
-                $check = 'have_bdb';
-                break;
-            case 'INNODB':
-                $check = 'have_innobase';
-                break;
-            case 'GEMINI':
-                $check = 'have_gemini';
-                break;
-            case 'HEAP':
-            case 'ISAM':
-            case 'MERGE':
-            case 'MRG_MYISAM':
-            case 'MYISAM':
-            case '':
-                return(MDB_OK);
-            default:
-                return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                    'Verify transactional table',
-                    $table_type.' is not a supported table type'));
-        }
-        if(MDB::isError($connect = $db->connect())) {
-            return($connect);
-        }
-        if(isset($this->verified_table_types[$table_type])
-            && $this->verified_table_types[$table_type] == $db->connection)
-        {
-            return(MDB_OK);
-        }
-        if(MDB::isError($has = $db->queryAll("SHOW VARIABLES LIKE '$check'", NULL, MDB_FETCHMODE_ORDERED))) {
-            return($db->raiseError());
-        }
-        if(count($has) == 0) {
-            return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                'Verify transactional table','could not tell if '.$table_type.' is a supported table type'));
-        }
-        if(strcmp($has[0][1], 'YES')) {
-            return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                'Verify transactional table',
-                $table_type.' is not a supported table type by this FrontBase database server'));
-        }
-        $this->verified_table_types[$table_type] = $db->connection;
-        return(MDB_OK);
-    }
-
     // }}}
     // {{{ createDatabase()
 
@@ -212,18 +149,10 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         if (count($fields) == 0) {
             return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no fields specified for table "'.$name.'"'));
         }
-        if(MDB::isError($verify = $this->_verifyTransactionalTableType($db, $db->default_table_type))) {
-            return($verify);
-        }
         if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
             return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'unkown error'));
         }
-        if (isset($db->supported['Transactions'])
-            && $db->default_table_type=='BDB')
-        {
-            $query_fields .= ', dummy_primary_key INT DEFAULT UNIQUE, PRIMARY KEY (dummy_primary_key)';
-        }
-        $query = "CREATE TABLE $name ($query_fields)".(strlen($db->default_table_type) ? ' TYPE='.$db->default_table_type : '');
+        $query = "CREATE TABLE $name ($query_fields)";
 
         return($db->query($query));
     }
@@ -475,7 +404,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         }
         for($i = 0, $j = count($table_names), $tables = array(); $i < $j; ++$i)
         {
-            if (!$db->_isSequenceName($table_names[$i]))
+            if (!$this->_isSequenceName($table_names[$i]))
                 $tables[] = $table_names[$i];
         }
         return($tables);
@@ -938,7 +867,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         }
         for($i = 0, $j = count($table_names), $sequences = array(); $i < $j; ++$i)
         {
-            if ($sqn = $db->_isSequenceName($table_names[$i]))
+            if ($sqn = $this->_isSequenceName($table_names[$i]))
                 $sequences[] = $sqn;
         }
         return($sequences);
