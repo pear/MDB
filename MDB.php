@@ -409,7 +409,7 @@ class MDB
                 MDB_ERROR_NODBSELECTED       => 'no database selected',
                 MDB_ERROR_NOSUCHFIELD        => 'no such field',
                 MDB_ERROR_NOSUCHTABLE        => 'no such table',
-                MDB_ERROR_NOT_CAPABLE        => 'DB backend not capable',
+                MDB_ERROR_NOT_CAPABLE        => 'MDB backend not capable',
                 MDB_ERROR_NOT_FOUND          => 'not found',
                 MDB_ERROR_NOT_LOCKED         => 'not locked',
                 MDB_ERROR_SYNTAX             => 'syntax error',
@@ -424,7 +424,8 @@ class MDB
                 MDB_ERROR_ACCESS_VIOLATION   => 'insufficient permissions',
                 MDB_ERROR_MANAGER            => 'MDB_manager error',
                 MDB_ERROR_MANAGER_PARSE      => 'MDB_manager schema parse error',
-                MDB_ERROR_LOADMODULE      => 'Error while including on demand module'
+                MDB_ERROR_LOADMODULE         => 'Error while including on demand module',
+                MDB_ERROR_TRUNCATED          => 'truncated'
             );
         }
         
@@ -518,10 +519,10 @@ class MDB
             $str = substr($dsn, 0, $at);
             $dsn = substr($dsn, $at + 1);
             if (($pos = strpos($str, ':')) !== FALSE) {
-                $parsed['username'] = urldecode(substr($str, 0, $pos));
-                $parsed['password'] = urldecode(substr($str, $pos + 1));
+                $parsed['username'] = rawurldecode(substr($str, 0, $pos));
+                $parsed['password'] = rawurldecode(substr($str, $pos + 1));
             } else {
-                $parsed['username'] = urldecode($str);
+                $parsed['username'] = rawurldecode($str);
             }
         }
         
@@ -548,7 +549,7 @@ class MDB
         
         // process the different protocol options
         $parsed['protocol'] = (!empty($proto)) ? $proto : 'tcp';
-        $proto_opts = urldecode($proto_opts);
+        $proto_opts = rawurldecode($proto_opts);
         if ($parsed['protocol'] == 'tcp') {
             if (strpos($proto_opts, ':') !== FALSE) {
                 list($parsed['hostspec'], $parsed['port']) =
@@ -578,7 +579,7 @@ class MDB
                 foreach ($opts as $opt) {
                     list($key, $value) = explode('=', $opt);
                     if (!isset($parsed[$key])) { // don't allow params overwrite
-                        $parsed[$key] = urldecode($value);
+                        $parsed[$key] = rawurldecode($value);
                     }
                 }
             }
