@@ -157,6 +157,22 @@ class MDB_manager extends PEAR
     }
 
     // }}}
+    // {{{ setDatabase()
+    /**
+     * Select a different database
+     *
+     * @param string $name name of the database that should be selected
+     *
+     * @return string name of the database previously connected to
+     * @access public
+     *
+     */
+    function setDatabase($name)
+    {
+        return ($this->database->setDatabase($name));
+    }
+
+    // }}}
     // {{{ _createTable()
     /**
      * create a table and inititialize the table if data is available
@@ -1529,7 +1545,9 @@ class MDB_manager extends PEAR
             return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL,
                 'no valid output function specified', 'MDB_Error', TRUE);
         }
-        $output = $arguments['Output'];
+        if(isset($arguments['Output']))
+            $output = $arguments['Output'];
+        }
         $eol = (isset($arguments['EndOfLine']) ? $arguments['EndOfLine'] : "\n");
 
         $sequences = array();
