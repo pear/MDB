@@ -1022,8 +1022,8 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result too soon.');
 
-        $this->assertTrue($this->db->resultIsNull($result, 0, 'document'), 'A query result large object column is not NULL unlike what was expected (document)');
-        $this->assertTrue($this->db->resultIsNull($result, 0, 'picture'), 'A query result large object column is not NULL unlike what was expected (picture)');
+        $this->assertTrue($this->db->resultIsNull($result, 0, 'document'), 'A query result large object column document is not NULL unlike what was expected');
+        $this->assertTrue($this->db->resultIsNull($result, 0, 'picture'), 'A query result large object column picture is not NULL unlike what was expected');
 
         $this->db->freeResult($result);
     }
