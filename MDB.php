@@ -235,7 +235,7 @@ class MDB
         
         @include_once("MDB/${type}.php");
         
-        @$db =& new $classname;
+        @$db =& new $class_name;
         
         return($db);
     }
