@@ -56,7 +56,7 @@
  * @author Stig Bakken <ssb@php.net>
  */
 
-class MDB_result
+class MDB_Result
 {
     // {{{ properties
 
@@ -73,7 +73,7 @@ class MDB_result
      * @param array    $options assoc array with optional result options
      */
 
-    function MDB_result(&$dbh, $result)
+    function MDB_Result(&$dbh, $result)
     {
         $this->dbh = &$dbh;
         $this->result = $result;
