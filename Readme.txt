@@ -171,27 +171,20 @@ I hope I fixed most of them through the help of the Metabase test suite
 but ...
 
 ** Roadmap:
-
-1.0 RC1 (early August)
-- API cleanups (only lob.php and manager.php left to cleanup) (lsmith)
-- Finish core parts of the pgsql driver (pgc)
-- More tests with Metabase and PEAR DB wrapper (you)
-
 1.0 Release (sometime in August)
-- API cleanups (only lob.php and manager.php left to cleanup) (lsmith)
-- Finish core parts of the pgsql driver (pgc)
 - More tests with Metabase and PEAR DB wrapper (you)
 
 1.1 Release (Fall 2002)
-- PHPDoc comments (missing in lob.php) (lsmith)
+- Add more PHPDoc comments (lsmith)
 - Further cleanups in lob.php, parser.php (lsmith)
 - Add support for more RDBMS (you)
-- Finish management parts of the pgsql driver (pgc)
+- Finish reverse enginerring parts of the pgsql driver (pgc)
 
 Some time
 - Interactive Application for Schema Reverse Engineering to better handle
 ambiguities that cannot be resolved automatically
 - SQL Funtion Abstraction (for example SUBSTRING() and SUBSTR())
+- Different modes: performance, portability
 
 ** Credits (never to early for those huh? :-)  ):
 
