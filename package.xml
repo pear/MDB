@@ -44,10 +44,10 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>0.9.4</version>
+    <version>0.9.5</version>
     <state>beta</state>
-    <date>2002-05-30</date>
-    <notes>Moved all DB management methods into a seperate class that is loaded on demand; MDB manager can now create an xml schema file from an existing DB;Improvements to the error handling, XMl schema manager and Metabase Wrapper as well as general formatting tweaks</notes>
+    <date>2002-06-05</date>
+    <notes>added autofree option; dropped setup() infavor of class contructors; minor changes to the API; improvements to the Metabase wrapper</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
