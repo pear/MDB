@@ -713,6 +713,34 @@ class MDB_Common extends PEAR
     }
 
     // }}}
+    // {{{ setDSN()
+
+    /**
+     * set the DSN
+     *
+     * @param mixed     $dsninfo    DSN string or array
+     * @return MDB_OK
+     * @access public
+     */
+    function setDSN($dsn)
+    {
+        $dsninfo = MDB::parseDSN($dsn);
+        if(isset($dsninfo['hostspec'])) {
+            $this->host = $dsninfo['hostspec'];
+        }
+        if(isset($dsninfo['port'])) {
+            $this->port = $dsninfo['port'];
+        }
+        if(isset($dsninfo['username'])) {
+            $this->user = $dsninfo['username'];
+        }
+        if(isset($dsninfo['password'])) {
+            $this->password = $dsninfo['password'];
+        }
+        return(MDB_OK);
+    }
+
+    // }}}
     // {{{ getDSN()
 
     /**

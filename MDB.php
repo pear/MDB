@@ -299,18 +299,9 @@ class MDB
         }
         
         @$db =& new $class_name();
-        if(isset($dsninfo['hostspec'])) {
-            $db->host = $dsninfo['hostspec'];
-        }
-        if(isset($dsninfo['port'])) {
-            $db->port = $dsninfo['port'];
-        }
-        if(isset($dsninfo['username'])) {
-            $db->user = $dsninfo['username'];
-        }
-        if(isset($dsninfo['password'])) {
-            $db->password = $dsninfo['password'];
-        }
+        
+        $db->setDSN($dsninfo);
+        
         if(is_array($options)) {
             foreach($options as $option => $value) {
                 $test = $db->setOption($option, $value);
