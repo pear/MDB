@@ -761,7 +761,7 @@ class MDB_ibase extends MDB_Common
         if ($this->options['result_buffering']) {
             $result_value = intval($result);
             if (!isset($this->results[$result_value]['rows'])) {
-                $getcolumnnames = $this->getColumnNames($result)
+                $getcolumnnames = $this->getColumnNames($result);
                 if (isset($this->results[$result_value]['limits'])) {
                     $skipfirstrow = $this->_skipLimitOffset($result);
                     if (MDB::isError($skipfirstrow)) {
