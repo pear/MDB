@@ -3810,7 +3810,7 @@ class MDB_common extends PEAR {
                     $key = array_shift($res);
                 }
                 if (!$force_array && sizeof($res) <= 1) {
-                    $res = $res[0];
+                    $res = array_shift($res);
                 }
                 if ($group) {
                     $all[$key][] = $res;
