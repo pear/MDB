@@ -406,10 +406,6 @@ class MDB_driver_mysql extends MDB_common
         $limit = $this->selected_row_limit;
         $this->first_selected_row = $this->selected_row_limit = 0;
 
-        if (!strcmp($this->database_name, '')) {
-            return $this->raiseError(DB_ERROR_NODBSELECTED);
-        }
-
         $result = $this->connect();
         if (MDB::isError($result)) {
             return $result;
@@ -422,9 +418,13 @@ class MDB_driver_mysql extends MDB_common
             }
         }
 
-        if (mysql_select_db($this->database_name, $this->connection)
-            && ($result = mysql_query($query, $this->connection)))
-        {
+        if ($this->database_name != '') {
+            if(!mysql_select_db($this->database_name, $this->connection)) {
+                return $this->mysqlRaiseError();
+            }
+        }
+
+        if ($result = mysql_query($query, $this->connection)) {
             if ($ismanip) {
                 $this->affected_rows = mysql_affected_rows($this->connection);
                 return DB_OK;

@@ -260,6 +260,9 @@ class MDB_driver_pgsql extends MDB_common {
             return ($this->raiseError(DB_ERROR_UNSUPPORTED, NULL, NULL, 'doConnect: PostgreSQL support is not available in this PHP configuration'));
         }
         $port = (isset($this->options['port']) ? $this->options['port'] : '');
+        if ($database_name == '') {
+            $database_name = 'template1';
+        }
         $connect_string = 'dbname='.$database_name;
         if ($this->host != '') {
             $connect_string .= ' host='.$this->host;
@@ -370,6 +373,28 @@ class MDB_driver_pgsql extends MDB_common {
             return $this->raiseError(NULL, NULL, NULL, 'query: '.$query.':'.$error, $error);
         }
         return ($result);
+    }
+
+    // }}}
+    // {{{ _standaloneQuery()
+
+    /**
+     * execute a query
+     *
+     * @param string $query
+     * @return
+     * @access private
+     */
+    function _standaloneQuery($query)
+    {
+        if (($connection = $this->_doConnect('template1', 0)) == 0) {
+            return $this->raiseError(DB_ERROR_CONNECT_FAILED, NULL, NULL, '_standaloneQuery: Cannot connect to template1');
+        }
+        if (!($success = @pg_Exec($connection, $query))) {
+            $this->raiseError(DB_ERROR, NULL, NULL, '_standaloneQuery: ' . pg_ErrorMessage($connection));
+        }
+        pg_Close($connection);
+        return ($success);
     }
 
     // }}}
@@ -666,28 +691,6 @@ class MDB_driver_pgsql extends MDB_common {
             unset($this->result_types[$result]);
         }
         return (pg_freeresult($result));
-    }
-
-    // }}}
-    // {{{ _standaloneQuery()
-
-    /**
-     * execute a query
-     *
-     * @param string $query
-     * @return
-     * @access private
-     */
-    function _standaloneQuery($query)
-    {
-        if (($connection = $this->_doConnect('template1', 0)) == 0) {
-            return $this->raiseError(DB_ERROR_CONNECT_FAILED, NULL, NULL, '_standaloneQuery: Cannot connect to template1');
-        }
-        if (!($success = @pg_Exec($connection, $query))) {
-            $this->raiseError(DB_ERROR, NULL, NULL, '_standaloneQuery: ' . pg_ErrorMessage($connection));
-        }
-        pg_Close($connection);
-        return ($success);
     }
 
     // }}}
