@@ -16,7 +16,9 @@ foreach ($testarray as $test) {
     include_once $test . '.php';
 }
 
-foreach ($dsnarray as $dsn) {
+foreach ($dbarray as $db) {
+    $dsn = $db['dsn'];
+    $options = $db['options'];
     foreach ($testarray as $test) {
         $tpl->setCurrentBlock('test');
         $tpl->setVariable('testtitle', 'Performing ' . $test); 

@@ -5,7 +5,10 @@ $testarray = array('MDB_manager_testcase',
                    'MDB_usage_testcase'
                    );
 
-$dsnarray[] = "pgsql://username@hostname/databasename";
-$dsnarray[] = "mysql://username:password@hostname/databasename";
+$dbarray[] = array('dsn' => "pgsql://username@hostname/databasename");
+$dbarray[] = array(
+    'dsn' => "mysql://username:password@hostname/databasename",
+    'options' => array('UseTransactions'=>TRUE)
+);
 
 ?>

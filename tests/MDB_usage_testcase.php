@@ -61,9 +61,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     }
 
     function setUp() {
-        global $dsn;
+        global $dsn, $options;
         $this->dsn = $dsn;
-        $this->db = MDB::connect($dsn);
+        $this->db = MDB::connect($dsn, $options);
         $this->fields = array('user_name',
                         'user_password',
                         'subscribed',
