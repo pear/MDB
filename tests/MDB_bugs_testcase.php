@@ -205,7 +205,6 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         $data['user_name'] = "user_1";
         $data['user_id'] = 2;
 
-        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
         $this->insertTestValues($prepared_query, $data);
         $result = $this->db->executeQuery($prepared_query);
 
@@ -216,6 +215,8 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         }
 
         $data['user_name'] = null;
+
+        $this->db->freePreparedQuery($prepared_query);
     }
 
     /**
@@ -244,6 +245,8 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         $result = $this->db->query('SELECT * FROM users');
         $numrows = $this->db->numRows($result);
         $this->assertEquals(1, $numrows, "Numrows is not returning proper value");
+
+        $this->db->freePreparedQuery($prepared_query);
     }
 
     /**
@@ -266,6 +269,8 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
         $row = $this->db->queryRow('SELECT a.user_id, b.user_id FROM users a, users b where a.user_id = b.user_id', array('integer', 'integer'), MDB_FETCHMODE_ORDERED);
         $this->assertEquals(2, count($row), "Columns with the same name get overwritten in ordered mode");
+
+        $this->db->freePreparedQuery($prepared_query);
     }
 }
 
