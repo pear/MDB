@@ -90,48 +90,6 @@ define('MDB_ERROR_LOADMODULE',         -32);
 define('MDB_ERROR_INSUFFICIENT_DATA',  -33);
 
 /**
- * WARNING: not implemented
- * These constants are used when storing information about prepared
- * statements (using the 'prepare' method in MDB_dbtype).
- *
- * The prepare/execute model in DB is mostly borrowed from the ODBC
- * extension, in a query the '?' character means a scalar parameter.
- * There are two extensions though, a '&' character means an opaque
- * parameter.  An opaque parameter is simply a file name, the real
- * data are in that file (useful for putting uploaded files into your
- * database and such). The '!' char means a parameter that must be
- * left as it is.
- * They modify the quote behavior:
- * MDB_PARAM_SCALAR (?) => 'original string quoted'
- * MDB_PARAM_OPAQUE (&) => 'string from file quoted'
- * MDB_PARAM_MISC   (!) => original string
- */
-
-define('MDB_PARAM_SCALAR', 1);
-define('MDB_PARAM_OPAQUE', 2);
-define('MDB_PARAM_MISC',   3);
-
-/**
- * WARNING: Not implemented.
- * These constants define different ways of returning binary data
- * from queries.  Again, this model has been borrowed from the ODBC
- * extension.
- *
- * MDB_BINMODE_PASSTHRU  sends the data directly through to the browser
- *                      when data is fetched from the database.
- *
- * MDB_BINMODE_RETURN    lets you return data as usual.
- *
- * MDB_BINMODE_CONVERT   returns data as well, only it is converted to
- *                      hex format, for example the string '123'
- *                      would become '313233'.
- */
-
-define('MDB_BINMODE_PASSTHRU', 1);
-define('MDB_BINMODE_RETURN',   2);
-define('MDB_BINMODE_CONVERT',  3);
-
-/**
  * This is a special constant that tells DB the user hasn't specified
  * any particular get mode, so the default should be used.
  */
@@ -169,6 +127,10 @@ define('MDB_TABLEINFO_ORDER',      1);
 define('MDB_TABLEINFO_ORDERTABLE', 2);
 define('MDB_TABLEINFO_FULL',       3);
 
+/**
+ * These are constants for each of the supported datatypes
+ */
+
 define('MDB_TYPE_TEXT'      , 0);
 define('MDB_TYPE_BOOLEAN'   , 1);
 define('MDB_TYPE_INTEGER'   , 2);
@@ -179,6 +141,14 @@ define('MDB_TYPE_TIME'      , 6);
 define('MDB_TYPE_TIMESTAMP' , 7);
 define('MDB_TYPE_CLOB'      , 8);
 define('MDB_TYPE_BLOB'      , 9);
+
+/**
+ * Global arrays
+ */
+
+$_MDB_databases = array();
+$_MDB_lobs = array();
+
 
 /**
  * The main 'MDB' class is simply a container class with some static
@@ -217,7 +187,6 @@ define('MDB_TYPE_BLOB'      , 9);
  */
 class MDB
 {
-    
     // }}}
     // {{{ setOptions()
     
@@ -261,6 +230,16 @@ class MDB
     /**
      * Create a new DB connection object for the specified database
      * type
+     * IMPORTANT: In order for MDB to work properly it is necessary that
+     * you make sure that you work with a reference of the original
+     * object instead of a copy (this is a PHP4 quirk).
+     *
+     * For example:
+     *     $mdb =& MDB::factory($dsn);
+     *          ^^
+     * And not:
+     *     $mdb = MDB::factory($dsn);
+     *          ^^
      *
      * @param   string  $type   database type, for example 'mysql'
      * @return  mixed   a newly created MDB connection object, or a MDB
@@ -385,35 +364,39 @@ class MDB
      */
     function &singleton($dsn = NULL, $options = FALSE)
     {
-        global $_MDB_databases;
         if ($dsn) {
             $dsninfo = MDB::parseDSN($dsn);
-            $dsninfo = array_merge(
-                array(
-                    'phptype' => NULL,
-                    'username' => NULL,
-                    'password' => NULL,
-                    'hostspec' => NULL,
-                    'database' => NULL)
-                , $dsninfo);
-            for ($i=1, $j=count($_MDB_databases)+1; $i<$j; ++$i) {
-                $tmp_dsn = $_MDB_databases[$i]->getDSN('array');
+            $dsninfo_default = array(
+                'phptype' => NULL,
+                'username' => NULL,
+                'password' => NULL,
+                'hostspec' => NULL,
+                'database' => NULL,
+            );
+            $dsninfo = array_merge($dsninfo_default, $dsninfo);
+            $keys = array_keys($GLOBALS['_MDB_databases']);
+            for ($i=0, $j=count($keys); $i<$j; ++$i) {
+                $tmp_dsn = $GLOBALS['_MDB_databases'][$keys[$i]]->getDSN('array');
                 if ($dsninfo['phptype'] == $tmp_dsn['phptype']
                     && $dsninfo['username'] == $tmp_dsn['username']
                     && $dsninfo['password'] == $tmp_dsn['password']
                     && $dsninfo['hostspec'] == $tmp_dsn['hostspec']
                     && $dsninfo['database'] == $tmp_dsn['database'])
                 {
-                    MDB::setOptions($_MDB_databases[$i], $options);
-                    return $_MDB_databases[$i];
+                    MDB::setOptions($GLOBALS['_MDB_databases'][$keys[$i]], $options);
+                    return $GLOBALS['_MDB_databases'][$keys[$i]];
                 }
             }
         } else {
-            if (isset($_MDB_databases[0])) {
-                return $_MDB_databases[0];
+            if (is_array($GLOBALS['_MDB_databases'])
+                && reset($GLOBALS['_MDB_databases'])
+            ) {
+                $db =& $GLOBALS['_MDB_databases'][key($GLOBALS['_MDB_databases'])];
+                return $db;
             }
         }
-        return MDB::connect($dsn, $options);
+        $db =& MDB::connect($dsn, $options);
+        return $db;
     }
     
     // }}}
@@ -422,7 +405,8 @@ class MDB
     /**
      * load a file (like 'Date.php' or 'Manager.php')
      *
-     * @return $file    name of the file to be included from the MDB dir
+     * @return $file    name of the file to be included from the MDB dir without
+     *                  the '.php' extension (like 'Date' or 'Manager')
      * @access public
      */
     function loadFile($file)
@@ -456,9 +440,10 @@ class MDB
      */
     function isError($value)
     {
-        return(is_object($value) &&
-            (get_class($value) == 'mdb_error' ||
-            is_subclass_of($value, 'mdb_error')));
+        return(is_object($value)
+            && (get_class($value) == 'mdb_error'
+                || is_subclass_of($value, 'mdb_error'))
+        );
     }
     
     // }}}
@@ -475,7 +460,8 @@ class MDB
     function isConnection($value)
     {
         return (is_object($value)
-            && is_subclass_of($value, 'mdb_common'));
+            && is_subclass_of($value, 'mdb_common')
+        );
     }
     
     // }}}
