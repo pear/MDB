@@ -91,15 +91,15 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.1.2-RC2</version>
-    <state>devel</state>
-    <date>2003-04-22</date>
+    <version>1.1.2</version>
+    <state>stable</state>
+    <date>2003-04-23</date>
     <notes>
 - This is mainly a bug fix release
 - 4 new driver were added
     Oracle (still Beta)
     Frontbase (still Alpha)
-    Interbase/Firebird (Management methods missing; still Beta)
+    Interbase/Firebird (still Alpha, due to missing features)
     Querysim
 - All get*Value() methods (excet get*lobValue() for now) will convert a php NULL into an SQL NULL
   (resulting in API changes in the NULL handling of the get*Value() and replace() methods)
@@ -132,6 +132,7 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
           <file role="php">LOB.php</file>
           <dir name="Manager">
             <file role="php">Common.php</file>
+            <file role="php">ibase.php</file>
             <file role="php">oci8.php</file>
             <file role="php">fbsql.php</file>
             <file role="php">mysql.php</file>
