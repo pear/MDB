@@ -35,6 +35,8 @@
       MDB_mssql:
       - removed broken implementations of currId()
       - added quoteIdentifier() method
+      MDB_Manager_mysql:
+      - fixed bug #1159 which would break index handling in getTableFieldDefinition() if not in portability mode
       MDB_Manager_mssql:
       - added listTables() and listTableFields()
       test suite:
