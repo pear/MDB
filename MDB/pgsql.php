@@ -75,8 +75,8 @@ class MDB_driver_pgsql extends MDB_common {
     // {{{ constructor
 
     /**
-     * Constructor
-     **/
+    * Constructor
+    */
     function MDB_driver_pgsql($dsninfo = NULL, $options = NULL)
     {
         if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
@@ -503,7 +503,6 @@ class MDB_driver_pgsql extends MDB_common {
         return ($this->highest_fetched_row[$result] >= $this->numRows($result) - 1);
     }
 
-
     // }}}
     // {{{ _retrieveLob()
 
@@ -904,7 +903,7 @@ class MDB_driver_pgsql extends MDB_common {
     }
 
     // }}}
-    // {{{ getLobValue()
+    // {{{ _getLobValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
@@ -915,16 +914,16 @@ class MDB_driver_pgsql extends MDB_common {
      * @param           $lob
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
-     * @access public
+     * @access privat
      */
-    function getLobValue($prepared_query, $parameter, $lob)
+    function _getLobValue($prepared_query, $parameter, $lob)
     {
         $connect = $this->connect();
         if (MDB::isError($connect)) {
             return $connect;
         }
         if ($this->auto_commit && !@pg_Exec($this->connection, 'BEGIN')) {
-            return $this->raiseError(MDB_ERROR, NULL, NULL, 'getLobValue: error starting transaction');
+            return $this->raiseError(MDB_ERROR, NULL, NULL, '_getLobValue: error starting transaction');
         }
         if (($lo = pg_locreate($this->connection))) {
             if (($handle = pg_loopen($this->connection, $lo, 'w'))) {
@@ -975,7 +974,7 @@ class MDB_driver_pgsql extends MDB_common {
      */
     function getClobValue($prepared_query, $parameter, $clob)
     {
-        return ($this->getLobValue($prepared_query, $parameter, $clob));
+        return ($this->_getLobValue($prepared_query, $parameter, $clob));
     }
 
     // }}}
@@ -1011,7 +1010,7 @@ class MDB_driver_pgsql extends MDB_common {
      */
     function getBlobValue($prepared_query, $parameter, $blob)
     {
-        return ($this->getLobValue($prepared_query, $parameter, $blob));
+        return ($this->_getLobValue($prepared_query, $parameter, $blob));
     }
 
     // }}}
