@@ -8,7 +8,7 @@ class Console_TestListener extends PHPUnit_TestListener {
     function addFailure(&$test, &$t) {
         $this->_fails += 1;
         if ($this->_fails == 1) {
-            echo('\n');
+            echo("\n");
         }
         echo("Failure $this->_fails : $t\n");
     }
