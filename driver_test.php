@@ -44,29 +44,29 @@
 //
 // $Id$
 //
-// Metabase test suite.
-//
 
-/*
- * This is a script intended to be used by Metabase DBMS driver class
- * developers or other users to verify if the implementation of a given
- * driver works in conformance with the documented behavior of the driver
- * class functions.
- *
- * Driver classes that are not compliant may lead to bugs in the Metabase
- * applications that use such drivers.  Make sure that new or updated
- * drivers pass all tests performed by this script before releasing the
- * driver classes to Metabase users.  In the future this script will be
- * updated to perform conformance tests.
- *
- * To use this script, edit the driver_test_configuration.php script and
- * adjust any database setup values that may be needed to use the driver
- * class being tested in your environment.  Read Metabase documentation
- * about the MetabaseSetupDatabase section to learn more about these
- * database setup arguments.
- *
- */
+/**
+* Metabase test suite
+* This is a script intended to be used by Metabase DBMS driver class
+* developers or other users to verify if the implementation of a given
+* driver works in conformance with the documented behavior of the driver
+* class functions.
 
+* Driver classes that are not compliant may lead to bugs in the Metabase
+* applications that use such drivers.  Make sure that new or updated
+* drivers pass all tests performed by this script before releasing the
+* driver classes to Metabase users.  In the future this script will be
+* updated to perform conformance tests.
+*
+* To use this script, edit the driver_test_configuration.php script and
+* adjust any database setup values that may be needed to use the driver
+* class being tested in your environment.  Read Metabase documentation
+* about the MetabaseSetupDatabase section to learn more about these
+* database setup arguments.
+*
+* @package MDB
+* @author  Manuel Lemos <mlemos@acm.org>>
+*/
 
 require("metabase_wrapper.php");
 require("manager.php");

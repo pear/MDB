@@ -43,9 +43,13 @@
 // +----------------------------------------------------------------------+
 //
 // $Id$
-//
-// Metabase test suite config script.
-//
+
+/**
+* Configuration file for the Metabase test suite
+*
+* @package MDB
+* @author  Manuel Lemos <mlemos@acm.org>>
+*/
 
     $driver_arguments["Type"]="mysql";
     $driver_arguments["DontCaptureDebug"]=1;

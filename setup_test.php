@@ -44,8 +44,13 @@
 //
 // $Id$
 //
-// Metabase test suite.
-//
+
+/**
+* Part of Metabase test suite
+*
+* @package MDB
+* @author  Manuel Lemos <mlemos@acm.org>>
+*/
 
     require("manager.php");
     require("metabase_wrapper.php");
