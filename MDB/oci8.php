@@ -882,18 +882,10 @@ class MDB_oci8 extends MDB_Common {
     function convertResult($value, $type)
     {
         switch ($type) {
-            case MDB_TYPE_BOOLEAN:
-                return(strcmp($value, 'Y') ? 0 : 1);
-            case MDB_TYPE_DECIMAL:
-                return($value);
-            case MDB_TYPE_FLOAT:
-                return(doubleval($value));
             case MDB_TYPE_DATE:
                 return(substr($value, 0, strlen('YYYY-MM-DD')));
             case MDB_TYPE_TIME:
                 return(substr($value, strlen('YYYY-MM-DD '), strlen('HH:MI:SS')));
-            case MDB_TYPE_TIMESTAMP:
-                return($value);
             default:
                 return($this->baseConvertResult($value, $type));
         }

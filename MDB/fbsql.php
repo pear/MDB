@@ -567,21 +567,17 @@ class MDB_fbsql extends MDB_Common
     {
         switch($type) {
             case MDB_TYPE_BOOLEAN:
-                return(strncmp($value, 'T', 1) ? 0 : 1);
+                return ($value == 'T') ? TRUE : FALSE;
             case MDB_TYPE_DECIMAL:
                 return(sprintf('%.'.$this->decimal_places.'f', doubleval($value)/$this->decimal_factor));
             case MDB_TYPE_FLOAT:
                 return(doubleval($value));
-            case MDB_TYPE_DATE:
-                return($value);
             case MDB_TYPE_TIME:
                 if ($value[0] == '+') {
                     return (substr($value, 1));
                 } else {
                     return($value);
                 }
-            case MDB_TYPE_TIMESTAMP:
-                return($value);
             default:
                 return($this->_baseConvertResult($value, $type));
         }

@@ -559,7 +559,6 @@ class MDB_ibase extends MDB_Common
         if (MDB::isError($connected)) {
             return $connected;
         }
-        //return($this->_doQuery($query, $first, $limit, 0));
 
         if (!MDB::isError($result = $this->_doQuery($query, $first, $limit, 0))) {
             if ($types != NULL) {
@@ -1002,16 +1001,8 @@ class MDB_ibase extends MDB_Common
     function convertResult($value, $type)
     {
         switch ($type) {
-            case MDB_TYPE_BOOLEAN:
-                return (strcmp($value, 'Y') ? 0 : 1);
             case MDB_TYPE_DECIMAL:
                 return sprintf('%.'.$this->decimal_places.'f', doubleval($value)/$this->decimal_factor);
-            case MDB_TYPE_FLOAT:
-                return doubleval($value);
-            case MDB_TYPE_DATE:
-                return $value;
-            case MDB_TYPE_TIME:
-                return $value;
             case MDB_TYPE_TIMESTAMP:
                 return substr($value, 0, strlen('YYYY-MM-DD HH:MM:SS'));
             default:

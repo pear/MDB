@@ -605,11 +605,7 @@ class MDB_mssql extends MDB_Common
     {
         switch($type) {
             case MDB_TYPE_BOOLEAN:
-                return(strcmp($value,"1") ? 0 : 1);
-            case MDB_TYPE_DECIMAL:
-                return($value);
-            case MDB_TYPE_FLOAT:
-                return(doubleval($value));
+                return ($value == '1' ? TRUE : FALSE;
             case MDB_TYPE_DATE:
                 if(strlen($value) > 10) {
                     $value=substr($value,0,10);

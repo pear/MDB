@@ -2756,7 +2756,7 @@ class MDB_Common extends PEAR
             case MDB_TYPE_INTEGER:
                 return(intval($value));
             case MDB_TYPE_BOOLEAN:
-                return(strcmp($value, 'Y') ? 0 : 1);
+                return ($value == 'Y') ? TRUE : FALSE;
             case MDB_TYPE_DECIMAL:
                 return($value);
             case MDB_TYPE_FLOAT:
