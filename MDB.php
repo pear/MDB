@@ -44,10 +44,33 @@
 //
 // $Id$
 //
-// Database independent query interface.
-//
 
-require_once "PEAR.php";
+/**
+ * The main 'MDB' class is simply a container class with some static
+ * methods for creating DB objects as well as some utility functions
+ * common to all parts of DB.
+ *
+ * The object model of DB is as follows (indentation means inheritance):
+ *
+ * MDB           The main DB class.  This is simply a utility class
+ *               with some 'static' methods for creating DB objects as
+ *               well as common utility functions for other DB classes.
+ *
+ * MDB_common    The base for each DB implementation.  Provides default
+ * |             implementations (in OO lingo virtual methods) for
+ * |             the actual DB implementations as well as a bunch of
+ * |             query utility functions.
+ * |
+ * +-MDB_driver_mysql   The DB implementation for MySQL.  Inherits MDB_Common.
+ *               When calling MDB::factory or MDB::connect for MySQL
+ *               connections, the object returned is an instance of this
+ *               class.
+ *
+ * @package  MDB
+ * @author   Lukas Smith <smith@dybnet.de>
+ */
+
+require_once 'PEAR.php';
 
 /**
  * The method mapErrorCode in each DB_dbtype implementation maps
@@ -57,46 +80,46 @@ require_once "PEAR.php";
  * version of it in MDB::errorMessage().
  */
 
-define("DB_OK",                         1);
-define("DB_ERROR",                     -1);
-define("DB_ERROR_SYNTAX",              -2);
-define("DB_ERROR_CONSTRAINT",          -3);
-define("DB_ERROR_NOT_FOUND",           -4);
-define("DB_ERROR_ALREADY_EXISTS",      -5);
-define("DB_ERROR_UNSUPPORTED",         -6);
-define("DB_ERROR_MISMATCH",            -7);
-define("DB_ERROR_INVALID",             -8);
-define("DB_ERROR_NOT_CAPABLE",         -9);
-define("DB_ERROR_TRUNCATED",          -10);
-define("DB_ERROR_INVALID_NUMBER",     -11);
-define("DB_ERROR_INVALID_DATE",       -12);
-define("DB_ERROR_DIVZERO",            -13);
-define("DB_ERROR_NODBSELECTED",       -14);
-define("DB_ERROR_CANNOT_CREATE",      -15);
-define("DB_ERROR_CANNOT_DELETE",      -16);
-define("DB_ERROR_CANNOT_DROP",        -17);
-define("DB_ERROR_NOSUCHTABLE",        -18);
-define("DB_ERROR_NOSUCHFIELD",        -19);
-define("DB_ERROR_NEED_MORE_DATA",     -20);
-define("DB_ERROR_NOT_LOCKED",         -21);
-define("DB_ERROR_VALUE_COUNT_ON_ROW", -22);
-define("DB_ERROR_INVALID_DSN",        -23);
-define("DB_ERROR_CONNECT_FAILED",     -24);
-define("DB_ERROR_EXTENSION_NOT_FOUND",-25);
-define("DB_ERROR_NOSUCHDB",           -26);
-define("DB_ERROR_ACCESS_VIOLATION",   -27);
-define("DB_ERROR_CANNOT_REPLACE",     -28);
-define("DB_ERROR_CANNOT_ALTER",       -29);
-define("DB_ERROR_MANAGER",            -30);
-define("DB_ERROR_MANAGER_PARSE",      -31);
-define("DB_ERROR_LOADEXTENSION",      -32);
+define('DB_OK',                         1);
+define('DB_ERROR',                     -1);
+define('DB_ERROR_SYNTAX',              -2);
+define('DB_ERROR_CONSTRAINT',          -3);
+define('DB_ERROR_NOT_FOUND',           -4);
+define('DB_ERROR_ALREADY_EXISTS',      -5);
+define('DB_ERROR_UNSUPPORTED',         -6);
+define('DB_ERROR_MISMATCH',            -7);
+define('DB_ERROR_INVALID',             -8);
+define('DB_ERROR_NOT_CAPABLE',         -9);
+define('DB_ERROR_TRUNCATED',          -10);
+define('DB_ERROR_INVALID_NUMBER',     -11);
+define('DB_ERROR_INVALID_DATE',       -12);
+define('DB_ERROR_DIVZERO',            -13);
+define('DB_ERROR_NODBSELECTED',       -14);
+define('DB_ERROR_CANNOT_CREATE',      -15);
+define('DB_ERROR_CANNOT_DELETE',      -16);
+define('DB_ERROR_CANNOT_DROP',        -17);
+define('DB_ERROR_NOSUCHTABLE',        -18);
+define('DB_ERROR_NOSUCHFIELD',        -19);
+define('DB_ERROR_NEED_MORE_DATA',     -20);
+define('DB_ERROR_NOT_LOCKED',         -21);
+define('DB_ERROR_VALUE_COUNT_ON_ROW', -22);
+define('DB_ERROR_INVALID_DSN',        -23);
+define('DB_ERROR_CONNECT_FAILED',     -24);
+define('DB_ERROR_EXTENSION_NOT_FOUND',-25);
+define('DB_ERROR_NOSUCHDB',           -26);
+define('DB_ERROR_ACCESS_VIOLATION',   -27);
+define('DB_ERROR_CANNOT_REPLACE',     -28);
+define('DB_ERROR_CANNOT_ALTER',       -29);
+define('DB_ERROR_MANAGER',            -30);
+define('DB_ERROR_MANAGER_PARSE',      -31);
+define('DB_ERROR_LOADEXTENSION',      -32);
 
 /**
  * These constants are used when storing information about prepared
- * statements (using the "prepare" method in DB_dbtype).
+ * statements (using the 'prepare' method in DB_dbtype).
  *
  * The prepare/execute model in DB is mostly borrowed from the ODBC
- * extension, in a query the "?" character means a scalar parameter.
+ * extension, in a query the '?' character means a scalar parameter.
  * There are two extensions though, a "&" character means an opaque
  * parameter.  An opaque parameter is simply a file name, the real
  * data are in that file (useful for putting uploaded files into your
@@ -123,8 +146,8 @@ define('DB_PARAM_MISC',   3);
  * DB_BINMODE_RETURN    lets you return data as usual.
  *
  * DB_BINMODE_CONVERT   returns data as well, only it is converted to
- *                      hex format, for example the string "123"
- *                      would become "313233".
+ *                      hex format, for example the string '123'
+ *                      would become '313233'.
  */
 
 define('DB_BINMODE_PASSTHRU', 1);
@@ -187,32 +210,6 @@ define('DB_TABLEINFO_FULL',       3);
 define('DB_AUTOQUERY_INSERT', 1);
 define('DB_AUTOQUERY_UPDATE', 2);
 
-
-/**
- * The main "MDB" class is simply a container class with some static
- * methods for creating DB objects as well as some utility functions
- * common to all parts of DB.
- *
- * The object model of DB is as follows (indentation means inheritance):
- *
- * MDB           The main DB class.  This is simply a utility class
- *               with some "static" methods for creating DB objects as
- *               well as common utility functions for other DB classes.
- *
- * MDB_common    The base for each DB implementation.  Provides default
- * |             implementations (in OO lingo virtual methods) for
- * |             the actual DB implementations as well as a bunch of
- * |             query utility functions.
- * |
- * +-MDB_driver_mysql   The DB implementation for MySQL.  Inherits MDB_Common.
- *               When calling MDB::factory or MDB::connect for MySQL
- *               connections, the object returned is an instance of this
- *               class.
- *
- * @package  MDB
- * @version  0.9.9
- * @author   Lukas Smith <smith@dybnet.de>
- */
 class MDB
 {
     /**
@@ -221,7 +218,7 @@ class MDB
      *
      * @access  public
      *
-     * @param   string  $type   database type, for example "mysql"
+     * @param   string  $type   database type, for example 'mysql'
      *
      * @return  mixed   a newly created MDB object, or a MDB error code on error
      */
@@ -245,7 +242,7 @@ class MDB
      *
      * @access  public
      *
-     * @param   mixed   $dsn      "data source name", see the MDB::parseDSN
+     * @param   mixed   $dsn      'data source name', see the MDB::parseDSN
      *                            method for a description of the dsn format.
      *                            Can also be specified as an array of the
      *                            format returned by MDB::parseDSN.
@@ -266,24 +263,24 @@ class MDB
             $dsninfo = MDB::parseDSN($dsn);
         }
 
-        switch(isset($dsninfo["phptype"]) ? $dsninfo["phptype"] : "") {
-            case "mysql";
-                $include    = "mysql.php";
-                $class_name = "MDB_driver_mysql";
-                $included   = "MYSQL_INCLUDED";
+        switch(isset($dsninfo['phptype']) ? $dsninfo['phptype'] : '') {
+            case 'mysql';
+                $include    = 'mysql.php';
+                $class_name = 'MDB_driver_mysql';
+                $included   = 'MYSQL_INCLUDED';
                 break;
-            case "pgsql";
-                $include    = "pgsql.php";
-                $class_name = "MDB_driver_pgsql";
-                $included   = "PGSQL_INCLUDED";
+            case 'pgsql';
+                $include    = 'pgsql.php';
+                $class_name = 'MDB_driver_pgsql';
+                $included   = 'PGSQL_INCLUDED';
                 break;
             default:
-                $included = (isset($options["includedconstant"]) ?
-                                   $options["includedconstant"] : "");
-                if (!isset($options["include"])
-                    || !strcmp($include = $options["includepath"],""))
+                $included = (isset($options['includedconstant']) ?
+                                   $options['includedconstant'] : '');
+                if (!isset($options['include'])
+                    || !strcmp($include = $options['includepath'],''))
                 {
-                    if (isset($options["includepath"])) {
+                    if (isset($options['includepath'])) {
                         return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
                             NULL, NULL,
                             'no valid DBMS driver include path specified',
@@ -294,30 +291,30 @@ class MDB
                             'MDB_Error', TRUE);
                     }
                 }
-                if (!isset($options["classname"])
-                    || !strcmp($class_name = $options["classname"],""))
+                if (!isset($options['classname'])
+                    || !strcmp($class_name = $options['classname'],''))
                 {
                     return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
                         NULL, NULL, 'no existing DBMS driver specified',
                         'MDB_Error', TRUE);
                 }
         }
-        $include_path = (isset($options["includepath"]) ?
-                               $options["includepath"] : dirname(__FILE__));
-        if (!strcmp($included,"") || !defined($included))
+        $include_path = (isset($options['includepath']) ?
+                               $options['includepath'] : dirname(__FILE__));
+        if (!strcmp($included,'') || !defined($included))
         {
             $length = strlen($include_path);
-            $separator = "";
+            $separator = '';
             if($length) {
-                $directory_separator = (defined("DIRECTORY_SEPARATOR") ?
-                                                DIRECTORY_SEPARATOR : "/");
+                $directory_separator = (defined('DIRECTORY_SEPARATOR') ?
+                                                DIRECTORY_SEPARATOR : '/');
                 if ($include_path[$length-1] != $directory_separator)
                     $separator = $directory_separator;
             }
-            
+
             if(!file_exists($include_path.$separator.$include)) {
                 $directory = 0;
-                if (!strcmp($include_path,"")
+                if (!strcmp($include_path,'')
                     || ($directory = @opendir($include_path)))
                 {
                     if ($directory) {
@@ -381,8 +378,8 @@ class MDB
      */
     function isManip($query)
     {
-        $manips = 'INSERT|UPDATE|DELETE|'.'REPLACE|CREATE|DROP|'.
-                  'ALTER|GRANT|REVOKE|'.'LOCK|UNLOCK';
+        $manips = 'INSERT|UPDATE|DELETE|REPLACE|CREATE|DROP|
+                  ALTER|GRANT|REVOKE|LOCK|UNLOCK|ROLLBACK|COMMIT';
         if (preg_match('/^\s*"?('.$manips.')\s+/i', $query)) {
             return TRUE;
         }
