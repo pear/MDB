@@ -121,7 +121,6 @@
                      array(4, 'four', 'quatre')
     );
     $prepared_query = $db->prepareQuery("INSERT INTO numbers VALUES(?,?,?)");
-    echo "validate prepared query:<br>".$db->validatePreparedQuery($prepared_query)."<br>";
     foreach ($alldata as $row) {
             echo "running execute<br>";
             $db->execute($prepared_query, NULL, $row);
