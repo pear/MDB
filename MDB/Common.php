@@ -118,6 +118,7 @@ class MDB_common extends PEAR
     var $persistent = 1;
 
     var $host = '';
+    var $port = '';
     var $user = '';
     var $password = '';
     var $database_name = '';
@@ -181,6 +182,9 @@ class MDB_common extends PEAR
 
         if (isset($dsninfo['hostspec'])) {
             $this->host = $dsninfo['hostspec'];
+        }
+        if (isset($dsninfo['port'])) {
+            $this->port = $dsninfo['port'];
         }
         if (isset($dsninfo['username'])) {
             $this->user = $dsninfo['username'];

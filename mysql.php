@@ -310,7 +310,7 @@ class MDB_driver_mysql extends MDB_common
      **/
     function connect()
     {
-        $port = (isset($this->options['port']) ? $this->options['port'] : '');
+        $port = (isset($this->port) ? $this->port : '');
         if ($this->connection != 0) {
             if (!strcmp($this->connected_host, $this->host)
                 && !strcmp($this->connected_user, $this->user)

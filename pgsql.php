@@ -292,7 +292,7 @@ class MDB_driver_pgsql extends MDB_common
         if (!function_exists($function)) {
             return ($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'doConnect: PostgreSQL support is not available in this PHP configuration'));
         }
-        $port = (isset($this->options['port']) ? $this->options['port'] : '');
+        $port = (isset($this->port) ? $this->port : '');
         if ($database_name == '') {
             $database_name = 'template1';
         }

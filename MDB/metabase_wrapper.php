@@ -88,39 +88,43 @@ function _convertArguments($arguments, &$dsninfo, &$options)
     if (isset($arguments['Type'])) {
         $dsninfo['phptype'] = $arguments['Type'];
     }
-    if (isset($arguments["User"])) {
+    if (isset($arguments['User'])) {
         $dsninfo['username'] = $arguments['User'];
     }
-    if(isset($arguments["Password"])) {
+    if(isset($arguments['Password'])) {
         $dsninfo['password'] = $arguments['Password'];
     }
-    if(isset($arguments["Host"])) {
+    if(isset($arguments['Host'])) {
         $dsninfo['hostspec'] = $arguments['Host'];
     }
+    if(isset($arguments['Options']['Port'])) {
+       $dsninfo['port'] = $arguments['Options']['Port'];
+       unset($arguments['Options']['Port']);
+    }
 
-    if (isset($arguments["IncludedConstant"])) {
-        $options["includedconstant"] = $arguments["IncludedConstant"];
+    if (isset($arguments['IncludedConstant'])) {
+        $options['includedconstant'] = $arguments['IncludedConstant'];
     }
-    if (isset($arguments["Persistent"])) {
-        $options["persistent"] = TRUE;
+    if (isset($arguments['Persistent'])) {
+        $options['persistent'] = TRUE;
     }
-    if(isset($arguments["IncludedConstant"])) {
-        $options["includedconstant"] = $arguments["IncludedConstant"];
+    if(isset($arguments['IncludedConstant'])) {
+        $options['includedconstant'] = $arguments['IncludedConstant'];
     }
-    if(isset($arguments["IncludePath"])) {
-        $options["includepath"] = $arguments["IncludePath"];
+    if(isset($arguments['IncludePath'])) {
+        $options['includepath'] = $arguments['IncludePath'];
     }
-    if(isset($arguments["Debug"])) {
-        $options["debug"] = $arguments["Debug"];
+    if(isset($arguments['Debug'])) {
+        $options['debug'] = $arguments['Debug'];
     }
-    if(isset($arguments["DecimalPlaces"])) {
-        $options["decimal_places"] = $arguments["DecimalPlaces"];
+    if(isset($arguments['DecimalPlaces'])) {
+        $options['decimal_places'] = $arguments['DecimalPlaces'];
     }
-    if(isset($arguments["LOBBufferLength"])) {
-        $options["LOBbufferlength"] = $arguments["LOBBufferLength"];
+    if(isset($arguments['LOBBufferLength'])) {
+        $options['LOBbufferlength'] = $arguments['LOBBufferLength'];
     }
-    if(isset($arguments["LogLineBreak"])) {
-        $options["loglinebreak"] = $arguments["LogLineBreak"];
+    if(isset($arguments['LogLineBreak'])) {
+        $options['loglinebreak'] = $arguments['LogLineBreak'];
     }
 
     if(isset($arguments['Options']) && is_array($arguments['Options'])) {
@@ -1297,9 +1301,10 @@ function MetabaseCreateLOB(&$arguments, &$lob)
 {
     global $databases;
     $args = $arguments;
-    $args["Database"] = $databases[$arguments["Database"]];
-    $result = $databases[$arguments["Database"]]->createLob($args);
-    $args["Database"] = $arguments["Database"];
+    $args['Database'] = $databases[$arguments['Database']];
+    $result = $databases[$arguments['Database']]->createLob($args);
+    $args['Database'] = $arguments['Database']
+    ;
     if (MDB::isError($result)) {
         global $lob_error;
         $lob_error = $result->getMessage();

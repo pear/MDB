@@ -346,8 +346,9 @@ class MDB
             $err = $db->connect();
             if (MDB::isError($err)) {
                 $dsn = $dsninfo['phptype'].'://'.$dsninfo['username'].':'
-                    .$dsninfo['password'].'@'.$dsninfo['hostspec'].'/'
-                    .$dsninfo['database'];
+                    .$dsninfo['password'].'@'.$dsninfo['hostspec']
+                    .(isset($dsninfo['port']) ? (':'.$dsninfo['port']) : '')
+                    .'/'.$dsninfo['database'];
                 $err->addUserInfo($dsn);
                 return $err;
             }
