@@ -1,0 +1,14 @@
+Maintainers for MDB database backends/drivers:
+
+ibase       : Paul Cooper <pgc@ucecom.com> (might write one)
+fbird       :
+msql        : 
+mssql       : 
+mysql       : Lukas Smith <smith@dybnet.de>
+oci8        : 
+odbc        : Pierre-Alain Joye <paj@pearfr.org> (is writting one)
+pgsql       : Paul Cooper <pgc@ucecom.com>
+sybase      : 
+ifx         : 
+fbsql       : 
+dbase       : 
