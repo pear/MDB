@@ -152,7 +152,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
         $this->db->freePreparedQuery($prepared_query);
 
-        $result = $this->db->query('SELECT * FROM users');
+        $result = $this->db->query('SELECT * FROM users ORDER BY user_name');
 
         if (MDB::isError($result)) {
             $this->assertTrue(FALSE, 'Error selecting from users'.$result->getMessage());
@@ -161,7 +161,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         $this->db->setFetchMode(MDB_FETCHMODE_ASSOC);
 
         $field = $this->db->fetchOne($result);
-        $this->assertEquals($field, $data[0]['user_name'], "The data returned ($field) does not match that expected ($data[0]['user_name'])");
+        $this->assertEquals($field, $data[0]['user_name'], "The data returned ($field) does not match that expected (".$data[0]['user_name'].")");
     }
 
     /**
