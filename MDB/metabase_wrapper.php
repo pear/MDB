@@ -1578,7 +1578,12 @@ class Metabase_manager_class
     {
         _convertArguments($arguments, $dsninfo, $options);
 
-        $result = $this->MDB_manager_object->updateDatabase($current_schema_file, $previous_schema_file, $dsninfo, $variables, $options);
+        $result = $this->MDB_manager_object->connect($dsninfo, $options);
+        if (MDB::isError($result)) {
+            return $result;
+        }
+
+        $result = $this->MDB_manager_object->updateDatabase($current_schema_file, $previous_schema_file, $variables);
         if (MDB::isError($result)) {
             return $result->getMessage();
         }
