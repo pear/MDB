@@ -88,7 +88,31 @@ function _convertArguments($arguments, &$dsninfo, &$options)
     $dsninfo['password'] = $arguments['Password'];
     $dsninfo['hostspec'] = $arguments['Host'];
 
-    $options = array_change_key_case($arguments, 0);
+    if (isset($arguments["IncludedConstant"])) {
+        $options["includedconstant"] = $arguments["IncludedConstant"];
+    }
+    if (isset($arguments["Persistent"])) {
+        $options["persistent"] = TRUE;
+    }
+    if(isset($arguments["IncludedConstant"])) {
+        $options["includedconstant"] = $arguments["IncludedConstant"];
+    }
+    if(isset($arguments["IncludePath"])) {
+        $options["includepath"] = $arguments["IncludePath"];
+    }
+    if(isset($arguments["Debug"])) {
+        $options["debug"] = $arguments["Debug"];
+    }
+    if(isset($arguments["DecimalPlaces"])) {
+        $options["decimal_places"] = $arguments["DecimalPlaces"];
+    }
+    if(isset($arguments["LOBBufferLength"])) {
+        $options["LOBbufferlength"] = $arguments["LOBBufferLength"];
+    }
+    if(isset($arguments["LogLineBreak"])) {
+        $options["loglinebreak"] = $arguments["LogLineBreak"];
+    }
+
     if(is_array($arguments['options'])) {
        $options = array_merge($options, $arguments['options']);
     }
