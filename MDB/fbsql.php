@@ -112,7 +112,6 @@ class MDB_fbsql extends MDB_Common
             1100 => MDB_ERROR_NOT_LOCKED,
             1136 => MDB_ERROR_VALUE_COUNT_ON_ROW,
             1146 => MDB_ERROR_NOSUCHTABLE,
-            1048 => MDB_ERROR_CONSTRAINT,
         );
     }
 
@@ -389,7 +388,8 @@ class MDB_fbsql extends MDB_Common
             && $this->database_name != $this->connected_database_name
         ) {
             if (!fbsql_select_db($this->database_name, $this->connection)) {
-                return $this->fbsqlRaiseError();
+                $error =& $this->fbsqlRaiseError();
+                return $error;
             }
             $this->connected_database_name = $this->database_name;
         }
@@ -612,7 +612,9 @@ class MDB_fbsql extends MDB_Common
             return $result;
         }
 
-        return $this->fetchOne($result);
+        $value = $this->fetchOne($result);
+        $this->freeResult($result);
+        return $value;
     }
 
     // }}}

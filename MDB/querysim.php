@@ -382,7 +382,7 @@ class MDB_querysim extends MDB_Common
      * the parsed text.
      *
      * @param string The QuerySim text
-     * @param array   $types  array that contains the types of the columns in
+     * @param mixed   $types  array that contains the types of the columns in
      *                        the result set
      * @param mixed $result_mode boolean or string which specifies which class to use
      *

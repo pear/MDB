@@ -476,27 +476,28 @@ class MDB_pgsql extends MDB_Common
         }
         
         if (!$ismanip && $limit > 0) {
-             if ($this->auto_commit && MDB::isError($this->_doQuery('BEGIN'))) {
-                 return $this->raiseError(MDB_ERROR);
-             }
-             $result = $this->_doQuery('DECLARE select_cursor SCROLL CURSOR FOR '.$query);
-             if (!MDB::isError($result)) {
-                 if ($first > 0 && MDB::isError($result = $this->_doQuery("MOVE FORWARD $first FROM select_cursor"))) {
-                     $this->freeResult($result);
-                     return $result;
-                 }
-                 if (MDB::isError($result = $this->_doQuery("FETCH FORWARD $limit FROM select_cursor"))) {
-                     $this->freeResult($result);
-                     return $result;
-                 }
-             } else {
-                 return $result;
-             }
-             if ($this->auto_commit && MDB::isError($result2 = $this->_doQuery('END'))) {
-                 $this->freeResult($result);
-                 return $result2;
-             }
-         } else {
+            if ($this->auto_commit && MDB::isError($this->_doQuery('BEGIN'))) {
+                $error =& $this->raiseError(MDB_ERROR);
+                return $error;
+            }
+            $result = $this->_doQuery('DECLARE select_cursor SCROLL CURSOR FOR '.$query);
+            if (!MDB::isError($result)) {
+                if ($first > 0 && MDB::isError($result = $this->_doQuery("MOVE FORWARD $first FROM select_cursor"))) {
+                    $this->freeResult($result);
+                    return $result;
+                }
+                if (MDB::isError($result = $this->_doQuery("FETCH FORWARD $limit FROM select_cursor"))) {
+                    $this->freeResult($result);
+                    return $result;
+                }
+            } else {
+                return $result;
+            }
+            if ($this->auto_commit && MDB::isError($result2 = $this->_doQuery('END'))) {
+                $this->freeResult($result);
+                return $result2;
+            }
+        } else {
             $result = $this->_doQuery($query);
             if (MDB::isError($result)) {
                 return $result;
@@ -741,15 +742,17 @@ class MDB_pgsql extends MDB_Common
             return $this->raiseError(MDB_ERROR, null, null,
                 'currID: Unable to select from ' . $seqname) ;
         }
-        if (MDB::isError($result = $this->fetchOne($result))) {
+        $value = $this->fetchOne($result);
+        $this->freeResult($result);
+        if (MDB::isError($value)) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'currID: Unable to select from ' . $seqname) ;
         }
-        if (!is_numeric($result)) {
+        if (!is_numeric($value)) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'currID: could not find value in sequence table');
         }
-        return $result;
+        return $value;
     }
 
     // }}}

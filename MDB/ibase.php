@@ -878,15 +878,17 @@ class MDB_ibase extends MDB_Common
             return $this->raiseError(MDB_ERROR, null, null,
                 'currID: Unable to select from ' . $seqname) ;
         }
-        if (MDB::isError($result = $this->fetchOne($result))) {
+        $value = $this->fetchOne($result);
+        $this->freeResult($result);
+        if (MDB::isError($value)) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'currID: Unable to select from ' . $seqname) ;
         }
-        if (!is_numeric($result)) {
+        if (!is_numeric($value)) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'currID: could not find value in sequence table');
         }
-        return $result;
+        return $value;
     }
 
     // }}}
@@ -1181,7 +1183,7 @@ class MDB_ibase extends MDB_Common
             }
         }
 
-        $sql = 'SELECT  R.RDB$null_FLAG AS NFLAG,'
+        $sql = 'SELECT  R.RDB$NULL_FLAG AS NFLAG,'
                      .' R.RDB$DEFAULT_SOURCE AS DSOURCE,'
                      .' F.RDB$FIELD_TYPE AS FTYPE,'
                      .' F.RDB$COMPUTED_SOURCE AS CSOURCE'

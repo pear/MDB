@@ -1106,7 +1106,7 @@ class MDB_oci8 extends MDB_Common
                 $count = @OCINumCols($result);
                 for ($i = 0; $i < $count; $i++) {
                     $res[$i]['name']  = strtolower(@OCIColumnName($result, $i+1));
-                    $res[$i]['type']  = strtolower(@OCIColumnName($result, $i+1));
+                    $res[$i]['type']  = strtolower(@OCIColumnType($result, $i+1));
                     $res[$i]['len'] = @OCIColumnSize($result, $i + 1);
 
                     $q_fields = "SELECT table_name, data_precision, nullable, data_default from user_tab_columns

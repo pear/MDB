@@ -436,7 +436,8 @@ class MDB_mysql extends MDB_Common
             && $this->database_name != $this->connected_database_name
         ) {
             if (!mysql_select_db($this->database_name, $this->connection)) {
-                return $this->mysqlRaiseError();
+                $error =& $this->mysqlRaiseError();
+                return $error;
             }
             $this->connected_database_name = $this->database_name;
         }
@@ -489,6 +490,7 @@ class MDB_mysql extends MDB_Common
             return $result;
         }
         $col = $this->fetchCol($result);
+        $this->freeResult($result);
         if (MDB::isError($col)) {
             return $col;
         }
@@ -797,7 +799,9 @@ class MDB_mysql extends MDB_Common
             return $result;
         }
 
-        return $this->fetchOne($result);
+        $value = $this->fetchOne($result);
+        $this->freeResult($result);
+        return $value;
     }
 
     // }}}

@@ -365,7 +365,7 @@ class MDB_mssql extends MDB_Common
      * Send a query to the database and return any results
      *
      * @param string  $query  the SQL query
-     * @param array   $types  array that contains the types of the columns in
+     * @param mixed   $types  array that contains the types of the columns in
      *                        the result set
      * @param mixed $result_mode boolean or string which specifies which class to use
      *
@@ -397,7 +397,8 @@ class MDB_mssql extends MDB_Common
                 && $this->database_name != $this->connected_database_name
             ) {
                 if (!mssql_select_db($this->database_name, $this->connection)) {
-                    return $this->mssqlRaiseError();
+                    $error =& $this->mssqlRaiseError();
+                    return $error;
                 }
                 $this->connected_database_name = $this->database_name;
             }
@@ -625,7 +626,9 @@ class MDB_mssql extends MDB_Common
             return $result;
         }
 
-        return $this->fetchOne($result);
+        $value = $this->fetchOne($result);
+        $this->freeResult($result);
+        return $value;
     }
 
     // }}}
@@ -720,7 +723,6 @@ class MDB_mssql extends MDB_Common
     // {{{ tableInfo()
 
   /**
-
      * Returns information about a table or a result set
      *
      * NOTE: doesn't support table name and flags if called from a db_result
@@ -855,16 +857,18 @@ class MDB_mssql extends MDB_Common
                         INNER JOIN syscolumns ON sysobjects.id = syscolumns.id
                         WHERE sysobjects.name ='$table' AND syscolumns.isnullable = 1";
             $res = $this->query($q_nulls, null, false);
-            $res = $this->fetchAll($res, MDB_FETCHMODE_ASSOC);
-            foreach ($res as $data) {
+            $nullables = $this->fetchAll($res, MDB_FETCHMODE_ASSOC);
+            $this->freeResult($res);
+            foreach ($nullables as $data) {
                 if ($data['isnullable'] == 1) {
                     $flags[$data['name']][] = 'isnullable';
                 }
             }
             // find primary keys
-            $res2 = $this->query("EXEC SP_PKEYS[$table]", null, false);
-            $res2 = $this->fetchAll($res, MDB_FETCHMODE_ASSOC);
-            foreach ($res2 as $data) {
+            $res = $this->query("EXEC SP_PKEYS[$table]", null, false);
+            $primarykeys = $this->fetchAll($res, MDB_FETCHMODE_ASSOC);
+            $this->freeResult($res);
+            foreach ($primarykeys as $data) {
                 if (!empty($data['COLUMN_NAME'])) {
                     $flags[$data['COLUMN_NAME']][] = 'primary_key';
                 }
