@@ -179,18 +179,6 @@ class MDB_Common extends PEAR
         if (isset($dsninfo['password'])) {
             $this->password = $dsninfo['password'];
         }
-        if (isset($options['includelob'])) {
-            $this->loadLob('load at start');
-        }
-        if (isset($options['includemanager'])) {
-            $this->loadManager('load at start');
-        }
-        if (isset($options['debug'])) {
-            $this->captureDebugOutput(TRUE);
-        }
-        if (is_array($options)) {
-            $this->options = array_merge($this->options, $options);
-        }
     }
 
     // }}}
@@ -3447,7 +3435,7 @@ class MDB_Common extends PEAR
      * @return int data array or NULL on success, a MDB error on failure
      * @access public
      */
-    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = 0)
+    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
         if (MDB::isError($result)) {
             return($this->raiseError(MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
@@ -3458,7 +3446,7 @@ class MDB_Common extends PEAR
             $res = $this->raiseError(MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
                 'Fetch field: result set is empty');
         }
-        if ($rownum == 0) {
+        if ($rownum == NULL) {
             ++$this->highest_fetched_row[$result];
             $rownum = $this->highest_fetched_row[$result];
         } else {
@@ -3527,7 +3515,7 @@ class MDB_Common extends PEAR
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = 0)
+    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
         $res = $this->fetchInto($result, $fetchmode, $rownum);
         if (!$this->options['autofree'] || $res != NULL) {
