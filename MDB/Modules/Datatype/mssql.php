@@ -85,7 +85,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
                 }
                 return $value;
             default:
-                return $this->baseConvertResult($value,$type);
+                return $this->_baseConvertResult($db, $value,$type);
         }
     }
 

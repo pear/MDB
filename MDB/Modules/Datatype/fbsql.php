@@ -75,7 +75,7 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
             case MDB_TYPE_DECIMAL:
                 return sprintf('%.'.$db->decimal_places.'f', doubleval($value)/$db->decimal_factor);
             default:
-                return $this->_baseConvertResult($value, $type);
+                return $this->_baseConvertResult($db, $value, $type);
         }
     }
 
@@ -333,7 +333,7 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
                 ($db->fixed_float ?
                  '('.($db->fixed_float + 2).','.$db->fixed_float.')' : '').
                 (isset($field['default']) ?
-                 ' DEFAULT '.$this->getValue('float', $field['default']) : '').
+                 ' DEFAULT '.$this->getFloatValue($field['default']) : '').
                 (isset($field['notnull']) ? ' NOT NULL' : '')
                ;
     }
@@ -367,7 +367,7 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
     {
         return "$name REAL".
                 (isset($field['default']) ?
-                 ' DEFAULT '.$this->getValue('decimal', $field['default']) : '').
+                 ' DEFAULT '.$this->getDecimalValue($field['default']) : '').
                  (isset($field['notnull']) ? ' NOT NULL' : '')
                ;
     }

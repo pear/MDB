@@ -72,7 +72,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     {
         switch ($type) {
             case MDB_TYPE_BOOLEAN:
-                return strcmp($value, 't') ? false : true;
+                return strcmp($value, 'Y') ? false : true;
             case MDB_TYPE_DECIMAL:
                 return sprintf('%.'.$db->decimal_places.'f',doubleval($value)/$db->decimal_factor);
             case MDB_TYPE_FLOAT:
@@ -84,7 +84,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
             case MDB_TYPE_TIMESTAMP:
                 return substr($value, 0, strlen('YYYY-MM-DD HH:MM:SS'));
             default:
-                return $this->_baseConvertResult($value, $type);
+                return $this->_baseConvertResult($db, $value, $type);
         }
     }
 

@@ -75,7 +75,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
             case MDB_TYPE_TIME:
                 return substr($value, strlen('YYYY-MM-DD '), strlen('HH:MI:SS'));
             default:
-                return $this->baseConvertResult($value, $type);
+                return $this->_baseConvertResult($db, $value, $type);
         }
     }
 
