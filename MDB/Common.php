@@ -375,7 +375,8 @@ class MDB_Common extends PEAR
     {
         // The error is yet a MDB error object
         if (is_object($code)) {
-            return PEAR::raiseError($code, null, null, null, null, null, true);
+            $error =& PEAR::raiseError($code, null, null, null, null, null, true);
+            return $error;
         }
 
         if ($userinfo === null) {
@@ -513,14 +514,16 @@ class MDB_Common extends PEAR
                 $class_name = 'MDB_'.$result_mode;
                 @MDB::loadClass($result_mode);
                 if (!class_exists($class_name)) {
-                    return $this->raiseError(MDB_ERROR, null, null,
+                    $error =& $this->raiseError(MDB_ERROR, null, null,
                         "result class ($class_name) does not exist");
+                    return $error;
                 }
             } elseif ($this->result_mode) {
                 $class_name = $this->result_mode;
             } else {
-                return $this->raiseError(MDB_ERROR, null, null,
+                $error =& $this->raiseError(MDB_ERROR, null, null,
                     "no result class defined");
+                return $error;
             }
             $result =& new $class_name($this, $result);
         }
@@ -835,7 +838,7 @@ class MDB_Common extends PEAR
      * Send a query to the database and return any results
      *
      * @param string $query the SQL query
-     * @param array   $types  array that contains the types of the columns in
+     * @param mixed   $types  array that contains the types of the columns in
      *                        the result set
      * @param mixed $result_mode boolean or string which specifies which class to use
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
@@ -1762,7 +1765,6 @@ class MDB_Common extends PEAR
                     ++$rownum;
                 }
             } else {
-                $this->freeResult($result);
                 return $this->raiseError(MDB_ERROR_TRUNCATED);
             }
         }
