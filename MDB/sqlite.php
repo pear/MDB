@@ -78,17 +78,17 @@ class MDB_sqlite extends MDB_Common
         $this->phptype = 'sqlite';
         $this->dbsyntax = 'sqlite';
 
-        $this->supported['sequences'] = 1;
-        $this->supported['indexes'] = 1;
-        $this->supported['affected_rows'] = 1;
-        $this->supported['summary_functions'] = 1;
-        $this->supported['order_by_text'] = 1;
-        $this->supported['current_id'] = 1;
-        $this->supported['limit_queries'] = 1;
-        $this->supported['LOBs'] = 1;
-        $this->supported['replace'] = 1;
-        $this->supported['transactions'] = 1;
-        $this->supported['sub_selects'] = 1;
+        $this->supported['sequences'] = true;
+        $this->supported['indexes'] = true;
+        $this->supported['affected_rows'] = true;
+        $this->supported['summary_functions'] = true;
+        $this->supported['order_by_text'] = true;
+        $this->supported['current_id'] = true;
+        $this->supported['limit_queries'] = true;
+        $this->supported['LOBs'] = true;
+        $this->supported['replace'] = true;
+        $this->supported['transactions'] = true;
+        $this->supported['sub_selects'] = true;
 
         $this->options['base_transaction_name'] = '___php_MDB_sqlite_auto_commit_off';
         $this->options['fixed_float'] = 0;
@@ -202,7 +202,7 @@ class MDB_sqlite extends MDB_Common
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'autoCommit: transactions are not in use');
         }
-        if (!$this->auto_commit == !$auto_commit) {
+        if ($this->auto_commit == $auto_commit) {
             return MDB_OK;
         }
         if ($this->connection) {
@@ -389,7 +389,7 @@ class MDB_sqlite extends MDB_Common
                 return $result;
             }
 
-            $GLOBALS['_MDB_databases'][$this->db_index] = '';
+            unset($GLOBALS['_MDB_databases'][$this->db_index]);
             return true;
         }
         return false;

@@ -93,9 +93,9 @@ class MDB_Parser extends XML_Parser
             'ibase' => array()
         )
     );
-    var $fail_on_invalid_names = 1;
+    var $fail_on_invalid_names = true;
 
-    function MDB_Parser($variables, $fail_on_invalid_names = 1) 
+    function MDB_Parser($variables, $fail_on_invalid_names = true) 
     {
         $this->XML_Parser();
         $this->variables = $variables;
@@ -197,7 +197,7 @@ class MDB_Parser extends XML_Parser
                             $this->raiseError('index field "'.$field_name.'" does not exist', $xp);
                         }
                         if (!(isset($this->table['fields'][$field_name]['notnull'])
-                            && $this->table['fields'][$field_name]['notnull'] == 1)) 
+                            && $this->table['fields'][$field_name]['notnull'] == true)) 
                         {
                             $this->raiseError('index field "'.$field_name.'" has to be "notnull"', $xp);
                         }

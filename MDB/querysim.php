@@ -232,17 +232,17 @@ class MDB_querysim extends MDB_Common
         $this->dbsyntax = 'querysim';
         
         // Most of these are dummies to simulate availability if checked
-        $this->supported['sequences'] = 1;
-        $this->supported['indexes'] = 1;
-        $this->supported['affected_rows'] = 1;
-        $this->supported['summary_functions'] = 1;
-        $this->supported['order_by_text'] = 1;
-        $this->supported['current_id'] = 1;
-        $this->supported['limit_queries'] = 1;// this one is real
-        $this->supported['LOBs'] = 1;
-        $this->supported['replace'] = 1;
-        $this->supported['sub_selects'] = 1;
-        $this->supported['transactions'] = 1;
+        $this->supported['sequences'] = true;
+        $this->supported['indexes'] = true;
+        $this->supported['affected_rows'] = true;
+        $this->supported['summary_functions'] = true;
+        $this->supported['order_by_text'] = true;
+        $this->supported['current_id'] = true;
+        $this->supported['limit_queries'] = true;// this one is real
+        $this->supported['LOBs'] = true;
+        $this->supported['replace'] = true;
+        $this->supported['sub_selects'] = true;
+        $this->supported['transactions'] = true;
         
         $this->options['columnDelim'] = ',';
         $this->options['dataDelim'] = '|';
@@ -323,7 +323,7 @@ class MDB_querysim extends MDB_Common
             }
             $this->connection = 0;
 
-            $GLOBALS['_MDB_databases'][$this->db_index] = '';
+            unset($GLOBALS['_MDB_databases'][$this->db_index]);
         }
         return $ret;
     }

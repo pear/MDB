@@ -80,17 +80,17 @@ class MDB_ibase extends MDB_Common
         $this->phptype  = 'ibase';
         $this->dbsyntax = 'ibase';
 
-        $this->supported['sequences'] = 1;
-        $this->supported['indexes'] = 1;
-        $this->supported['summary_functions'] = 1;
-        $this->supported['order_by_text'] = 1;
-        $this->supported['transactions'] = 1;
-        $this->supported['current_id'] = 1;
+        $this->supported['sequences'] = true;
+        $this->supported['indexes'] = true;
+        $this->supported['summary_functions'] = true;
+        $this->supported['order_by_text'] = true;
+        $this->supported['transactions'] = true;
+        $this->supported['current_id'] = true;
         // maybe this needs different handling for ibase and firebird?
-        $this->supported['limit_queries'] = 1;
-        $this->supported['LOBs'] = 1;
-        $this->supported['replace'] = 0;
-        $this->supported['sub_selects'] = 1;
+        $this->supported['limit_queries'] = true;
+        $this->supported['LOBs'] = true;
+        $this->supported['replace'] = true;
+        $this->supported['sub_selects'] = true;
 
         $this->decimal_factor = pow(10.0, $this->decimal_places);
 
@@ -252,10 +252,12 @@ class MDB_ibase extends MDB_Common
     function autoCommit($auto_commit)
     {
         $this->debug(($auto_commit ? 'On' : 'Off'), 'autoCommit');
-        if ((!$this->auto_commit) == (!$auto_commit)) {
+        if ($this->auto_commit == $auto_commit) {
             return MDB_OK;
         }
-        if ($this->connection && $auto_commit && MDB::isError($commit = $this->commit())) {
+        if ($this->connection && $auto_commit
+            && MDB::isError($commit = $this->commit())
+        ) {
             return $commit;
         }
         $this->auto_commit = $auto_commit;
@@ -444,7 +446,7 @@ class MDB_ibase extends MDB_Common
             $this->connection = 0;
             $this->affected_rows = -1;
 
-            $GLOBALS['_MDB_databases'][$this->db_index] = '';
+            unset($GLOBALS['_MDB_databases'][$this->db_index]);
             return true;
         }
         return false;

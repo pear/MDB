@@ -75,16 +75,16 @@ class MDB_mysql extends MDB_Common
         $this->phptype = 'mysql';
         $this->dbsyntax = 'mysql';
 
-        $this->supported['sequences'] = 1;
-        $this->supported['indexes'] = 1;
-        $this->supported['affected_rows'] = 1;
-        $this->supported['summary_functions'] = 1;
-        $this->supported['order_by_text'] = 1;
-        $this->supported['current_id'] = 1;
-        $this->supported['limit_queries'] = 1;
-        $this->supported['LOBs'] = 1;
-        $this->supported['replace'] = 1;
-        $this->supported['sub_selects'] = 0;
+        $this->supported['sequences'] = true;
+        $this->supported['indexes'] = true;
+        $this->supported['affected_rows'] = true;
+        $this->supported['summary_functions'] = true;
+        $this->supported['order_by_text'] = true;
+        $this->supported['current_id'] = true;
+        $this->supported['limit_queries'] = true;
+        $this->supported['LOBs'] = true;
+        $this->supported['replace'] = true;
+        $this->supported['sub_selects'] = false;
 
         $this->options['default_table_type'] = false;
 
@@ -173,7 +173,7 @@ class MDB_mysql extends MDB_Common
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'autoCommit: transactions are not in use');
         }
-        if (!$this->auto_commit == !$auto_commit) {
+        if ($this->auto_commit == $auto_commit) {
             return MDB_OK;
         }
         if ($this->connection) {
@@ -313,7 +313,7 @@ class MDB_mysql extends MDB_Common
         $this->opened_persistent = $this->getoption('persistent');
 
         if ($this->options['use_transactions']) {
-            $this->supported['transactions'] = 1;
+            $this->supported['transactions'] = true;
             $this->default_table_type = 'BDB';
         } else {
             $this->default_table_type = '';
@@ -378,7 +378,7 @@ class MDB_mysql extends MDB_Common
                 return $result;
             }
 
-            $GLOBALS['_MDB_databases'][$this->db_index] = '';
+            unset($GLOBALS['_MDB_databases'][$this->db_index]);
             return true;
         }
         return false;
@@ -470,7 +470,7 @@ class MDB_mysql extends MDB_Common
      */
     function subSelect($query, $type = false)
     {
-        if ($this->supported['sub_selects'] == 1) {
+        if ($this->supported['sub_selects'] == true) {
             return $query;
         }
         $result = $this->query($query, $type, false);
