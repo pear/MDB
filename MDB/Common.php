@@ -49,47 +49,22 @@
  * @author Lukas Smith <smith@backendmedia.com>
  */
 
-$_MDB_registered_transactions_shutdown = 0;
-
-// }}}
-// {{{ _MDB_shutdownTransactions()
-
-/**
- * this function closes all open transactions _registerTransactionShutdown()
- * registers this method to be executed at shutdown
- *
- * @access private
- */
-function _MDB_shutdownTransactions()
-{
-    global $_MDB_databases;
-
-    foreach($_MDB_databases as $database) {
-        if ($database->in_transaction && !MDB::isError($database->rollback())) {
-            $database->autoCommit(TRUE);
-        }
-    }
-}
-
 // }}}
 // {{{ MDB_defaultDebugOutput()
 
 /**
  * default debug output handler
  *
- * @param integer $database key in the $_MDB_databases array that references to the
- *       proper db object
- * @param string $message message htat should be appended to the debug
+ * @param object $db reference to an MDB database object
+ * @param string $message message that should be appended to the debug
  *       variable
  * @return string the corresponding error message, of FALSE
  * if the error code was unknown
  * @access public
  */
-function MDB_defaultDebugOutput($database, $message)
+function MDB_defaultDebugOutput(&$db, $message)
 {
-    global $_MDB_databases;
-
-    $_MDB_databases[$database]->debug_output .= $database . " $message" . $_MDB_databases[$database]->getOption('log_line_break');
+    $db->debug_output .= $db->database . " $message" . $db->getOption('log_line_break');
 }
 
 /**
@@ -385,7 +360,7 @@ class MDB_Common extends PEAR
     {
         if (strcmp($function = $this->debug, '')) {
             if ($this->pass_debug_handle) {
-                $function($this->database, $message);
+                $function($this, $message);
             } else {
                 $function($message);
             }
@@ -585,27 +560,6 @@ class MDB_Common extends PEAR
                 'Unable to load extension'));
         }
         @$this->manager = new $class_name;
-        return(MDB_OK);
-    }
-
-    // }}}
-    // {{{ _registerTransactionShutdown()
-
-    /**
-     * register the shutdown function to automatically commit open transactions
-     *
-     * @param string $auto_commit
-     * @return MDB _OK
-     * @access private
-     */
-    function _registerTransactionShutdown($auto_commit)
-    {
-        global $_MDB_registered_transactions_shutdown;
-
-        if (($this->in_transaction = !$auto_commit) && !$_MDB_registered_transactions_shutdown) {
-            register_shutdown_function('_MDB_shutdownTransactions');
-            $_MDB_registered_transactions_shutdown = 1;
-        }
         return(MDB_OK);
     }
 
@@ -4360,6 +4314,21 @@ class MDB_Common extends PEAR
         global $_MDB_lobs;
         $_MDB_lobs[$lob]->destroy();
         unset($_MDB_lobs[$lob]);
+    }
+
+    // }}}
+    // {{{ Destructor
+
+    /**
+    * this function closes open transactions to be executed at shutdown
+    *
+    * @access private
+    */
+    function _MDB_Common()
+    {
+        if ($this->in_transaction && !MDB::isError($this->rollback())) {
+            $this->autoCommit(TRUE);
+        }
     }
 };
 
