@@ -829,21 +829,20 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      */
     function listTableIndexes(&$db, $table)
     {
-        $key_name = 'key_name';
-        if ($db->options['optimize'] != 'portability') {
-            $key_name = ucfirst($key_name);
+        $key_name = 'Key_name';
+        if ($db->options['optimize'] == 'portability') {
+            $key_name = strtolower($key_name);
         }
-        $indexes_all = $db->queryCol("SHOW INDEX FROM $table", 'text', $key_name);
+        $query = "SHOW INDEX FROM $table";
+        $indexes_all = $db->queryCol($query, 'text', $key_name);
         if (MDB::isError($indexes_all)) {
-            return $indexes_all;
+            return($indexes_all);
         }
-        for($found = $indexes = array(), $index = 0, $indexes_all_cnt = count($indexes_all);
-            $index < $indexes_all_cnt;
-            $index++)
-        {
+        $found = $indexes = array();
+        for($index = 0, $j = count($indexes_all); $index < $j; ++$index) {
             if ($indexes_all[$index] != 'PRIMARY'
-                && !isset($found[$indexes_all[$index]]))
-            {
+                && !isset($found[$indexes_all[$index]])
+            ) {
                 $indexes[] = $indexes_all[$index];
                 $found[$indexes_all[$index]] = 1;
             }
