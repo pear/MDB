@@ -5,7 +5,7 @@
 //set_time_limit(100);
 
 
-$testarray = array(
+$testcases = array(
     'MDB_manager_testcase',
     'MDB_api_testcase',
     'MDB_usage_testcase'

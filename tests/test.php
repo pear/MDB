@@ -44,48 +44,61 @@
 // $Id$
 
 /*
- This is a small (at least to start with) test suite
+ This is a small test suite for MDB using PHPUnit
 */
 
 require_once 'PHPUnit.php';
-require_once 'HTML/IT.php';
 require_once 'test_setup.php';
+require_once 'testUtils.php';
+require_once '../MDB.php';
+require_once '../MDB/Date.php';
 
-require_once 'MDB/Manager.php';
-require_once 'MDB/Date.php';
-
-$tpl = new IntegratedTemplate('templates');
-
-$tpl->loadTemplatefile('results.tpl', true, true);
-
-foreach ($testarray as $test) {
-    include_once $test . '.php';
+foreach ($testcases as $testcase) {
+    include_once $testcase . '.php';
 }
 
 $database = 'driver_test';
 
+$testmethods = $_POST['testmethods'];
+
+if (!is_array($testmethods)) {
+    foreach ($testcases as $testcase) {
+        $testmethods[$testcase] = array_flip(getTests($testcase));
+    }
+}
+
+
+$suite = new PHPUnit_TestSuite();
+
 foreach ($dbarray as $db) {
     $dsn = $db['dsn'];
     $options = $db['options'];
-    foreach ($testarray as $test) {
-        $tpl->setCurrentBlock('test');
-        $tpl->setVariable('testtitle', 'Performing ' . $test); 
 
-        $suite = new PHPUnit_TestSuite($test);
-        $result = PHPUnit::run($suite);
-
-        $tpl->setVariable('testresult', nl2br($result->toString()));
-        $tpl->parseCurrentBlock('test');
+    foreach ($testcases as $testcase) {
+        if (is_array($testmethods[$testcase])) {
+            $methods = array_keys($testmethods[$testcase]);
+            foreach ($methods as $method) {
+                $suite->addTest(new $testcase($method));
+            }
+        }
     }
-    $dsnstring = $db['dsn']['phptype'].'://'.$db['dsn']['username'].':'
-        .$db['dsn']['password'].'@'.$db['dsn']['hostspec']
-        .(isset($db['dsn']['port']) ? (':'.$db['dsn']['port']) : '')
-        .'/'.$database;
-    $tpl->setCurrentBlock('dsn');
-    $tpl->setVariable('title', 'Testing ' . $dsnstring);
-    $tpl->parseCurrentBlock('dsn');
 }
 
-$tpl->show();
+require_once 'HTML_TestListener.php';
+$result = new PHPUnit_TestResult;
+$result->addListener(new HTML_TestListener);
 
 ?>
+<html>
+<head>
+<title>MDB Tests</title>
+<link href="tests.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<?php
+$suite->run($result);
+?>
+
+</body>
+</html>
