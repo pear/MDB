@@ -55,9 +55,15 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
       <email>chrisdicki@gmx.de</email>
     </maintainer>
     <maintainer>
+      <user>pgc</user>
+      <role>contributor</role>
+      <name>Paul Cooper</name>
+      <email>pgc@ucecom.com</email>
+    </maintainer>
+    <maintainer>
       <user>ssb</user>
       <role>contributor</role>
-      <name>Stig Sæther Bakken</name>
+      <name>Stig S&#230;ther Bakken</name>
       <email>stig@php.net</email>
     </maintainer>
     <maintainer>
@@ -74,10 +80,10 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.0 RC3</version>
+    <version>1.0 RC4</version>
     <state>devel</state>
-    <date>2002-09-05</date>
-    <notes>this is release candidate 3 for MDB 1.0 featuring: major fixes and improvements to the MDB manager; bug fixes to the parser and date; both the mysql and the postgresql driver can now run query() without being connected to a specific database; added xsl that can render xml schema files to html; added initial version of a tutorial</notes>
+    <date>2002-09-07</date>
+    <notes>Just minor bugs fixes and beautifications in several places. Added skeleton drivers to help driver authors. Added Paul Cooper to the list of contributors.</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
@@ -98,6 +104,8 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
           <file role="doc">xml_schema_documentation.html</file>
           <file role="doc">tutorial.html</file>
           <file role="doc">xml_schema.xsl</file>
+          <file role="doc">driver_skeleton.php</file>
+          <file role="doc">manager_driver_skeleton.php</file>
           <file role="test">MDB_test.php</file>
           <file role="test">MDB_pear_wrapper_test.php</file>
           <file role="test">driver_test.php</file>
