@@ -854,35 +854,35 @@ class MDB_ibase extends MDB_Common
      */
     function numRows($result)
     {
-        $result_value = intval($result);
-        if (!isset($this->results[$result_value]['current_row'])) {
-            return $this->raiseError(MDB_ERROR, null, null,
-                'Number of rows: attemped to obtain the number of rows contained in an unknown query result');
-        }
-        if (!isset($this->results[$result_value]['rows'])) {
-            if (MDB::isError($getcolumnnames = $this->getColumnNames($result))) {
-                return $getcolumnnames;
-            }
-            if (isset($this->results[$result_value]['limits'])) {
-                if (MDB::isError($skipfirstrow = $this->_skipLimitOffset($result))) {
-                    $this->results[$result_value]['rows'] = 0;
-                    return $skipfirstrow;
+        if ($this->options['result_buffering']) {
+            $result_value = intval($result);
+            if (!isset($this->results[$result_value]['rows'])) {
+                if (MDB::isError($getcolumnnames = $this->getColumnNames($result))) {
+                    return $getcolumnnames;
                 }
-                $limit = $this->results[$result_value]['limits'][1];
-            } else {
-                $limit = 0;
-            }
-            if ($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit) {
-                if (isset($this->results[$result_value]['row_buffer'])) {
-                    $this->results[$result_value]['current_row']++;
-                    $this->results[$result_value][$this->results[$result_value]['current_row']] = $this->results[$result_value]['row_buffer'];
-                    unset($this->results[$result_value]['row_buffer']);
+                if (isset($this->results[$result_value]['limits'])) {
+                    if (MDB::isError($skipfirstrow = $this->_skipLimitOffset($result))) {
+                        $this->results[$result_value]['rows'] = 0;
+                        return $skipfirstrow;
+                    }
+                    $limit = $this->results[$result_value]['limits'][1];
+                } else {
+                    $limit = 0;
                 }
-                for (;($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit) && $this->results[$result_value][$this->results[$result_value]['current_row'] + 1] = @ibase_fetch_row($result);$this->results[$result_value]['current_row']++);
+                if ($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit) {
+                    if (isset($this->results[$result_value]['row_buffer'])) {
+                        $this->results[$result_value]['current_row']++;
+                        $this->results[$result_value][$this->results[$result_value]['current_row']] = $this->results[$result_value]['row_buffer'];
+                        unset($this->results[$result_value]['row_buffer']);
+                    }
+                    for (;($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit) && $this->results[$result_value][$this->results[$result_value]['current_row'] + 1] = @ibase_fetch_row($result);$this->results[$result_value]['current_row']++);
+                }
+                $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row'] + 1;
             }
-            $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row'] + 1;
+            return $this->results[$result_value]['rows'];
         }
-        return $this->results[$result_value]['rows'];
+        return $this->raiseError(MDB_ERROR, null, null,
+            'Number of rows: nut supported if option "result_buffering" is not enabled');
     }
 
     // }}}
