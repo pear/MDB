@@ -408,7 +408,7 @@ class MDB_driver_xxx extends MDB_common
      *
      * @param int $lob handle to a lob created by the createLob() function
      * @return mixed MDB_OK on success, a MDB error on failure
-     * @access privat
+     * @access private
      */
     function _retrieveLob($lob)
     {
@@ -443,7 +443,7 @@ class MDB_driver_xxx extends MDB_common
      * @param int $length integer value that indicates the largest ammount of
      *      data to be read from the large object input stream.
      * @return mixed length on success, a MDB error on failure
-     * @access privat
+     * @access private
      */
     function _readResultLob($lob, &$data, $length)
     {
@@ -458,7 +458,7 @@ class MDB_driver_xxx extends MDB_common
      * handler object.
      *
      * @param int $lob handle to a lob created by the createLob() function
-     * @access privat
+     * @access private
      */
     function _destroyResultLob($lob)
     {

@@ -263,7 +263,7 @@ class MDB_driver_pgsql extends MDB_common {
      * Does the grunt work of connecting to the database
      *
      * @return mixed connection resource on success, MDB_Error on failure
-     * @access privat
+     * @access private
      **/
     function _doConnect($database_name, $persistent)
     {
@@ -348,7 +348,7 @@ class MDB_driver_pgsql extends MDB_common {
      * Close the database connection
      *
      * @return boolean
-     * @access privat
+     * @access private
      **/
     function _close()
     {
@@ -374,7 +374,7 @@ class MDB_driver_pgsql extends MDB_common {
      * Execute a query
      * @param string $query the SQL query
      * @return mixed result identifier if query executed, else MDB_error
-     * @access privat
+     * @access private
      **/
     function _doQuery($query)
     {
@@ -395,7 +395,7 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param string $query
      * @return
-     * @access privat
+     * @access private
      */
     function _standaloneQuery($query)
     {
@@ -511,7 +511,7 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param int $lob handle to a lob created by the createLob() function
      * @return mixed MDB_OK on success, a MDB error on failure
-     * @access privat
+     * @access private
      */
     function _retrieveLob($lob)
     {
@@ -570,7 +570,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param int $length integer value that indicates the largest ammount of
      *      data to be read from the large object input stream.
      * @return mixed length on success, a MDB error on failure
-     * @access privat
+     * @access private
      */
     function _readResultLob($lob, &$data, $length)
     {
@@ -596,7 +596,7 @@ class MDB_driver_pgsql extends MDB_common {
      * handler object.
      *
      * @param int $lob handle to a lob created by the createLob() function
-     * @access privat
+     * @access private
      */
     function _destroyResultLob($lob)
     {
@@ -914,7 +914,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param           $lob
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
-     * @access privat
+     * @access private
      */
     function _getLobValue($prepared_query, $parameter, $lob)
     {
@@ -1405,7 +1405,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param int $num_field the field number
      * @return string The flags of the field ('not_null', 'default_xx', 'primary_key',
      *                 'unique' and 'multiple_key' are supported)
-     * @access privat
+     * @access private
      **/
     function _pgFieldFlags($resource, $num_field, $table_name)
     {
