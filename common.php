@@ -1,10 +1,26 @@
 <?php
-/*
- * common.php
- *
- * @(#) $Header$
- *
-*/
+//
+// +----------------------------------------------------------------------+
+// | PHP Version 4                                                        |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 1997-2002 The PHP Group                                |
+// +----------------------------------------------------------------------+
+// | This source file is subject to version 2.02 of the PHP license,      |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.php.net/license/2_02.txt.                                 |
+// | If you did not receive a copy of the PHP license and are unable to   |
+// | obtain it through the world-wide-web, please send a note to          |
+// | license@php.net so we can mail you a copy immediately.               |
+// +----------------------------------------------------------------------+
+// | Authors: Lukas Smith <smith@dybnet.de>                                   |
+// |                                                                      |
+// +----------------------------------------------------------------------+
+//
+// $Id$
+//
+// Base class for DB implementations.
+//
 
 require_once("MDB.php");
 
@@ -21,28 +37,43 @@ define("MDB_TYPE_BLOB",9);
 
 $registered_transactions_shutdown = 0;
 
-function shutdownTransactions()
+function shutdownTransactions($databases_array = '')
 {
-    global $databases;
-
-    for(reset($databases), $i = 0;
-        $i < count($databases);
-        next($databases), $i++)
+    // BC support for Metabase
+    if($databases_array == '')
     {
-        $database = key($databases);
-        if ($databases[$database]->in_transaction
-        && $databases[$database]->rollbackTransaction($database)) {
-            $databases[$database]->autoCommitTransactions($database,1);
+        global $databases;
+        $databases_array = $databases;
+    }
+    
+    for(reset($databases_array), $i = 0, $j = count($databases_array);
+        $i < $j;
+        next($databases_array), ++$i)
+    {
+        $database = key($databases_array);
+        if ($databases_array[$database]->in_transaction
+            && $databases_array[$database]->rollbackTransaction($database))
+        {
+            $databases_array[$database]->autoCommitTransactions($database,1);
         }
     }
 }
 
 function defaultDebugOutput($database, $message)
 {
-    global $databases;
-
-    $databases[$database]->debug_output .= "$database $message".$databases[$database]->log_line_break;
+    if(is_object) {
+        $database->debug_output .= "$database $message".$database->log_line_break;
+    // BC support for Metabase
+    } else {
+        global $databases;
+        $databases[$database]->debug_output .= "$database $message".$databases[$database]->log_line_break;
+    }
 }
+
+/*
+ * MDB_common is a base class for DB implementations, and must be
+ * inherited by all such.
+ */
 
 class MDB_common extends PEAR
 {
@@ -84,8 +115,13 @@ class MDB_common extends PEAR
     var $last_query = "";
     /* PRIVATE METHODS */
     
-    // renamed for PEAR
-    // used to be: EscapeText
+    /**
+     * Quotes a string so it can be safely used in a query. It will quote
+     * the text so it can safely be used within a query.
+     *
+     * @param string $text the input string to quote
+     *
+     */
     function quote(&$text)
     {
         if (strcmp($this->escape_quotes, "'")) {
@@ -543,7 +579,7 @@ class MDB_common extends PEAR
     
     // new Metabase function for the PEAR get*()
     // needs testing
-    // the array elements must use kyes that correspond to the number of the position of the parameter
+    // the array elements must use keys that correspond to the number of the position of the parameter
     // single dimensional array: querySet with type text for all values of the array
     // multi dimensional array :
     // 0:    type
@@ -1159,6 +1195,8 @@ class MDB_common extends PEAR
         return ($this->baseFetchArray($result, &$array, $row));
     }
     
+    // renamed for PEAR
+    // used to be fetchResultField
     // $fetchmode added
     // new uses fetchInto
     function fetchField($result, &$value, $fetchmode = DB_FETCHMODE_DEFAULT)
@@ -1181,6 +1219,8 @@ class MDB_common extends PEAR
         return ($success);
     }
 
+    // renamed for PEAR
+    // used to be fetchResultRow
     // $fetchmode added
     function fetchRow($result, &$row, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
@@ -1196,6 +1236,8 @@ class MDB_common extends PEAR
         return ($success);
     }
 
+    // renamed for PEAR
+    // used to be fetchResultColumn
     // $fetchmode added
     // new uses fetchInto
     function fetchColumn($result, &$column, $fetchmode = DB_FETCHMODE_DEFAULT)
@@ -1217,6 +1259,8 @@ class MDB_common extends PEAR
         return ($success);
     }
 
+    // renamed for PEAR
+    // used to be fetchResultAll
     // $fetchmode, $rekey, $force_array, $group added
     // this is basically a slightly modified version of fetchAll()
     // the only difference is that the first dimension in the 2 dimensional result set is pop-off each row
@@ -1398,7 +1442,7 @@ class MDB_common extends PEAR
     
     function execute($prepared_query, $data = false)
     {
-       $this->querySetArray($prepared_query, $data);
+        $this->querySetArray($prepared_query, $data);
 
         return $this->executeQuery($prepared_query);
     }
@@ -1407,7 +1451,7 @@ class MDB_common extends PEAR
     {
         for($i = 0; $i < sizeof( $data ); $i++) {
             $result = $this->execute($prepared_query, $data[$i]);
-            //if (MDB::isError($res)) {
+            //if (MDB::isError($result)) {
             if (!$result) {
                 return $result;
             }
@@ -1507,6 +1551,37 @@ class MDB_common extends PEAR
         return $col;
     }
 
+    function &getAll($query, $params = array(), $fetchmode = DB_FETCHMODE_DEFAULT)
+    {
+        $fetchmode = (empty($fetchmode)) ? DB_FETCHMODE_DEFAULT : $fetchmode;
+        settype($params, "array");
+        if (sizeof($params) > 0) {
+            $prepared_query = $this->prepare($query);
+
+            if (MDB::isError($prepared_query)) {
+                return $prepared_query;
+            }
+            $this->querySetArray($prepared_query, $params);
+            $result = $this->execute($prepared_query, $params);
+        } else {
+            $result = $this->query($query);
+        }
+
+        if (MDB::isError($result)) {
+            return $result;
+        }
+
+        $err = $this->fetchAll($result, &$all, $fetchmode);
+        if ($err !== DB_OK) {
+            return $err;
+        }
+        if (isset($prepared_query)) {
+            $this->freePreparedQuery($prepared_query);
+        }
+
+        return $all;
+    }
+
     function &getAssoc($query, $force_array = false, $params = array(),
         $fetchmode = DB_FETCHMODE_ORDERED, $group = false)
     {
@@ -1531,9 +1606,9 @@ class MDB_common extends PEAR
         $err = $this->fetchAll($result, &$all, $fetchmode, true, $force_array, $group);
         if ($err !== DB_OK) {
             return $err;
-        }        
+        }
         if (isset($prepared_query)) {
-            $this->FreePreparedQuery($prepared_query);
+            $this->freePreparedQuery($prepared_query);
         }
 
         return $all;
