@@ -3614,7 +3614,7 @@ class MDB_Common extends PEAR
      * Fetch and return a field of data (it uses fetchInto for that)
      *
      * @param resource $result result identifier
-     * @return mixed data array on success, a MDB error on failure
+     * @return mixed data on success, a MDB error on failure
      * @access public
      */
     function fetchOne($result)
@@ -3623,13 +3623,10 @@ class MDB_Common extends PEAR
         if (!$this->options['autofree'] || $row != NULL) {
             $this->freeResult($result);
         }
-        if (MDB::isError($result)) {
-            return($result);
-        }
         if (is_array($row)) {
             return($row[0]);
         }
-        return(NULL);
+        return($row);
     }
 
     // }}}
@@ -3668,7 +3665,8 @@ class MDB_Common extends PEAR
     {
         $fetchmode = is_numeric($colnum) ? MDB_FETCHMODE_ORDERED : MDB_FETCHMODE_ASSOC;
         $column = array();
-        $row = $this->fetchInto($result, $fetchmode, 0);
+        $rownum = 0;
+        $row = $this->fetchInto($result, $fetchmode, $rownum);
         if (is_array($row)) {
             if (isset($row[$colnum])) {
                 $column[] = $row[$colnum];
@@ -3676,8 +3674,10 @@ class MDB_Common extends PEAR
                 $this->freeResult($result);
                 return($this->raiseError(MDB_ERROR_TRUNCATED));
             }
+        } else if (MDB::isError($row)) {
+            return($row);
         }
-        $rownum = 1;
+        ++$rownum;
         while (is_array($row = $this->fetchInto($result, $fetchmode, $rownum))) {
             $column[] = $row[$colnum];
             ++$rownum;
@@ -3716,8 +3716,9 @@ class MDB_Common extends PEAR
     {
         if ($rekey) {
             $cols = $this->numCols($result);
-            if (MDB::isError($cols))
+            if (MDB::isError($cols)) {
                 return($cols);
+            }
             if ($cols < 2) {
                 return($this->raiseError(MDB_ERROR_TRUNCATED));
             }
