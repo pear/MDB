@@ -2483,7 +2483,7 @@ class MDB_Common extends PEAR
             return($result);
         }
         $length = min($length, strlen($this->lobs[$lob]['Value']) - $this->lobs[$lob]['Position']);
-        $data = substr($this->lobs[$lob]['Value'], $this->lobs[$lob]['Position'], $length);
+        $data .= substr($this->lobs[$lob]['Value'], $this->lobs[$lob]['Position'], $length);
         $this->lobs[$lob]['Position'] += $length;
         return($length);
     }
