@@ -143,7 +143,7 @@ class MDB_mysql extends MDB_Common
      */
     function errorNative()
     {
-        return mysql_errno($this->connection);
+        return(@mysql_errno($this->connection));
     }
 
     // }}}
@@ -162,7 +162,7 @@ class MDB_mysql extends MDB_Common
     function mysqlRaiseError($errno = NULL)
     {
         if ($errno == NULL) {
-            $errno = $this->errorCode(mysql_errno($this->connection));
+            $errno = $this->errorCode(@mysql_errno($this->connection));
         }
         return($this->raiseError($errno, NULL, NULL, NULL, @mysql_error($this->connection)));
     }
@@ -292,7 +292,7 @@ class MDB_mysql extends MDB_Common
             {
                 return(MDB_OK);
             }
-            mysql_close($this->connection);
+            @mysql_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
         }
@@ -354,8 +354,8 @@ class MDB_mysql extends MDB_Common
         if (isset($this->options['fixedfloat'])) {
             $this->fixed_float = $this->options['fixedfloat'];
         } else {
-            if (($result = mysql_query('SELECT VERSION()', $this->connection))) {
-                $version = explode('.', mysql_result($result,0,0));
+            if (($result = @mysql_query('SELECT VERSION()', $this->connection))) {
+                $version = explode('.', @mysql_result($result,0,0));
                 $major = intval($version[0]);
                 $minor = intval($version[1]);
                 $revision = intval($version[2]);
@@ -364,12 +364,12 @@ class MDB_mysql extends MDB_Common
                 {
                     $this->fixed_float = 0;
                 }
-                mysql_free_result($result);
+                @mysql_free_result($result);
             }
         }
         if (isset($this->supported['Transactions']) && !$this->auto_commit) {
-            if (!mysql_query('SET AUTOCOMMIT = 0', $this->connection)) {
-                mysql_close($this->connection);
+            if (@mysql_query('SET AUTOCOMMIT = 0', $this->connection)) {
+                @mysql_close($this->connection);
                 $this->connection = 0;
                 $this->affected_rows = -1;
                 return($this->raiseError());
@@ -398,7 +398,7 @@ class MDB_mysql extends MDB_Common
             if (isset($this->supported['Transactions']) && !$this->auto_commit) {
                 $result = $this->autoCommit(TRUE);
             }
-            mysql_close($this->connection);
+            @mysql_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
 
@@ -446,16 +446,17 @@ class MDB_mysql extends MDB_Common
             }
         }
         if ($this->database_name) {
-            if(!mysql_select_db($this->database_name, $this->connection)) {
+            if(!@mysql_select_db($this->database_name, $this->connection)) {
                 return($this->mysqlRaiseError());
             }
         }
-        if ($result = mysql_query($query, $this->connection)) {
+        if ($result = @mysql_query($query, $this->connection)) {
             if ($ismanip) {
-                $this->affected_rows = mysql_affected_rows($this->connection);
+                $this->affected_rows = @mysql_affected_rows($this->connection);
                 return(MDB_OK);
             } else {
-                $this->highest_fetched_row[$result] = -1;
+                $result_value = intval($result);
+                $this->highest_fetched_row[$result_value] = -1;
                 if ($types != NULL) {
                     if (!is_array($types)) {
                         $types = array($types);
@@ -667,9 +668,10 @@ class MDB_mysql extends MDB_Common
         }
         if (!isset($this->columns[$result_value])) {
             $this->columns[$result_value] = array();
-            $columns = mysql_num_fields($result);
+            $columns = @mysql_num_fields($result);
             for($column = 0; $column < $columns; $column++) {
-                $this->columns[$result_value][strtolower(mysql_field_name($result, $column))] = $column;
+                $field_name = strtolower(@mysql_field_name($result, $column));
+                $this->columns[$result_value][$field_name] = $column;
             }
         }
         return($this->columns[$result_value]);
@@ -688,11 +690,12 @@ class MDB_mysql extends MDB_Common
      */
     function numCols($result)
     {
-        if (!isset($this->highest_fetched_row[intval($result)])) {
+        $result_value = intval($result);
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
                 'numCols: it was specified an inexisting result set'));
         }
-        return(mysql_num_fields($result));
+        return(@mysql_num_fields($result));
     }
 
     // }}}
@@ -707,11 +710,12 @@ class MDB_mysql extends MDB_Common
     */
     function endOfResult($result)
     {
-        if (!isset($this->highest_fetched_row[$result])) {
+        $result_value = intval($result);
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'End of result: attempted to check the end of an unknown result'));
         }
-        return($this->highest_fetched_row[$result] >= $this->numRows($result)-1);
+        return($this->highest_fetched_row[$result_value] >= $this->numRows($result)-1);
     }
 
     // }}}
@@ -728,8 +732,9 @@ class MDB_mysql extends MDB_Common
     */
     function fetch($result, $row, $field)
     {
-        $this->highest_fetched_row[$result] =
-            max($this->highest_fetched_row[$result], $row);
+        $result_value = intval($result);
+        $this->highest_fetched_row[$result_value] =
+            max($this->highest_fetched_row[$result_value], $row);
         $res = @mysql_result($result, $row, $field);
         if ($res === FALSE && $res != NULL) {
             return($this->mysqlRaiseError($errno));
@@ -805,7 +810,7 @@ class MDB_mysql extends MDB_Common
     */
     function numRows($result)
     {
-        return(mysql_num_rows($result));
+        return(@mysql_num_rows($result));
     }
 
     // }}}
@@ -820,16 +825,17 @@ class MDB_mysql extends MDB_Common
      */
     function freeResult($result)
     {
-        if(isset($this->highest_fetched_row[$result])) {
-            unset($this->highest_fetched_row[$result]);
+        $result_value = intval($result);
+        if(isset($this->highest_fetched_row[$result_value])) {
+            unset($this->highest_fetched_row[$result_value]);
         }
-        if(isset($this->columns[$result])) {
-            unset($this->columns[$result]);
+        if(isset($this->columns[$result_value])) {
+            unset($this->columns[$result_value]);
         }
-        if(isset($this->result_types[$result])) {
-            unset($this->result_types[$result]);
+        if(isset($this->result_types[$result_value])) {
+            unset($this->result_types[$result_value]);
         }
-        return(mysql_free_result($result));
+        return(@mysql_free_result($result));
     }
 
     // }}}
@@ -1298,7 +1304,7 @@ class MDB_mysql extends MDB_Common
                 return(1);
             }
         }
-        $value = intval(mysql_insert_id($this->connection));
+        $value = intval(@mysql_insert_id($this->connection));
         $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($res)) {
             $this->warnings[] = 'Next ID: could not delete previous sequence table values';
@@ -1342,14 +1348,15 @@ class MDB_mysql extends MDB_Common
      */
     function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
+        $result_value = intval($result);
         if ($rownum == NULL) {
-            ++$this->highest_fetched_row[$result];
+            ++$this->highest_fetched_row[$result_value];
         } else {
             if (!@mysql_data_seek($result, $rownum)) {
                 return(NULL);
             }
-            $this->highest_fetched_row[$result] =
-                max($this->highest_fetched_row[$result], $rownum);
+            $this->highest_fetched_row[$result_value] =
+                max($this->highest_fetched_row[$result_value], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
@@ -1368,7 +1375,7 @@ class MDB_mysql extends MDB_Common
             }
             return(NULL);
         }
-        if (isset($this->result_types[$result])) {
+        if (isset($this->result_types[$result_value])) {
             $row = $this->convertResultRow($result, $row);
         }
         return($row);

@@ -395,7 +395,8 @@ class MDB_fbsql extends MDB_Common
                 $this->affected_rows = fbsql_affected_rows($this->connection);
                 return(MDB_OK);
             } else {
-                $this->highest_fetched_row[$result] = -1;
+                $result_value = intval($result);
+                $this->highest_fetched_row[$result_value] = -1;
                 if ($types != NULL) {
                     if (!is_array($types)) {
                         $types = array($types);
@@ -479,11 +480,12 @@ class MDB_fbsql extends MDB_Common
     */
     function endOfResult($result)
     {
-        if (!isset($this->highest_fetched_row[$result])) {
+        $result_value = intval($result);
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'End of result: attempted to check the end of an unknown result'));
         }
-        return($this->highest_fetched_row[$result] >= $this->numRows($result)-1);
+        return($this->highest_fetched_row[$result_value] >= $this->numRows($result)-1);
     }
 
     // }}}
@@ -500,7 +502,8 @@ class MDB_fbsql extends MDB_Common
     */
     function fetch($result, $row, $field)
     {
-        $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
+        $result_value = intval($result);
+        $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $row);
         if (is_string($field)) {
             if (intval($field) != $field) {
                 $field = strtoupper($field);
@@ -610,14 +613,15 @@ class MDB_fbsql extends MDB_Common
      */
     function freeResult($result)
     {
-        if(isset($this->highest_fetched_row[$result])) {
-            unset($this->highest_fetched_row[$result]);
+        $result_value = intval($result);
+        if(isset($this->highest_fetched_row[$result_value])) {
+            unset($this->highest_fetched_row[$result_value]);
         }
-        if(isset($this->columns[$result])) {
-            unset($this->columns[$result]);
+        if(isset($this->columns[$result_value])) {
+            unset($this->columns[$result_value]);
         }
-        if(isset($this->result_types[$result])) {
-            unset($this->result_types[$result]);
+        if(isset($this->result_types[$result_value])) {
+            unset($this->result_types[$result_value]);
         }
         return(fbsql_free_result($result));
     }
@@ -1211,13 +1215,14 @@ class MDB_fbsql extends MDB_Common
      */
     function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
+        $result_value = intval($result);
         if ($rownum == NULL) {
-            ++$this->highest_fetched_row[$result];
+            ++$this->highest_fetched_row[$result_value];
         } else {
             if (!@fbsql_data_seek($result, $rownum)) {
                 return(NULL);
             }
-            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
+            $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
@@ -1236,7 +1241,7 @@ class MDB_fbsql extends MDB_Common
             }
             return(NULL);
         }
-        if (isset($this->result_types[$result])) {
+        if (isset($this->result_types[$result_value])) {
             $row = $this->convertResultRow($result, $row);
         }
         return($row);

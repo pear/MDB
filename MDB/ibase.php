@@ -275,7 +275,7 @@ class MDB_ibase extends MDB_Common
      */
     function errorNative()
     {
-        return ibase_errmsg();
+        return @ibase_errmsg();
     }
 
     // }}}
@@ -323,7 +323,8 @@ class MDB_ibase extends MDB_Common
     {
         $this->debug('Commit Transaction');
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, '', '', 'Commit: transaction changes are being auto commited'));
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
+                'Commit: transaction changes are being auto commited'));
         }
         return @ibase_commit($this->connection);
     }
@@ -344,16 +345,19 @@ class MDB_ibase extends MDB_Common
     {
         $this->debug('Rollback Transaction');
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, '', '', 'Rollback: transactions can not be rolled back when changes are auto commited'));
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
+                'Rollback: transactions can not be rolled back when changes are auto commited'));
         }
 
         //return ibase_rollback($this->connection);
 
-        if ($this->transaction_id && !ibase_rollback($this->connection)) {
-            return($this->raiseError(MDB_ERROR, '', '', 'Rollback: Could not rollback a pending transaction: '.ibase_errmsg()));
+        if ($this->transaction_id && !@ibase_rollback($this->connection)) {
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
+                'Rollback: Could not rollback a pending transaction: '.@ibase_errmsg()));
         }
-        if (!$this->transaction_id = ibase_trans(IBASE_COMMITTED, $this->connection)) {
-            return($this->raiseError(MDB_ERROR, '', '', 'Rollback: Could not start a new transaction: '.ibase_errmsg()));
+        if (!$this->transaction_id = @ibase_trans(IBASE_COMMITTED, $this->connection)) {
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
+                'Rollback: Could not start a new transaction: '.@ibase_errmsg()));
         }
         return MDB_OK;
     }
@@ -390,7 +394,8 @@ class MDB_ibase extends MDB_Common
     {
         $function = ($persistent ? 'ibase_pconnect' : 'ibase_connect');
         if (!function_exists($function)) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'doConnect: FireBird/InterBase support is not available in this PHP configuration'));
+            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+                'doConnect: FireBird/InterBase support is not available in this PHP configuration'));
         }
 
         $dbhost = $this->host ?
@@ -404,8 +409,8 @@ class MDB_ibase extends MDB_Common
 
         $connection = @call_user_func_array($function, $params);
         if ($connection > 0) {
-            ibase_timefmt("%Y-%m-%d %H:%M:%S", IBASE_TIMESTAMP);
-            ibase_timefmt("%Y-%m-%d", IBASE_DATE);
+            @ibase_timefmt("%Y-%m-%d %H:%M:%S", IBASE_TIMESTAMP);
+            @ibase_timefmt("%Y-%m-%d", IBASE_DATE);
             return $connection;
         }
         if (isset($php_errormsg)) {
@@ -413,7 +418,8 @@ class MDB_ibase extends MDB_Common
         } else {
             $error_msg = 'Could not connect to FireBird/InterBase server';
         }
-        return($this->raiseError(MDB_ERROR_CONNECT_FAILED, '', '', 'doConnect: '.$error_msg));
+        return($this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL,
+            'doConnect: '.$error_msg));
     }
 
     // }}}
@@ -439,7 +445,7 @@ class MDB_ibase extends MDB_Common
             {
                 return MDB_OK;
             }
-            ibase_close($this->connection);
+            @ibase_close($this->connection);
             $this->affected_rows = -1;
             $this->connection = 0;
         }
@@ -455,7 +461,7 @@ class MDB_ibase extends MDB_Common
         }
 
         if (!$this->auto_commit && MDB::isError($trans_result = $this->_doQuery('BEGIN'))) {
-            ibase_close($this->connection);
+            @ibase_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
             return $trans_result;
@@ -481,7 +487,7 @@ class MDB_ibase extends MDB_Common
             if (!$this->auto_commit) {
                 $this->_doQuery('END');
             }
-            ibase_close($this->connection);
+            @ibase_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
 
@@ -514,7 +520,7 @@ class MDB_ibase extends MDB_Common
         } else {
             //Not Prepared Query
             $result = @ibase_query($connection, $query);
-            if (ibase_errmsg() == 'Query argument missed') { //ibase_errcode() only available in PHP5
+            if (@ibase_errmsg() == 'Query argument missed') { //ibase_errcode() only available in PHP5
                 //connection lost, try again...
                 $this->connect();
                 $result = @ibase_query($this->connection, $query);
@@ -532,7 +538,8 @@ class MDB_ibase extends MDB_Common
                 $this->affected_rows = -1;
             }
         } else {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, '_doQuery: Could not execute query ("'.$query.'"): ' . ibase_errmsg()));
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
+                '_doQuery: Could not execute query ("'.$query.'"): ' . @ibase_errmsg()));
         }
         return $result;
     }
@@ -654,9 +661,9 @@ class MDB_ibase extends MDB_Common
         }
         if (!isset($this->columns[$result_value])) {
             $this->columns[$result_value] = array();
-            $columns = ibase_num_fields($result);
+            $columns = @ibase_num_fields($result);
             for ($column=0; $column < $columns; $column++) {
-                $column_info = ibase_field_info($result, $column);
+                $column_info = @ibase_field_info($result, $column);
                 $this->columns[$result_value][strtolower($column_info['name'])] = $column;
             }
         }
@@ -680,7 +687,7 @@ class MDB_ibase extends MDB_Common
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'Number of columns: it was specified an inexisting result set'));
         }
-        return ibase_num_fields($result);
+        return @ibase_num_fields($result);
     }
 
     // }}}
@@ -742,12 +749,14 @@ class MDB_ibase extends MDB_Common
             if (($column = $field) < 0
                 || $column >= count($this->columns[$result_value]))
             {
-                return($this->raiseError('Get column: attempted to fetch an query result column out of range'));
+                return($this->raiseError(MDB_ERROR, NULL, NULL,
+                    'Get column: attempted to fetch an query result column out of range'));
             }
         } else {
             $name = strtolower($field);
             if (!isset($this->columns[$result_value][$name])) {
-                return($this->raiseError('Get column: attempted to fetch an unknown query result column'));
+                return($this->raiseError(MDB_ERROR, NULL, NULL,
+                    'Get column: attempted to fetch an unknown query result column'));
             }
             $column = $this->columns[$result_value][$name];
         }
@@ -850,7 +859,7 @@ class MDB_ibase extends MDB_Common
             }
             return(NULL);
         }
-        if (isset($this->result_types[$result])) {
+        if (isset($this->result_types[$result_value])) {
             $row = $this->convertResultRow($result, $row);
         }
         return $row;
@@ -878,10 +887,10 @@ class MDB_ibase extends MDB_Common
                                                       $this->lobs[$lob]['Row'],
                                                       $this->lobs[$lob]['Field']);
 
-            if (!$this->lobs[$lob]['Handle'] = ibase_blob_open($this->lobs[$lob]['Value'])) {
+            if (!$this->lobs[$lob]['Handle'] = @ibase_blob_open($this->lobs[$lob]['Value'])) {
                 unset($this->lobs[$lob]['Value']);
                 return($this->raiseError(MDB_ERROR, NULL, NULL,
-                    'Retrieve LOB: Could not open fetched large object field' . ibase_errmsg()));
+                    'Retrieve LOB: Could not open fetched large object field' . @ibase_errmsg()));
             }
         }
         return MDB_OK;
@@ -925,9 +934,10 @@ class MDB_ibase extends MDB_Common
         if (MDB::isError($lobresult = $this->_retrieveLob($lob))) {
             return $lobresult;
         }
-        $data = ibase_blob_get($this->lobs[$lob]['Handle'], $length);
+        $data = @ibase_blob_get($this->lobs[$lob]['Handle'], $length);
         if (!is_string($data)) {
-            $this->raiseError(MDB_ERROR, NULL, NULL, 'Read Result LOB: ' . ibase_errmsg());
+            $this->raiseError(MDB_ERROR, NULL, NULL,
+                'Read Result LOB: ' . @ibase_errmsg());
         }
         if (($length = strlen($data)) == 0) {
             $this->lobs[$lob]['EndOfLOB'] = 1;
@@ -949,7 +959,7 @@ class MDB_ibase extends MDB_Common
     {
         if (isset($this->lobs[$lob])) {
             if (isset($this->lobs[$lob]['Value'])) {
-               ibase_blob_close($this->lobs[$lob]['Handle']);
+               @ibase_blob_close($this->lobs[$lob]['Handle']);
             }
             $this->lobs[$lob] = '';
         }
@@ -1100,8 +1110,8 @@ class MDB_ibase extends MDB_Common
            return($this->raiseError(MDB_ERROR, NULL, NULL,
                'Free result: attemped to free an unknown query result'));
         }
-        if (isset($this->highest_fetched_row[$result])) {
-            unset($this->highest_fetched_row[$result]);
+        if (isset($this->highest_fetched_row[$result_value])) {
+            unset($this->highest_fetched_row[$result_value]);
         }
         if (isset($this->row_buffer[$result_value])) {
             unset($this->row_buffer[$result_value]);
@@ -1115,14 +1125,14 @@ class MDB_ibase extends MDB_Common
         if (isset($this->results[$result_value])) {
             unset($this->results[$result_value]);
         }
-        if (isset($this->columns[$result])) {
-            unset($this->columns[$result]);
+        if (isset($this->columns[$result_value])) {
+            unset($this->columns[$result_value]);
         }
         if (isset($this->rows[$result_value])) {
             unset($this->rows[$result_value]);
         }
-        if (isset($this->result_types[$result])) {
-            unset($this->result_types[$result]);
+        if (isset($this->result_types[$result_value])) {
+            unset($this->result_types[$result_value]);
         }
         if (is_resource($result)) {
             return @ibase_free_result($result);
@@ -1401,27 +1411,29 @@ class MDB_ibase extends MDB_Common
             return $connect;
         }
         $value   = '';  // DEAL WITH ME
-        if (!$this->transaction_id = ibase_trans(IBASE_COMMITTED, $this->connection)) {
-            return($this->raiseError(MDB_ERROR, '', '', '_getLobValue: Could not start a new transaction: '.ibase_errmsg()));
+        if (!$this->transaction_id = @ibase_trans(IBASE_COMMITTED, $this->connection)) {
+            return($this->raiseError(MDB_ERROR, NULL, NULL, '_getLobValue: Could not start a new transaction: '.@ibase_errmsg()));
         }
 
-        if (($lo = ibase_blob_create($this->auto_commit ? $this->connection : $this->transaction_id))) {
+        if (($lo = @ibase_blob_create($this->auto_commit ? $this->connection : $this->transaction_id))) {
             while (!$this->endOfLob($lob)) {
                 if (MDB::isError($result = $this->readLob($lob, $data, $this->options['lob_buffer_length']))) {
                     break;
                 }
-                if (ibase_blob_add($lo, $data) === false) {
-                    $result = $this->raiseError(MDB_ERROR, NULL, NULL, '_getLobValue - Could not add data to a large object: ' . ibase_errmsg());
+                if (@ibase_blob_add($lo, $data) === false) {
+                    $result = $this->raiseError(MDB_ERROR, NULL, NULL,
+                        '_getLobValue - Could not add data to a large object: ' . @ibase_errmsg());
                     break;
                 }
             }
             if (MDB::isError($result)) {
-                ibase_blob_cancel($lo);
+                @ibase_blob_cancel($lo);
             } else {
-                $value = ibase_blob_close($lo);
+                $value = @ibase_blob_close($lo);
             }
         } else {
-            $result = $this->raiseError(MDB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
+            $result = $this->raiseError(MDB_ERROR, NULL, NULL,
+                'Get LOB field value' . @ibase_errmsg());
         }
         if (!isset($this->query_parameters[$prepared_query])) {
             $this->query_parameters[$prepared_query]       = array(0, '');
@@ -1590,7 +1602,8 @@ class MDB_ibase extends MDB_Common
         }
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
-        $result = $this->_doQuery("SELECT GEN_ID($sequence_name, 1) as the_value FROM RDB\$DATABASE");
+        $query = "SELECT GEN_ID($sequence_name, 1) as the_value FROM RDB\$DATABASE";
+        $result = $this->_doQuery($query);
         $this->popExpect();
         if ($ondemand && MDB::isError($result)
             //&& $result->getCode() == MDB_ERROR_NOSUCHTABLE
@@ -1624,11 +1637,14 @@ class MDB_ibase extends MDB_Common
     function currId($seq_name)
     {
         $seqname = $this->getSequenceName($seq_name);
-        if (MDB::isError($result = $this->queryOne("SELECT RDB\$GENERATOR_ID FROM RDB\$GENERATORS WHERE RDB\$GENERATOR_NAME='$seqname'"))) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'currId: Unable to select from ' . $seqname) );
+        $query = "SELECT RDB\$GENERATOR_ID FROM RDB\$GENERATORS WHERE RDB\$GENERATOR_NAME='$seqname'";
+        if (MDB::isError($result = $this->queryOne($query))) {
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
+                'currId: Unable to select from ' . $seqname) );
         }
         if (!is_numeric($result)) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'currId: could not find value in sequence table'));
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
+                'currId: could not find value in sequence table'));
         }
         return $result;
     }
@@ -1705,7 +1721,7 @@ class MDB_ibase extends MDB_Common
         // if $result is a string, then we want information about a
         // table without a resultset
         if (is_string($result)) {
-            $id = ibase_query($this->connection,"SELECT * FROM $result");
+            $id = @ibase_query($this->connection,"SELECT * FROM $result");
             if (empty($id)) {
                 return $this->ibaseRaiseError();
             }
@@ -1779,13 +1795,13 @@ class MDB_ibase extends MDB_Common
                .' JOIN  RDB$RELATION_CONSTRAINTS R ON I.RDB$INDEX_NAME=R.RDB$INDEX_NAME'
               .' WHERE  I.RDB$FIELD_NAME=\''.$field_name.'\''
                  .' AND UPPER(R.RDB$RELATION_NAME)=\''.strtoupper($table_name).'\'';
-        $result = ibase_query($this->connection, $sql);
+        $result = @ibase_query($this->connection, $sql);
         if (empty($result)) {
             return $this->ibaseRaiseError();
         }
         $flags = '';
         if ($obj = @ibase_fetch_object($result)) {
-            ibase_free_result($result);
+            @ibase_free_result($result);
             if (isset($obj->CTYPE)  && trim($obj->CTYPE) == 'PRIMARY KEY') {
                 $flags = 'primary_key ';
             }
@@ -1802,12 +1818,12 @@ class MDB_ibase extends MDB_Common
                .' JOIN  RDB$FIELDS F ON R.RDB$FIELD_SOURCE=F.RDB$FIELD_NAME'
               .' WHERE  UPPER(R.RDB$RELATION_NAME)=\''.strtoupper($table_name).'\''
                 .' AND  R.RDB$FIELD_NAME=\''.$field_name.'\'';
-        $result = ibase_query($this->connection, $sql);
+        $result = @ibase_query($this->connection, $sql);
         if (empty($result)) {
             return $this->ibaseRaiseError();
         }
         if ($obj = @ibase_fetch_object($result)) {
-            ibase_free_result($result);
+            @ibase_free_result($result);
             if (isset($obj->NFLAG)) {
                 $flags .= 'not_null ';
             }
