@@ -14,8 +14,8 @@
  switch($driver_arguments["Type"]) {
     case "mysql":
         // modify to your needs
-        $driver_arguments["User"]="";
-        $driver_arguments["Password"]="";
+        $driver_arguments["User"]="metapear";
+        $driver_arguments["Password"]="funky";
         $driver_arguments["Options"]["UseTransactions"]=1;
     break;
  }
