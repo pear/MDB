@@ -139,6 +139,7 @@ class MDB_oci8 extends MDB_Common {
             1722 => MDB_ERROR_INVALID_NUMBER,
             2289 => MDB_ERROR_NOSUCHTABLE,
             2291 => MDB_ERROR_CONSTRAINT,
+            2292 => MDB_ERROR_CONSTRAINT,
             2449 => MDB_ERROR_CONSTRAINT,
         );
     }
