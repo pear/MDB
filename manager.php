@@ -1495,12 +1495,12 @@ class MDB_manager
 
     function updateDatabase($current_schema_file, $previous_schema_file, &$dsninfo, &$variables, $options = false)
     {
-		if (strcmp($error = $this->parseDatabaseDefinitionFile($current_schema_file, $this->database_definition, $variables, $this->fail_on_invalid_names), "")) {
+        if (strcmp($error = $this->parseDatabaseDefinitionFile($current_schema_file, $this->database_definition, $variables, $this->fail_on_invalid_names), "")) {
             $this->error = "Could not parse database schema file: $error";
             return(0);
         }
 
-		if (!$this->setupDatabase($dsninfo, $options)) {
+        if (!$this->setupDatabase($dsninfo, $options)) {
             $this->error = "Could not setup database: $error";
             return(0);
         }
