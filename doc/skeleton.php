@@ -83,16 +83,16 @@ class MDB_driver_xxx extends MDB_common
     var $connected_password;
     var $connected_port;
     var $opened_persistent = '';
-    var $decimal_factor = 1.0;
-    var $highest_fetched_row = array();
-    var $columns = array();
-    var $fixed_float = 0;
+
     var $escape_quotes = "\\";
-    var $dummy_primary_key = 'dummy_primary_key';
+    var $decimal_factor = 1.0;
+
     var $manager_class_name = 'MDB_manager_xxx_class';
     var $manager_include = 'manager_xxx.php';
     var $manager_included_constant = 'MDB_MANAGER_XXX_INCLUDED';
-    var $default_table_type = '';
+
+    var $highest_fetched_row = array();
+    var $columns = array();
 
     // }}}
     // {{{ constructor
