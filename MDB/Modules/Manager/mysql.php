@@ -715,7 +715,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                     $is_primary = FALSE;
                     foreach($indexes as $index) {
                         if ($db->options['optimize'] != 'portability') {
-                            array_change_key_case($index);
+                            $index = array_change_key_case($index);
                         }
                         if ($index['key_name'] == 'PRIMARY'
                             && $index['column_name'] == $field_name
@@ -829,14 +829,14 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      */
     function listTableIndexes(&$db, $table)
     {
-        if(MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
-            return($result);
-        }
-        $key_name = 'Key_name';
+        $key_name = 'key_name';
         if ($db->options['optimize'] != 'portability') {
-            $key_name = strtolower($key_name);
+            $key_name = ucfirst($key_name);
         }
-        $indexes_all = $db->fetchCol($result, $key_name);
+        $indexes_all = $db->queryCol("SHOW INDEX FROM $table", 'text', $key_name);
+        if (MDB::isError($indexes_all)) {
+            return $indexes_all;
+        }
         for($found = $indexes = array(), $index = 0, $indexes_all_cnt = count($indexes_all);
             $index < $indexes_all_cnt;
             $index++)
