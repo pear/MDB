@@ -59,7 +59,7 @@ class MDB_manager_common extends PEAR
     // {{{ getFieldDeclaration()
 
     /**
-     * create a new database
+     * get declaration of a field
      * 
      * @param $dbs (reference) array where database names will be stored
      * @param string $field_name name of the field to be created
@@ -91,10 +91,10 @@ class MDB_manager_common extends PEAR
                 return $db->getTextDeclaration($field_name, $field);
                 break;
             case "clob":
-                return $db->getCLOBDeclaration($field_name, $field);
+                return $db->getClobDeclaration($field_name, $field);
                 break;
             case "blob":
-                return $db->getBLOBDeclaration($field_name, $field);
+                return $db->getBlobDeclaration($field_name, $field);
                 break;
             case "boolean":
                 return $db->getBooleanDeclaration($field_name, $field);
@@ -121,10 +121,10 @@ class MDB_manager_common extends PEAR
     }
 
     // }}}
-    // {{{ getFieldList()
+    // {{{ getFieldDeclarationList()
 
     /**
-     * create a new database
+     * get declaration of a number of field in bulk
      * 
      * @param $dbs (reference) array where database names will be stored
      * @param string $fields  a multidimensional associative array.
@@ -151,23 +151,20 @@ class MDB_manager_common extends PEAR
      *
      * @return mixed string on success, a DB error on failure
      */
-    function getFieldList(&$db, &$fields)
+    function getFieldDeclarationList(&$db, &$fields)
     {
-        for($query_fields = "", reset($fields), $field_number = 0;
-            $field_number < count($fields);
-            $field_number++, next($fields))
-        {
-            if ($field_number > 0) {
-                $query_fields.= ", ";
+        if(is_array($fields)) {
+            foreach($fields as $field_name => $field) {
+                $query = $db->getFieldDeclaration($field_name, $field);
+                if (MDB::isError($query)) {
+                    return $query;
+                }
+                $query_fields[] = $query;
             }
-            $field_name = key($fields);
-            $query = $this->getFieldDeclaration(&$db, $field_name, $fields[$field_name]);
-            if (MDB::isError($query)) {
-                return $query;
-            }
-            $query_fields .= $query;
+            return (implode(',',$query_fields));
         }
-        return ($query_fields);
+        return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
+            'the definition of the table "'.$table_name.'" does not contain any fields', 'MDB_Error', TRUE);
     }
 
     // }}}
@@ -274,7 +271,7 @@ class MDB_manager_common extends PEAR
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'no fields specified for table "'.$name.'"');
         }
         $query_fields = "";
-        if (!$this->getFieldList($db, $fields, $query_fields)) {
+        if (!$this->getFieldDeclarationList($db, $fields, $query_fields)) {
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'unkown error');
         }
         return ($db->query("CREATE TABLE $name ($query_fields)"));
