@@ -70,6 +70,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      */
     function createDatabase(&$db, $name)
     {
+return(MDB_OK);
         $user = $db->getOption('DBAUser');
         if (MDB::isError($user)) {
             return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
@@ -80,27 +81,27 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
             return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
                 'it was not specified the Oracle DBAPassword option'));
         }
-        if (MDB::isError($db->connect($user, $password, 0))) {
+        if (!MDB::isError($result = $db->connect($user, $password, 0))) {
             $tablespace = $db->getOption('DefaultTablespace');
             if(MDB::isError($tablespace)) {
                 $tablespace = '';
             } else {
                 $tablespace = ' DEFAULT TABLESPACE '.$tablespace;
             }
-            if ($db->_doQuery('CREATE USER '.$db->user.' IDENTIFIED BY '.$db->password.$tablespace)) {
-                if (MDB::isError($result = $db->_doQuery('GRANT CREATE SESSION, CREATE TABLE,UNLIMITED TABLESPACE,CREATE SEQUENCE TO '.$db->user))) {
+            if (!MDB::isError($result = $db->_doQuery('CREATE USER '.$db->user.' IDENTIFIED BY '.$db->password.$tablespace))) {
+                if (!MDB::isError($result = $db->_doQuery('GRANT CREATE SESSION, CREATE TABLE,UNLIMITED TABLESPACE,CREATE SEQUENCE TO '.$db->user))) {
+                    return(MDB_OK);
+                } else {
                     if (MDB::isError($result2 = $db->_doQuery('DROP USER '.$db->user.' CASCADE'))) {
-                        return($db->raiseError(MDB_Error, '','', 'Create database',
+                        return($db->raiseError(MDB_ERROR, '','', 'Create database',
                             'could not setup the database user ('.$result->getUserinfo().') and then could drop its records ('.$result2->getUserinfo().')'));
                     }
-                    return($db->raiseError(MDB_Error, '','', 'Create database',
+                    return($db->raiseError(MDB_ERROR, '','', 'Create database',
                         'could not setup the database user ('.$result->getUserinfo().')'));
-                } else {
-                    return(MDB_OK);
                 }
             }
         }
-        return($db->raiseError());
+        return($result);
     }
 
     // }}}
@@ -264,8 +265,8 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
                     $query .= key($fields);
                 }
                 $query .= ')';
-                if (!$db->query("ALTER TABLE $name $query")) {
-                    return($db->raiseError());
+                if (MDB::isError($result = $db->query("ALTER TABLE $name $query"))) {
+                    return($result);
                 }
                 $query = '';
             }
@@ -322,6 +323,29 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
             }
             return(MDB_OK);
         }
+        return($db->raiseError());
+    }
+
+    // }}}
+    // {{{ listDatabases()
+
+    /**
+     * list all databases
+     *
+     * @param object    $db        database object that is extended by this class
+     * @return mixed data array on success, a MDB error on failure
+     * @access public
+     */
+    function listDatabases(&$db)
+    {
+        $this->queryCol("SELECT table_name, tablespace_name FROM user_tables");
+        $result = array();
+        for ($i=0; $this->next_record(); $i++) {
+            $result[$i]["table_name"]      = $this->m_record["table_name"];
+            $result[$i]["tablespace_name"] = $this->m_record["tablespace_name"];
+            $result[$i]["database"]        = $this->m_database;
+        }
+        return($result);
     }
 
     // }}}
@@ -338,7 +362,8 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      */
     function createSequence(&$db, $seq_name, $start)
     {
-        return($db->query("CREATE SEQUENCE $seq_name START WITH $start INCREMENT BY 1".($start < 1 ? " MINVALUE $start" : '')));
+        $sequence_name = $db->getSequenceName($seq_name);
+        return($db->query("CREATE SEQUENCE $sequence_name START WITH $start INCREMENT BY 1".($start < 1 ? " MINVALUE $start" : '')));
     }
 
     // }}}
@@ -354,7 +379,8 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      */
     function dropSequence(&$db, $seq_name)
     {
-        return($db->query("DROP SEQUENCE $seq_name"));
+        $sequence_name = $db->getSequenceName($seq_name);
+        return($db->query("DROP SEQUENCE $sequence_name"));
     }
 }
 
