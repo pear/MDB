@@ -654,17 +654,9 @@ class MDB_querysim extends MDB_Common
      */
     function freeResult(&$result)
     {
-        $result_value = $this->_querySimSignature($result);
-        if (isset($this->results[$result_value])) {
-            unset($this->results[$result_value]);
-        }
-        if (isset($result)) {
-            // can't unset() in caller, so this is the best we can do...
-            $result = null;
-        }
-
-        return $this->raiseError(MDB_ERROR, null, null,
-            'freeResult: attemped to free an unknown query result');
+        unset($this->results[$this->_querySimSignature($result)]);
+        unset($result);
+        return true;
     }
     // }}}
 
@@ -679,7 +671,7 @@ class MDB_querysim extends MDB_Common
     * @return mixed string on success, a MDB error on failure
     * @access public
     */
-    function fetch($result, $rownum, $field)
+    function fetch($result, $rownum = 0, $field = 0)
     {
         $result_link = $this->_querySimSignature($result);
         $this->highest_fetched_row[$result_link] =
@@ -745,9 +737,10 @@ class MDB_querysim extends MDB_Common
     // {{{ nextResult()
 
     /**
-     * Move the array result pointer to the next available row
-     *
-     * @param array a valid QuerySim result array
+     * Move the internal result pointer to the next available result
+     * Currently not supported
+     * 
+     * @param $result valid result resource
      * @return true if a result is available otherwise return false
      * @access public
      */
