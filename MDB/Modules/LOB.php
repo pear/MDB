@@ -59,11 +59,19 @@ class MDB_LOB
     var $lob;
     var $data = '';
     var $position = 0;
+    var $parameter;
+    var $prepared_query;
 
     function create(&$arguments)
     {
         if (isset($arguments['data'])) {
             $this->data = $arguments['data'];
+        }
+        if (isset($arguments['prepared_query'])) {
+            $this->prepared_query = $arguments['prepared_query'];
+        }
+        if (isset($arguments['parameter'])) {
+            $this->parameter = $arguments['parameter'];
         }
         return MDB_OK;
     }
@@ -134,6 +142,12 @@ class MDB_LOB_Input_File extends MDB_LOB
 
     function create(&$arguments)
     {
+        if (isset($arguments['prepared_query'])) {
+            $this->prepared_query = $arguments['prepared_query'];
+        }
+        if (isset($arguments['parameter'])) {
+            $this->parameter = $arguments['parameter'];
+        }
         if (isset($arguments['file'])) {
             if (intval($arguments['file']) == 0) {
                 return PEAR::raiseError(null, MDB_ERROR_INVALID, null, null,
