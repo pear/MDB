@@ -195,7 +195,7 @@ class MDB_driver_pgsql extends MDB_common {
                 return ($result);
         }
         $this->auto_commit = $auto_commit;
-        return ($this->registerTransactionShutdown($auto_commit));
+        return ($this->_registerTransactionShutdown($auto_commit));
     }
 
     // }}}
@@ -313,11 +313,11 @@ class MDB_driver_pgsql extends MDB_common {
     }
 
     // }}} 
-    // {{{ close()
+    // {{{ _close()
     /**
      * Close the database connection
      **/
-    function close()
+    function _close()
     {
         if ($this->connection != 0) {
             if (!$this->auto_commit) {
@@ -959,7 +959,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
      *
-     * @access private
+     * @access public
      */
     function freeClobValue($prepared_query, $clob)
     {
@@ -995,7 +995,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
      *
-     * @access private
+     * @access public
      */
     function freeBlobValue($prepared_query, $blob)
     {
@@ -1119,7 +1119,7 @@ class MDB_driver_pgsql extends MDB_common {
             case MDB_TYPE_TIMESTAMP:
                 return substr($value, 0, strlen("YYYY-MM-DD HH:MM:SS"));
             default:
-                return ($this->baseConvertResult($value, $type));
+                return ($this->_baseConvertResult($value, $type));
         }
     }
 

@@ -63,14 +63,14 @@ define('MDB_TYPE_BLOB', 9);
 $registered_transactions_shutdown = 0;
 
 // }}}
-// {{{ shutdownTransactions()
+// {{{ _shutdownTransactions()
 /**
- * this function closes all open transactions registerTransactionShutdown()
+ * this function closes all open transactions _registerTransactionShutdown()
  * registers this method to be executed at shutdown
  *
  * @access private
  */
-function shutdownTransactions()
+function _shutdownTransactions()
 {
     global $databases;
 
@@ -302,14 +302,14 @@ class MDB_common extends PEAR
     }
 
     // }}}
-    // {{{ toString()
+    // {{{ _toString()
     /**
     * String conversation
     *
     * @return string
     * @access private
     */
-    function toString()
+    function _toString()
     {
         $info = get_class($this);
         $info .=  ": (phptype = " . $this->phptype .
@@ -622,7 +622,7 @@ class MDB_common extends PEAR
     }
 
     // }}}
-    // {{{ quote()
+    // {{{ _quote()
     /**
      * Quotes a string so it can be safely used in a query. It will quote
      * the text so it can safely be used within a query.
@@ -633,7 +633,7 @@ class MDB_common extends PEAR
      * @access private
      *
      */
-    function quote($text)
+    function _quote($text)
     {
         if (strcmp($this->escape_quotes, "'")) {
             $text = str_replace($this->escape_quotes, $this->escape_quotes.$this->escape_quotes, $text);
@@ -642,7 +642,7 @@ class MDB_common extends PEAR
     }
 
     // }}}
-    // {{{ loadExtension()
+    // {{{ _loadExtension()
     /**
      * loads an extension
      *
@@ -657,7 +657,7 @@ class MDB_common extends PEAR
      * @access private
      *
      */
-    function loadExtension($scope, $extension, $included_constant, $include)
+    function _loadExtension($scope, $extension, $included_constant, $include)
     {
         if (strlen($included_constant) == 0
             || !defined($included_constant))
@@ -710,7 +710,7 @@ class MDB_common extends PEAR
         if (defined("MDB_LOB_INCLUDED")) {
             return (DB_OK);
         }
-        $result = $this->loadExtension($scope, "lob",
+        $result = $this->_loadExtension($scope, "lob",
                          "MDB_LOB_INCLUDED", "lob.php");
         if (MDB::isError($result)) {
             return($result);
@@ -734,7 +734,7 @@ class MDB_common extends PEAR
         if (isset($this->manager)) {
             return (DB_OK);
         }
-        $result = $this->loadExtension($scope, "database manager",
+        $result = $this->_loadExtension($scope, "database manager",
                          "MDB_MANAGER_DATABASE_INCLUDED", "manager_common.php");
         if (MDB::isError($result)) {
             return($result);
@@ -743,7 +743,7 @@ class MDB_common extends PEAR
             if(strlen($this->manager_include) == 0)
                 return $this->raiseError(DB_LOADEXTENSION, "", "", $scope.
                        ': no valid database manager include file');
-            $result = $this->loadExtension($scope, "database manager",
+            $result = $this->_loadExtension($scope, "database manager",
                       $this->manager_included_constant, $this->manager_include);
             if (MDB::isError($result)) {
                 return($result);
@@ -757,7 +757,7 @@ class MDB_common extends PEAR
     }
 
     // }}}
-    // {{{ registerTransactionShutdown()
+    // {{{ _registerTransactionShutdown()
     /**
      * register the shutdown function to automatically commit open transactions
      *
@@ -767,14 +767,14 @@ class MDB_common extends PEAR
      *
      * @return DB_OK
      */
-    function registerTransactionShutdown($auto_commit)
+    function _registerTransactionShutdown($auto_commit)
     {
         global $registered_transactions_shutdown;
 
         if (($this->in_transaction = !$auto_commit)
             && !$registered_transactions_shutdown)
         {
-            register_shutdown_function("shutdownTransactions");
+            register_shutdown_function("_shutdownTransactions");
             $registered_transactions_shutdown = 1;
         }
         return (DB_OK);
@@ -856,18 +856,18 @@ class MDB_common extends PEAR
         {
             $this->in_transaction = FALSE;
         }
-        return $this->close();
+        return $this->_close();
     }
 
     // }}}
-    // {{{ close()
+    // {{{ _close()
     /**
      * all the RDBMS specific things needed close a DB connection
      *
      * @access private
      *
      */
-    function close()
+    function _close()
     {
         global $databases;
         $databases[$database] = "";
@@ -1759,7 +1759,7 @@ class MDB_common extends PEAR
     }
 
     // }}}
-    // {{{ validatePreparedQuery()
+    // {{{ _validatePreparedQuery()
     /**
      * validate that a handle is infact a prepared query
      *
@@ -1769,7 +1769,7 @@ class MDB_common extends PEAR
      * @access private
      *
      */
-    function validatePreparedQuery($prepared_query)
+    function _validatePreparedQuery($prepared_query)
     {
         if ($prepared_query < 1 || $prepared_query > count($this->prepared_queries)) {
             return $this->raiseError(DB_ERROR_INVALID, "", "",
@@ -1796,7 +1796,7 @@ class MDB_common extends PEAR
      */
     function freePreparedQuery($prepared_query)
     {
-        $result = $this->validatePreparedQuery($prepared_query);
+        $result = $this->_validatePreparedQuery($prepared_query);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -1805,7 +1805,7 @@ class MDB_common extends PEAR
     }
 
     // }}}
-    // {{{ executePreparedQuery()
+    // {{{ _executePreparedQuery()
     /**
      * Execute a prepared query statement.
      *
@@ -1819,7 +1819,7 @@ class MDB_common extends PEAR
      *
      * @return mixed a result handle or DB_OK on success, a DB error on failure
      */
-    function executePreparedQuery($prepared_query, $query, $types = NULL)
+    function _executePreparedQuery($prepared_query, $query, $types = NULL)
     {
         return ($this->query($query, $types));
     }
@@ -1841,7 +1841,7 @@ class MDB_common extends PEAR
      */
     function executeQuery($prepared_query, $types = NULL)
     {
-        $result = $this->validatePreparedQuery($prepared_query);
+        $result = $this->_validatePreparedQuery($prepared_query);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -1894,7 +1894,7 @@ class MDB_common extends PEAR
             } else {
                 $this->first_selected_row = $this->selected_row_limit = 0;
             }
-            $success = $this->executePreparedQuery($prepared_query, $query, $types);
+            $success = $this->_executePreparedQuery($prepared_query, $query, $types);
         }
         for(reset($this->clobs[$prepared_query]), $clob = 0;
             $clob < count($this->clobs[$prepared_query]);
@@ -2110,7 +2110,7 @@ class MDB_common extends PEAR
      */
     function setParam($prepared_query, $parameter, $type, $value, $is_null = 0, $field = "")
     {
-        $result = $this->validatePreparedQuery($prepared_query);
+        $result = $this->_validatePreparedQuery($prepared_query);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -2827,7 +2827,7 @@ class MDB_common extends PEAR
     }
 
     // }}}
-    // {{{ baseConvertResult()
+    // {{{ _baseConvertResult()
     /**
      * general type conversion method
      *
@@ -2838,7 +2838,7 @@ class MDB_common extends PEAR
      *
      * @access private
      */
-    function baseConvertResult($value, $type)
+    function _baseConvertResult($value, $type)
     {
         switch($type) {
             case MDB_TYPE_TEXT:
@@ -2882,7 +2882,7 @@ class MDB_common extends PEAR
      */
     function convertResult($value, $type)
     {
-        return ($this->baseConvertResult($value, $type));
+        return ($this->_baseConvertResult($value, $type));
     }
 
     // }}}
@@ -3403,7 +3403,7 @@ class MDB_common extends PEAR
      */
     function getTextValue($value)
     {
-        $value = $this->quote($value);
+        $value = $this->_quote($value);
         return ("'$value'");
     }
 
@@ -3437,7 +3437,7 @@ class MDB_common extends PEAR
      * @param string    $blob
      * @param string    $value
      *
-     * @access private
+     * @access public
      */
     function freeClobValue($prepared_query, $clob, &$value)
     {
@@ -3473,7 +3473,7 @@ class MDB_common extends PEAR
      * @param string    $blob
      * @param string    $value
      *
-     * @access private
+     * @access public
      */
     function freeBlobValue($prepared_query, $blob, &$value)
     {

@@ -189,7 +189,7 @@ class MDB_driver_mysql extends MDB_common
             }
         }
         $this->auto_commit = $auto_commit;
-        return ($this->registerTransactionShutdown($auto_commit));
+        return ($this->_registerTransactionShutdown($auto_commit));
     }
 
     // }}}
@@ -308,7 +308,7 @@ class MDB_driver_mysql extends MDB_common
                 $this->affected_rows = -1;
                 return ($this->raiseError());
             }
-            $this->registerTransactionShutdown(0);
+            $this->_registerTransactionShutdown(0);
         }
         $this->connected_host = $this->host;
         $this->connected_user = $this->user;
@@ -319,7 +319,7 @@ class MDB_driver_mysql extends MDB_common
     }
 
     // }}}
-    // {{{ close()
+    // {{{ _close()
 
     /**
      * all the RDBMS specific things needed close a DB connection
@@ -327,7 +327,7 @@ class MDB_driver_mysql extends MDB_common
      * @access private
      *
      */
-    function close()
+    function _close()
     {
         if ($this->connection != 0) {
             if (isset($this->supported["Transactions"]) && !$this->auto_commit) {
@@ -746,7 +746,7 @@ class MDB_driver_mysql extends MDB_common
             case MDB_TYPE_TIMESTAMP:
                 return ($value);
             default:
-                return ($this->baseConvertResult($value, $type));
+                return ($this->_baseConvertResult($value, $type));
         }
     }
 
@@ -1142,7 +1142,7 @@ class MDB_driver_mysql extends MDB_common
                 return $this->raiseError(DB_ERROR, "", "", 
                     'Get CLOB field value: '.LobError($clob));
             }
-            $value .= $this->quote($data);
+            $value .= $this->_quote($data);
         }
         $value .= "'";
         return ($value);
@@ -1159,7 +1159,7 @@ class MDB_driver_mysql extends MDB_common
      * @param string    $value             
      
      * 
-     * @access private
+     * @access public
      */
     function freeClobValue($prepared_query, $clob, &$value)
     {
@@ -1208,7 +1208,7 @@ class MDB_driver_mysql extends MDB_common
      * @param string    $blob             
      
      * 
-     * @access private
+     * @access public
      */
     function freeBlobValue($prepared_query, $blob)
     {

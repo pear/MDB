@@ -218,7 +218,7 @@ class MDB_PEAR_PROXY
 
     function quoteString($string)
     {
-        $string = $this->quote($string);
+        $string = $this->_quote($string);
         if ($string{0} == "'") {
             return substr($string, 1, -1);
         }
@@ -227,7 +227,7 @@ class MDB_PEAR_PROXY
 
     function quote($string)
     {
-        return $this->MDB_object->quote($string);
+        return $this->MDB_object->_quote($string);
     }
 
     function provides($feature)
