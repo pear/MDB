@@ -1,14 +1,30 @@
 <?
+/* vim: set expandtab tabstop=4 shiftwidth=4: */
+// +----------------------------------------------------------------------+
+// | PHP Version 4                                                        |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 1997-2002 The PHP Group                                |
+// +----------------------------------------------------------------------+
+// | This source file is subject to version 2.02 of the PHP license,      |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.php.net/license/2_02.txt.                                 |
+// | If you did not receive a copy of the PHP license and are unable to   |
+// | obtain it through the world-wide-web, please send a note to          |
+// | license@php.net so we can mail you a copy immediately.               |
+// +----------------------------------------------------------------------+
+// | Author: Lukas Smith <smith@dybnet.de>                                |
+// +----------------------------------------------------------------------+
+//
+// $Id$
+//
+// MDB proxy class for RDBMS management methods.
+//
+
 if(!defined("MDB_MANAGER_DATABASE_INCLUDED"))
 {
     define("MDB_MANAGER_DATABASE_INCLUDED",1);
 
-/*
- * manager_common.php
- *
- * @(#) $Header$
- *
- */
 
 class MDB_manager_database_class extends PEAR
 {
@@ -97,8 +113,7 @@ class MDB_manager_database_class extends PEAR
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'no fields specified for table "'.$name.'"');
         }
         $query_fields = "";
-        if (!$db->getFieldList($db, $fields, $query_fields)) {
-            // XXX needs more checking
+        if (!$this->getFieldList($db, $fields, $query_fields)) {
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'unkown error');
         }
         return ($db->query("CREATE TABLE $name ($query_fields)"));
