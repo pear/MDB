@@ -38,13 +38,13 @@ I have also added any missing methods from PEAR DB.
 Work on moving the error handling to PEAR error handling is under way but still needs alot of work.
 
 The files that make up MDB are:
-MDB.php (formatting fixed for the most part)
-common.php (formatting fixed for the most part)
-mysql.php (formatting fixed for the most part)
-lob.php (formatting fixed for the most part)
-manager.php (formatting not yet fixed)
-parser.php (formatting not yet fixed)
-metabase_wrapper.php (formatting not yet fixed)
+MDB.php
+common.php
+mysql.php
+lob.php
+manager.php
+parser.php
+metabase_wrapper.php
 
 The important pieces for testing right now are:
 driver_test.php (uses driver_test_config.php, setup_test.php, driver_test.schema, log_test.schema, test.schema)
