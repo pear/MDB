@@ -517,9 +517,8 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
             if (MDB::isError($result)) {
                 return $result;
             }
-            $value .= Bin2Hex($data);
+            $value .= bin2hex($data);
         }
-        $value .= "'";
         return $value;
     }
 
