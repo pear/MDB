@@ -427,7 +427,6 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
         }
         $prepared_query = $GLOBALS['_MDB_LOBs'][$lob]->prepared_query;
         $parameter = $GLOBALS['_MDB_LOBs'][$lob]->parameter;
-        $success = 1;   // REMOVE ME
         $value   = '';  // DEAL WITH ME
         if (!$db->transaction_id = ibase_trans(IBASE_COMMITTED, $db->connection)) {
             return $db->raiseError(MDB_ERROR, null, null,
@@ -438,13 +437,11 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
             while (!$this->endOfLOB($lob)) {
                 $result = $this->readLOB($lob, $data, $db->options['lob_buffer_length']);
                 if (MDB::isError($result)) {
-                    $success = 0;
                     break;
                 }
                 if (ibase_blob_add($lo, $data) === false) {
                     $result = $db->raiseError(MDB_ERROR, null, null,
                         'Could not add data to a large object: '.ibase_errmsg());
-                    $success = 0;
                     break;
                 }
             }
@@ -502,11 +499,11 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      * @param string $value
      * @access public
      */
-    function freeLOBValue($lob,&$value)
+    function freeLOBValue($lob, &$value)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-/*
-        $prepared_query;
+        $prepared_query = $GLOBALS['_MDB_LOBs'][$lob]->prepared_query;
+
         $query_parameter = $db->query_parameter_values[$prepared_query][$lob];
 
         unset($db->query_parameters[$prepared_query][$query_parameter]);
@@ -515,7 +512,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
             unset($db->query_parameters[$prepared_query]);
             unset($db->query_parameter_values[$prepared_query]);
         }
-*/
+
         unset($value);
     }
 
