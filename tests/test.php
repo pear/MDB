@@ -66,8 +66,7 @@ require_once 'HTML_TestListener.php';
 // you may need to uncomment the line and modify the multiplier as you see fit
 set_time_limit(60*count($dbarray));
 
-MDB::loadFile('Manager');
-MDB::loadFile('Date');
+MDB::loadModule('Date');
 
 foreach ($testcases as $testcase) {
     include_once $testcase.'.php';
@@ -103,7 +102,7 @@ foreach ($dbarray as $db) {
     $suite = new PHPUnit_TestSuite();
 
     foreach ($testcases as $testcase) {
-        if (is_array($testmethods[$testcase])) {
+        if (isset($testmethods[$testcase]) && is_array($testmethods[$testcase])) {
             $methods = array_keys($testmethods[$testcase]);
             foreach ($methods as $method) {
                 $suite->addTest(new $testcase($method));

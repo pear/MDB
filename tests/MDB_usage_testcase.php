@@ -131,26 +131,21 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
     function insertTestValues($prepared_query, &$data) {
         for ($i = 0; $i < count($this->fields); $i++) {
-            $func = 'setParam'.$this->types[$i];
-            $this->db->$func($prepared_query, ($i + 1), $data[$this->fields[$i]]);
+            $this->db->setParam($prepared_query, ($i + 1), $this->types[$i], $data[$this->fields[$i]]);
         }
     }
 
     function verifyFetchedValues(&$result, $rownum, &$data) {
+        $row = $this->db->fetchRow($result, MDB_FETCHMODE_ORDERED, $rownum);
         for ($i = 0; $i < count($this->fields); $i++) {
-            if ($this->types[$i] == 'text') {
-                $func = 'fetch';
-            } else {
-                $func = 'fetch'.$this->types[$i];
-            }
+            $value = $row[$i];
             if ($this->types[$i] == 'float') {
                 $delta = 0.0000000001;
             } else {
                 $delta = 0;
             }
-            $value = $this->db->$func($result, $rownum, $i);
             $field = $this->fields[$i];
-            $this->assertEquals($value, $data[$field], "the value retrieved for field \"$field\" ($value) using $func() doesn't match what was stored ($data[$field]).$func", $delta);
+            $this->assertEquals($value, $data[$field], "the value retrieved for field \"$field\" ($value) doesn't match what was stored ($data[$field])", $delta);
         }
     }
 
@@ -186,7 +181,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
         }
 
-        $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users');
+        $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users', $this->types);
 
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error selecting from users'.$result->getMessage());
@@ -211,7 +206,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         for ($row = 0; $row < $total_rows; $row++) {
             $data[$row]['user_name'] = "user_$row";
             $data[$row]['user_password'] = 'somepassword';
-            $data[$row]['subscribed'] = $row % 2;
+            $data[$row]['subscribed'] = $row % 2 ? true : false;
             $data[$row]['user_id'] = $row;
             $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
             $data[$row]['weight'] = sqrt($row);
@@ -221,8 +216,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $this->insertTestValues($prepared_query, $data[$row]);
 
-            //ISN'T THIS BETTER?
-            //$result = $this->db->executeQuery($prepared_query, $this->types);
             $result = $this->db->executeQuery($prepared_query);
 
             if (MDB::isError($result)) {
@@ -236,11 +229,12 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         for ($i = 0; $i < $total_fields; $i++) {
             $field = $this->fields[$i];
             for ($row = 0; $row < $total_rows; $row++) {
-                $value = $this->db->queryOne('SELECT '.$field.' FROM users WHERE user_id='.$row, $this->types[$i]);
+                $result = $this->db->query('SELECT '.$field.' FROM users WHERE user_id='.$row, $this->types[$i]);
+                $value = $this->db->fetchOne($result);
                 if (MDB::isError($value)) {
                     $this->assertTrue(false, 'Error fetching row '.$row.' for field '.$field.' of type '.$this->types[$i]);
                 } else {
-                    $this->assertEquals(strval(trim($value)), strval($data[$row][$field]), 'the query field '.$field.' of type '.$this->types[$i].' for row '.$row.' was returned in "'.$value.'" unlike "'.$data[$row][$field].'" as expected');
+                    $this->assertEquals(strval(trim($value)), strval($data[$row][$field]), 'the query field '.$field.' of type '.$this->types[$i].' for row '.$row.' was returned as "'.$value.'" unlike "'.$data[$row][$field].'" as expected');
                 }
             }
         }
@@ -252,11 +246,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Tests prepared queries, making sure they correctly deal with ?, !, and '
      */
     function testPreparedQueries() {
-        $question_value = $this->db->getTextValue('Does this work?');
+        $question_value = $this->db->getValue('text', 'Does this work?');
 
         $prepared_query = $this->db->prepareQuery("INSERT INTO users (user_name, user_password, user_id) VALUES (?, $question_value, 1)");
 
-        $this->db->setParamText($prepared_query, 1, 'Sure!');
+        $this->db->setParam($prepared_query, 1, 'text', 'Sure!');
 
         $result = $this->db->executeQuery($prepared_query);
 
@@ -268,11 +262,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->assertTrue(!MDB::isError($result), 'Could not execute prepared query with a text value with a question mark. Error: ');
 
-        $question_value = $this->db->getTextValue("Wouldn't it be great if this worked too?");
+        $question_value = $this->db->getValue('text', "Wouldn't it be great if this worked too?");
 
         $prepared_query = $this->db->prepareQuery("INSERT INTO users (user_name, user_password, user_id) VALUES (?, $question_value, 2)");
 
-        $this->db->setParamText($prepared_query, 1, 'For Sure!');
+        $this->db->setParam($prepared_query, 1, 'text', 'For Sure!');
 
         $result = $this->db->executeQuery($prepared_query);
 
@@ -355,7 +349,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $value = 'NULL';
                 $is_null = true;
             } else {
-                $value = $this->db->getTextValue($test_values[$test_value][0]);
+                $value = $this->db->getValue('text', $test_values[$test_value][0]);
                 $is_null = $test_values[$test_value][1];
             }
 
@@ -411,7 +405,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         for($string = 0; $string < count($test_strings); $string++) {
             $this->clearTables();
 
-            $value = $this->db->getTextValue($test_strings[$string]);
+            $value = $this->db->getValue('text', $test_strings[$string]);
 
             $result = $this->db->query("INSERT INTO users (user_name,user_password,user_id) VALUES ($value,$value,0)");
 
@@ -427,7 +421,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $this->assertTrue(!$this->db->endOfResult($result), 'The query result seems to have reached the end of result earlier than expected');
 
-            $value = $this->db->fetch($result, 0, 'user_name');
+            $value = $this->db->fetchOne($result);
 
             $this->assertEquals(rtrim($value), $test_strings[$string], "the value retrieved for field \"user_name\" (\"$value\") doesn't match what was stored (".$test_strings[$string].')');
 
@@ -437,7 +431,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     /**
      * Test paged queries
      *
-     * Test the use of setSelectedRowRange to return paged queries
+     * Test the use of setLimit to return paged queries
      */
     function testRanges() {
         if (!$this->supported('SelectRowRanges')) {
@@ -473,9 +467,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         for ($rows = 2, $start_row = 0; $start_row < $total_rows; $start_row += $rows) {
 
-            $this->db->setSelectedRowRange($start_row, $rows);
+            $this->db->setLimit($start_row, $rows);
 
-            $result = $this->db->query('SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users ORDER BY user_id');
+            $result = $this->db->query('SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users ORDER BY user_id', $this->types);
 
             if (MDB::isError($result)) {
                 $this->assertTrue(false, 'Error executing select query'.$result->getMessage());
@@ -492,9 +486,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         for ($rows = 2, $start_row = 0; $start_row < $total_rows; $start_row += $rows) {
 
-            $this->db->setSelectedRowRange($start_row, $rows);
+            $this->db->setLimit($start_row, $rows);
 
-            $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users ORDER BY user_id');
+            $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users ORDER BY user_id', $this->types);
 
             if (MDB::isError($result)) {
                 $this->assertTrue(false, 'Error executing select query'.$result->getMessage());
@@ -525,12 +519,14 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             return;
         }
 
+        $this->db->loadManager();
+
         for ($start_value = 1; $start_value < 4; $start_value++) {
             $sequence_name = "test_sequence_$start_value";
 
-            $this->db->dropSequence($sequence_name);
+            $this->db->manager->dropSequence($this->db, $sequence_name);
 
-            $result = $this->db->createSequence($sequence_name, $start_value);
+            $result = $this->db->manager->createSequence($this->db, $sequence_name, $start_value);
             $this->assertTrue(!MDB::isError($result), "Error creating sequence $sequence_name with start value $start_value");
 
             for ($sequence_value = $start_value; $sequence_value < ($start_value + 4); $sequence_value++) {
@@ -540,7 +536,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             }
 
-            $result = $this->db->dropSequence($sequence_name);
+            $result = $this->db->manager->dropSequence($this->db, $sequence_name);
 
             if (MDB::isError($result)) {
                 $this->assertTrue(false, "Error dropping sequence $sequence_name : ".$result->getMessage());
@@ -551,7 +547,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         // Test ondemand creation of sequences
         $sequence_name = 'test_ondemand';
 
-        $this->db->dropSequence($sequence_name);
+        $this->db->manager->dropSequence($this->db, $sequence_name);
 
         for ($sequence_value = 1; $sequence_value < 4; $sequence_value++) {
             $value = $this->db->nextId($sequence_name);
@@ -560,7 +556,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         }
 
-        $result = $this->db->dropSequence($sequence_name);
+        $result = $this->db->manager->dropSequence($this->db, $sequence_name);
 
         if (MDB::isError($result)) {
             $this->assertTrue(false, "Error dropping sequence $sequence_name : ".$result->getMessage());
@@ -644,7 +640,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $this->assertEquals($affected_rows, 1, "replacing a row in an empty table returned $affected_rows unlike 1 as expected");
         }
 
-        $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users');
+        $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users', $this->types);
 
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error selecting from users'.$result->getMessage());
@@ -674,7 +670,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $this->assertEquals($affected_rows, 2, "replacing a row in an empty table returned $affected_rows unlike 2 as expected");
         }
 
-        $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users');
+        $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users', $this->types);
 
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error selecting from users'.$result->getMessage());
@@ -729,8 +725,8 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $prepared_query = $this->db->prepareQuery('UPDATE users SET user_password=? WHERE user_id < ?');
 
         for ($row = 0; $row < $total_rows; $row++) {
-            $this->db->setParamText($prepared_query, 1, "another_password_$row");
-            $this->db->setParamInteger($prepared_query, 2, $row);
+            $this->db->setParam($prepared_query, 1, 'text', "another_password_$row");
+            $this->db->setParam($prepared_query, 2, 'integer', $row);
 
             $result = $this->db->executeQuery($prepared_query);
 
@@ -749,7 +745,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $prepared_query = $this->db->prepareQuery('DELETE FROM users WHERE user_id >= ?');
 
         for ($row = $total_rows; $total_rows; $total_rows = $row) {
-            $this->db->setParamInteger($prepared_query, 1, $row = intval($total_rows / 2));
+            $this->db->setParam($prepared_query, 1, 'integer', $row = intval($total_rows / 2));
 
             $result = $this->db->executeQuery($prepared_query);
 
