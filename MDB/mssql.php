@@ -339,7 +339,7 @@ class MDB_mssql extends MDB_Common
         $this->connected_user = $this->user;
         $this->connected_password = $this->password;
         $this->connected_port = $port;
-//        $this->selected_database = $this->database_name;
+        $this->selected_database = $this->database_name;
         $this->opened_persistent = $this->getoption('persistent');
         return(MDB_OK);
     }
@@ -627,7 +627,7 @@ class MDB_mssql extends MDB_Common
     /**
     * returns the number of rows in a result object
     *
-     * @param ressource $result a valid result ressouce pointer
+    * @param ressource $result a valid result ressouce pointer
     * @return mixed MDB_Error or the number of rows
     * @access public
     */
@@ -1254,7 +1254,7 @@ class MDB_mssql extends MDB_Common
      *
      * @return array An array with all the information
      */
-    function tableInfo($result, $mode = NUL)
+    function tableInfo($result, $mode = NULL)
     {
 
         $count = 0;
