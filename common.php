@@ -88,6 +88,7 @@ function _shutdownTransactions()
 
 // }}}
 // {{{ defaultDebugOutput()
+
 /**
  * default debug output handler
  *
@@ -105,12 +106,13 @@ function defaultDebugOutput($database, $message)
 {
     global $databases;
 
-    $databases[$database]->debug_output.="$database $message".
-                           $databases[$database]->options['log_line_break'];
+    $databases[$database]->debug_output .= $database." $message".
+                           $databases[$database]->getOption('log_line_break');
 }
 
 // }}}
 // {{{ mdbNow()
+
 /**
  * return the current datetime
  *
@@ -125,6 +127,7 @@ function mdbNow()
 
 // }}}
 // {{{ mdbToday()
+
 /**
  * return the current date
  *
@@ -139,6 +142,7 @@ function mdbToday()
 
 // }}}
 // {{{ mdbTime()
+
 /**
  * return the current time
  *
@@ -267,15 +271,15 @@ class MDB_common extends PEAR
     */
     function MDB_common($dsninfo, $options)
     {
+        global $databases;
+        $database = count($databases)+1;
+        $databases[$database] =& $this;
+        $this->database = $database;
+
         $this->PEAR('MDB_Error');
         $this->supported = array();
         $this->errorcode_map = array();
         $this->fetchmode = DB_FETCHMODE_ORDERED;
-
-        global $databases;
-        $database = count($databases)+1;
-        $databases[$database] = &$this;
-        $this->database = $database;
 
         if (isset($dsninfo['hostspec'])) {
             $this->host = $dsninfo['hostspec'];
@@ -332,6 +336,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ errorCode()
+
     /**
      * Map native error codes to DB's portable ones.  Requires that
      * the DB implementation's constructor fills in the $errorcode_map
@@ -356,6 +361,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ errorMessage()
+
     /**
      * Map a DB error code to a textual message.  This is actually
      * just a wrapper for DB::errorMessage().
@@ -374,6 +380,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ raiseError()
+
     /**
      * This method is used to communicate an error and invoke error
      * callbacks etc.  Basically a wrapper for PEAR::raiseError
@@ -423,6 +430,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ errorNative()
+
     /**
      * returns an errormessage, provides by the database
      *
@@ -437,6 +445,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ resetWarnings()
+
     /**
      * reset the warning array
      *
@@ -449,6 +458,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getWarnings()
+
     /**
      * get all warnings in reverse order.
      * This means that the last warning is the first element in the array
@@ -465,6 +475,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setOption()
+
     /**
     * set the option for the db class
     *
@@ -484,6 +495,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getOption()
+
     /**
     * returns the value of an option
     *
@@ -501,6 +513,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ captureDebugOutput()
+
     /**
      * set a debug handler
      *
@@ -518,6 +531,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ debug()
+
     /**
      * set a debug message
      *
@@ -538,6 +552,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ debugOutput()
+
     /**
      * output debug info
      *
@@ -552,6 +567,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setError()
+
     /**
      * set an error (deprecated)
      *
@@ -705,6 +721,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ loadLob()
+
     /**
      * loads the LOB extension
      *
@@ -729,6 +746,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ loadManager()
+
     /**
      * loads the Manager extension
      *
@@ -791,6 +809,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ autoCommit()
+
     /**
      * Define whether database changes done on the database be automatically
      * committed. This function may also implicitly start or end a transaction.
@@ -814,6 +833,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ commit()
+
     /**
      * Commit the database changes done during a transaction that is in
      * progress. This function may only be called when auto-committing is
@@ -833,6 +853,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ rollback()
+
     /**
      * Cancel any database changes done during a transaction that is in
      * progress. This function may only be called when auto-committing is
@@ -852,6 +873,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ disconnect()
+
     /**
      * Log out and disconnect from the database.
      *
@@ -887,6 +909,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setDatabase()
+
     /**
      * Select a different database
      *
@@ -905,6 +928,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ createDatabase()
+
     /**
      * create a new database
      *
@@ -925,6 +949,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ dropDatabase()
+
     /**
      * drop an existing database
      *
@@ -945,6 +970,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ createTable()
+
     /**
      * create a new table
      *
@@ -988,6 +1014,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ dropTable()
+
     /**
      * drop an existing table
      *
@@ -1008,6 +1035,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ alterTable()
+
     /**
      * alter an existing table
      *
@@ -1113,6 +1141,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ listDatabases()
+
     /**
      * list all databases
      *
@@ -1131,6 +1160,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ listUsers()
+
     /**
      * list all users
      *
@@ -1150,6 +1180,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ listViews()
+
     /**
      * list all viewes in the current database
      *
@@ -1168,6 +1199,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ listFunctions()
+
     /**
      * list all functions in the current database
      *
@@ -1186,6 +1218,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ listTables()
+
     /**
      * list all tables in the current database
      *
@@ -1204,6 +1237,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ listTableFields()
+
     /**
      * list all fields in a tables in the current database
      *
@@ -1224,6 +1258,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getTableFieldDefinition()
+
     /**
      * get the stucture of a field into an array
      *
@@ -1245,6 +1280,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getFieldDeclaration()
+
     /**
      * get declaration of a field
      *
@@ -1275,6 +1311,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getFieldDeclarationList()
+
     /**
      * get declaration of a number of field in bulk
      *
@@ -1333,6 +1370,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ createIndex()
+
     /**
      * get the stucture of a field into an array
      *
@@ -1378,6 +1416,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ dropIndex()
+
     /**
      * drop existing index
      *
@@ -1399,6 +1438,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ listTableIndexes()
+
     /**
      * list all indexes in a table
      *
@@ -1420,6 +1460,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getTableIndexDefinition()
+
     /**
      * get the stucture of an index into an array
      *
@@ -1442,6 +1483,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ createSequence()
+
     /**
      * create sequence
      *
@@ -1463,6 +1505,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ dropSequence()
+
     /**
      * drop existing sequence
      *
@@ -1483,6 +1526,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ listSequences()
+
     /**
      * list all tables in the current database
      *
@@ -1501,6 +1545,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getSequenceDefinition()
+
     /**
      * get the stucture of a sequence into an array
      *
@@ -1522,6 +1567,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ query()
+
     /**
      * Send a query to the database and return any results with a
      * DB_result object.
@@ -1540,6 +1586,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setSelectedRowRange()
+
     /**
      * set the range of the next query
      *
@@ -1571,6 +1618,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ limitQuery()
+
     /**
     * Generates a limited query
     *
@@ -1593,6 +1641,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ subSelect()
+
     /**
      * simple subselect emulation
      *
@@ -1612,6 +1661,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ replace()
+
     /**
      * Execute a SQL REPLACE query. A REPLACE query is identical to a INSERT
      * query, except that if there is already a row in the table with the same
@@ -1789,6 +1839,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ prepareQuery()
+
     /**
      * Prepares a query for multiple execution with execute().
      * With some database backends, this is emulated.
@@ -1882,6 +1933,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ freePreparedQuery()
+
     /**
      * Release resources allocated for the specified prepared query.
      *
@@ -1924,6 +1976,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ executeQuery()
+
     /**
      * Execute a prepared query statement.
      *
@@ -2013,6 +2066,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ execute()
+
     /**
      * Executes a prepared SQL query
      * With execute() the generic query of prepare is assigned with the given
@@ -2041,6 +2095,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ executeMultiple()
+
     /**
      * This function does several execute() calls on the same statement handle.
      * $params must be an array indexed numerically from 0, one execute call is
@@ -2075,6 +2130,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ autoPrepare()
+
     /**
     * Make automaticaly an insert or update query and call prepare() with it
     *
@@ -2179,6 +2235,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParam()
+
     /**
      * Set the value of a parameter of a prepared query.
      *
@@ -2223,6 +2280,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParamArray()
+
     /**
      * Set the values of multiple a parameter of a prepared query in bulk.
      *
@@ -2298,6 +2356,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParamNull()
+
     /**
      * Set the value of a parameter of a prepared query to NULL.
      *
@@ -2320,6 +2379,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParamText()
+
     /**
      * Set a parameter of a prepared query with a text value.
      *
@@ -2341,6 +2401,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParamClob()
+
     /**
      * Set a parameter of a prepared query with a character large object value.
      *
@@ -2365,6 +2426,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParamClob()
+
     /**
      * Set a parameter of a prepared query with a binary large object value.
      *
@@ -2389,6 +2451,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParamInteger()
+
     /**
      * Set a parameter of a prepared query with a text value.
      *
@@ -2410,6 +2473,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParamBoolean()
+
     /**
      * Set a parameter of a prepared query with a boolean value.
      *
@@ -2431,6 +2495,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParamDate()
+
     /**
      * Set a parameter of a prepared query with a date value.
      *
@@ -2452,6 +2517,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParamTimestamp()
+
     /**
      * Set a parameter of a prepared query with a time stamp value.
      *
@@ -2473,6 +2539,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParamTime()
+
     /**
      * Set a parameter of a prepared query with a time value.
      *
@@ -2494,6 +2561,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParamFloat()
+
     /**
      * Set a parameter of a prepared query with a float value.
      *
@@ -2515,6 +2583,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setParamDecimal()
+
     /**
      * Set a parameter of a prepared query with a decimal value.
      *
@@ -2536,6 +2605,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setResultTypes()
+
     /**
      * Define the list of types to be associated with the columns of a given
      * result set.
@@ -2600,6 +2670,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ affectedRows()
+
     /**
     * returns the affected rows of a query
     *
@@ -2617,6 +2688,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getColumnNames()
+
     /**
      * Retrieve the names of columns returned by the DBMS in a query result.
      *
@@ -2641,6 +2713,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ numCols()
+
     /**
      * Count the number of columns returned by the DBMS in a query result.
      *
@@ -2659,6 +2732,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ endOfResult()
+
     /**
     * check if the end of the result set has been reached
     *
@@ -2676,6 +2750,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ setFetchMode()
+
     /**
      * Sets which fetch mode should be used by default on queries
      * on this connection.
@@ -2715,6 +2790,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetch()
+
     /**
      * fetch value from a result set
      *
@@ -2734,6 +2810,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchLob()
+
     /**
      * fetch a lob value from a result set
      *
@@ -2769,6 +2846,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ retrieveLob()
+
     /**
      * fetch a float value from a result set
      *
@@ -2792,6 +2870,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ endOfResultLob()
+
     /**
      * Determine whether it was reached the end of the large object and
      * therefore there is no more data to be read for the its input stream.
@@ -2813,6 +2892,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ readResultLob()
+
     /**
      * Read data from large object input stream.
      *
@@ -2840,6 +2920,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ destroyResultLob()
+
     /**
      * Free any resources allocated during the lifetime of the large object
      * handler object.
@@ -2857,6 +2938,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchClob()
+
     /**
      * fetch a clob value from a result set
      *
@@ -2877,6 +2959,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchBlob()
+
     /**
      * fetch a blob value from a result set
      *
@@ -2896,6 +2979,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ resultIsNull()
+
     /**
      * Determine whether the value of a query result located in given row and
      *   field is a NULL.
@@ -2961,6 +3045,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ convertResult()
+
     /**
      * convert a value to a RDBMS indepdenant MDB type
      *
@@ -2978,6 +3063,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ convertResultRow()
+
     /**
      * convert a result row
      *
@@ -3021,6 +3107,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchDate()
+
     /**
      * fetch a date value from a result set
      *
@@ -3040,6 +3127,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchTimestamp()
+
     /**
      * fetch a timestamp value from a result set
      *
@@ -3059,6 +3147,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchTime()
+
     /**
      * fetch a time value from a result set
      *
@@ -3078,6 +3167,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchBoolean()
+
     /**
      * fetch a boolean value from a result set
      *
@@ -3097,6 +3187,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchFloat()
+
     /**
      * fetch a float value from a result set
      *
@@ -3116,6 +3207,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchDecimal()
+
     /**
      * fetch a decimal value from a result set
      *
@@ -3135,6 +3227,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ numRows()
+
     /**
      * returns the number of rows in a result object
      *
@@ -3151,6 +3244,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ freeResult()
+
     /**
      * Free the internal resources associated with $result.
      *
@@ -3167,6 +3261,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getIntegerDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an integer type
      * field to be used in statements like CREATE TABLE.
@@ -3202,6 +3297,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getTextDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an text type
      * field to be used in statements like CREATE TABLE.
@@ -3235,6 +3331,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getCLOBDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
      * large object type field to be used in statements like CREATE TABLE.
@@ -3265,6 +3362,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getBLOBDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
      * object type field to be used in statements like CREATE TABLE.
@@ -3295,6 +3393,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getBooleanDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare a boolean type
      * field to be used in statements like CREATE TABLE.
@@ -3323,6 +3422,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getDateDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare a date type
      * field to be used in statements like CREATE TABLE.
@@ -3351,6 +3451,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getTimestampDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare a timestamp
      * field to be used in statements like CREATE TABLE.
@@ -3379,6 +3480,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getTimeDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare a time
      * field to be used in statements like CREATE TABLE.
@@ -3407,6 +3509,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getFloatDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare a float type
      * field to be used in statements like CREATE TABLE.
@@ -3435,6 +3538,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getDecimalDeclaration()
+
     /**
      * Obtain DBMS specific SQL code portion needed to declare a decimal type
      * field to be used in statements like CREATE TABLE.
@@ -3463,6 +3567,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getIntegerValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -3481,6 +3586,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getTextValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -3500,6 +3606,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getClobValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -3521,6 +3628,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ freeClobValue()
+
     /**
      * free a character large object
      *
@@ -3536,6 +3644,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getBlobValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -3557,6 +3666,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ freeBlobValue()
+
     /**
      * free a binary large object
      *
@@ -3572,6 +3682,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getBooleanValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -3590,6 +3701,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getDateValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -3608,6 +3720,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getTimestampValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -3626,6 +3739,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getTimeValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      *      compose query statements.
@@ -3644,6 +3758,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getFloatValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -3662,6 +3777,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getDecimalValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -3680,6 +3796,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getValue()
+
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -3717,6 +3834,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ support()
+
     /**
      * Tell whether a DB implementation or its backend extension
      * supports a given feature.
@@ -3732,6 +3850,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getSequenceName()
+
     /**
      * adds sequence name formating to a sequence name
      *
@@ -3747,6 +3866,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ nextId()
+
     /**
      * returns the next free id of a sequence
      *
@@ -3765,6 +3885,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ currId()
+
     /**
      * returns the current id of a sequence
      *
@@ -3790,6 +3911,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchInto()
+
     /**
      * Fetch a row and insert the data into an existing array.
      *
@@ -3849,6 +3971,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchOne()
+
     /**
      * Fetch and return a field of data (it uses fetchInto for that)
      *
@@ -3873,6 +3996,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchRow()
+
     /**
      * Fetch and return a row of data (it uses fetchInto for that)
      *
@@ -3895,6 +4019,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchCol()
+
     /**
      * Fetch and return a column of data (it uses fetchInto for that)
      *
@@ -3922,6 +4047,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchAll()
+
     /**
      * Fetch and return a column of data (it uses fetchInto for that)
      *
@@ -3984,6 +4110,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ queryOne()
+
     /**
      * Execute the specified query, fetch the value from the first column of
      * the first row of the result set into a given variable and then frees
@@ -4013,6 +4140,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ queryRow()
+
     /**
      * Execute the specified query, fetch the value from the first column of
      * the first row of the result set into a given variable and then frees
@@ -4040,6 +4168,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ queryCol()
+
     /**
      * Execute the specified query, fetch the value from the first column of
      * the first row of the result set into a given variable and then frees
@@ -4071,6 +4200,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ queryAll()
+
     /**
      * Execute the specified query, fetch the value from the first column of
      * the first row of the result set into a given variable and then frees
@@ -4097,6 +4227,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getOne()
+
     /**
      * Fetch the first column of the first row of data returned from
      * a query.  Takes care of doing the query and freeing the results
@@ -4151,6 +4282,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getRow()
+
     /**
      * Fetch the first row of data returned from a query.  Takes care
      * of doing the query and freeing the results when finished.
@@ -4202,6 +4334,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getCol()
+
     /**
      * Fetch a single column from a result set and return it as an
      * indexed array.
@@ -4260,6 +4393,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getAssoc()
+
     /**
      * Fetch the entire result set of a query and return it as an
      * associative array using the first column as the key.
@@ -4372,6 +4506,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getAll()
+
     /**
      * Fetch all the rows returned from a query.
      *
@@ -4421,6 +4556,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ tableInfo()
+
     /**
      * returns meta data about the result set
      *
@@ -4438,6 +4574,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ createLob()
+
     /**
      * Create a handler object of a specified class with functions to
      * retrieve data from a large object data stream.
@@ -4450,9 +4587,9 @@ class MDB_common extends PEAR
      * 					Some parameters are specific of the class of each type
      *					of handler object that is created. The following
      *					parameters are common to all handler object classes:
-     *					
+     *
      *					Type
-     *					
+     *
      *						Name of the type of the built-in supported class
      *						that will be used to create the handler object.
      *						There are currently four built-in types of handler
@@ -4522,9 +4659,7 @@ class MDB_common extends PEAR
      *						File
      *
      *							Integer handle value of a file already opened
-     <p>
-*							
-</p>for writing.
+     *							for writing.
      *
      *						FileName
      *
@@ -4618,6 +4753,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ readLob()
+
     /**
      * Read data from large object input stream.
      *
@@ -4641,6 +4777,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ endOfLob()
+
     /**
      * Determine whether it was reached the end of the large object and
      * therefore there is no more data to be read for the its input stream.
@@ -4659,6 +4796,7 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ destroyLob()
+
     /**
      * Free any resources allocated during the lifetime of the large object
      * handler object.
