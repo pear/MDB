@@ -1199,6 +1199,7 @@ class MDB_manager extends PEAR
                 case '\"':
                 case '>':
                 case '<':
+		case '&':
                     $code = ord($string[$character]);
                     break;
                 default:
