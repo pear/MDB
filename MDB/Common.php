@@ -1259,12 +1259,14 @@ class MDB_Common extends PEAR
      * @param string $query query to be executed
      * @param array $types array that contains the types of the columns in
      *       the result set
+     * @param mixed $result_mode boolean or string which specifies which class to use
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access private
      */
-    function _executePrepared($prepared_query, $query, $types = null)
+    function &_executePrepared($prepared_query, $query, $types = null, $result_mode = false)
     {
-        return $this->query($query, $types, false);
+        $result = &$this->query($query, $types, $result_mode);
+        return $result;
     }
 
     // }}}
@@ -1277,10 +1279,11 @@ class MDB_Common extends PEAR
      *       the function prepare()
      * @param array $types array that contains the types of the columns in the
      *       result set
+     * @param mixed $result_mode boolean or string which specifies which class to use
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function execute($prepared_query, $types = null)
+    function &execute($prepared_query, $types = null, $result_mode = false)
     {
         $result = $this->_validatePrepared($prepared_query);
         if (MDB::isError($result)) {
@@ -1340,7 +1343,7 @@ class MDB_Common extends PEAR
             } else {
                 $this->first_selected_row = $this->selected_row_limit = 0;
             }
-            $success = $this->_executePrepared($prepared_query, $query, $types);
+            $success = $this->_executePrepared($prepared_query, $query, $types, $result_mode);
         }
         reset($this->clobs[$prepared_query]);
         for($clob = 0, $count = count($this->clobs[$prepared_query]);

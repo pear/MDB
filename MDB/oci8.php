@@ -603,31 +603,6 @@ class MDB_oci8 extends MDB_Common
     }
 
     // }}}
-    // {{{ _executePrepared()
-
-    /**
-     * Execute a prepared query statement.
-     *
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepare()
-     * @param string $query query to be executed
-     * @param array $types array that contains the types of the columns in
-     *       the result set
-     * @return mixed a result handle or MDB_OK on success, a MDB error on failure
-     * @access private
-     */
-    function _executePrepared($prepared_query, $query)
-    {
-        $first = $this->first_selected_row;
-        $limit = $this->selected_row_limit;
-        $this->first_selected_row = $this->selected_row_limit = 0;
-        if (MDB::isError($connect = $this->connect())) {
-            return $connect;
-        }
-        return $this->_doQuery($query, $first, $limit, $prepared_query);
-    }
-
-    // }}}
     // {{{ _skipLimitOffset()
 
     /**
