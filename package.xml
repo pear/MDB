@@ -4,20 +4,15 @@
   <name>MDB</name>
   <summary>database abstraction layer</summary>
   <release>
-    <version>1.2</version>
-    <state>stable</state>
-    <date>2004-01-11</date>
+    <version></version>
+    <state></state>
+    <date></date>
     <notes>
-      the last release should have been 1.2 so I am making this rather minor
-      update the 1.2 release
+      MDB requires php 4.2 from now on.
       MDB:
-      - fixed issue in MDB::singleton() when using array dsn's
-      MDB_Common:
-      - fixed typo in fetchCol (bug #523)
-      MDB_mssql:
-      - fixed parse error
-      test suite:
-      - fixed typo in the output of console test results
+      - fixed PHP5 compatibility issue in MDB::isError()
+      MDB_Driver_Manager_mysql:
+      - fixed mysql 4.0.13 issue in createSequence()
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
@@ -89,7 +84,7 @@
       </dir>
     </filelist>
     <deps>
-        <dep type="php" rel="ge" version="4.1.0" />
+        <dep type="php" rel="ge" version="4.2.0" />
         <dep type="pkg" rel="ge" version="1.0b1">PEAR</dep>
         <dep type="pkg" rel="has">XML_Parser</dep>
     </deps>
@@ -186,6 +181,23 @@
     </maintainer>
   </maintainers>
   <changelog>
+    <release>
+      <version>1.2</version>
+      <state>stable</state>
+      <date>2004-01-11</date>
+      <notes>
+        the last release should have been 1.2 so I am making this rather minor
+        update the 1.2 release
+        MDB:
+        - fixed issue in MDB::singleton() when using array dsn's
+        MDB_Common:
+        - fixed typo in fetchCol (bug #523)
+        MDB_Driver_mssql:
+        - fixed parse error
+        test suite:
+        - fixed typo in the output of console test results
+      </notes>
+    </release>
     <release>
       <version>1.1.4</version>
       <state>stable</state>
