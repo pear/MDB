@@ -146,10 +146,10 @@ echo ('
                 <option value="all"');
                 if(!isset($_REQUEST['dump']) || $_REQUEST['dump'] == 'all') {echo ('selected');}
                 echo ('>All</option>
-                <option value="all"');
+                <option value="structure"');
                 if(isset($_REQUEST['dump']) && $_REQUEST['dump'] == 'structure') {echo ('selected');}
                 echo ('>Structure</option>
-                <option value="all"');
+                <option value="content"');
                 if(isset($_REQUEST['dump']) && $_REQUEST['dump'] == 'content') {echo ('selected');}
                 echo ('>Content</option>
             </select>
