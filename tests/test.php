@@ -47,11 +47,15 @@
  This is a small test suite for MDB using PHPUnit
 */
 
+ini_set('include_path', '../:'.ini_get('include_path'));
+
 require_once 'PHPUnit.php';
 require_once 'test_setup.php';
 require_once 'testUtils.php';
-require_once 'MDB/Manager.php';
-require_once 'MDB/Date.php';
+require_once 'MDB.php';
+
+MDB::loadExtension('Manager');
+MDB::loadExtension('Date');
 
 foreach ($testcases as $testcase) {
     include_once $testcase . '.php';

@@ -4,7 +4,10 @@
 // MDB test script for the PEAR DB Wrapper.
 //
 
-    require_once 'MDB/peardb_wrapper.php';
+ini_set('include_path', '../:'.ini_get('include_path'));
+
+    require_once 'MDB.php';
+    MDB::loadExtension('peardb_wrapper');
     require_once 'Var_Dump.php';
 
     // just for kicks you can mess up this part to see some pear error handling

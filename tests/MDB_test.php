@@ -4,9 +4,12 @@
 // MDB test script.
 //
 
+ini_set('include_path', '../:'.ini_get('include_path'));
+
     // MDB.php doesnt have to be included since manager.php does that
     // manager.php is only necessary for handling xml schema files
-    require_once 'MDB/Manager.php';
+    require_once 'MDB.php';
+    MDB::loadExtension('Manager');
     // only including this to output result data
     require_once 'Var_Dump.php';
 

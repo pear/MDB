@@ -45,8 +45,11 @@
 // $Id$
 //
 
-require 'MDB/metabase_wrapper.php';
-require 'MDB/Manager.php';
+ini_set('include_path', '../:'.ini_get('include_path'));
+
+require 'MDB.php';
+MDB::loadExtension('metabase_wrapper');
+MDB::loadExtension('Manager');
 
 /**
 * Metabase test suite
