@@ -348,8 +348,7 @@ class MDB_ibase extends MDB_Common
         $user = $dsninfo['username'];
         $pw   = $dsninfo['password'];
         $dbhost = $dsninfo['hostspec'] ?
-                  ($dsninfo['hostspec'] . ':' . $database_name) :
-                  $database_name;
+            ($dsninfo['hostspec'].':'.$database_name) : $database_name;
 
         $params = array();
         $params[] = $dbhost;
@@ -372,8 +371,7 @@ class MDB_ibase extends MDB_Common
         } else {
             $error_msg = 'Could not connect to FireBird/InterBase server';
         }
-        return $this->raiseError(MDB_ERROR_CONNECT_FAILED, null, null,
-            $error_msg);
+        return $this->raiseError(MDB_ERROR_CONNECT_FAILED, null, null, $error_msg);
     }
 
     // }}}
@@ -391,8 +389,8 @@ class MDB_ibase extends MDB_Common
 
         if ($this->connection != 0) {
             if (count(array_diff($this->connected_dsn, $this->dsn)) == 0
-                && !strcmp($this->connected_database_name, $database_file)
-                && ($this->opened_persistent == $this->options['persistent'])
+                && $this->connected_database_name == $database_file
+                && $this->opened_persistent == $this->options['persistent']
             ) {
                 return MDB_OK;
             }
