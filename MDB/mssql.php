@@ -340,6 +340,17 @@ class MDB_mssql extends MDB_Common
         return false;
     }
 
+    // }}}
+    // {{{ standaloneQuery()
+
+   /**
+     * Send a query to the database and return any results
+     * 
+     * @param string $query the SQL query
+     * @return mixed MDB_OK on success, a MDB error on failure
+     *
+     * @access public
+     */
     function standaloneQuery($query)
     {
         if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
@@ -352,7 +363,7 @@ class MDB_mssql extends MDB_Common
         }
         $result = @mssql_query($query, $connection);
         if (!$result) {
-            $this->mssqlRaiseError('standaloneQuery: Could not query a Microsoft SQL server');
+            return $this->mssqlRaiseError('standaloneQuery: Could not query a Microsoft SQL server');
         }
         mssql_close($connection);
         return MDB_OK;
