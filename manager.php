@@ -223,7 +223,7 @@ class MDB_manager
                                         break;
                                     case "clob":
                                         $lob_definition = array(
-                                            "Database" =>$this->database,
+                                            "Database" =>$this,
                                             "Error" =>"",
                                             "Data" =>$fields[$field_name]
                                         );
@@ -239,7 +239,7 @@ class MDB_manager
                                         break;
                                     case "blob":
                                         $lob_definition = array(
-                                            "Database" =>$this->database,
+                                            "Database" =>$this,
                                             "Error" =>"",
                                             "Data" =>$fields[$field_name]
                                         );
