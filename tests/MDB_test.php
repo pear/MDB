@@ -37,7 +37,7 @@
     // $db = MDB::connect($dsn, TRUE);
     // you can alternatively build a dsn here
    //$dsn = "$db_type://$user:$pass@$host/$db_name";
-    $db = MDB::connect($dsn);
+    $db =& MDB::connect($dsn);
     // With MDB::isError you can differentiate between an error or
     // a valid connection.
     if (MDB::isError($db)) {
@@ -172,9 +172,12 @@
     );
     echo Var_Dump::display($db->createIndex('test', 'test_id_index', $index_def)).'<br>';
     if($db_type == 'mysql') {
+        $manager->captureDebugOutput(TRUE);
+        $manager->database->setOption('log_line_break', '<br>');
         // ok now lets create a new xml schema file from the existing DB
         // we will not use the 'metapear_test_db.schema' for this
         // this feature is especially interesting for people that have an existing Db and want to move to MDB's xml schema management
+        // you can also try MDB_MANAGER_DUMP_ALL and MDB_MANAGER_DUMP_CONTENT
         echo Var_Dump::display($manager->dumpDatabase(
             array(
                 'Output_Mode' => 'file',
@@ -182,8 +185,8 @@
             ),
             MDB_MANAGER_DUMP_STRUCTURE
         )).'<br>';
-        if($manager->database) {
-            echo Var_Dump::display($manager->database->debugOutput()).'<br>';
+        if($manager->debug) {
+            echo $manager->debugOutput().'<br>';
         }
         // this is the database definition as an array
         echo Var_Dump::display($manager->database_definition).'<br>';
