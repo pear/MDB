@@ -42,14 +42,14 @@ lobstorage       -    -    o    -    -    -    -    -    -    -    -    -    -
 lobfiles         -    -    o    -    -    -    -    -    -    -    -    -    -
 lobnulls         -    -    o    -    -    -    -    -    -    -    -    -    -
 **[ BUGS ]********************************************************************
-fetchmodebug     -    -    X    -    -    -    -    -    -    -    -    -    -
+fetchmodebug     -    -    o    -    -    -    -    -    -    -    -    -    -
 bug22328         -    -    o    -    -    -    -    -    -    -    -    -    -
 bug670           -    -    o    -    -    -    -    -    -    -    -    -    -
 bug681           -    -    o    -    -    -    -    -    -    -    -    -    -
 bug718           -    -    o    -    -    -    -    -    -    -    -    -    -
 bug946           -    -    o    -    -    -    -    -    -    -    -    -    -
 **[ MANAGER ]*****************************************************************
-createdatabase   -    -    -    -    -    -    -    -    -    -    -    -    -
+createdatabase   -    -    n    -    -    -    -    -    -    -    -    -    -
 updatedatabase   -    -    o    -    -    -    -    -    -    -    -    -    -
 
 [1] sequences are working, but not currId().
