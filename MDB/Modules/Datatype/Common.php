@@ -116,21 +116,11 @@ class MDB_Datatype_Common
 
         $columns = count($types);
         for($column = 0; $column < $columns; $column++) {
-            if (is_array($types[$column])) {
-/*
-                if (!isset($this->validateLOBArray($db, $types[$column])) {
-                    return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                        'setResultTypes: ' . $types[$column]['type'] . ' is not a supported column type');
-                }
-*/
-                $db->results[$result_value]['types'][$column] = $types[$column];
-            } else {
-                if (!isset($this->valid_types[$types[$column]])) {
-                    return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                        'setResultTypes: ' . $types[$column] . ' is not a supported column type');
-                }
-                $db->results[$result_value]['types'][$column] = $this->valid_types[$types[$column]];
+            if (!isset($this->valid_types[$types[$column]])) {
+                return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                    'setResultTypes: ' . $types[$column] . ' is not a supported column type');
             }
+            $db->results[$result_value]['types'][$column] = $this->valid_types[$types[$column]];
         }
         while ($column < $columns) {
             $db->results[$result_value]['types'][$column] = MDB_TYPE_TEXT;
@@ -153,25 +143,6 @@ class MDB_Datatype_Common
      */
     function _baseConvertResult(&$db, $result, $value, $type)
     {
-        if (is_array($type) && isset($type['type'])) {
-            $lob = count($db->lobs) + 1;
-            $db->lobs[$lob] = array(
-                'value' => $value,
-                'position' => 0
-            );
-            $dst_lob = array(
-                'database' => &$db,
-                'type' => 'resultlob',
-                'resultLOB' => $lob
-            );
-            if (MDB::isError($lob = $this->createLOB($db, $dst_lob))) {
-                return $db->raiseError(MDB_ERROR, null, null,
-                    'Fetch LOB result: ' . $dst_lob['error']);
-            }
-            $type['LOB'] = $lob;
-            $type['database'] = &$db;
-            return $db->datatype->createLOB($db, $type);
-        }
         switch ($type) {
             case MDB_TYPE_TEXT:
                 return $value;
@@ -191,21 +162,18 @@ class MDB_Datatype_Common
                 return $value;
             case MDB_TYPE_CLOB:
             case MDB_TYPE_BLOB:
-                $lob = count($db->lobs) + 1;
-                $db->lobs[$lob] = array(
+                $db->lobs[] = array(
                     'value' => $value,
                     'position' => 0
                 );
+                end($db->lobs);
+                $lob = key($db->lobs);
                 $dst_lob = array(
                     'database' => &$db,
                     'type' => 'resultlob',
-                    'resultLOB' => $lob
+                    'resultLOB' => $lob,
                 );
-                if (MDB::isError($lob = $this->createLOB($db, $dst_lob))) {
-                    return $db->raiseError(MDB_ERROR, null, null,
-                        'Fetch LOB result: ' . $dst_lob['error']);
-                }
-                return $lob;
+                return $this->createLOB($db, $dst_lob);
             default:
                 return $db->raiseError(MDB_ERROR_INVALID, null, null,
                     'BaseConvertResult: attempt to convert result value to an unknown type ' . $type);
@@ -950,44 +918,66 @@ class MDB_Datatype_Common
                     $class_name = 'MDB_LOB_Output_File';
                     break;
                 default:
-                    if (isset($arguments['error'])) {
-                        $arguments['error'] = $arguments['type'] . ' is not a valid type of large object';
-                    }
-                    return $db->raiseError();
+                    return $db->raiseError($arguments['type'] . ' is not a valid type of large object');
             }
         } else {
             if (isset($arguments['class'])) {
                 $class = $arguments['class'];
             }
         }
-
-        $lob = count($GLOBALS['_MDB_LOBs']) + 1;
-        $GLOBALS['_MDB_LOBs'][$lob] =& new $class_name;
+        $lob = count($GLOBALS['_MDB_LOBs']);
+        $GLOBALS['_MDB_LOBs'][] =& new $class_name;
+        end($GLOBALS['_MDB_LOBs']);
+        $lob = key($GLOBALS['_MDB_LOBs']);
         if (isset($arguments['database'])) {
-            $GLOBALS['_MDB_LOBs'][$lob]->database = &$arguments['database'];
+            $GLOBALS['_MDB_LOBs'][$lob]->db = &$arguments['database'];
         } else {
-            $GLOBALS['_MDB_LOBs'][$lob]->database = &$db;
+            $GLOBALS['_MDB_LOBs'][$lob]->db = &$db;
         }
         $result = $GLOBALS['_MDB_LOBs'][$lob]->create($arguments);
         if (MDB::isError($result)) {
-            $GLOBALS['_MDB_LOBs'][$lob]->database->datatype->destroyLOB($GLOBALS['_MDB_LOBs'][$lob]->database, $lob);
+            $GLOBALS['_MDB_LOBs'][$lob]->db->datatype->destroyLOB($GLOBALS['_MDB_LOBs'][$lob]->db, $lob);
             return $result;
         }
         return $lob;
     }
 
     // }}}
-    // {{{ _retrieveLob()
+    // {{{ setLOBFile()
 
     /**
      * retrieve LOB from the database
      * 
      * @param object    &$db reference to driver MDB object
-     * @param int $lob handle to a lob created by the createLob() function
+     * @param int $lob handle to a lob created by the createLOB() function
+     * @param string $file name of the file into which the LOb should be fetched
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access private 
      */
-    function _retrieveLob($db, $lob)
+    function setLOBFile(&$db, $lob, $file)
+    {
+        $dst_lob = array(
+            'database' => &$db,
+            'LOB' => $lob,
+            'file_name' => $file,
+            'type' => 'outputfile'
+        );
+        return $this->createLOB($db, $dst_lob);
+    }
+
+    
+    // }}}
+    // {{{ _retrieveLOB()
+
+    /**
+     * retrieve LOB from the database
+     * 
+     * @param object    &$db reference to driver MDB object
+     * @param int $lob handle to a lob created by the createLOB() function
+     * @return mixed MDB_OK on success, a MDB error on failure
+     * @access private 
+     */
+    function _retrieveLOB($db, $lob)
     {
         if (!isset($db->lobs[$lob])) {
             return $db->raiseError(MDB_ERROR, null, null,
@@ -1013,7 +1003,7 @@ class MDB_Datatype_Common
      */
     function _readResultLOB(&$db, $lob, &$data, $length)
     {
-        $lobresult = $this->_retrieveLob($db, $lob);
+        $lobresult = $this->_retrieveLOB($db, $lob);
         if (MDB::isError($lobresult)) {
             return $lobresult;
         }
@@ -1060,7 +1050,7 @@ class MDB_Datatype_Common
      */
     function _endOfResultLOB(&$db, $lob)
     {
-        $lobresult = $this->_retrieveLob($db, $lob);
+        $lobresult = $this->_retrieveLOB($db, $lob);
         if (MDB::isError($lobresult)) {
             return $lobresult;
         }

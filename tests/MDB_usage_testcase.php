@@ -957,22 +957,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->db->freePreparedQuery($prepared_query);
 
-
-        $character_lob = array(
-                             'type' => 'outputfile',
-                             'field' => 'document',
-                             'binary' => 0,
-                             'file_name' => $character_data_file
-                             );
-
-        $binary_lob = array(
-                            'type' => 'outputfile',
-                            'field' => 'picture',
-                            'binary' => 1,
-                            'file_name' => $binary_data_file
-                            );
-
-        $result = $this->db->query('SELECT document, picture FROM files', array($character_lob, $binary_lob));
+        $result = $this->db->query('SELECT document, picture FROM files', array('clob', 'blob'));
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error selecting from files'.$result->getMessage());
         }
@@ -982,11 +967,12 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $row = $this->db->fetchRow($result);
         $clob = $row[0];
         if (!MDB::isError($clob)) {
+            $clob = $this->db->datatype->setLOBFile($this->db, $clob, $character_data_file);
             $this->assertTrue(($this->db->datatype->readLOB($this->db, $clob, $data, 0) >= 0), 'Error reading CLOB ');
             $this->db->datatype->destroyLOB($this->db, $clob);
 
             $this->assertTrue(($file = fopen($character_data_file, 'r')), "Error opening character data file: $character_data_file");
-            $this->assertEquals(getType($value = fread($file, filesize($character_data_file))), 'string', "Could not read from character LOB file: $character_data_file");
+            $this->assertEquals(gettype($value = fread($file, filesize($character_data_file))), 'string', "Could not read from character LOB file: $character_data_file");
             fclose($file);
 
             $this->assertEquals($value, $character_data, "retrieved character LOB value (\"".$value."\") is different from what was stored (\"".$character_data."\")");
@@ -996,11 +982,12 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $blob = $row[1];
         if (!MDB::isError($blob)) {
+            $blob = $this->db->datatype->setLOBFile($this->db, $blob, $binary_data_file);
             $this->assertTrue(($this->db->datatype->readLOB($this->db, $blob, $data, 0) >= 0), 'Error reading BLOB ');
             $this->db->datatype->destroyLOB($this->db, $blob);
 
             $this->assertTrue(($file = fopen($binary_data_file, 'rb')), "Error opening binary data file: $binary_data_file");
-            $this->assertEquals(getType($value = fread($file, filesize($binary_data_file))), 'string', "Could not read from binary LOB file: $binary_data_file");
+            $this->assertEquals(gettype($value = fread($file, filesize($binary_data_file))), 'string', "Could not read from binary LOB file: $binary_data_file");
             fclose($file);
 
             $this->assertEquals($value, $binary_data, "retrieved binary LOB value (\"".$value."\") is different from what was stored (\"".$binary_data."\")");
