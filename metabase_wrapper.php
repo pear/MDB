@@ -58,15 +58,29 @@ function MetabaseSetupDatabase($arguments, &$database)
     $dsninfo["username"] = $arguments["User"];
     $dsninfo["password"] = $arguments["Password"];
     $dsninfo["hostspec"] = $arguments["Host"];
-    
-    $options["includedconstant"] = $arguments["IncludedConstant"];
-    $options["includepath"] = $arguments["IncludePath"];
-    $options["debug"] = $arguments["Debug"];
-    $options["decimalplaces"] = $arguments["DecimalPlaces"];
-    $options["LOBbufferlength"] = $arguments["LOBBufferLength"];
-    $options["loglinebreak"] = $arguments["LogLineBreak"];
-    $options["options"] = $arguments["Options"];
 
+    if(isset($arguments["IncludedConstant"])) {
+        $options["includedconstant"] = $arguments["IncludedConstant"];
+    }
+    if(isset($arguments["IncludePath"])) {
+        $options["includepath"] = $arguments["IncludePath"];
+    }
+    if(isset($arguments["Debug"])) {
+        $options["debug"] = $arguments["Debug"];
+    }
+    if(isset($arguments["DecimalPlaces"])) {
+        $options["decimal_places"] = $arguments["DecimalPlaces"];
+    }
+    if(isset($arguments["LOBBufferLength"])) {
+        $options["LOBbufferlength"] = $arguments["LOBBufferLength"];
+    }
+    if(isset($arguments["LogLineBreak"])) {
+        $options["loglinebreak"] = $arguments["LogLineBreak"];
+    }
+    if(is_array($arguments["Options"])) {
+       $options = array_merge($options, $arguments["Options"]);
+    }
+    $options["seqname_format"] = "_sequence_%s";
     $db = MDB::connect($dsninfo, $options);
     
     if (MDB::isError($db) || !is_object($db)) {
@@ -1022,12 +1036,11 @@ function MetabaseDropSequence($database, $name)
 function MetabaseGetSequenceNextValue($database, $name, &$value)
 {
     global $databases;
-    $result = $databases[$database]->nextId($name, FALSE);
+    $result = $databases[$database]->nextId($name, $value, FALSE);
     if (MDB::isError($result)) {
         $databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
-        $value = $result;
         return(1);
     }
 }
@@ -1035,12 +1048,11 @@ function MetabaseGetSequenceNextValue($database, $name, &$value)
 function MetabaseGetSequenceCurrentValue($database, $name, &$value)
 {
     global $databases;
-    $result = $databases[$database]->currId($name);
+    $result = $databases[$database]->currId($name, $value);
     if (MDB::isError($result)) {
         $databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
-        $value = $result;
         return(1);
     }
 }
@@ -1210,7 +1222,7 @@ function MetabaseDefaultDebugOutput($database, $message)
     }
 }
 
-function MetabaseCreateLob(&$arguments, &$lob)
+function MetabaseCreateLOB(&$arguments, &$lob)
 {
     global $databases;
     $args = $arguments;
@@ -1226,7 +1238,7 @@ function MetabaseCreateLob(&$arguments, &$lob)
     }
 }
 
-function MetabaseDestroyLob($lob)
+function MetabaseDestroyLOB($lob)
 {
     $result = destroyLob($lob);
     if (MDB::isError($result)) {
@@ -1238,7 +1250,7 @@ function MetabaseDestroyLob($lob)
     }
 }
 
-function MetabaseEndOfLob($lob)
+function MetabaseEndOfLOB($lob)
 {
     $result = endOfLob($lob);
     if (MDB::isError($result)) {
@@ -1250,7 +1262,7 @@ function MetabaseEndOfLob($lob)
     }
 }
 
-function MetabaseReadLob($lob, &$data, $length)
+function MetabaseReadLOB($lob, &$data, $length)
 {
     $result = readLob($lob, &$data, $length);
     if (MDB::isError($result)) {
@@ -1262,7 +1274,7 @@ function MetabaseReadLob($lob, &$data, $length)
     }
 }
 
-function MetabaseLobError($lob)
+function MetabaseLOBError($lob)
 {
     $result = lobError($lob);
     if (MDB::isError($result)) {
@@ -1429,23 +1441,29 @@ class Metabase_manager_class
         $dsninfo["username"] = $arguments["User"];
         $dsninfo["password"] = $arguments["Password"];
         $dsninfo["hostspec"] = $arguments["Host"];
-        
-        $options["includedconstant"] = $arguments["IncludedConstant"];
-        if (isset($arguments["Persistent"])) {
-            $options["persistent"] = TRUE;
-        }
-        if (isset($arguments["IncludePath"])) {
-             $options["includepath"] = $arguments["IncludePath"];
-        }
-        
-        if (isset($arguments["Debug"])) {
-             $options["debug"] = $arguments["Debug"];
-        }
-        $options["decimalplaces"] = $arguments["DecimalPlaces"];
-        $options["LOBbufferlength"] = $arguments["LOBBufferLength"];
-        $options["loglinebreak"] = $arguments["LogLineBreak"];
-        $options["options"] = $arguments["Options"];
 
+        if(isset($arguments["IncludedConstant"])) {
+            $options["includedconstant"] = $arguments["IncludedConstant"];
+        }
+        if(isset($arguments["IncludePath"])) {
+            $options["includepath"] = $arguments["IncludePath"];
+        }
+        if(isset($arguments["Debug"])) {
+            $options["debug"] = $arguments["Debug"];
+        }
+        if(isset($arguments["DecimalPlaces"])) {
+            $options["decimalplaces"] = $arguments["DecimalPlaces"];
+        }
+        if(isset($arguments["LOBBufferLength"])) {
+            $options["LOBbufferlength"] = $arguments["LOBBufferLength"];
+        }
+        if(isset($arguments["LogLineBreak"])) {
+            $options["loglinebreak"] = $arguments["LogLineBreak"];
+        }
+        if(is_array($arguments["Options"])) {
+            $options = array_merge($options, $arguments["Options"]);
+        }
+        $options["seqname_format"] = "_sequence_%s";
         $db = MDB::connect($dsninfo, $options);
 
         if (MDB::isError($db) || !is_object($db)) {
