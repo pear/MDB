@@ -337,10 +337,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      */
     function testNulls() {
         $test_values = array(
-                             'test',
-                             'NULL',
-                             'null',
-                             ''
+                             array('test', FALSE),
+                             array('NULL', FALSE),
+                             array('null', FALSE),
+                             array('', FALSE),
+                             array(NULL, TRUE)
                              );
 
         for ($test_value = 0; $test_value <= count($test_values); $test_value++) {
@@ -348,8 +349,8 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $value = 'NULL';
                 $is_null = TRUE;
             } else {
-                $value = $this->db->getTextValue($test_values[$test_value]);
-                $is_null = FALSE;
+                $value = $this->db->getTextValue($test_values[$test_value][0]);
+                $is_null = $test_values[$test_value][1];
             }
 
             $this->clearTables();
@@ -371,7 +372,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             if ($is_null) {
                 $error_message = 'A query result column is not NULL unlike what was expected';
             } else {
-                $error_message = "A query result column is NULL even though it was expected to be \"".$test_values[$test_value]."\"";
+                $error_message = "A query result column is NULL even though it was expected to be \"".$test_values[$test_value][0]."\"";
             }
             
             $this->assertTrue(($this->db->resultIsNull($result, 0, 0) == $is_null), $error_message);
