@@ -129,7 +129,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo('<br>associative array with offset 1 and count 1:<br>');
     echo(Var_Dump::display($array).'<br>');
     // lets create a sequence
-    echo(Var_Dump::display($db->loadManager()).'<br>');
+    echo(Var_Dump::display($db->loadModule('manager')));
     echo('<br>create a new seq with start 3 name real_funky_id<br>');
     $err = $db->manager->createSequence($db, 'real_funky_id', 3);
     if (MDB::isError($err)) {

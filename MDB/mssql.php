@@ -587,7 +587,7 @@ class MDB_mssql extends MDB_Common
         $this->popExpect();
         if (MDB::isError($result)) {
             if ($ondemand && $result->getCode() == MDB_ERROR_NOSUCHTABLE) {
-                $this->loadManager();
+                $this->loadModule('manager');
                 // Since we are creating the sequence on demand
                 // we know the first id = 1 so initialize the
                 // sequence at 2

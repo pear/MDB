@@ -878,7 +878,7 @@ class MDB_ibase extends MDB_Common
         $this->popErrorHandling();
         if (MDB::isError($result)) {
             if ($ondemand) {
-                $this->loadManager();
+                $this->loadModule('manager');
                 // Since we are creating the sequence on demand
                 // we know the first id = 1 so initialize the
                 // sequence at 2

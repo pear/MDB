@@ -931,7 +931,7 @@ class MDB_Datatype_Common
      */
     function createLOB(&$db, $arguments)
     {
-        $result = MDB::loadModule('LOB');
+        $result = MDB::loadClass('LOB');
         if (MDB::isError($result)) {
             return $result;
         }

@@ -48,7 +48,6 @@
  * @package MDB
  * @author Lukas Smith <smith@backendmedia.com>
  */
-
 require_once 'PEAR.php';
 
 // }}}
@@ -522,115 +521,41 @@ class MDB_Common extends PEAR
     }
 
     // }}}
-    // {{{ _loadModule()
+    // {{{ loadModule()
 
     /**
      * loads an module
      *
      * @param string $module name of the module that should be loaded
      *      (only used for error messages)
-     * @param string $include name of the script that includes the module
-     * @access private
+     * @param string $property name of the property into which the class will be loaded
+     * @return object on success a reference to the given module is returned
+     *                and on failure a PEAR error
+     * @access public
      */
-    function _loadModule($module, $include)
+    function &loadModule($module, $property = null)
     {
-        if ($include) {
-            $include = 'MDB/Modules/'.$include;
-            if ($this->options['debug'] > 2) {
-                include_once $include;
+        $module = strtolower($module);
+        if (!isset($this->{$module}) || !is_object($this->{$module})) {
+            if (!$property) {
+                $property = $module;
+            }
+            $include_dir = 'MDB/Modules/';
+            if (@include_once($include_dir.ucfirst($module).'.php')) {
+                $class_name = 'MDB_'.ucfirst($module);
+            } elseif (@include_once($include_dir.ucfirst($module).'/'.$this->phptype.'.php')) {
+                $class_name = 'MDB_'.ucfirst($module).'_'.$this->phptype;
             } else {
-                @include_once $include;
+                return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
+                    'unable to find module: '.$module);
             }
-        } else {
-            return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
-                'it was not specified an existing ' . $module . ' file (' . $include . ')');
-        }
-        return MDB_OK;
-    }
-
-    // }}}
-    // {{{ loadManager()
-
-    /**
-     * loads the Manager module
-     *
-     * @return object on success a reference to the given module is returned
-     *                and on failure a PEAR error
-     * @access public
-     */
-    function &loadManager()
-    {
-        $extended = $this->loadExtended();
-        if (MDB::isError($extended)) {
-            return $extended;
-        }
-        if (!isset($this->manager) || !is_object($this->manager)) {
-            $result = $this->_loadModule('Manager', 'Manager/'.$this->phptype.'.php');
-            if (MDB::isError($result)) {
-                return $result;
-            }
-            $class_name = 'MDB_Manager_'.$this->phptype;
             if (!class_exists($class_name)) {
                 return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
-                    'Unable to load extension');
+                    'unable to load module: '.$module);
             }
-            @$this->manager = new $class_name;
+            $this->{$module} =& new $class_name();
         }
-        return $this->manager;
-    }
-
-    // }}}
-    // {{{ loadDatatype()
-
-    /**
-     * loads the Datatype module
-     *
-     * @return object on success a reference to the given module is returned
-     *                and on failure a PEAR error
-     * @access public
-     */
-    function &loadDatatype()
-    {
-        if (!isset($this->datatype) || !is_object($this->datatype)) {
-            $result = $this->_loadModule('Datatype', 'Datatype/'.$this->phptype.'.php');
-            if (MDB::isError($result)) {
-                return $result;
-            }
-            $class_name = 'MDB_Datatype_'.$this->phptype;
-            if (!class_exists($class_name)) {
-                return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
-                    'Unable to load extension');
-            }
-            @$this->datatype = new $class_name;
-        }
-        return $this->datatype;
-    }
-
-    // }}}
-    // {{{ loadExtended()
-
-    /**
-     * loads the Extended module
-     *
-     * @return object on success a reference to the given module is returned
-     *                and on failure a PEAR error
-     * @access public
-     */
-    function &loadExtended()
-    {
-        if (!isset($this->extended) || !is_object($this->extended)) {
-            $result = $this->_loadModule('Extended', 'Extended.php');
-            if (MDB::isError($result)) {
-                return $result;
-            }
-            $class_name = 'MDB_Extended';
-            if (!class_exists($class_name)) {
-                return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
-                    'Unable to load extension');
-            }
-            @$this->extended = new $class_name;
-        }
-        return $this->extended;
+        return $this->{$module};
     }
 
     // }}}
@@ -1140,7 +1065,7 @@ class MDB_Common extends PEAR
     function setParam($prepared_query, $parameter, $value, $type = null)
     {
         if ($type) {
-            $result = $this->loadDatatype();
+            $result = $this->loadModule('datatype');
             if (MDB::isError($result)) {
                 return $result;
             }
@@ -1395,7 +1320,7 @@ class MDB_Common extends PEAR
      */
     function setResultTypes($result, $types)
     {
-        $load = $this->loadDatatype();
+        $load = $this->loadModule('datatype');
         if (MDB::isError($load)) {
             return $load;
         }
@@ -1570,7 +1495,7 @@ class MDB_Common extends PEAR
      */
     function getValue($type, $value)
     {
-        $result = $this->loadDatatype();
+        $result = $this->loadModule('datatype');
         if (MDB::isError($result)) {
             return $result;
         }
@@ -1596,7 +1521,7 @@ class MDB_Common extends PEAR
      */
     function getDeclaration($type, $name, $field)
     {
-        $result = $this->loadDatatype();
+        $result = $this->loadModule('datatype');
         if (MDB::isError($result)) {
             return $result;
         }

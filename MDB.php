@@ -238,11 +238,11 @@ class MDB
         }
         $include_lob = $db->getOption('include_lob');
         if (!MDB::isError($include_lob) && $include_lob) {
-            $db->loadLOB();
+            MDB::loadClass('LOB');
         }
         $include_manager = $db->getOption('include_manager');
         if (!MDB::isError($include_manager) && $include_manager) {
-            $db->loadManager();
+            $db->loadModule('manager');
         }
         $debug = $db->getOption('debug');
         if (!MDB::isError($debug) && $debug) {
@@ -319,8 +319,7 @@ class MDB
             && isset($options['debug'])
             && $options['debug'] >= 2
         ) {
-            // expose php errors with sufficient debug level
-            @include_once $include;
+            include_once $include;
         } else {
             include_once $include;
         }
@@ -410,7 +409,7 @@ class MDB
     }
     
     // }}}
-    // {{{ loadModule()
+    // {{{ loadClass()
     
     /**
      * load a file (like 'Date.php')
@@ -418,7 +417,7 @@ class MDB
      * @return $module    name of the file to be included from the MDB modules dir
      * @access public
      */
-    function loadModule($module)
+    function loadClass($module)
     {
         @include_once 'MDB/Modules/'.$module.'.php';
     }
