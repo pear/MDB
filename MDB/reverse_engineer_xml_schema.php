@@ -68,16 +68,29 @@ echo ('
         if(MDB::isError($err)) {
             $error = $err->getMessage();
         } else {
+            $manager->captureDebugOutput(TRUE);
+            $manager->database->setOption('log_line_break', '<br>');
             if($_REQUEST['action']) {
                 set_time_limit(0);
             }
             if($_REQUEST['action'] == 'dump') {
+                switch ($_REQUEST['dump']) {
+                    case 'structure':
+                        $dump_what = MDB_MANAGER_DUMP_STRUCTURE;
+                        break;
+                    case 'content':
+                        $dump_what = MDB_MANAGER_DUMP_CONTENT;
+                        break;
+                    default:
+                        $dump_what = MDB_MANAGER_DUMP_ALL;
+                        break;
+                }
                 Var_Dump::display($manager->dumpDatabase(
                     array(
                         'Output_Mode' => 'file',
                         'Output' => $_REQUEST['file']
                     ),
-                    MDB_MANAGER_DUMP_ALL
+                    $dump_what
                 ));
             } else if($_REQUEST['action'] == 'create') {
                 Var_Dump::display($manager->updateDatabase($_REQUEST['file']));
@@ -86,8 +99,14 @@ echo ('
             }
             $warnings = $manager->getWarnings();
             if(count($warnings) > 0) {
+                echo 'Warnings<br>';
                 Var_Dump::display($warnings);
             }
+            if($manager->options['debug']) {
+                echo 'Debug messages<br>';
+                echo $manager->debugOutput().'<br>';
+            }
+            echo 'Database structure<br>';
             Var_Dump::display($manager->database_definition);
             $manager->disconnect();
         }
@@ -123,6 +142,17 @@ echo ('
             <br />
             Dump:
             <input type="radio" name="action" value="dump" />
+            <select name="dump">
+                <option value="all"');
+                if(!isset($_REQUEST['dump']) || $_REQUEST['dump'] == 'all') {echo ('selected');}
+                echo ('>All</option>
+                <option value="all"');
+                if(isset($_REQUEST['dump']) && $_REQUEST['dump'] == 'structure') {echo ('selected');}
+                echo ('>Structure</option>
+                <option value="all"');
+                if(isset($_REQUEST['dump']) && $_REQUEST['dump'] == 'content') {echo ('selected');}
+                echo ('>Content</option>
+            </select>
             <br />
             Create:
             <input type="radio" name="action" value="create" />
