@@ -1482,7 +1482,7 @@ class MDB_Common extends PEAR
      *           Name of the type of the field. Currently, all types Metabase
      *           are supported except for clob and blob.
      *
-     *           Default: text
+     *           Default: no type conversion
      *
      *       Null
      *           Boolean property that indicates that the value for this field
@@ -1565,6 +1565,8 @@ class MDB_Common extends PEAR
                             return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
                                 'no supported type for field "' . $name . '" specified');
                     }
+                } else {
+                    $value = $fields[$name]['Value'];
                 }
             }
             $update .= '=' . $value;
