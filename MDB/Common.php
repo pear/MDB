@@ -2488,9 +2488,6 @@ class MDB_common extends PEAR {
     function setFetchMode($fetchmode)
     {
         switch ($fetchmode) {
-            case DB_FETCHMODE_OBJECT:
-                return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
-                    'DB_FETCHMODE_OBJECT is not supported by MDB');
             case DB_FETCHMODE_ORDERED:
             case DB_FETCHMODE_ASSOC:
                 $this->fetchmode = $fetchmode;
