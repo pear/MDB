@@ -187,13 +187,12 @@ class MDB_ibase extends MDB_Common
         static $error_regexps;
         if (empty($error_regexps)) {
             $error_regexps = array(
-                '/(Table does not exist\.|Relation [\"\'].*[\"\'] does not exist|sequence does not exist|class ".+" not found)$/' => MDB_ERROR_NOSUCHTABLE,
-                '/Relation [\"\'].*[\"\'] already exists|Cannot insert a duplicate key into (a )?unique index.*/'      => MDB_ERROR_ALREADY_EXISTS,
-                '/divide by zero$/'                     => MDB_ERROR_DIVZERO,
-                '/pg_atoi: error in .*: can\'t parse /' => MDB_ERROR_INVALID_NUMBER,
-                '/ttribute [\"\'].*[\"\'] not found$|Relation [\"\'].*[\"\'] does not have attribute [\"\'].*[\"\']/' => MDB_ERROR_NOSUCHFIELD,
-                '/parser: parse error at or near \"/'   => MDB_ERROR_SYNTAX,
-                '/referential integrity violation/'     => MDB_ERROR_CONSTRAINT
+                '/[tT]able not found/' => MDB_ERROR_NOSUCHTABLE,
+                '/[tT]able .* already exists/' => MDB_ERROR_ALREADY_EXISTS,
+                '/violation of FOREIGN KEY constraint/' => MDB_ERROR_CONSTRAINT,
+                '/conversion error from string/' => MDB_ERROR_INVALID_NUMBER,
+                '/no permission for/' => MDB_ERROR_ACCESS_VIOLATION,
+                '/arithmetic exception, numeric overflow, or string truncation/' => MDB_ERROR_DIVZERO
             );
         }
         foreach ($error_regexps as $regexp => $code) {
