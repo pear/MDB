@@ -335,7 +335,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * This tests null storage and retrieval by successively inserting,
      * selecting, and testing a number of null / not null values
      */
-/*
     function testNulls() {
         $test_values = array(
                              array('test', false),
@@ -384,7 +383,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         }
     }
-*/
+
     /**
      * Tests escaping of text values with special characters
      *
