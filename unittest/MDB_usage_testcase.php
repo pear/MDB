@@ -409,7 +409,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $value = $this->db->fetch($result, 0, 'user_name');
 
-            $this->assertEquals(rtrim($value), $test_strings[$string], "the value retrieved for field \"$field\" (\"$value\") doesn't match what was stored (" . $test_strings[$string] . ")");
+            $this->assertEquals(rtrim($value), $test_strings[$string], "the value retrieved for field \"user_name\" (\"$value\") doesn't match what was stored (" . $test_strings[$string] . ")");
 
         }
     }
@@ -494,7 +494,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         }
 
         $this->assertTrue($this->db->endOfResult($result), 'the query result did not seem to have reached the end of result as expected');
-
     }
 
     /**
@@ -669,7 +668,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     }
 
     /**
-     *
+     * Test affected rows methods
      */
     function testAffectedRows() {
         if (!$this->db->support('AffectedRows')) {
@@ -696,7 +695,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $this->insertTestValues($prepared_query, $data[$row]);
 
             $result = $this->db->executeQuery($prepared_query);
-            
+
             $affected_rows = $this->db->affectedRows();
 
             $this->assertEquals($affected_rows, 1, "Inserting the row $row return $affected_rows affected row count instead of 1 as expected"); 
@@ -741,13 +740,80 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $affected_rows = $this->db->affectedRows();
 
-            $this->assertEquals($affected_rows, ($total_rows - $row), "Deleting " . ($inserted_rows - $row) . " rows returned $affected_rows affected row count"); 
+            $this->assertEquals($affected_rows, ($total_rows - $row), "Deleting " . ($total_rows - $row) . " rows returned $affected_rows affected row count"); 
 
         }
 
         $this->db->freePreparedQuery($prepared_query);
-      
+    }
 
+    /**
+     * Testing transaction support
+     */
+    function testTransactions() {
+        if (!$this->db->support('Transactions')) {
+            $this->assertTrue(FALSE, 'This database does not support Transactions');
+            return;
+        }
+        
+        $this->db->autoCommit(0);
+
+        $row = 0;
+        $data = array();
+        $data["user_name"] = "user_$row";
+        $data["user_password"] = "somepassword";
+        $data["subscribed"] = $row % 2;
+        $data["user_id"] = $row;
+        $data["quota"] = strval($row/100);
+        $data["weight"] = sqrt($row);
+        $data["access_date"] = MDB_date::mdbToday();
+        $data["access_time"] = MDB_date::mdbTime();
+        $data["approved"] = MDB_date::mdbNow();
+
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+
+        $this->insertTestValues($prepared_query, $data);
+        $result = $this->db->executeQuery($prepared_query);
+        $this->db->rollback();
+
+        $result = $this->db->query('SELECT * FROM users');
+        if (MDB::isError($result)) {
+            $this->assertTrue(FALSE, 'Error selecting from users' . $result->getMessage());
+        }
+
+        $this->assertTrue($this->db->endOfResult($result), 'Transaction rollback did not revert the row that was inserted');
+        $this->db->freeResult($result);
+
+        $this->insertTestValues($prepared_query, $data);
+        $result = $this->db->executeQuery($prepared_query);
+        $this->db->commit();
+
+        $result = $this->db->query('SELECT * FROM users');
+        if (MDB::isError($result)) {
+            $this->assertTrue(FALSE, 'Error selecting from users' . $result->getMessage());
+        }
+
+        $this->assertTrue(!$this->db->endOfResult($result), 'Transaction commit did not make permanent the row that was inserted');
+        $this->db->freeResult($result);
+
+        $result = $this->db->query('DELETE FROM users');
+        if (MDB::isError($result)) {
+            $this->assertTrue(FALSE, 'Error deleting from users' . $result->getMessage());
+            $this->db->rollback();
+        }
+
+        $autocommit = $this->db->autocommit(1);
+        $this->assertTrue(!MDB::isError($autocommit), 'Error autocommiting transactions');
+
+        $this->db->freePreparedQuery($prepared_query);
+
+        $result = $this->db->query('SELECT * FROM users');
+        if (MDB::isError($result)) {
+            $this->assertTrue(FALSE, 'Error selecting from users' . $result->getMessage());
+        }
+
+        $this->assertTrue($this->db->endOfResult($result), 'Transaction end with implicit commit when re-enabling auto-commit did not make permanent the rows that were deleted');
+        $this->db->freeResult($result);
     }
 
 }
