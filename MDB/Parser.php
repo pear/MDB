@@ -45,7 +45,7 @@
 // $Id$
 //
 
-require_once 'XML/Parser.php';
+require_once('XML/Parser.php');
 
 /**
  * Parses an XML schema file
@@ -362,58 +362,58 @@ class MDB_Parser extends XML_Parser
         case 'text':
         case 'clob':
             if (isset($field_def['length']) && strlen($field_value) > $field_def['length']) {
-                return $this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp);
+                return($this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp));
             };
             break;
         case 'blob':
             /*
             if (!preg_match('/^([0-9a-f]{2})*$/i', $field_value)) {
-                return $this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp);
+                return($this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp));
             }
             */
             $field_value = pack('H*', $field_value);
             if (isset($field_def['length']) && strlen($field_value) > $field_def['length']) {
-                return $this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp);
+                return($this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp));
             };
             break;
         case 'integer':
             if ($field_value != ((int)$field_value)) {
-                return $this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp);
+                return($this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp));
             };
             $field_value = (int) $field_value;
             if (isset($field_def['unsigned']) && $field_def['unsigned'] && $field_value < 0) {
-                return $this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp);
+                return($this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp));
             };
             break;
         case 'boolean':
             if (!$this->is_boolean($field_value)) {
-                return $this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp);
+                return($this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp));
             }
             break;
         case 'date':
             if (!preg_match('/([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})/', $field_value)) {
-                return $this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp);
+                return($this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp));
             }
             break;
         case 'timestamp':
             if (!preg_match('/([0-9]{4})-([0-9]{1,2})-([0-9]{1,2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})/', $field_value)) {
-                return $this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp);
+                return($this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp));
             }
             break;
         case 'time':
             if (!preg_match("/([0-9]{2}):([0-9]{2}):([0-9]{2})/", $field_value)) {
-                return $this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp);
+                return($this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp));
             }
             break;
         case 'float':
         case 'double':
             if ($field_value != (double) $field_value) {
-                return $this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp);
+                return($this->raiseError('"'.$field_value.'" is not of type "'.$field_def['type'].'"', $xp));
             };
             $field_value = (double) $field_value;
             break;
         }
-        return TRUE;
+        return(TRUE);
     }
 
     function raiseError($msg, $xp = NULL)
@@ -434,17 +434,17 @@ class MDB_Parser extends XML_Parser
             $this->error = PEAR::raiseError(NULL, MDB_ERROR_MANAGER_PARSE, NULL, NULL,
                 $error, 'MDB_Error', TRUE);
         };
-        return FALSE;
+        return(FALSE);
     }
 
     function is_boolean(&$value)
     {
         if (is_int($value) && ($value == 0 || $value == 1)) {
-            return TRUE;
+            return(TRUE);
         };
         if ($value === '1' || $value === '0') {
             $value = (int) $value;
-            return TRUE;
+            return(TRUE);
         };
         switch($value)
         {
@@ -461,9 +461,9 @@ class MDB_Parser extends XML_Parser
             $value = 1;
             break;
         default:
-            return FALSE;
+            return(FALSE);
         };
-        return TRUE;
+        return(TRUE);
     }
 
     function cdataHandler($xp, $data)

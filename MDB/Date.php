@@ -163,7 +163,7 @@ class MDB_Date
     {
         list($arr['year'], $arr['month'], $arr['day'], $arr['hour'], $arr['minute'], $arr['second']) =
             sscanf($mdb_timestamp, "%04u-%02u-%02u %02u:%02u:%02u");
-        return $arr;
+        return($arr);
     }
 
     // }}}

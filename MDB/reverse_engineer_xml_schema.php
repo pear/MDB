@@ -68,8 +68,8 @@ echo ('
             }
         }
         ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
-        require_once 'MDB.php';
-        require_once 'Var_Dump.php';
+        require_once('MDB.php');
+        require_once('Var_Dump.php');
         MDB::loadFile('Manager');
         $dsn = $_REQUEST['type'].'://'.$_REQUEST['user'].':'.$_REQUEST['pass'].'@'.$_REQUEST['host'].'/'.$_REQUEST['name'];
 
@@ -109,14 +109,14 @@ echo ('
             }
             $warnings = $manager->getWarnings();
             if(count($warnings) > 0) {
-                echo 'Warnings<br>';
+                echo('Warnings<br>');
                 Var_Dump::display($warnings);
             }
             if($manager->options['debug']) {
-                echo 'Debug messages<br>';
-                echo $manager->debugOutput().'<br>';
+                echo('Debug messages<br>');
+                echo($manager->debugOutput().'<br>');
             }
-            echo 'Database structure<br>';
+            echo('Database structure<br>');
             Var_Dump::display($manager->database_definition);
             $manager->disconnect();
         }
@@ -124,7 +124,7 @@ echo ('
     
     if (!isset($_REQUEST['submit']) || isset($error)) {
         if (isset($error) && $error) {
-            echo $error.'<br>';
+            echo($error.'<br>');
         }
         echo ('
             <form action="reverse_engineer_xml_schema.php">
