@@ -348,7 +348,7 @@ class MDB_sqlite extends MDB_Common
         $function = $persistent ? 'sqlite_open' : 'sqlite_popen';
         $connection = @$function($dsninfo['database']);
         if (!$connection) {
-            return $this->sqliteRaiseError(DB_ERROR_NODBSELECTED);
+            return $this->sqliteRaiseError(MDB_ERROR_NODBSELECTED);
         }
         $this->connection = $connection;
         $this->connected_dsn = $this->dsn;
