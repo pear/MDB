@@ -396,7 +396,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      */
     function getDecimalDeclaration($name, $field)
     {
-        
+
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $default = isset($field['default']) ? ' DEFAULT '.
             $this->getDecimalValue($field['default']) : '';
@@ -566,7 +566,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     function freeBLOBValue($blob, &$value)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $this->freeLOBValue($clob, $value);
+        $this->freeLOBValue($blob, $value);
     }
 
     // }}}
