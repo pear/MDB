@@ -114,6 +114,7 @@ class MDB_oci8 extends MDB_Common {
         $this->supported['Indexes'] = 1;
         $this->supported['SummaryFunctions'] = 1;
         $this->supported['OrderByText'] = 1;
+        $this->supported['CurrId'] = 1;
         $this->supported["AffectedRows"]= 1;
         $this->supported['Transactions'] = 1;
         $this->supported['SelectRowRanges'] = 1;
