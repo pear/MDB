@@ -117,6 +117,7 @@ class MDB_mysql extends MDB_Common
             1136 => MDB_ERROR_VALUE_COUNT_ON_ROW,
             1146 => MDB_ERROR_NOSUCHTABLE,
             1048 => MDB_ERROR_CONSTRAINT,
+            1216 => MDB_ERROR_CONSTRAINT,
         );
     }
 
