@@ -154,7 +154,7 @@ class DB_result
 
     function getRowCounter()
     {
-        return $this->row_counter;
+        return $this->dbh->highest_fetched_row[$this->result];
     }
 }
 
