@@ -619,7 +619,7 @@ class MDB_mssql extends MDB_Common
             case MDB_TYPE_TIMESTAMP:
                 return($value);
             default:
-                return($this->baseConvertResult($value,$type));
+                return($this->_baseConvertResult($value,$type));
         }
     }
 
@@ -1228,20 +1228,23 @@ class MDB_mssql extends MDB_Common
             $fetchmode = $this->fetchmode;
         }
         if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-            $array = @mssql_fetch_array($result, MYSQL_ASSOC);
+            $row = @mssql_fetch_assoc($result);
+            if (is_array($row) && $this->options['optimize'] == 'portability') {
+                $row = array_change_key_case($row, CASE_LOWER);
+            }
         } else {
-            $array = @mssql_fetch_row($result);
+            $row = @mssql_fetch_row($result);
         }
-        if (!$array) {
+        if (!$row) {
             if($this->options['autofree']) {
                 $this->freeResult($result);
             }
             return(NULL);
         }
         if (isset($this->result_types[$result])) {
-            $array = $this->convertResultRow($result, $array);
+            $row = $this->convertResultRow($result, $row);
         }
-        return($array);
+        return($row);
     }
 
     // }}}

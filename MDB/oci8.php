@@ -887,7 +887,7 @@ class MDB_oci8 extends MDB_Common {
             case MDB_TYPE_TIME:
                 return(substr($value, strlen('YYYY-MM-DD '), strlen('HH:MI:SS')));
             default:
-                return($this->baseConvertResult($value, $type));
+                return($this->_baseConvertResult($value, $type));
         }
     }
 
@@ -1552,7 +1552,9 @@ class MDB_oci8 extends MDB_Common {
             return(NULL);
         }
         if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-            $row = array_change_key_case($row);
+            if ( $this->options['optimize'] == 'portability') {
+                $row = array_change_key_case($row, CASE_LOWER);
+            }
         } else {
             $row = array_values($row);
         }
