@@ -12,6 +12,15 @@ if(!defined("MDB_MANAGER_MYSQL_INCLUDED"))
 
 class MDB_manager_mysql_class extends MDB_manager_database_class
 {
+    /**
+     * create a new database
+     * 
+     * @param string $name name of the database that should be created
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
     function createDatabase(&$db, $name)
     {
         if (MDB::isError($result = $db->connect())) {
@@ -24,6 +33,18 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
         return (DB_OK);
     }
 
+    // }}}
+    // {{{ dropDatabase()
+
+    /**
+     * drop an existing database
+     * 
+     * @param string $name name of the database that should be dropped
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function dropDatabase(&$db, $name)
     {
         if (MDB::isError($result = $db->connect())) {
@@ -35,6 +56,41 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
         return (DB_OK);
     }
 
+    // }}}
+    // {{{ createTable()
+
+    /**
+     * create a new table
+     * 
+     * @param string $name     Name of the database that should be created
+     * @param array $fields Associative array that contains the definition of each field of the new table
+     *                        The indexes of the array entries are the names of the fields of the table an
+     *                        the array entry values are associative arrays like those that are meant to be
+     *                         passed with the field definitions to get[Type]Declaration() functions.
+     *
+     *                        Example
+     *                        array(
+     *                        
+     *                            "id" => array(
+     *                                "type" => "integer",
+     *                                "unsigned" => 1
+     *                                "notnull" => 1
+     *                                "default" => 0
+     *                            ),
+     *                            "name" => array(
+     *                                "type"=>"text",
+     *                                "length"=>12
+     *                            ),
+     *                            "password"=>array(
+     *                                "type"=>"text",
+     *                                "length"=>12
+     *                            )
+     *                        );
+       * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function createTable(&$db, $name, &$fields)
     {
         if (!isset($name) || !strcmp($name, "")) {
@@ -54,6 +110,105 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
         return ($db->query("CREATE TABLE $name ($query_fields)".(isset($db->supported["Transactions"]) ? " TYPE = BDB" : "")));
     }
 
+    // }}}
+    // {{{ alterTable()
+
+    /**
+     * alter an existing table
+     * 
+     * @param string $name         name of the table that is intended to be changed.
+     * @param array $changes     associative array that contains the details of each type
+     *                             of change that is intended to be performed. The types of
+     *                             changes that are currently supported are defined as follows:
+     * 
+     *                             name
+     *
+     *                                New name for the table.
+     *
+     *                            AddedFields
+     *
+     *                                Associative array with the names of fields to be added as
+     *                                 indexes of the array. The value of each entry of the array
+     *                                 should be set to another associative array with the properties
+     *                                 of the fields to be added. The properties of the fields should
+     *                                 be the same as defined by the Metabase parser.
+     *
+     *                                Additionally, there should be an entry named Declaration that
+     *                                 is expected to contain the portion of the field declaration already
+     *                                 in DBMS specific SQL code as it is used in the CREATE TABLE statement.
+     *
+     *                            RemovedFields
+     *
+     *                                Associative array with the names of fields to be removed as indexes
+     *                                 of the array. Currently the values assigned to each entry are ignored.
+     *                                 An empty array should be used for future compatibility.
+     *
+     *                            RenamedFields
+     *
+     *                                Associative array with the names of fields to be renamed as indexes
+     *                                 of the array. The value of each entry of the array should be set to
+     *                                 another associative array with the entry named name with the new
+     *                                 field name and the entry named Declaration that is expected to contain
+     *                                 the portion of the field declaration already in DBMS specific SQL code
+     *                                 as it is used in the CREATE TABLE statement.
+     *
+     *                            ChangedFields
+     *
+     *                                Associative array with the names of the fields to be changed as indexes
+     *                                 of the array. Keep in mind that if it is intended to change either the
+     *                                 name of a field and any other properties, the ChangedFields array entries
+     *                                 should have the new names of the fields as array indexes.
+     *
+     *                                The value of each entry of the array should be set to another associative
+     *                                 array with the properties of the fields to that are meant to be changed as
+     *                                 array entries. These entries should be assigned to the new values of the
+     *                                 respective properties. The properties of the fields should be the same
+     *                                 as defined by the Metabase parser.
+     *
+     *                                If the default property is meant to be added, removed or changed, there
+     *                                 should also be an entry with index ChangedDefault assigned to 1. Similarly,
+     *                                 if the notnull constraint is to be added or removed, there should also be
+     *                                 an entry with index ChangedNotNull assigned to 1.
+     *
+     *                                Additionally, there should be an entry named Declaration that is expected
+     *                                 to contain the portion of the field changed declaration already in DBMS
+     *                                 specific SQL code as it is used in the CREATE TABLE statement.
+     *                            Example
+     *                                array(
+     *                                    "name" => "userlist",
+     *                                    "AddedFields" => array(
+     *                                        "quota" => array(
+     *                                            "type" => "integer",
+     *                                            "unsigned" => 1
+     *                                            "Declaration" => "quota INT"
+     *                                        )
+     *                                    ),
+     *                                    "RemovedFields" => array(
+     *                                        "file_limit" => array(),
+     *                                        "time_limit" => array()
+     *                                        ),
+     *                                    "ChangedFields" => array(
+     *                                        "gender" => array(
+     *                                            "default" => "M",
+     *                                            "ChangeDefault" => 1,
+     *                                            "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *                                        )
+     *                                    ),
+     *                                    "RenamedFields" => array(
+     *                                        "sex" => array(
+     *                                            "name" => "gender",
+     *                                            "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *                                        )
+     *                                    )
+     *                                )
+     * 
+     * @param boolean $check     indicates whether the function should just check if the DBMS driver
+     *                             can perform the requested table alterations if the value is true or
+     *                             actually perform them otherwise.
+     * @access public
+     *
+      * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function alterTable(&$db, $name, &$changes, $check)
     {
         if ($check) {
@@ -145,24 +300,60 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
         }
     }
 
+    // }}}
+    // {{{ listDatabases()
+
+    /**
+     * list all databases
+     * 
+     * @param array $dbs reference to an empty array into which the list is stored
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function listDatabases(&$db, &$dbs)
     {
         $result = $db->queryCol("SHOW DATABASES", $dbs);
         if(MDB::isError($result)) {
             return $result;
         }
-        return(1);
+        return (DB_OK);
     }
 
+    // }}}
+    // {{{ listUsers()
+
+    /**
+     * list all users
+     * 
+     * @param array $users reference to an empty array into which the list is stored
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function listUsers(&$db, &$users)
     {
         $result = $db->queryCol("SELECT DISTINCT USER FROM USER", $users);
         if(MDB::isError($result)) {
             return $result;
         }
-        return(1);
+        return (DB_OK);
     }
 
+    // }}}
+    // {{{ listTables()
+
+    /**
+     * list all tables in the current database
+     * 
+     * @param array $tables reference to an empty array into which the list is stored
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function listTables(&$db, &$tables)
     {
         $result = $db->queryCol("SHOW TABLES", $table_names);
@@ -175,9 +366,22 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
             if (substr($table_names[$table], 0, $prefix_length) != $db->sequence_prefix)
                 $tables[] = $table_names[$table];
         }
-        return(1);
+        return (DB_OK);
     }
 
+    // }}}
+    // {{{ listTableFields()
+
+    /**
+     * list all fields in a tables in the current database
+     * 
+     * @param string $table name of table that should be used in method
+     * @param array $fields reference to an empty array into which the list is stored
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function listTableFields(&$db, $table, &$fields)
     {
         $result = $db->query("SHOW COLUMNS FROM $table");
@@ -200,9 +404,23 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
                 $fields[] = $field_name;
         }
         $db->freeResult($result);
-        return(1);
+        return (DB_OK);
     }
 
+    // }}}
+    // {{{ getTableFieldDefinition()
+
+    /**
+     * get the stucture of a field into an array
+     * 
+     * @param string    $table         name of table that should be used in method
+     * @param string    $fields     name of field that should be used in method
+     * @param array        $definition reference to an empty array into which the structure of the field should be stored
+      * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function getTableFieldDefinition(&$db, $table, $field, &$definition)
     {
         $field_name = strtolower($field);
@@ -346,6 +564,90 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
         return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table fields: it was not specified an existing table column');
     }
 
+    // }}}
+    // {{{ createIndex()
+
+    /**
+     * get the stucture of a field into an array
+     * 
+     * @param string    $table         name of the table on which the index is to be created
+     * @param string    $name         name of the index to be created
+     * @param array     $definition		associative array that defines properties of the index to be created.
+     *                                 Currently, only one property named FIELDS is supported. This property
+     *                                 is also an associative with the names of the index fields as array
+     *                                 indexes. Each entry of this array is set to another type of associative
+     *                                 array that specifies properties of the index that are specific to
+     *                                 each field.
+     *
+     *                                Currently, only the sorting property is supported. It should be used
+     *                                 to define the sorting direction of the index. It may be set to either
+     *                                 ascending or descending.
+     *
+     *                                Not all DBMS support index sorting direction configuration. The DBMS
+     *                                 drivers of those that do not support it ignore this property. Use the
+     *                                 function support() to determine whether the DBMS driver can manage indexes.
+
+     *                                 Example
+     *                                    array(
+     *                                        "FIELDS"=>array(
+     *                                            "user_name"=>array(
+     *                                                "sorting"=>"ascending"
+     *                                            ),
+     *                                            "last_login"=>array()
+     *                                        )
+     *                                    )
+       * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
+    function createIndex(&$db, $table, $name, $definition)
+    {
+        $query = "ALTER TABLE $table ADD ".(isset($definition["unique"]) ? "UNIQUE" : "INDEX")." $name (";
+        for($field = 0,reset($definition["FIELDS"]);
+            $field < count($definition["FIELDS"]);
+            $field++, next($definition["FIELDS"]))
+        {
+            if ($field>0) {
+                $query .= ",";
+            }
+            $query .= key($definition["FIELDS"]);
+        }
+        $query .= ")";
+        return ($db->query($query));
+    }
+
+    // }}}
+    // {{{ dropIndex()
+
+    /**
+     * drop existing index
+     * 
+     * @param string    $table         name of table that should be used in method
+     * @param string    $name         name of the index to be dropped
+      * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
+    function dropIndex(&$db, $table, $name)
+    {
+        return ($db->query("ALTER TABLE $table DROP INDEX $name"));
+    }
+
+    // }}}
+    // {{{ createSequence()
+
+    /**
+     * create sequence
+     * 
+     * @param string    $name         name of the sequence to be created
+     * @param string    $start         start value of the sequence; default is 1
+      * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function createSequence(&$db, $name, $start)
     {
         $sequence_name = $db->sequence_prefix.$name;
@@ -373,33 +675,36 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
             $res->getMessage().' ('.$res->getUserinfo().'))');
     }
 
+    // }}}
+    // {{{ dropSequence()
+
+    /**
+     * drop existing sequence
+     * 
+     * @param string    $name         name of the sequence to be dropped
+      * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function dropSequence(&$db, $name)
     {
         $sequence_name = $db->sequence_prefix.$name;
         return ($db->query("DROP TABLE $sequence_name"));
     }
 
-    function createIndex(&$db, $table, $name, $definition)
-    {
-        $query = "ALTER TABLE $table ADD ".(isset($definition["unique"]) ? "UNIQUE" : "INDEX")." $name (";
-        for($field = 0,reset($definition["FIELDS"]);
-            $field < count($definition["FIELDS"]);
-            $field++, next($definition["FIELDS"]))
-        {
-            if ($field>0) {
-                $query .= ",";
-            }
-            $query .= key($definition["FIELDS"]);
-        }
-        $query .= ")";
-        return ($db->query($query));
-    }
+    // }}}
+    // {{{ listSequences()
 
-    function dropIndex(&$db, $table, $name)
-    {
-        return ($db->query("ALTER TABLE $table DROP INDEX $name"));
-    }
-
+    /**
+     * list all tables in the current database
+     * 
+     * @param array $sequences reference to an empty array into which the list is stored
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function listSequences(&$db, &$sequences)
     {
         $result = $db->queryCol("SHOW TABLES", $sequences);
@@ -412,7 +717,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
                 $sequences[] = substr($sequences[$sequence], $prefix_length);
             }
         }
-        return(1);
+        return (DB_OK);
     }
 
 };
