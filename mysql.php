@@ -414,13 +414,14 @@ class MDB_driver_mysql extends MDB_common
         if (MDB::isError($result)) {
             return $result;
         }
-
-        if (!$ismanip && $limit > 0 &&
-            substr(strtolower(ltrim($query)),
-            0, 6) == 'select')
-        {
-            $query .= " LIMIT $first,$limit";
+        if($limit > 0) {
+            if ($ismanip) {
+                $query .= " LIMIT $limit";
+            } else {
+                $query .= " LIMIT $first,$limit";
+            }
         }
+
         if (mysql_select_db($this->database_name, $this->connection)
             && ($result = mysql_query($query, $this->connection)))
         {
