@@ -764,7 +764,7 @@ class MDB_driver_mysql extends MDB_common
             case MDB_TYPE_BOOLEAN:
                 return (strcmp($value, 'Y') ? 0 : 1);
             case MDB_TYPE_DECIMAL:
-                return (sprintf('%.'.$this->options['decimal_places'].'f',doubleval($value)/$this->decimal_factor));
+                return (sprintf('%.'.$this->options['decimal_places'].'f', doubleval($value)/$this->decimal_factor));
             case MDB_TYPE_FLOAT:
                 return (doubleval($value));
             case MDB_TYPE_DATE:
