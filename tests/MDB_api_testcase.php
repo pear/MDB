@@ -187,7 +187,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         if(MDB::isError($err)) {
             $this->assertTrue(FALSE, 'Error testFetch: '.$err->getMessage().' - '.$err->getUserInfo());
         }
-        $this->assertNotNull($err);
+        $this->assertNull($err);
     }
 
     function testNumCols() {

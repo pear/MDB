@@ -526,8 +526,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         for ($start_value = 1; $start_value < 4; $start_value++) {
             $sequence_name = "test_sequence_$start_value";
 
-            $this->db->dropSequence($sequence_name);
-
             $result = $this->db->createSequence($sequence_name, $start_value);
             $this->assertTrue(!MDB::isError($result), "Error creating sequence $sequence_name with start value $start_value");
 
@@ -548,8 +546,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         // Test ondemand creation of sequences
         $sequence_name = 'test_ondemand';
-
-        $this->db->dropSequence($sequence_name);
 
         for ($sequence_value = 1; $sequence_value < 4; $sequence_value++) {
             $value = $this->db->nextId($sequence_name);
