@@ -99,7 +99,7 @@ class MDB_mssql extends MDB_Common
         $this->supported['Transactions'] = 1;
         $this->supported['Summaryfunctions'] = 1;
         $this->supported['OrderByText'] = 0;
-        $this->supported['CurrId'] = 1;
+        $this->supported['CurrId'] = 0;
         $this->supported['SelectRowRanges'] = 1;
         $this->supported['LOBs'] = 1;
         $this->supported['Replace'] = 1;
@@ -1192,27 +1192,6 @@ class MDB_mssql extends MDB_Common
             $this->warnings[] = 'nextID: could not delete previous sequence table values';
         }
         return($value);
-    }
-
-    // }}}
-    // {{{ currId()
-
-    /**
-     * returns the current id of a sequence
-     *
-     * @param string  $seq_name name of the sequence
-     * @return mixed MDB_Error or id
-     * @access public
-     */
-    function currId($seq_name)
-    {
-        $sequence_name = $this->getSequenceName($seq_name);
-        $result = $this->query("SELECT MAX(sequence) FROM $sequence_name", 'integer');
-        if (MDB::isError($result)) {
-            return($result);
-        }
-
-        return($this->fetchOne($result));
     }
 
     // }}}
