@@ -87,10 +87,6 @@ class MDB_xxx extends MDB_Common
     var $escape_quotes = "\\";
     var $decimal_factor = 1.0;
 
-    var $manager_class_name = 'MDB_Manager_xxx';
-    var $manager_include = 'MDB/Manager/xxx.php';
-    var $manager_included_constant = 'MDB_MANAGER_XXX_INCLUDED';
-
     var $highest_fetched_row = array();
     var $columns = array();
 
