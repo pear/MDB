@@ -596,6 +596,7 @@ class MDB_oci8 extends MDB_Common {
      */
     function _executePreparedQuery($prepared_query, $query)
     {
+        $this->last_query = $query;
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;
         $this->first_selected_row = $this->selected_row_limit = 0;
@@ -1598,7 +1599,7 @@ class MDB_oci8 extends MDB_Common {
                 max($this->highest_fetched_row[$result_value],
                     $this->current_row[$result_value]);
         } else {
-            ++$this->current_row[$result_value];
+            $this->current_row[$result_value] = $rownum;
         }
         if (isset($this->results[$result_value][$rownum])
             && $this->results[$result_value][$rownum]

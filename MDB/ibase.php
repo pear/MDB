@@ -829,7 +829,7 @@ class MDB_ibase extends MDB_Common
                 max($this->highest_fetched_row[$result_value],
                     $this->current_row[$result_value]);
         } else {
-            ++$this->current_row[$result_value];
+            $this->current_row[$result_value] = $rownum;
         }
         if (isset($this->results[$result_value][$rownum])
             && $this->results[$result_value][$rownum]
