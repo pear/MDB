@@ -181,13 +181,13 @@ class MDB_Common extends PEAR
      * @var boolean
      * @access private
      */
-    var $auto_commit = 1;
+    var $auto_commit = true;
 
     /**
      * @var boolean
      * @access private
      */
-    var $in_transaction = 0;
+    var $in_transaction = false;
 
     /**
      * @var integer
@@ -745,7 +745,7 @@ class MDB_Common extends PEAR
      */
     function _close()
     {
-        $GLOBALS['_MDB_databases'][$database] = '';
+        unset($GLOBALS['_MDB_databases'][$this->db_index]);
     }
 
     // }}}
@@ -914,7 +914,7 @@ class MDB_Common extends PEAR
      */
     function subSelect($query, $type = false)
     {
-        if ($this->supported['sub_selects'] == 1) {
+        if ($this->supported['sub_selects'] == true) {
             return $query;
         }
         return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
@@ -1038,9 +1038,9 @@ class MDB_Common extends PEAR
 
         if (!$in_transaction) {
             if (!MDB::isError($success)) {
-                if (($success = (!MDB::isError($this->commit())
-                    && !MDB::isError($this->autoCommit(true))))
-                    && $this->supported['affected_rows']
+                if (!MDB::isError($success = $this->commit())
+                    && !MDB::isError($success = $this->autoCommit(TRUE))
+                    && isset($this->supported['AffectedRows'])
                 ) {
                     $this->affected_rows = $affected_rows;
                 }
