@@ -22,8 +22,6 @@
 // Base class for DB implementations.
 //
 
-require_once("MDB.php");
-
 define("MDB_TYPE_TEXT",0);
 define("MDB_TYPE_BOOLEAN",1);
 define("MDB_TYPE_INTEGER",2);
@@ -110,6 +108,11 @@ class MDB_common extends PEAR
     var $pass_debug_handle = 0;
     var $fetchmodes = array();
     var $error_handler = "";
+    var $manager;
+    var $include_path = "";
+    var $manager_included_constant = "";
+    var $manager_include = "";
+    var $manager_class_name = "";
 
     // new for PEAR
     var $last_query = "";
@@ -204,104 +207,161 @@ class MDB_common extends PEAR
         return(0);
     }
     
+    function loadExtension($scope, $extension, $included_constant, $include)
+    {
+        if (strlen($included_constant) == 0
+            || !defined($included_constant))
+        {
+            $include_path = $this->include_path;
+            $length = strlen($include_path);
+            $separator = "";
+            if ($length) {
+                $directory_separator = (defined("DIRECTORY_SEPARATOR") ? DIRECTORY_SEPARATOR : "/");
+                if ($include_path[$length-1] != $directory_separator) {
+                    $separator=$directory_separator;
+                }
+            }
+            if (!file_exists($include_path.$separator.$include)) {
+                $directory = 0;
+                if (!strcmp($include_path, "")
+                    || ($directory = @opendir($include_path)))
+                {
+                    if ($directory) {
+                        closedir($directory);
+                    }
+                    return($this->SetError($scope,"it was not specified an existing $extension file ($include)"));
+                } else {
+                    return($this->SetError($scope,"it was not specified a valid $extension include path"));
+                }
+            }
+            include($include_path.$separator.$include);
+        }
+        return(1);
+    }
+
+    function loadManager($scope)
+    {
+        if (isset($this->manager)) {
+            return(1);
+        }
+        if (!$this->loadExtension($scope, "database manager", "MDB_MANAGER_DATABASE_INCLUDED", "manager_common.php")) {
+            return(0);
+        }
+        if (strlen($this->manager_class_name)) {
+            if(strlen($this->manager_include) == 0)
+                return($this->SetError($scope, "it was not configured a valid database manager include file"));
+            if(!$this->loadExtension($scope, "database manager", $this->manager_included_constant, $this->manager_include))
+                return(0);
+            $class_name = $this->manager_class_name;
+        } else {
+            $class_name = "MDB_manager_database_class";
+        }
+        $this->manager = new $class_name;
+        return(1);
+    }
+
     function createDatabase($database)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Create database: database creation is not supported");
+        if(!$this->loadManager("Create database")) {
+            return(0);
+        }
+        return($this->manager->createDatabase($this, $database));
     }
 
     function dropDatabase($database)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Drop database: database dropping is not supported");
-    }
-
-    function getField(&$field, $field_name, &$query)
-    {
-        if (!strcmp($field_name, "")) {
-            //return($this->setError("Get field", "it was not specified a valid field name (\"$field_name\")"));
-            return $this->raiseError(DB_ERROR_NOSUCHFIELD, "", "", "Get field: it was not specified a valid field name (\"$field_name\")");
+        if(!$this->loadManager("Drop database")) {
+            return(0);
         }
-        switch($field["type"]) {
-            case "integer":
-                $query = $this->getIntegerDeclaration($field_name, $field);
-                break;
-            case "text":
-                $query = $this->getTextDeclaration($field_name, $field);
-                break;
-            case "clob":
-                $query = $this->getCLOBDeclaration($field_name, $field);
-                break;
-            case "blob":
-                $query = $this->getBLOBDeclaration($field_name, $field);
-                break;
-            case "boolean":
-                $query = $this->getBooleanDeclaration($field_name, $field);
-                break;
-            case "date":
-                $query = $this->getDateDeclaration($field_name, $field);
-                break;
-            case "timestamp":
-                $query = $this->getTimestampDeclaration($field_name, $field);
-                break;
-            case "time":
-                $query = $this->getTimeDeclaration($field_name, $field);
-                break;
-            case "float":
-                $query = $this->getFloatDeclaration($field_name, $field);
-                break;
-            case "decimal":
-                $query = $this->getDecimalDeclaration($field_name, $field);
-                break;
-            default:
-                //return($this->setError("Get field", "type \"".$field["type"]."\" is not yet supported"));
-                return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Get field: type \"".$field["type"]."\" is not yet supported");
-                break;
-        }
-        return(1);
-    }
-
-    function getFieldList(&$fields, &$query_fields)
-    {
-        for($query_fields = "", reset($fields), $field_number = 0;
-            $field_number < count($fields);
-            $field_number++,next($fields))
-        {
-            if ($field_number>0) {
-                $query_fields.= ", ";
-            }
-            $field_name = key($fields);
-            if (!$this->getField($fields[$field_name], $field_name, $query)) {
-                return(0);
-            }
-            $query_fields .= $query;
-        }
-        return(1);
+        return($this->manager->dropDatabase($this, $database));
     }
 
     function createTable($name, &$fields)
     {
-        if (!isset($name) || !strcmp($name, "")) {
-            return $this->raiseError(DB_ERROR_CANNOT_CREATE, "", "", "no valid table name specified");
+        if(!$this->loadManager("Create table")) {
+            return(0);
         }
-        if (count($fields) == 0) {
-            return $this->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'no fields specified for table "'.$name.'"');
-        }
-        $query_fields = "";
-        if (!$this->getFieldList($fields, $query_fields)) {
-            // XXX needs more checking
-            return $this->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'unkown error');
-        }
-        return($this->query("CREATE TABLE $name ($query_fields)"));
+        return($this->manager->createTable($this, $name, $fields));
     }
 
     function dropTable($name)
     {
-        return($this->query("DROP TABLE $name"));
+        if(!$this->loadManager("Drop table")) {
+            return(0);
+        }
+        return($this->manager->dropTable($this, $name));
     }
 
     function alterTable($name, &$changes, $check)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
-            "Alter table: database table alterations are not supported");
+        if(!$this->loadManager("Alter table")) {
+            return(0);
+        }
+        return($this->manager->alterTable($this, $name, $changes, $check));
+    }
+
+    function listTables(&$tables)
+    {
+        if(!$this->loadManager("List tables")) {
+            return(0);
+        }
+        return($this->manager->listTables($this, $tables));
+    }
+
+    function listTableFields($table, &$fields)
+    {
+        if(!$this->loadManager("List table fields")) {
+            return(0);
+        }
+        return($this->manager->listTableFields($this, $table, $fields));
+    }
+
+    function getTableFieldDefinition($table, $field, &$definition)
+    {
+        if(!$this->loadManager("Get table field definition")) {
+            return(0);
+        }
+        return($this->manager->getTableFieldDefinition($this, $table, $field, $definition));
+    }
+
+    function createIndex($table, $name, &$definition)
+    {
+        if(!$this->loadManager("Create index")) {
+            return(0);
+        }
+        return($this->manager->createIndex($this, $table, $name, $definition));
+    }
+
+    function dropIndex($table, $name)
+    {
+        if(!$this->loadManager("Drop index")) {
+            return(0);
+        }
+        return($this->manager->dropIndex($this, $table ,$name));
+    }
+
+    function createSequence($name, $start)
+    {
+        if(!$this->loadManager("Create sequence")) {
+            return(0);
+        }
+        return($this->manager->createSequence($this, $name, $start));
+    }
+
+    function dropSequence($name)
+    {
+        if(!$this->loadManager("Drop sequence")) {
+            return(0);
+        }
+        return($this->manager->dropSequence($this, $name));
+    }
+
+    function listSequences(&$sequences)
+    {
+        if(!$this->loadManager("List sequences")) {
+            return(0);
+        }
+        return($this->manager->listSequences($this, $sequences));
     }
 
     function query($query)
@@ -885,6 +945,48 @@ class MDB_common extends PEAR
         return(1);
     }
 
+    function fetchDateResult($result, $row, $field)
+    {
+        $value = $this->fetch($result,$row,$field);
+        $this->convertResult($value, MDB_TYPE_DATE);
+        return($value);
+    }
+
+    function fetchTimestampResult($result, $row, $field)
+    {
+        $value = $this->fetch($result,$row,$field);
+        $this->convertResult($value, MDB_TYPE_TIMESTAMP);
+        return($value);
+    }
+
+    function fetchTimeResult($result, $row, $field)
+    {
+        $value = $this->fetch($result, $row, $field);
+        $this->convertResult($value, MDB_TYPE_TIME);
+        return($value);
+    }
+
+    function fetchBooleanResult($result, $row, $field)
+    {
+        $value = $this->fetch($result, $row, $field);
+        $this->convertResult($value, MDB_TYPE_BOOLEAN);
+        return($value);
+    }
+
+    function fetchFloatResult($result, $row, $field)
+    {
+        $value = $this->fetch($result, $row, $field);
+        $this->convertResult($value, MDB_TYPE_FLOAT);
+        return($value);
+    }
+
+    function fetchDecimalResult($result, $row, $field)
+    {
+        $value = $this->fetch($result,$row,$field);
+        $this->convertResult($value, MDB_TYPE_DECIMAL);
+        return($value);
+    } 
+
     // renamed for PEAR
     // used to be: NumberOfColumns
     function numRows($result)
@@ -1052,18 +1154,6 @@ class MDB_common extends PEAR
         return(isset($this->supported[$feature]));
     }
 
-    function createSequence($name, $start)
-    {
-        return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
-            'Create Sequence: sequence creation not supported');
-    }
-
-    function dropSequence($name)
-    {
-        return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
-            'Drop Sequence: sequence dropping not supported');
-    }
-    
     // renamed for PEAR
     // used to be: getSequencenextValue
     function nextId($name)
@@ -1099,39 +1189,6 @@ class MDB_common extends PEAR
         $this->debug("Rollback Transaction");
         return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
             'Rollback transaction: rolling back transactions are not supported');
-    }
-
-    function createIndex($table, $name, $definition)
-    {
-        $query = "CREATE";
-        if (isset($definition["unique"])) {
-            $query .= " UNIQUE";
-        }
-        $query .= " INDEX $name ON $table (";
-        for($field = 0,reset($definition["FIELDS"]); $field<count($definition["FIELDS"]); $field++,next($definition["FIELDS"])) {
-            if ($field>0) {
-                $query.= ", ";
-            }
-            $field_name = Key($definition["FIELDS"]);
-            $query.= $field_name;
-            if ($this->Support("IndexSorting") && isset($definition["FIELDS"][$field_name]["sorting"])) {
-                switch($definition["FIELDS"][$field_name]["sorting"]) {
-                    case "ascending":
-                        $query.= " ASC";
-                        break;
-                    case "descending":
-                        $query.= " DESC";
-                        break;
-                }
-            }
-        }
-        $query.= ")";
-        return($this->query($query));
-    }
-
-    function dropIndex($table, $name)
-    {
-        return($this->query("DROP INDEX $name"));
     }
 
     function setup()
@@ -1680,5 +1737,4 @@ class MDB_common extends PEAR
         return $this->raiseError(DB_ERROR_NOT_CAPABLE);
     }
 };
-
 ?>

@@ -24,6 +24,11 @@ class MDB_mysql extends MDB_common
     var $columns = array();
     var $fixed_float = 0;
     var $escape_quotes = "\\";
+    var $sequence_prefix="_sequence_";
+    var $dummy_primary_key="dummy_primary_key";
+    var $manager_class_name="MDB_manager_mysql_class";
+    var $manager_include="manager_mysql.php";
+    var $manager_included_constant="MDB_MANAGER_MYSQL_INCLUDED"; 
     // new for PEAR
     var $errorcode_map = array(
         1004 => DB_ERROR_CANNOT_CREATE,
@@ -44,7 +49,7 @@ class MDB_mysql extends MDB_common
         
     function connect()
     {
-        $port = (isset($this->options["Port"]) ? $this->options["Port"] : "");
+        $port = (isset($this->options["port"]) ? $this->options["port"] : "");
         if ($this->connection != 0) {
             if (!strcmp($this->connected_host, $this->host)
                 && !strcmp($this->connected_user, $this->user)
@@ -73,8 +78,8 @@ class MDB_mysql extends MDB_common
             return ($this->raiseError(DB_ERROR_CONNECT_FAILED, '', '', $php_errormsg));
         }
         
-        if (isset($this->options["FixedFloat"])) {
-            $this->fixed_float = $this->options["FixedFloat"];
+        if (isset($this->options["fixedfloat"])) {
+            $this->fixed_float = $this->options["fixedfloat"];
         } else {
             if (($result = mysql_query("SELECT VERSION()", $this->connection))) {
                 $version = explode(".",mysql_result($result,0,0));
@@ -96,7 +101,7 @@ class MDB_mysql extends MDB_common
                 $this->affected_rows = -1;
                 return (0);
             }
-            $this->RegisterTransactionShutdown(0);
+            $this->registerTransactionShutdown(0);
         }
         $this->connected_host = $this->host;
         $this->connected_user = $this->user;
@@ -140,9 +145,12 @@ class MDB_mysql extends MDB_common
             return $result;
         }
         
-        if (($select = (strtolower(substr(ltrim($query),0,strlen("select"))) == "select")) && $limit > 0) {
-            $query .= " LIMIT $first, $limit";
+        if (gettype($space = strpos($query_string = strtolower(ltrim($query)), " ")) == "integer") {
+            $query_string=substr($query_string,0,$space);
         }
+        if (($select = ($query_string == "select" || $query_string == "show")) && $limit>0) {
+            $query.=" LIMIT $first,$limit";
+}
         if (mysql_select_db($this->database_name, $this->connection)
             && ($result = mysql_query($query, $this->connection)))
         {
@@ -313,40 +321,17 @@ class MDB_mysql extends MDB_common
         return (mysql_free_result($result));
     }
 
-    function createDatabase($name)
-    {
-        if (MDB::isError($result = $this->connect())) {
-            return $result;
-        }
-        if (!mysql_create_db($name, $this->connection)) {
-            return $this->mysqlRaiseError(DB_ERROR_CANNOT_CREATE);
-        }
-        
-        return (1);
-    }
-
-    function dropDatabase($name)
-    {
-        if (MDB::isError($result = $this->connect())) {
-            return $result;
-        }
-        if (!mysql_drop_db($name, $this->connection)) {
-            return $this->mysqlRaiseError(DB_ERROR_CANNOT_DROP);
-        }
-        return (1);
-    }
-
     function getClobDeclaration($name, &$field)
     {
         if (isset($field["length"])) {
             $length = $field["length"];
-            if ($length<= 255) {
+            if ($length <= 255) {
                 $type = "TINYTEXT";
             } else {
-                if ($length<= 65535) {
+                if ($length <= 65535) {
                     $type = "TEXT";
                 } else {
-                    if ($length<= 16777215) {
+                    if ($length <= 16777215) {
                         $type = "MEDIUMTEXT";
                     } else {
                         $type = "LONGTEXT";
@@ -363,22 +348,22 @@ class MDB_mysql extends MDB_common
     {
         if (isset($field["length"])) {
             $length = $field["length"];
-            if ($length<= 255) {
-                $type = "TINYBLob";
+            if ($length <= 255) {
+                $type = "TINYBLOB";
             } else {
-                if ($length<= 65535) {
-                    $type = "BLob";
+                if ($length <= 65535) {
+                    $type = "BLOB";
                 } else {
-                    if ($length<= 16777215) {
-                        $type = "MEDIUMBLob";
+                    if ($length <= 16777215) {
+                        $type = "MEDIUMBLOB";
                     } else {
-                        $type = "LONGBLob";
+                        $type = "LONGBLOB";
                     }
                 }
             }
         }
         else {
-            $type = "LONGBLob";
+            $type = "LONGBLOB";
         }
         return ("$name $type".(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
@@ -499,158 +484,17 @@ class MDB_mysql extends MDB_common
         return (mysql_num_fields($result));
     }
 
-    function createTable($name, &$fields)
-    {
-        if (!isset($name) || !strcmp($name, "")) {
-            return $this->raiseError(DB_ERROR_CANNOT_CREATE, "", "", "no valid table name specified");
-        }
-        if (count($fields) == 0) {
-            return $this->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'no fields specified for table "'.$name.'"');
-        }
-        $query_fields = "";
-        if (!$this->getFieldList($fields, $query_fields)) {
-            // XXX needs more checking
-            return $this->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'unkown error');
-        }
-        if (isset($this->supported["Transactions"])) {
-            $query_fields .= ", dummy_primary_key INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (dummy_primary_key)";
-        }
-        return ($this->Query("CREATE TABLE $name ($query_fields)".(isset($this->supported["Transactions"]) ? " TYPE = BDB" : "")));
-    }
-
-    function alterTable($name, &$changes, $check)
-    {
-        if ($check) {
-            for($change = 0,reset($changes);
-                $change < count($changes);
-                next($changes), $change++)
-            {
-                switch(Key($changes)) {
-                    case "AddedFields":
-                    case "RemovedFields":
-                    case "ChangedFields":
-                    case "RenamedFields":
-                    case "name":
-                        break;
-                    default:
-                        return $this->raiseError(DB_ERROR_CANNOT_ALTER, "", "", 
-                            'Alter table: change type "'.Key($changes).'" not yet supported');
-                }
-            }
-            return (1);
-        } else {
-            $query = (isset($changes["name"]) ? "RENAME AS ".$changes["name"] : "");
-            if (isset($changes["AddedFields"]))    {
-                $fields = $changes["AddedFields"];
-                for($field = 0,reset($fields);
-                    $field<count($fields);
-                    next($fields), $field++)
-                {
-                    if (strcmp($query, "")) {
-                        $query .= ",";
-                    }
-                    $query .= "ADD ".$fields[key($fields)]["Declaration"];
-                }
-            }
-            if (isset($changes["RemovedFields"])) {
-                $fields = $changes["RemovedFields"];
-                for($field = 0,reset($fields);
-                    $field<count($fields);
-                    next($fields), $field++)
-                {
-                    if (strcmp($query, "")) {
-                        $query .= ",";
-                    }
-                    $query .= "DROP ".Key($fields);
-                }
-            }
-            $renamed_fields = array();
-            if (isset($changes["RenamedFields"])) {
-                $fields = $changes["RenamedFields"];
-                for($field = 0,reset($fields);
-                    $field<count($fields);
-                    next($fields), $field++)
-                {
-                    $renamed_fields[$fields[key($fields)]["name"]] = key($fields);
-                }
-            }
-            if (isset($changes["ChangedFields"])) {
-                $fields = $changes["ChangedFields"];
-                for($field = 0,reset($fields);
-                    $field<count($fields);
-                    next($fields), $field++)
-                {
-                    if (strcmp($query, "")) {
-                        $query .= ",";
-                    }
-                    if (isset($renamed_fields[key($fields)])) {
-                        $field_name = $renamed_fields[key($fields)];
-                        unset($renamed_fields[key($fields)]);
-                    } else {
-                        $field_name = key($fields);
-                    }
-                    $query .= "CHANGE $field_name ".$fields[key($fields)]["Declaration"];
-                }
-            }
-            if (count($renamed_fields))
-            {
-                for($field = 0,reset($renamed_fields);
-                    $field<count($renamed_fields);
-                    next($renamed_fields), $field++)
-                {
-                    if (strcmp($query, "")) {
-                        $query .= ",";
-                    }
-                    $old_field_name = $renamed_fields[Key($renamed_fields)];
-                    $query .= "CHANGE $old_field_name ".$changes["RenamedFields"][$old_field_name]["Declaration"];
-                }
-            }
-            return ($this->Query("ALTER TABLE $name $query"));
-        }
-    }
-
-    function createSequence($name, $start)
-    {
-        $res = $this->query("CREATE TABLE _sequence_$name
-            (sequence INT DEFAULT 0 NOT NULL AUTO_INCREMENT, PRIMARY KEY (sequence))");
-        if (MDB::isError($res)) {
-            return $res;
-        }
-        if ($start == 1)
-            return 1;
-            
-        $res = $this->query("INSERT INTO _sequence_$name (sequence) VALUES (".($start-1).")");
-        if (!MDB::isError($res)) {
-            return 1;
-        }
-        
-        // Handle error
-        $result = $this->query("DROP TABLE _sequence_$name");
-        if (MDB::isError($result)) {
-            return $this->raiseError(DB_ERROR, "", "", 
-                'Create sequence: could not drop inconsistent sequence table ('.
-                $result->getMessage().' ('.$result->getUserinfo().'))');
-        }
-        return $this->raiseError(DB_ERROR, "", "", 
-            'Create sequence: could not create sequence table ('.
-            $res->getMessage().' ('.$res->getUserinfo().'))');
-    }
-
-    function dropSequence($name)
-    {
-        return ($this->query("DROP TABLE _sequence_$name"));
-    }
-    
     // renamed for PEAR
     // used to be: getSequenceNextValue
     function nextId($name)
     {
-        $res = $this->query("INSERT INTO _sequence_$name (sequence) VALUES (NULL)");
+        $sequence_name = $this->sequence_prefix.$name;
+        $res = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
         if (MDB::isError($res)) {
             return $res;
         }
         $value = intval(mysql_insert_id());
-        $res = $this->query("DELETE FROM _sequence_$name WHERE sequence<$value");
+        $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($res)) {
             // XXX warning or error?
 //            $this->warning = "could delete previous sequence table values";
@@ -664,34 +508,14 @@ class MDB_mysql extends MDB_common
     // used to be: getSequenceCurrentValue
     function currId($name)
     {
-        $result = $this->Query("SELECT MAX(sequence) FROM _sequence_$name");
+        $sequence_name = $this->sequence_prefix.$name;
+        $result = $this->Query("SELECT MAX(sequence) FROM $sequence_name");
         if (MDB::isError($result))
             return $result;
             
         $value = intval($this->fetch($result,0,0));
         $this->FreeResult($result);
         return ($value);
-    }
-
-    function createIndex($table, $name, $definition)
-    {
-        $query = "ALTER TABLE $table ADD ".(isset($definition["unique"]) ? "UNIQUE" : "INDEX")." $name (";
-        for($field = 0,reset($definition["FIELDS"]);
-            $field<count($definition["FIELDS"]);
-            $field++,next($definition["FIELDS"]))
-        {
-            if ($field>0) {
-                $query .= ",";
-            }
-            $query .= Key($definition["FIELDS"]);
-        }
-        $query .= ")";
-        return ($this->Query($query));
-    }
-
-    function dropIndex($table, $name)
-    {
-        return ($this->Query("ALTER TABLE $table DROP INDEX $name"));
     }
 
     function autoCommitTransactions($auto_commit)
