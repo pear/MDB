@@ -64,10 +64,10 @@ function MetabaseSetupDatabase($arguments, &$database)
 
     if (MDB::isError($db) || !is_object($db)) {
         $database = 0;
-        return $db->getMessage();
+        return($db->getMessage());
     }
     $database = $db->database;
-    return ('');
+    return('');
 }
 
 function MetabaseSetupDatabaseObject($arguments, &$db)
@@ -76,9 +76,9 @@ function MetabaseSetupDatabaseObject($arguments, &$db)
     $db =& MDB::connect($dsninfo, $options);
 
     if (MDB::isError($db) || !is_object($db)) {
-        return $db->getMessage();
+        return($db->getMessage());
     }
-    return ('');
+    return('');
 }
 
 function _convertArguments($arguments, &$dsninfo, &$options)
@@ -197,7 +197,7 @@ function MetabaseQueryAll($database, $query, &$all, $types = '')
 function MetabaseReplace($database, $table, &$fields)
 {
     global $_MDB_databases;
-    for($keys = 0, $condition = $update = $insert = $values = '', reset($fields), $field = 0;
+    for($count = count($fields), reset($fields), $field = 0;
         $field < $count;
         next($fields), $field++)
     {
@@ -1355,7 +1355,7 @@ function MetabaseReadLOB($lob, &$data, $length)
 function MetabaseLOBError($lob)
 {
     global $lob_error;
-    return $lob_error;
+    return($lob_error);
 }
 
 class metabase_manager_class
@@ -1387,10 +1387,10 @@ class metabase_manager_class
 
         $result = $this->MDB_manager_object->connect($dsninfo, $options);
         if (MDB::isError($result)) {
-            return $result->getMessage();
+            return($result->getMessage());
         }
         $this->database = $this->MDB_manager_object->database->database;
-        return (1);
+        return(1);
     }
 
     function CloseSetup()
@@ -1590,15 +1590,15 @@ class metabase_manager_class
 
         $result = $this->MDB_manager_object->connect($dsninfo, $options);
         if (MDB::isError($result)) {
-            return $result;
+            return($result);
         }
 
         $result = $this->MDB_manager_object->updateDatabase($current_schema_file, $previous_schema_file, $variables);
         if (MDB::isError($result)) {
-            return $result->getMessage();
+            return($result->getMessage());
         }
         $this->database = $this->MDB_manager_object->database->database;
-        return (1);
+        return(1);
     }
 
     function DumpDatabaseContents($schema_file, &$setup_arguments, &$dump_arguments, &$variables)
