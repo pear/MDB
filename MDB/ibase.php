@@ -625,7 +625,7 @@ class MDB_ibase extends MDB_Common
         $result_value = intval($result);
         $first = $this->limits[$result_value][0];
         for (; $this->limits[$result_value][2] < $first; $this->limits[$result_value][2]++) {
-            if (!is_array(@ibase_fetch_assoc($result))) {
+            if (!is_array(@ibase_fetch_row($result))) {
                 $this->limits[$result_value][2] = $first;
                 return($this->raiseError(MDB_ERROR, NULL, NULL,
                     'Skip first rows: could not skip a query result row'));
@@ -726,7 +726,7 @@ class MDB_ibase extends MDB_Common
                 return true;
             }
         }
-        if (is_array($this->row_buffer[$result_value] = @ibase_fetch_assoc($result))) {
+        if (is_array($this->row_buffer[$result_value] = @ibase_fetch_row($result))) {
             return false;
         }
         unset($this->row_buffer[$result_value]);
@@ -795,7 +795,7 @@ class MDB_ibase extends MDB_Common
                 unset($this->row_buffer[$result_value]);
             }
             while ($this->current_row[$result_value] < $rownum
-                && is_array($buffer = @ibase_fetch_assoc($result))
+                && is_array($buffer = @ibase_fetch_row($result))
             ) {
                 $this->current_row[$result_value]++;
                 $this->results[$result_value][$this->current_row[$result_value]] = $buffer;
@@ -815,11 +815,11 @@ class MDB_ibase extends MDB_Common
             $row[$key] = rtrim($value_with_space, ' ');
         }
         if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-            if ($this->options['optimize'] == 'portability') {
-                $row = array_change_key_case($row, CASE_LOWER);
+            $column_names = $this->getColumnNames($result);
+            foreach($column_names as $name => $i) {
+                $column_names[$name] = $row[$i];
             }
-        } else {
-            $row = array_values($row);
+            $row = $column_names;
         }
         if (!$row) {
             if($this->options['autofree']) {
@@ -1050,7 +1050,7 @@ class MDB_ibase extends MDB_Common
                     unset($this->row_buffer[$result_value]);
                 }
                 while(($limit == 0 || $this->current_row[$result_value] + 1 < $limit)
-                    && (is_array($row = @ibase_fetch_assoc($result)))
+                    && (is_array($row = @ibase_fetch_row($result)))
                 ) {
                     $this->current_row[$result_value]++;
                     $this->results[$result_value][$this->current_row[$result_value]] = $row;
