@@ -175,6 +175,7 @@ class MDB_oci8 extends MDB_Common {
      * that checks for native error msgs.
      * 
      * @param integer $errno error code
+     * @param string  $message userinfo message
      * @return object a PEAR error object
      * @access public 
      * @see PEAR_Error

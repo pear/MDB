@@ -146,16 +146,27 @@ class MDB_fbsql extends MDB_Common
      * that checks for native error msgs.
      *
      * @param integer $errno error code
+     * @param string  $message userinfo message
      * @return object a PEAR error object
      * @access public
      * @see PEAR_Error
      */
-    function fbsqlRaiseError($errno = NULL)
+    function fbsqlRaiseError($errno = NULL, $message = NULL)
     {
         if ($errno == NULL) {
-            $errno = $this->errorCode(@fbsql_errno($this->connection));
+            if ($this->connection) {
+                $errno = @fbsql_errno($this->connection);
+            } else {
+                $errno = @fbsql_errno();
+            }
         }
-        return($this->raiseError($errno, NULL, NULL, NULL, @fbsql_error($this->connection)));
+        if ($this->connection) {
+            $error = @fbsql_errno($this->connection);
+        } else {
+            $error = @fbsql_error();
+        }
+        return($this->raiseError($this->errorCode($errno), NULL, NULL,
+            $message, $error));
     }
 
     // }}}
@@ -520,7 +531,7 @@ class MDB_fbsql extends MDB_Common
         }
         $res = @fbsql_result($result, $row, $field);
         if ($res === FALSE && $res != NULL) {
-            return($this->fbsqlRaiseError($errno));
+            return($this->fbsqlRaiseError());
         }
         return($res);
     }

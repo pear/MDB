@@ -14,6 +14,8 @@
       MDB_Manager_mysql:
       - fixed mysql 4.0.13 issue in createSequence()
       - fixed bug #963 ensuring the correct case is used when doing assoc fetches based on portability flag setting
+      all drivers:
+      - unified the native error raising methods (tested on oracle, pgsql and mysql)
       MDB_ibase:
       - fixed several bugs in the buffering code
       - fixed NULL management

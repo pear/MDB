@@ -132,11 +132,12 @@ class MDB_xxx extends MDB_Common
      * that checks for native error msgs.
      *
      * @param integer $errno error code
+     * @param string  $message userinfo message
      * @return object a PEAR error object
      * @access public
      * @see PEAR_Error
      */
-    function xxxRaiseError($errno = NULL)
+    function xxxRaiseError($errno = NULL, $message = NULL)
     {
         // take this method from the corresponding PEAR DB driver: xxxRaiseError()
     }

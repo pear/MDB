@@ -120,7 +120,7 @@ class MDB_mssql extends MDB_Common
     }
 
     // }}}
-    // {{{ errorCode()
+    // {{{ errorNative()
 
     /**
      * Get the native error code of the last error (if any) that
@@ -128,21 +128,18 @@ class MDB_mssql extends MDB_Common
      *
      * @access public
      *
-     * @return int native MSSQL error code
+     * @return int native FrontBase error code
      */
-    function errorCode()
+    function errorNative()
     {
        $res = @mssql_query('select @@ERROR as ErrorCode', $this->connection);
-       if (!$res) {
-           return MDB_ERROR;
+       if ($res) {
+           $row = @mssql_fetch_row($res);
+           if (is_array($row) && $row[0] > 0) {
+               return $row[0];
+           }
        }
-       $row = @mssql_fetch_row($res);
-       if ($row[0] > 0) {
-           return $row[0];
-       }
-       else {
-           return null;
-       }
+       return NULL;
     }
 
     // }}}
@@ -153,23 +150,20 @@ class MDB_mssql extends MDB_Common
      * callbacks etc.  Basically a wrapper for MDB::raiseError
      * that checks for native error msgs.
      *
+     * @param string  $message userinfo message
      * @param integer $errno error code
      * @return object a PEAR error object
      * @access public
      * @see PEAR_Error
      */
-    function mssqlRaiseError($code = null)
+    function mssqlRaiseError($errno = NULL, $message = NULL)
     {
-        $native_msg = @mssql_get_last_message();
-        $native_code = $this->errorCode();
-        if ($code === null) {
-            if (isset($this->errorcode_map[$native_code])) {
-                $code = $this->errorcode_map[$native_code];
-            } else {
-                $code = MDB_ERROR;
-            }
+        if ($errno == NULL) {
+            $errno = $this->errorNative();
         }
-        return $this->raiseError($code, null, null, null, $native_code . ' - ' . $native_msg);
+        $error = @mssql_get_last_message();
+        return $this->raiseError($this->errorCode(), NULL, NULL,
+            $message, $error);
     }
 
     // }}}
@@ -383,11 +377,11 @@ class MDB_mssql extends MDB_Common
         }
         $connection = @mssql_connect($this->host,$this->user,$this->password);
         if($connection == 0) {
-            return($this->mssqlRaiseError("Query: Could not connect to the Microsoft SQL server"));
+            return($this->mssqlRaiseError(NULL, "Query: Could not connect to the Microsoft SQL server"));
         }
         $result = @mssql_query($query, $connection);
         if(!$result) {
-            return($this->mssqlRaiseError("Query: Could not query a Microsoft SQL server"));
+            return($this->mssqlRaiseError(NULL, "Query: Could not query a Microsoft SQL server"));
         }
         @mssql_close($connection);
         return(MDB_OK);
@@ -565,7 +559,7 @@ class MDB_mssql extends MDB_Common
         }
         $res = @mssql_result($result, $row, $field);
         if ($res === FALSE && $res != NULL) {
-            return($this->mssqlRaiseError($errno));
+            return($this->mssqlRaiseError());
         }
         return($res);
     }
@@ -1307,7 +1301,7 @@ class MDB_mssql extends MDB_Common
 
         if (is_string($result)) {
             if (!@mssql_select_db($this->database_name, $this->connection)) {
-                return $this->mssqlRaiseError(MDB_ERROR_NODBSELECTED);
+                return $this->mssqlRaiseError();
             }
             $id = @mssql_query("SELECT * FROM $result", $this->connection);
             if (empty($id)) {
