@@ -80,7 +80,13 @@ class MDB_pgsql extends MDB_common
         }
         $this->phptype = 'pgsql';
         $this->dbsyntax = 'pgsql';
-
+        
+        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
+                NULL, NULL, 'extension {$type} is not compiled into PHP',
+                'MDB_Error', TRUE);
+        }
+        
         if (!function_exists('pg_connect')) {
             return ('PostgreSQL support is not available in this PHP configuration');
         }

@@ -90,7 +90,13 @@ class MDB_mysql extends MDB_Common
         
         $this->phptype = 'mysql';
         $this->dbsyntax = 'mysql';
-
+        
+        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
+                NULL, NULL, 'extension {$type} is not compiled into PHP',
+                'MDB_Error', TRUE);
+        }
+        
         $this->supported['Sequences'] = 1;
         $this->supported['Indexes'] = 1;
         $this->supported['AffectedRows'] = 1;
