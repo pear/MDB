@@ -1385,7 +1385,7 @@ class Metabase_manager_class
 
     function CloseSetup()
     {
-        $result = $this->MDB_manager_object->_close();
+        $result = $this->MDB_manager_object->disconnect();
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1452,7 +1452,7 @@ class Metabase_manager_class
         }
     }
 
-    function _dropTable($table_name)
+    function DropTable($table_name)
     {
         $result = $this->MDB_manager_object->_dropTable($table_name);
         if (MDB::isError($result)) {
@@ -1566,7 +1566,7 @@ class Metabase_manager_class
 
     function DumpDatabaseChanges(&$changes)
     {
-        $result = $this->MDB_manager_object->_dumpDatabaseChanges($changes);
+        $result = $this->MDB_manager_object->debugDatabaseChanges($changes);
         if (MDB::isError($result)) {
             return(0);
         } else {
