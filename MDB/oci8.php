@@ -548,7 +548,7 @@ class MDB_oci8 extends MDB_Common
      */
     function standaloneQuery($query)
     {
-        $connection = _$this->_doConnect($this->options['DBA_username'], $this->options['DBA_password']);
+        $connection = $this->_doConnect($this->options['DBA_username'], $this->options['DBA_password']);
         if (MDB::isError($connection)) {
             return $connection;
         }

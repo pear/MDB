@@ -655,7 +655,7 @@ class MDB_mysql extends MDB_Common
      */
     function numCols($result)
     {
-        if (!isset($this->results[intval($result)]])) {
+        if (!isset($this->results[intval($result)])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'numCols: it was specified an inexisting result set');
         }
