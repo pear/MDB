@@ -621,36 +621,6 @@ class MDB_Manager_Common
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
             'listSequences: List sequences is not supported');
     }
-
-    // }}}
-    // {{{ getSequenceDefinition()
-
-    /**
-     * get the stucture of a sequence into an array
-     *
-     * @param string    $sequence   name of sequence that should be used in method
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     */
-    function getSequenceDefinition($sequence)
-    {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $start = $db->currID($sequence);
-        if (MDB::isError($start)) {
-            return $start;
-        }
-        if ($db->support('current_id')) {
-            $start++;
-        } else {
-            $db->warnings[] = 'database does not support getting current
-                sequence value,the sequence value was incremented';
-        }
-        $definition = array();
-        if ($start != 1) {
-            $definition = array('start' => $start);
-        }
-        return $definition;
-    }
 }
 
 ?>
