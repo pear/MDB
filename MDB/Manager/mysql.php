@@ -66,7 +66,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * verify that chosen transactional table hanlder is available in the database
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $table_type name of the table handler
      * @return mixed DB_OK on success, a DB error on failure
      * @access private
@@ -126,7 +126,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * create a new database
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $name name of the database that should be created
      * @return mixed DB_OK on success, a DB error on failure
      * @access public
@@ -149,7 +149,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * drop an existing database
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $name name of the database that should be dropped
      * @return mixed DB_OK on success, a DB error on failure
      * @access public
@@ -171,7 +171,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * create a new table
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $name     Name of the database that should be created
      * @param array $fields Associative array that contains the definition of each field of the new table
      *                        The indexes of the array entries are the names of the fields of the table an
@@ -229,7 +229,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * alter an existing table
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $name         name of the table that is intended to be changed.
      * @param array $changes     associative array that contains the details of each type
      *                             of change that is intended to be performed. The types of
@@ -345,9 +345,9 @@ class MDB_manager_mysql_class extends MDB_manager_common
             return (DB_OK);
         } else {
             $query = (isset($changes['name']) ? 'RENAME AS '.$changes['name'] : '');
-            if (isset($changes['AddedFields']))    {
+            if (isset($changes['AddedFields'])) {
                 $fields = $changes['AddedFields'];
-                for($field = 0,reset($fields);
+                for($field = 0, reset($fields);
                     $field<count($fields);
                     next($fields), $field++)
                 {
@@ -420,7 +420,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * list all databases
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @return mixed data array on success, a DB error on failure
      * @access public
      */
@@ -439,7 +439,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * list all users
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @return mixed data array on success, a DB error on failure
      * @access public
      */
@@ -458,7 +458,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * list all tables in the current database
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @return mixed data array on success, a DB error on failure
      * @access public
      */
@@ -482,7 +482,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * list all fields in a tables in the current database
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $table name of table that should be used in method
      * @return mixed data array on success, a DB error on failure
      * @access public
@@ -519,15 +519,14 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * get the stucture of a field into an array
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string    $table         name of table that should be used in method
-     * @param string    $field     name of field that should be used in method
+     * @param string    $field_name     name of field that should be used in method
      * @return mixed data array on success, a DB error on failure
      * @access public
      */
-    function getTableFieldDefinition(&$db, $table, $field)
+    function getTableFieldDefinition(&$db, $table, $field_name)
     {
-        $field_name = strtolower($field);
         if ($field_name == $db->dummy_primary_key) {
             return $db->raiseError(DB_ERROR_MANAGER, '', '',
                 'Get table field definiton: '.$db->dummy_primary_key.' is an hidden column');
@@ -551,7 +550,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
         $field_column = $columns['field'];
         $type_column = $columns['type'];
         while (is_array($row = $db->fetchInto($result))) {
-            if ($field_name == strtolower($row[$field_column])) {
+            if ($field_name == $row[$field_column]) {
                 $db_type = strtolower($row[$type_column]);
                 $db_type = strtok($db_type, '(), ');
                 if ($db_type == 'national') {
@@ -721,7 +720,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * get the stucture of a field into an array
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string    $table         name of the table on which the index is to be created
      * @param string    $name         name of the index to be created
      * @param array     $definition        associative array that defines properties of the index to be created.
@@ -773,7 +772,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * drop existing index
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string    $table         name of table that should be used in method
      * @param string    $name         name of the index to be dropped
      * @return mixed DB_OK on success, a DB error on failure
@@ -790,7 +789,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * list all indexes in a table
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string    $table      name of table that should be used in method
      * @return mixed data array on success, a DB error on failure
      * @access public
@@ -822,38 +821,36 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * get the stucture of an index into an array
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string    $table      name of table that should be used in method
-     * @param string    $index      name of index that should be used in method
+     * @param string    $index_name name of index that should be used in method
      * @return mixed data array on success, a DB error on failure
      * @access public
      */
-    function getTableIndexDefinition(&$db, $table, $index)
+    function getTableIndexDefinition(&$db, $table, $index_name)
     {
-        $index_name = strtolower($index);
-        if($index == 'PRIMARY') {
+        if($index_name == 'PRIMARY') {
             return $db->raiseError(DB_ERROR_MANAGER, '', '', 'Get table index definition: PRIMARY is an hidden index');
         }
         if(MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
             return($result);
         }
         $definition = array();
-        $definition[$index_name] = array();
         while (is_array($row = $db->fetchInto($result, DB_FETCHMODE_ASSOC))) {
-            $key_name = strtolower($row['Key_name']);
+            $key_name = $row['Key_name'];
             if(!strcmp($index_name, $key_name)) {
                 if(!$row['Non_unique']) {
                     $definition[$index_name]['unique'] = 1;
                 }
-                $column_name = strtolower($row['Column_name']);
-                $definition[$index_name]['FIELDS'][$column_name] = array();
+                $column_name = $row['Column_name'];
+                $definition['FIELDS'][$column_name] = array();
                 if(isset($row['Collation'])) {
-                    $definition[$index_name]['FIELDS'][$column_name]['sorting'] = ($row['Collation'] == 'A' ? 'ascending' : 'descending');
+                    $definition['FIELDS'][$column_name]['sorting'] = ($row['Collation'] == 'A' ? 'ascending' : 'descending');
                 }
             }
         }
         $db->freeResult($result);
-        if (!isset($definition[$index_name]['FIELDS'])) {
+        if (!isset($definition['FIELDS'])) {
             return $db->raiseError(DB_ERROR_MANAGER, '', '', 'Get table index definition: it was not specified an existing table index');
         }
         return ($definition);
@@ -865,7 +862,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * create sequence
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string    $seq_name     name of the sequence to be created
      * @param string    $start         start value of the sequence; default is 1
      * @return mixed DB_OK on success, a DB error on failure
@@ -907,7 +904,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * drop existing sequence
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string    $seq_name     name of the sequence to be dropped
      * @return mixed DB_OK on success, a DB error on failure
      * @access public
@@ -924,7 +921,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     /**
      * list all sequences in the current database
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @return mixed data array on success, a DB error on failure
      * @access public
      */
@@ -940,43 +937,6 @@ class MDB_manager_mysql_class extends MDB_manager_common
                 $sequences[] = $sqn;
         }
         return ($sequences);
-    }
-
-    // }}}
-    // {{{ getSequenceDefinition()
-
-    /**
-     * get the stucture of a sequence into an array
-     *
-     * @param $dbs (reference) array where database names will be stored
-     * @param string    $sequence   name of sequence that should be used in method
-     * @return mixed data array on success, a DB error on failure
-     * @access public
-     */
-    function getSequenceDefinition(&$db, $sequence)
-    {
-        $table_names = $db->queryCol('SHOW TABLES');
-        if(MDB::isError($table_names)) {
-            return($table_names);
-        }
-        for($i = 0, $j = count($table_names); $i < $j; $i++) {
-            if ($sqn = $db->_isSequenceName(strtolower($table_names[$i]))) {
-                $start = $db->currId($sqn);
-                if (MDB::isError($start)) {
-                    return ($start);
-                }
-                if ($db->support('CurrId')) {
-                    $start++;
-                } else {
-                    $db->warnings[] = 'database does not support getting current
-                        sequence value,the sequence value was incremented';
-                }
-                $definition = array();
-                $definition[$sqn] = array('start' => $start);
-                return($definition);
-            }
-        }
-        return $db->raiseError(DB_ERROR_MANAGER, '', '', 'Get sequence definition: it was not specified an existing sequence');
     }
 }
 
