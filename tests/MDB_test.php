@@ -15,15 +15,15 @@
     $db_name = 'metapear_test_db';
     // Data Source Name: This is the universal connection string
     $dsn = "mysql://$user:$pass@$host/$db_name";
-    // DB::connect will return a Pear DB object on success
+    // MDB::connect will return a Pear DB object on success
     // or a Pear DB Error object on error
     // You can also set to TRUE the second param
     // if you want a persistent connection:
-    // $db = DB::connect($dsn, true);
-    $db = DB::connect($dsn);
-    // With DB::isError you can differentiate between an error or
+    // $db = MDB::connect($dsn, true);
+    $db = MDB::connect($dsn);
+    // With MDB::isError you can differentiate between an error or
     // a valid connection.
-    if (DB::isError($db)) {
+    if (MDB::isError($db)) {
         die ($db->getMessage());
     }
     // happy query
@@ -70,7 +70,7 @@
     // lets create a sequence
     echo "<br>create a new seq with start 3 name real_funky_id<br>";
     $err = $db->createSequence("real_funky_id",3);
-    if(DB::isError($err)) {
+    if (MDB::isError($err)) {
         echo "<br>could not create sequence again<br>";
     }
     echo "<br>get the next id:<br>";
