@@ -430,7 +430,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         }
         for($i = 0, $j = count($table_names), $tables = array(); $i < $j; ++$i)
         {
-            if (!$db->_isSequenceName($table_names[$i]))
+            if (!$this->_isSequenceName($table_names[$i]))
                 $tables[] = $table_names[$i];
         }
         return $tables;
@@ -659,7 +659,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         }
         for($i = 0, $j = count($table_names), $sequences = array(); $i < $j; ++$i)
         {
-            if ($sqn = $db->_isSequenceName($table_names[$i]))
+            if ($sqn = $this->_isSequenceName($table_names[$i]))
                 $sequences[] = $sqn;
         }
         return $sequences;
