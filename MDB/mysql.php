@@ -570,8 +570,9 @@ class MDB_mysql extends MDB_Common
     {
         $count = count($fields);
         for($keys = 0, $query = $values = '',reset($fields), $field = 0;
-        $field<$count;
-        next($fields), $field++) {
+            $field<$count;
+            next($fields), $field++)
+        {
             $name = key($fields);
             if ($field>0) {
                 $query .= ',';

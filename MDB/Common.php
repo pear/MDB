@@ -1518,7 +1518,8 @@ class MDB_Common extends PEAR
         $count = count($fields);
         for($keys = 0, $condition = $update = $insert = $values = '', reset($fields), $field = 0;
             $field < $count;
-            next($fields), $field++) {
+            next($fields), $field++)
+        {
             $name = key($fields);
             if ($field > 0) {
                 $update .= ', ';
