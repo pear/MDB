@@ -4273,6 +4273,8 @@ class MDB_common extends PEAR
         $lobs[$lob] = &new $class_name;
         if (isset($arguments['Database'])) {
             $lobs[$lob]->database = $arguments['Database'];
+        } else {
+            $lobs[$lob]->database = &$this;
         }
         if (MDB::isError($result = $lobs[$lob]->create($arguments))) {
             $lobs[$lob]->database->destroyLob($lob);
