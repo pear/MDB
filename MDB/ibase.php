@@ -44,7 +44,7 @@
 //
 // $Id$
 
-require_once('MDB/Common.php');
+require_once 'MDB/Common.php';
 
 /**
  * MDB FireBird/InterBase driver
@@ -1633,22 +1633,26 @@ class MDB_ibase extends MDB_Common
         if (empty($mode)) {
             for ($i=0; $i<$count; $i++) {
                 $info = @ibase_field_info($id, $i);
-                $res[$i]['table'] = (is_string($result)) ? $result : '';
+                //$res[$i]['table'] = (is_string($result)) ? $result : '';
+                $res[$i]['table'] = (is_string($result)) ? $result : $info['relation'];
                 $res[$i]['name']  = $info['name'];
                 $res[$i]['type']  = $info['type'];
                 $res[$i]['len']   = $info['length'];
-                $res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($info['name'], $result) : '';
+                //$res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($info['name'], $result) : '';
+                $res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($id, $i, $result) : '';
             }
         } else { // full
             $res['num_fields'] = $count;
 
             for ($i=0; $i<$count; $i++) {
                 $info = @ibase_field_info($id, $i);
-                $res[$i]['table'] = (is_string($result)) ? $result : '';
+                //$res[$i]['table'] = (is_string($result)) ? $result : '';
+                $res[$i]['table'] = (is_string($result)) ? $result : $info['relation'];
                 $res[$i]['name']  = $info['name'];
                 $res[$i]['type']  = $info['type'];
                 $res[$i]['len']   = $info['length'];
-                $res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($info['name'], $result) : '';
+                //$res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($info['name'], $result) : '';
+                $res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($id, $i, $result) : '';
                 if ($mode & DB_TABLEINFO_ORDER) {
                     $res['order'][$res[$i]['name']] = $i;
                 }
@@ -1679,6 +1683,8 @@ class MDB_ibase extends MDB_Common
      **/
     function _ibaseFieldFlags($resource, $num_field, $table_name)
     {
+        $field_name = @ibase_field_info($resource, $num_field);
+        $field_name = @$field_name['name'];
         $sql = 'SELECT  R.RDB$CONSTRAINT_TYPE CTYPE'
                .' FROM  RDB$INDEX_SEGMENTS I'
                .' JOIN  RDB$RELATION_CONSTRAINTS R ON I.RDB$INDEX_NAME=R.RDB$INDEX_NAME'
@@ -1688,6 +1694,7 @@ class MDB_ibase extends MDB_Common
         if (empty($result)) {
             return $this->ibaseRaiseError();
         }
+        $flags = '';
         if ($obj = @ibase_fetch_object($result)) {
             ibase_free_result($result);
             if (isset($obj->CTYPE)  && trim($obj->CTYPE) == 'PRIMARY KEY') {
