@@ -256,7 +256,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
                     case 'changed_fields':
                         $fields = $changes['changed_fields'];
                         for($field=0, reset($fields);
-                            $field<count($fields);
+                            $field < count($fields);
                             next($fields), $field++)
                         {
                             if (MDB::isError($err = $this->checkSupportedChanges($fields[key($fields)]))) {
@@ -274,7 +274,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
             $query = '';
             if (isset($changes['added_fields'])) {
                 $fields = $changes['added_fields'];
-                for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
+                for($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
                     if (strcmp($query, '')) {
                         $query .= ', ';
                     }
@@ -283,7 +283,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
             }
             if (isset($changes['removed_fields'])) {
                 $fields = $changes['removed_fields'];
-                for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
+                for($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
                     if (strcmp($query, '')) {
                         $query .= ', ';
                     }
@@ -292,7 +292,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
             }
             if (isset($changes['renamed_fields'])) {
                 $fields = $changes['renamed_fields'];
-                for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
+                for($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
                     if (strcmp($query, '')) {
                         $query .= ', ';
                     }
@@ -301,15 +301,16 @@ class MDB_Manager_ibase extends MDB_Manager_common
             }
             if (isset($changes['changed_fields'])) {
                 $fields = $changes['changed_fields'];
-                for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
+                for($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
                     $field_name = key($fields);
-                    if (MDB::isError($err = $this->checkSupportedChanges($fields[key($fields)]))) {
+                    if (MDB::isError($err = $this->checkSupportedChanges($fields[$field_name]))) {
                         return $err;
                     }
                     if (strcmp($query, '')) {
                         $query .= ', ';
                     }
-                    $query .= 'ALTER '.$field_name.' TYPE '.$fields[$field_name]['definition'];
+                    $db->loadModule('datatype');
+                    $query .= 'ALTER '.$field_name.' TYPE '.$db->datatype->getTypeDeclaration($fields[$field_name]['definition']);
                 }
             }
             if (MDB::isError($err = $db->query("ALTER TABLE $name $query"))) {
@@ -332,7 +333,8 @@ class MDB_Manager_ibase extends MDB_Manager_common
     function listTableFields($table)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $result = $db->query("SELECT RDB$FIELD_SOURCE FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME='$table'", null, false);
+        $query = "SELECT RDB$FIELD_SOURCE FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME='$table'";
+        $result = $db->query($query, null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -406,8 +408,8 @@ class MDB_Manager_ibase extends MDB_Manager_common
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         for($query_sort='', $query_fields='', $field=0, reset($definition['fields']);
             $field<count($definition['fields']);
-            $field++, next($definition['fields']))
-        {
+            $field++, next($definition['fields'])
+        ) {
             if ($field > 0) {
                 $query_fields .= ',';
             }
@@ -415,8 +417,8 @@ class MDB_Manager_ibase extends MDB_Manager_common
             $query_fields .= $field_name;
             if (!strcmp($query_sort, '') 
                 && $db->support('index_sorting')
-                && isset($definition['fields'][$field_name]['sorting']))
-            {
+                && isset($definition['fields'][$field_name]['sorting'])
+            ) {
                 switch($definition['fields'][$field_name]['sorting']) {
                     case 'ascending':
                         $query_sort = ' ASC';
@@ -428,7 +430,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
             }
         }
         return $db->query('CREATE'.(isset($definition['unique']) ? ' UNIQUE' : '') . $query_sort
-                         ." INDEX $name  ON $table ($query_fields)");
+             ." INDEX $name  ON $table ($query_fields)");
     }
 
     // }}}
@@ -452,8 +454,8 @@ class MDB_Manager_ibase extends MDB_Manager_common
         if (MDB::isError($result = $db->query("SET GENERATOR $seqname TO ".($start-1)))) {
             if (MDB::isError($err = $db->dropSequence($seq_name))) {
                 return $this->raiseError(MDB_ERROR_MANAGER, null, null,
-                        'createSequence: Could not setup sequence start value and then it was not possible to drop it: '
-                        .$err->getMessage().' - ' .$err->getUserInfo());
+                    'createSequence: Could not setup sequence start value and then it was not possible to drop it: '
+                    .$err->getMessage().' - ' .$err->getUserInfo());
             }
         }
         return $result;
