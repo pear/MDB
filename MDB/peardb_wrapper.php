@@ -123,10 +123,10 @@ class DB
     {
         $db =& MDB::factory($type);
         if(PEAR::isError($db)) {
-            return $db;
+            return($db);
         }
         $obj =& new MDB_PEAR_PROXY($db);
-        return $obj;
+        return($obj);
     }
 
     function &connect($dsn, $options = FALSE)
@@ -136,35 +136,35 @@ class DB
         }
         $db =& MDB::connect($dsn, $options);
         if(PEAR::isError($db)) {
-            return $db;
+            return($db);
         }
         $obj =& new MDB_PEAR_PROXY($db);
-        return $obj;
+        return($obj);
     }
 
     function apiVersion()
     {
-        return 2;
+        return(2);
     }
 
     function isError($value)
     {
-        return MDB::isError($value);
+        return(MDB::isError($value));
     }
 
     function isManip($query)
     {
-        return MDB::isManip($query);
+        return(MDB::isManip($query));
     }
 
     function errorMessage($value)
     {
-        return MDB::errorMessage($value);
+        return(MDB::errorMessage($value));
     }
 
     function parseDSN($dsn)
     {
-        return MDB::parseDSN($dsn);
+        return(MDB::parseDSN($dsn));
     }
 
     function assertExtension($name)
@@ -221,62 +221,62 @@ class DB_result
         $this->result = $result;
     }
 
-    function fetchRow($fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
+    function fetchRow($fetchmode = DB_FETCHMODE_DEFAULT, $rownum = 0)
     {
         $arr = $this->dbh->fetchInto($this->result, $fetchmode, $rownum);
         if(is_array($arr)) {
-            return $arr;
+            return($arr);
         }
         else {
-            return NULL;
+            return(NULL);
         }
     }
 
-    function fetchInto(&$arr, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
+    function fetchInto(&$arr, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = 0)
     {
         $arr = $this->dbh->fetchInto($this->result, $fetchmode, $rownum);
         if(MDB::isError($arr)) {
-            return $arr;
+            return($arr);
         }
         if($arr === NULL) {
-            return $arr;
+            return($arr);
         }
-        return (DB_OK);
+        return(DB_OK);
     }
 
     function numCols()
     {
-        return $this->dbh->numCols($this->result);
+        return($this->dbh->numCols($this->result));
     }
 
     function numRows()
     {
-        return $this->dbh->numRows($this->result);
+        return($this->dbh->numRows($this->result));
     }
 
     function nextResult()
     {
-        return $this->dbh->nextResult($this->result);
+        return($this->dbh->nextResult($this->result));
     }
 
     function free()
     {
         $err = $this->dbh->freeResult($this->result);
         if(MDB::isError($err)) {
-            return $err;
+            return($err);
         }
         $this->result = FALSE;
-        return TRUE;
+        return(TRUE);
     }
 
     function tableInfo($mode = NULL)
     {
-        return $this->dbh->tableInfo($this->result, $mode);
+        return($this->dbh->tableInfo($this->result, $mode));
     }
 
     function getRowCounter()
     {
-        return $this->dbh->highest_fetched_row[$this->result];
+        return($this->dbh->highest_fetched_row[$this->result]);
     }
 }
 
@@ -302,12 +302,12 @@ class MDB_PEAR_PROXY
 
     function connect($dsninfo, $persistent = FALSE)
     {
-        return $this->MDB_object->connect($dsninfo, $persistent);
+        return($this->MDB_object->connect($dsninfo, $persistent));
     }
 
     function disconnect()
     {
-        return $this->MDB_object->disconnect();
+        return($this->MDB_object->disconnect());
     }
 
     function quoteString($string)
@@ -316,7 +316,7 @@ class MDB_PEAR_PROXY
         if ($string{0} == "'") {
             return substr($string, 1, -1);
         }
-        return $string;
+        return($string);
     }
 
     function quote($string)
@@ -324,60 +324,60 @@ class MDB_PEAR_PROXY
         if ($string === NULL) {
             return 'NULL';
         }
-        return $this->MDB_object->_quote($string);
+        return($this->MDB_object->_quote($string));
     }
 
     function provides($feature)
     {
-        return $this->MDB_object->support($feature);
+        return($this->MDB_object->support($feature));
     }
 
     function errorCode($nativecode)
     {
-        return $this->MDB_object->errorCode($nativecode);
+        return($this->MDB_object->errorCode($nativecode));
     }
 
     function errorMessage($dbcode)
     {
-        return $this->MDB_object->errorMessage($dbcode);
+        return($this->MDB_object->errorMessage($dbcode));
     }
 
     function &raiseError($code = DB_ERROR, $mode = NULL, $options = NULL,
                          $userinfo = NULL, $nativecode = NULL)
     {
-        return $this->MDB_object->raiseError($code = DB_ERROR, $mode, $options, $userinfo, $nativecode);
+        return($this->MDB_object->raiseError($code = DB_ERROR, $mode, $options, $userinfo, $nativecode));
     }
 
     function setFetchMode($fetchmode, $object_class = NULL)
     {
-        return $this->MDB_object->setFetchMode($fetchmode, $object_class);
+        return($this->MDB_object->setFetchMode($fetchmode, $object_class));
     }
 
     function setOption($option, $value)
     {
-        return $this->MDB_object->setOption($option, $value);
+        return($this->MDB_object->setOption($option, $value));
     }
 
     function getOption($option)
     {
-        return $this->MDB_object->getOption($option);
+        return($this->MDB_object->getOption($option));
     }
 
     function prepare($query)
     {
-        return $this->MDB_object->prepareQuery($query);
+        return($this->MDB_object->prepareQuery($query));
     }
 
     function autoPrepare($table, $table_fields, $mode = DB_AUTOQUERY_INSERT, $where = false)
     {
         $query = $this->buildManipSQL($table, $table_fields, $mode, $where);
-        return $this->prepare($query);
+        return($this->prepare($query));
     }
 
     function autoExecute($table, $fields_values, $mode = DB_AUTOQUERY_INSERT, $where = false)
     {
         $sth = $this->autoPrepare($table, array_keys($fields_values), $mode, $where);
-        return $this->execute($sth, array_values($fields_values));
+        return($this->execute($sth, array_values($fields_values)));
     }
 
     function buildManipSQL($table, $table_fields, $mode, $where = false)
@@ -416,7 +416,7 @@ class MDB_PEAR_PROXY
                 if ($where) {
                     $sql .= " WHERE $where";
                 }
-                return $sql;
+                return($sql);
                 break;
             default:
                 $this->raiseError(DB_ERROR_SYNTAX);
@@ -427,7 +427,7 @@ class MDB_PEAR_PROXY
     {
         $result = $this->MDB_object->execute($stmt, NULL, $data);
         if (MDB::isError($result) || $result === DB_OK) {
-            return $result;
+            return($result);
         } else {
             return new DB_result($this->MDB_object, $result);
         }
@@ -435,20 +435,20 @@ class MDB_PEAR_PROXY
 
     function executeMultiple( $stmt, &$data )
     {
-        return $this->MDB_object->executeMultiple($stmt, NULL, $data);
+        return($this->MDB_object->executeMultiple($stmt, NULL, $data));
     }
 
     function &query($query, $params = array()) {
         if (sizeof($params) > 0) {
             $sth = $this->MDB_object->prepare($query);
             if (MDB::isError($sth)) {
-                return $sth;
+                return($sth);
             }
-            return $this->MDB_object->execute($sth, $params);
+            return($this->MDB_object->execute($sth, $params));
         } else {
             $result = $this->MDB_object->query($query);
             if (MDB::isError($result) || $result === DB_OK) {
-                return $result;
+                return($result);
             } else {
                 return new DB_result($this->MDB_object, $result);
             }
@@ -456,14 +456,14 @@ class MDB_PEAR_PROXY
     }
 
     function simpleQuery($query) {
-        return $this->MDB_object->query($query);
+        return($this->MDB_object->query($query));
     }
 
     function limitQuery($query, $from, $count)
     {
         $result = $this->MDB_object->limitQuery($query, NULL, $from, $count);
         if (MDB::isError($result) || $result === DB_OK) {
-            return $result;
+            return($result);
         } else {
             return new DB_result($this->MDB_object, $result);
         }
@@ -471,104 +471,104 @@ class MDB_PEAR_PROXY
 
     function &getOne($query, $params = array())
     {
-        return $this->MDB_object->getOne($query, NULL, $params);
+        return($this->MDB_object->getOne($query, NULL, $params));
     }
 
     function &getRow($query,
                      $params = NULL,
                      $fetchmode = DB_FETCHMODE_DEFAULT)
     {
-        return $this->MDB_object->getRow($query, NULL, $params, NULL, $fetchmode);
+        return($this->MDB_object->getRow($query, NULL, $params, NULL, $fetchmode));
     }
 
     function &getCol($query, $col = 0, $params = array())
     {
-        return $this->MDB_object->getCol($query, NULL, $params, NULL, $col);
+        return($this->MDB_object->getCol($query, NULL, $params, NULL, $col));
     }
 
     function &getAssoc($query, $force_array = FALSE, $params = array(),
                        $fetchmode = DB_FETCHMODE_ORDERED, $group = FALSE)
     {
-        return $this->MDB_object->getAssoc($query, NULL, $params, NULL, $fetchmode, $force_array, $group);
+        return($this->MDB_object->getAssoc($query, NULL, $params, NULL, $fetchmode, $force_array, $group));
     }
 
     function &getAll($query,
                      $params = NULL,
                      $fetchmode = DB_FETCHMODE_DEFAULT)
     {
-        return $this->MDB_object->getAll($query, $params, NULL, $fetchmode);
+        return($this->MDB_object->getAll($query, $params, NULL, $fetchmode));
     }
 
     function autoCommit($onoff = FALSE)
     {
-        return $this->MDB_object->autoCommit($onoff);
+        return($this->MDB_object->autoCommit($onoff));
     }
 
     function commit()
     {
-        return $this->MDB_object->commit();
+        return($this->MDB_object->commit());
     }
 
     function rollback()
     {
-        return $this->MDB_object->rollback();
+        return($this->MDB_object->rollback());
     }
 
     function numRows($result)
     {
-        return $this->MDB_object->numRows($result);
+        return($this->MDB_object->numRows($result));
     }
 
     function affectedRows()
     {
-        return $this->MDB_object->affectedRows();
+        return($this->MDB_object->affectedRows());
     }
 
     function errorNative()
     {
-        return $this->MDB_object->errorNative();
+        return($this->MDB_object->errorNative());
     }
 
     function nextId($seq_name, $ondemand = TRUE)
     {
-        return $this->MDB_object->nextId($seq_name, $ondemand);
+        return($this->MDB_object->nextId($seq_name, $ondemand));
     }
 
     function createSequence($seq_name)
     {
-        return $this->MDB_object->createSequence($seq_name, 1);
+        return($this->MDB_object->createSequence($seq_name, 1));
     }
 
     function dropSequence($seq_name)
     {
-        return $this->MDB_object->dropSequence($seq_name);
+        return($this->MDB_object->dropSequence($seq_name));
     }
 
     function tableInfo($result, $mode = NULL)
     {
-        return $this->MDB_object->tableInfo($result, $mode);
+        return($this->MDB_object->tableInfo($result, $mode));
     }
 
     function getTables()
     {
-        return $this->getListOf('tables');
+        return($this->getListOf('tables'));
     }
 
     function getListOf($type)
     {
         switch ($type) {
             case 'tables':
-                return $this->MDB_object->listTables();
+                return($this->MDB_object->listTables());
             case 'views':
-                return $this->MDB_object->listViews();
+                return($this->MDB_object->listViews());
             case 'users':
-                return $this->MDB_object->listUsers();
+                return($this->MDB_object->listUsers());
             case 'functions':
-                return $this->MDB_object->listFunctions();
+                return($this->MDB_object->listFunctions());
             case 'databases':
-                return $this->MDB_object->listDatabases();
+                return($this->MDB_object->listDatabases());
             default:
-                return $this->raiseError(DB_ERROR_UNSUPPORTED);
+                return($this->raiseError(DB_ERROR_UNSUPPORTED));
         }
     }
 }

@@ -64,7 +64,7 @@ if(!defined('MDB_MANAGER_XXX_INCLUDED'))
 {
     define('MDB_MANAGER_XXX_INCLUDED',1);
 
-require_once 'MDB/Modules/Manager/Common.php';
+require_once('MDB/Modules/Manager/Common.php');
 
 /**
  * MDB Xxx driver for the management modules

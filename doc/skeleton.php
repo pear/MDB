@@ -63,7 +63,7 @@
 if (!defined('MDB_XXX_INCLUDED')) {
     define('MDB_XXX_INCLUDED', 1);
 
-require_once 'MDB/Common.php';
+require_once('MDB/Common.php');
 
 /**
  * MDB XXX driver
@@ -103,15 +103,15 @@ class MDB_xxx extends MDB_Common
     function MDB_xxx($dsninfo = NULL, $options = NULL)
     {
         if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
-            return $common_contructor;
+            return($common_contructor);
         }
         $this->phptype = 'xxx';
         $this->dbsyntax = 'xxx';
         
         if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
+            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
                 NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', TRUE);
+                'MDB_Error', TRUE));
         }
         
         // most of the following codes needs to be taken from the corresponding Metabase driver setup() methods
@@ -734,7 +734,7 @@ class MDB_xxx extends MDB_Common
      * @return int data array on success, a MDB error on failure
      * @access public
      */
-    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
+    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = 0)
     {
         // take this from the corresponding Metabase driver: FetchResultArray()
     }

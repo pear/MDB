@@ -544,7 +544,11 @@ class MDB_Common extends PEAR
         if (strlen($included_constant) == 0 || !defined($included_constant)) {
             if($include) {
                 $include = 'MDB/Modules/'.$include;
-                include_once($include);
+                if(MDB::isError($debug = $this->getOption('debug')) || $debug > 2) {
+                    include_once($include);
+                } else {
+                    @include_once($include);
+                }
             } else {
                 return($this->raiseError(MDB_ERROR_LOADMODULE, '', '',
                     $scope . ': it was not specified an existing ' . $module . ' file (' . $include . ')'));
@@ -3540,7 +3544,7 @@ class MDB_Common extends PEAR
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
+    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = 0)
     {
         $res = $this->fetchInto($result, $fetchmode, $rownum);
         if (!$this->options['autofree'] && $res != NULL) {
@@ -3564,7 +3568,7 @@ class MDB_Common extends PEAR
     {
         $fetchmode = is_int($colnum) ? MDB_FETCHMODE_ORDERED : MDB_FETCHMODE_ASSOC;
         $column = array();
-        while (is_array($res = $this->fetchInto($result, $fetchmode, NULL))) {
+        while (is_array($res = $this->fetchInto($result, $fetchmode))) {
             $column[] = $res[$colnum];
         }
         if (!$this->options['autofree'] && $res != NULL) {
@@ -3608,7 +3612,7 @@ class MDB_Common extends PEAR
             }
         }
         $all = array(); 
-        while (is_array($res = $this->fetchInto($result, $fetchmode, NULL))) {
+        while (is_array($res = $this->fetchInto($result, $fetchmode))) {
             if ($rekey) {
                 if ($fetchmode & MDB_FETCHMODE_ASSOC) {
                     reset($res);

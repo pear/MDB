@@ -45,7 +45,7 @@
 // $Id$
 //
 
-require_once 'MDB/Common.php';
+require_once('MDB/Common.php');
 
 /**
  * MDB MySQL driver
@@ -85,16 +85,16 @@ class MDB_mysql extends MDB_Common
     function MDB_mysql($dsninfo = NULL, $options = NULL)
     {
         if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
-            return $common_contructor;
+            return($common_contructor);
         }
         
         $this->phptype = 'mysql';
         $this->dbsyntax = 'mysql';
         
         if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
+            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
                 NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', TRUE);
+                'MDB_Error', TRUE));
         }
         
         $this->supported['Sequences'] = 1;
@@ -194,7 +194,7 @@ class MDB_mysql extends MDB_Common
         if ($errno == NULL) {
             $errno = $this->errorCode(mysql_errno($this->connection));
         }
-        return $this->raiseError($errno, NULL, NULL, NULL, @mysql_error($this->connection));
+        return($this->raiseError($errno, NULL, NULL, NULL, @mysql_error($this->connection)));
     }
 
     // }}}
@@ -220,31 +220,31 @@ class MDB_mysql extends MDB_Common
     {
         $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
         if (!isset($this->supported['Transactions'])) {
-            return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
-                'Auto-commit transactions: transactions are not in use');
+            return($this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+                'Auto-commit transactions: transactions are not in use'));
         }
         if (((!$this->auto_commit) == (!$auto_commit))) {
-            return (MDB_OK);
+            return(MDB_OK);
         }
         if ($this->connection) {
             if ($auto_commit) {
                 $result = $this->query('COMMIT');
                 if (MDB::isError($result)) {
-                    return $result;
+                    return($result);
                 }
                 $result = $this->query('SET AUTOCOMMIT = 1');
                 if (MDB::isError($result)) {
-                    return $result;
+                    return($result);
                 }
             } else {
                 $result = $this->query('SET AUTOCOMMIT = 0');
                 if (MDB::isError($result)) {
-                    return $result;
+                    return($result);
                 }
             }
         }
         $this->auto_commit = $auto_commit;
-        return ($this->_registerTransactionShutdown($auto_commit));
+        return($this->_registerTransactionShutdown($auto_commit));
     }
 
     // }}}
@@ -264,14 +264,14 @@ class MDB_mysql extends MDB_Common
     {
         $this->debug("Commit Transaction");
         if (!isset($this->supported['Transactions'])) {
-            return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
-                'Commit transactions: transactions are not in use');
+            return($this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+                'Commit transactions: transactions are not in use'));
         }
         if ($this->auto_commit) {
-            return $this->raiseError(MDB_ERROR, '', '',
-            'Commit transactions: transaction changes are being auto commited');
+            return($this->raiseError(MDB_ERROR, '', '',
+            'Commit transactions: transaction changes are being auto commited'));
         }
-        return ($this->query('COMMIT'));
+        return($this->query('COMMIT'));
     }
 
     // }}}
@@ -291,14 +291,14 @@ class MDB_mysql extends MDB_Common
     {
         $this->debug("Rollback Transaction");
         if (!isset($this->supported['Transactions'])) {
-            return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
-                'Rollback transactions: transactions are not in use');
+            return($this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+                'Rollback transactions: transactions are not in use'));
         }
         if ($this->auto_commit) {
-            return $this->raiseError(MDB_ERROR, '', '',
-                'Rollback transactions: transactions can not be rolled back when changes are auto commited');
+            return($this->raiseError(MDB_ERROR, '', '',
+                'Rollback transactions: transactions can not be rolled back when changes are auto commited'));
         }
-        return ($this->query('ROLLBACK'));
+        return($this->query('ROLLBACK'));
     }
 
     // }}}
@@ -319,7 +319,7 @@ class MDB_mysql extends MDB_Common
                 && !strcmp($this->connected_port, $port)
                 && $this->opened_persistent == $this->options['persistent'])
             {
-                return (MDB_OK);
+                return(MDB_OK);
             }
             mysql_close($this->connection);
             $this->connection = 0;
@@ -328,7 +328,7 @@ class MDB_mysql extends MDB_Common
         $this->fixed_float = 30;
         $function = ($this->options['persistent'] ? 'mysql_pconnect' : 'mysql_connect');
         if (!function_exists($function)) {
-            return ($this->raiseError(MDB_ERROR_UNSUPPORTED));
+            return($this->raiseError(MDB_ERROR_UNSUPPORTED));
         }
 
         @ini_set('track_errors', TRUE);
@@ -337,7 +337,7 @@ class MDB_mysql extends MDB_Common
             $this->user, $this->password);
         @ini_restore('track_errors');
         if ($this->connection <= 0) {
-            return ($this->raiseError(MDB_ERROR_CONNECT_FAILED, '', '',
+            return($this->raiseError(MDB_ERROR_CONNECT_FAILED, '', '',
                     $php_errormsg));
         }
 
@@ -345,7 +345,7 @@ class MDB_mysql extends MDB_Common
             $this->fixed_float = $this->options['fixedfloat'];
         } else {
             if (($result = mysql_query('SELECT VERSION()', $this->connection))) {
-                $version = explode('.',mysql_result($result,0,0));
+                $version = explode('.', mysql_result($result,0,0));
                 $major = intval($version[0]);
                 $minor = intval($version[1]);
                 $revision = intval($version[2]);
@@ -362,7 +362,7 @@ class MDB_mysql extends MDB_Common
                 mysql_close($this->connection);
                 $this->connection = 0;
                 $this->affected_rows = -1;
-                return ($this->raiseError());
+                return($this->raiseError());
             }
             $this->_registerTransactionShutdown(0);
         }
@@ -371,7 +371,7 @@ class MDB_mysql extends MDB_Common
         $this->connected_password = $this->password;
         $this->connected_port = $port;
         $this->opened_persistent = $this->options['persistent'];
-        return (MDB_OK);
+        return(MDB_OK);
     }
 
     // }}}
@@ -393,13 +393,13 @@ class MDB_mysql extends MDB_Common
             $this->affected_rows = -1;
 
             if (isset($result) && MDB::isError($result)) {
-                return $result;
+                return($result);
             }
             global $_MDB_databases;
             $_MDB_databases[$this->database] = '';
-            return TRUE;
+            return(TRUE);
         }
-        return FALSE;
+        return(FALSE);
     }
 
     // }}}
@@ -427,7 +427,7 @@ class MDB_mysql extends MDB_Common
 
         $result = $this->connect();
         if (MDB::isError($result)) {
-            return $result;
+            return($result);
         }
         if($limit > 0) {
             if ($ismanip) {
@@ -436,17 +436,15 @@ class MDB_mysql extends MDB_Common
                 $query .= " LIMIT $first,$limit";
             }
         }
-
-        if ($this->database_name != '') {
+        if ($this->database_name) {
             if(!mysql_select_db($this->database_name, $this->connection)) {
-                return $this->mysqlRaiseError();
+                return($this->mysqlRaiseError());
             }
         }
-
         if ($result = mysql_query($query, $this->connection)) {
             if ($ismanip) {
                 $this->affected_rows = mysql_affected_rows($this->connection);
-                return MDB_OK;
+                return(MDB_OK);
             } else {
                 $this->highest_fetched_row[$result] = -1;
                 if ($types != NULL) {
@@ -455,13 +453,13 @@ class MDB_mysql extends MDB_Common
                     }
                     if (MDB::isError($err = $this->setResultTypes($result, $types))) {
                         $this->freeResult($result);
-                        return $err;
+                        return($err);
                     }
                 }
-                return $result;
+                return($result);
             }
         }
-        return $this->mysqlRaiseError();
+        return($this->mysqlRaiseError());
     }
 
     // }}}
@@ -486,7 +484,7 @@ class MDB_mysql extends MDB_Common
         }
         $col = $this->queryCol($query);
         if (MDB::isError($col)) {
-            return $col;
+            return($col);
         }
         if(!is_array($col) || count($col) == 0) {
             return 'NULL';
@@ -583,8 +581,8 @@ class MDB_mysql extends MDB_Common
                 $value = 'NULL';
             } else {
                 if (!isset($fields[$name]['Value'])) {
-                    return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
-                        'no value for field "'.$name.'" specified');
+                    return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
+                        'no value for field "'.$name.'" specified'));
                 }
                 if(isset($fields[$name]['Type'])) {
                     switch ($fields[$name]['Type']) {
@@ -613,8 +611,8 @@ class MDB_mysql extends MDB_Common
                             $value = $this->getTimestampValue($fields[$name]['Value']);
                             break;
                         default:
-                            return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
-                                'no supported type for field "' . $name . '" specified');
+                            return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
+                                'no supported type for field "' . $name . '" specified'));
                     }
                 } else {
                     $value = $fields[$name]['Value'];
@@ -623,17 +621,17 @@ class MDB_mysql extends MDB_Common
             $values .= $value;
             if (isset($fields[$name]['Key']) && $fields[$name]['Key']) {
                 if ($value == 'NULL') {
-                    return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
-                        'key values may not be NULL');
+                    return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
+                        'key values may not be NULL'));
                 }
                 $keys++;
             }
         }
         if ($keys == 0) {
-            return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
-                'not specified which fields are keys');
+            return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
+                'not specified which fields are keys'));
         }
-        return ($this->query("REPLACE INTO $table ($query) VALUES ($values)"));
+        return($this->query("REPLACE INTO $table ($query) VALUES ($values)"));
     }
 
     // }}}
@@ -659,8 +657,8 @@ class MDB_mysql extends MDB_Common
     {
         $result_value = intval($result);
         if (!isset($this->highest_fetched_row[$result_value])) {
-            return $this->raiseError(MDB_ERROR_INVALID, '', '',
-                'Get column names: it was specified an inexisting result set');
+            return($this->raiseError(MDB_ERROR_INVALID, '', '',
+                'Get column names: it was specified an inexisting result set'));
         }
         if (!isset($this->columns[$result_value])) {
             $this->columns[$result_value] = array();
@@ -669,7 +667,7 @@ class MDB_mysql extends MDB_Common
                 $this->columns[$result_value][strtolower(mysql_field_name($result, $column))] = $column;
             }
         }
-        return ($this->columns[$result_value]);
+        return($this->columns[$result_value]);
     }
 
     // }}}
@@ -686,10 +684,10 @@ class MDB_mysql extends MDB_Common
     function numCols($result)
     {
         if (!isset($this->highest_fetched_row[intval($result)])) {
-            return $this->raiseError(MDB_ERROR_INVALID, '', '',
-                'numCols: it was specified an inexisting result set');
+            return($this->raiseError(MDB_ERROR_INVALID, '', '',
+                'numCols: it was specified an inexisting result set'));
         }
-        return (mysql_num_fields($result));
+        return(mysql_num_fields($result));
     }
 
     // }}}
@@ -705,10 +703,10 @@ class MDB_mysql extends MDB_Common
     function endOfResult($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return $this->raiseError(MDB_ERROR, '', '',
-                'End of result: attempted to check the end of an unknown result');
+            return($this->raiseError(MDB_ERROR, '', '',
+                'End of result: attempted to check the end of an unknown result'));
         }
-        return ($this->highest_fetched_row[$result] >= $this->numRows($result)-1);
+        return($this->highest_fetched_row[$result] >= $this->numRows($result)-1);
     }
 
     // }}}
@@ -728,9 +726,9 @@ class MDB_mysql extends MDB_Common
         $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
         $res = @mysql_result($result, $row, $field);
         if ($res === FALSE && $res != NULL) {
-            return $this->mysqlRaiseError($errno);
+            return($this->mysqlRaiseError($errno));
         }
-        return ($res);
+        return($res);
     }
 
     // }}}
@@ -748,7 +746,7 @@ class MDB_mysql extends MDB_Common
     */
     function fetchClob($result, $row, $field)
     {
-        return ($this->fetchLob($result, $row, $field));
+        return($this->fetchLob($result, $row, $field));
     }
 
     // }}}
@@ -765,7 +763,7 @@ class MDB_mysql extends MDB_Common
     */
     function fetchBlob($result, $row, $field)
     {
-        return ($this->fetchLob($result, $row, $field));
+        return($this->fetchLob($result, $row, $field));
     }
 
     // }}}
@@ -783,19 +781,19 @@ class MDB_mysql extends MDB_Common
     {
         switch($type) {
             case MDB_TYPE_BOOLEAN:
-                return (strcmp($value, 'Y') ? 0 : 1);
+                return(strcmp($value, 'Y') ? 0 : 1);
             case MDB_TYPE_DECIMAL:
-                return (sprintf('%.'.$this->decimal_places.'f', doubleval($value)/$this->decimal_factor));
+                return(sprintf('%.'.$this->decimal_places.'f', doubleval($value)/$this->decimal_factor));
             case MDB_TYPE_FLOAT:
-                return (doubleval($value));
+                return(doubleval($value));
             case MDB_TYPE_DATE:
-                return ($value);
+                return($value);
             case MDB_TYPE_TIME:
-                return ($value);
+                return($value);
             case MDB_TYPE_TIMESTAMP:
-                return ($value);
+                return($value);
             default:
-                return ($this->_baseConvertResult($value, $type));
+                return($this->_baseConvertResult($value, $type));
         }
     }
 
@@ -811,7 +809,7 @@ class MDB_mysql extends MDB_Common
     */
     function numRows($result)
     {
-        return (mysql_num_rows($result));
+        return(mysql_num_rows($result));
     }
 
     // }}}
@@ -835,7 +833,7 @@ class MDB_mysql extends MDB_Common
         if(isset($this->result_types[$result])) {
             unset($this->result_types[$result]);
         }
-        return (mysql_free_result($result));
+        return(mysql_free_result($result));
     }
 
     // }}}
@@ -869,7 +867,7 @@ class MDB_mysql extends MDB_Common
      */
     function getIntegerDeclaration($name, $field)
     {
-        return ("$name INT".
+        return("$name INT".
                 (isset($field['unsigned']) ? ' UNSIGNED' : '').
                 (isset($field['default']) ? ' DEFAULT '.$field['default'] : '').
                 (isset($field['notnull']) ? ' NOT NULL' : '')
@@ -922,7 +920,7 @@ class MDB_mysql extends MDB_Common
         } else {
             $type = 'LONGTEXT';
         }
-        return ("$name $type".
+        return("$name $type".
                  (isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
@@ -973,7 +971,7 @@ class MDB_mysql extends MDB_Common
         else {
             $type = 'LONGBLOB';
         }
-        return ("$name $type".
+        return("$name $type".
                 (isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
@@ -1002,7 +1000,7 @@ class MDB_mysql extends MDB_Common
      */
     function getDateDeclaration($name, $field)
     {
-        return ("$name DATE".
+        return("$name DATE".
                 (isset($field['default']) ? " DEFAULT '".$field['default']."'" : '').
                 (isset($field['notnull']) ? ' NOT NULL' : '')
                );
@@ -1034,7 +1032,7 @@ class MDB_mysql extends MDB_Common
      */
     function getTimestampDeclaration($name, $field)
     {
-        return ("$name DATETIME".
+        return("$name DATETIME".
                 (isset($field['default']) ? " DEFAULT '".$field['default']."'" : '').
                 (isset($field['notnull']) ? ' NOT NULL' : '')
                );
@@ -1065,7 +1063,7 @@ class MDB_mysql extends MDB_Common
      */
     function getTimeDeclaration($name, $field)
     {
-        return ("$name TIME".
+        return("$name TIME".
                 (isset($field['default']) ? " DEFAULT '".$field['default']."'" : '').
                 (isset($field['notnull']) ? ' NOT NULL' : '')
                );
@@ -1105,7 +1103,7 @@ class MDB_mysql extends MDB_Common
                 $this->connect();
             }
         }
-        return ("$name DOUBLE".
+        return("$name DOUBLE".
                 ($this->fixed_float ?
                  '('.($this->fixed_float + 2).','.$this->fixed_float.')' : '').
                 (isset($field['default']) ?
@@ -1140,7 +1138,7 @@ class MDB_mysql extends MDB_Common
      */
     function getDecimalDeclaration($name, $field)
     {
-        return ("$name BIGINT".
+        return("$name BIGINT".
                 (isset($field['default']) ?
                  ' DEFAULT '.$this->getDecimalValue($field['default']) : '').
                  (isset($field['notnull']) ? ' NOT NULL' : '')
@@ -1166,12 +1164,12 @@ class MDB_mysql extends MDB_Common
         $value = "'";
         while(!$this->endOfLob($clob)) {
             if (MDB::isError($result = $this->readLob($clob, $data, $this->options['lob_buffer_length']))) {
-                return $result;
+                return($result);
             }
             $value .= $this->_quote($data);
         }
         $value .= "'";
-        return ($value);
+        return($value);
     }
 
     // }}}
@@ -1188,7 +1186,7 @@ class MDB_mysql extends MDB_Common
     function freeClobValue($prepared_query, $clob)
     {
         unset($this->lobs[$clob]);
-        return (MDB_OK);
+        return(MDB_OK);
     }
 
     // }}}
@@ -1210,12 +1208,12 @@ class MDB_mysql extends MDB_Common
         $value = "'";
         while(!$this->endOfLob($blob)) {
             if (MDB::isError($result = $this->readLob($blob, $data, $this->options['lob_buffer_length']))) {
-                return $result;
+                return($result);
             }
             $value .= addslashes($data);
         }
         $value .= "'";
-        return ($value);
+        return($value);
     }
 
     // }}}
@@ -1232,7 +1230,7 @@ class MDB_mysql extends MDB_Common
     function freeBlobValue($prepared_query, $blob)
     {
         unset($this->lobs[$blob]);
-        return (MDB_OK);
+        return(MDB_OK);
     }
 
     // }}}
@@ -1249,7 +1247,7 @@ class MDB_mysql extends MDB_Common
      */
     function getFloatValue($value)
     {
-        return (!strcmp($value, 'NULL') ? 'NULL' : "$value");
+        return(!strcmp($value, 'NULL') ? 'NULL' : "$value");
     }
 
     // }}}
@@ -1266,7 +1264,7 @@ class MDB_mysql extends MDB_Common
      */
     function getDecimalValue($value)
     {
-        return (!strcmp($value, 'NULL') ? 'NULL' : strval(round(doubleval($value)*$this->decimal_factor)));
+        return(!strcmp($value, 'NULL') ? 'NULL' : strval(round(doubleval($value)*$this->decimal_factor)));
     }
 
     // }}}
@@ -1295,11 +1293,11 @@ class MDB_mysql extends MDB_Common
             // we know the first id = 1 so initialize the
             // sequence at 2
             if (MDB::isError($result)) {
-                return $this->raiseError(MDB_ERROR, '', '',
-                    'Next ID: on demand sequence could not be created');
+                return($this->raiseError(MDB_ERROR, '', '',
+                    'Next ID: on demand sequence could not be created'));
             } else {
                 // First ID of a newly created sequence is 1
-                return 1;
+                return(1);
             }
         }
         $value = intval(mysql_insert_id());
@@ -1307,7 +1305,7 @@ class MDB_mysql extends MDB_Common
         if (MDB::isError($res)) {
             $this->warnings[] = 'Next ID: could not delete previous sequence table values';
         }
-        return ($value);
+        return($value);
     }
 
 
@@ -1326,10 +1324,10 @@ class MDB_mysql extends MDB_Common
         $sequence_name = $this->getSequenceName($seq_name);
         $result = $this->query("SELECT MAX(sequence) FROM $sequence_name", 'integer');
         if (MDB::isError($result)) {
-            return $result;
+            return($result);
         }
 
-        return ($this->fetchOne($result));
+        return($this->fetchOne($result));
     }
 
     // }}}
@@ -1344,13 +1342,13 @@ class MDB_mysql extends MDB_Common
      * @return int data array on success, a MDB error on failure
      * @access public
      */
-    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
+    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = 0)
     {
-        if ($rownum == NULL) {
+        if ($rownum == 0) {
             ++$this->highest_fetched_row[$result];
         } else {
             if (!@mysql_data_seek($result, $rownum)) {
-                return NULL;
+                return(NULL);
             }
             $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
         }
@@ -1368,14 +1366,14 @@ class MDB_mysql extends MDB_Common
                 if($this->options['autofree']) {
                     $this->freeResult($result);
                 }
-                return NULL;
+                return(NULL);
             }
-            return $this->mysqlRaiseError($errno);
+            return($this->mysqlRaiseError($errno));
         }
         if (isset($this->result_types[$result])) {
             $array = $this->convertResultRow($result, $array);
         }
-        return ($array);
+        return($array);
     }
 
     // }}}
@@ -1391,7 +1389,7 @@ class MDB_mysql extends MDB_Common
      */
     function nextResult($result)
     {
-        return FALSE;
+        return(FALSE);
     }
 
     // }}}
@@ -1453,12 +1451,12 @@ class MDB_mysql extends MDB_Common
             $id = @mysql_list_fields($this->database_name,
                 $result, $this->connection);
             if (empty($id)) {
-                return $this->mysqlRaiseError();
+                return($this->mysqlRaiseError());
             }
         } else { // else we want information about a resultset
             $id = $result;
             if (empty($id)) {
-                return $this->mysqlRaiseError();
+                return($this->mysqlRaiseError());
             }
         }
 
@@ -1495,7 +1493,7 @@ class MDB_mysql extends MDB_Common
         if (is_string($result)) {
             @mysql_free_result($id);
         }
-        return $res;
+        return($res);
     }
 }
 

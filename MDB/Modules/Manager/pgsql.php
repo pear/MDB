@@ -48,7 +48,7 @@ if(!defined('MDB_MANAGER_PGSQL_INCLUDED'))
 {
     define('MDB_MANAGER_PGSQL_INCLUDED', 1);
 
-require_once 'MDB/Modules/Manager/Common.php';
+require_once('MDB/Modules/Manager/Common.php');
 
 /**
  * MDB MySQL driver for the management modules
@@ -128,16 +128,16 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     function createTable(&$db, $name, $fields)
     {
         if (!isset($name) || !strcmp($name, '')) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no valid table name specified');
+            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no valid table name specified'));
         }
         if (count($fields) == 0) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "' . $name . '"');
+            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "'.$name.'"'));
         }
         $query_fields = '';
         if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'unkown error');
+            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'unkown error'));
         }
-        return ($db->query("CREATE TABLE $name ($query_fields)"));
+        return($db->query("CREATE TABLE $name ($query_fields)"));
     }
 
     // }}}
@@ -254,10 +254,10 @@ class MDB_Manager_pgsql extends MDB_Manager_common
                         return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'change type "'.key($changes).'\" not yet supported'));
                 }
             }
-            return (MDB_OK);
+            return(MDB_OK);
         } else {
             if (isSet($changes[$change = 'name']) || isSet($changes[$change = 'RenamedFields']) || isSet($changes[$change = 'ChangedFields'])) {
-                return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', "change type \"$change\" not yet supported"));
+                return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'change type "'.$change.'" not yet supported'));
             }
             $query = '';
             if (isSet($changes['AddedFields'])) {
@@ -276,7 +276,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
                     }
                 }
             }
-            return (MDB_OK);
+            return(MDB_OK);
         }
     }
 
@@ -292,7 +292,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listDatabases(&$db)
     {
-        return $db->queryCol('SELECT datname FROM pg_database');
+        return($db->queryCol('SELECT datname FROM pg_database'));
     }
 
     // }}}
@@ -307,7 +307,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listUsers(&$db)
     {
-        return $db->queryCol('SELECT usename FROM pg_user');
+        return($db->queryCol('SELECT usename FROM pg_user'));
     }
 
     // }}}
@@ -335,7 +335,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             AND not exists (select 1 from pg_views where viewname = c.relname)
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
             AND c.relname !~ \'^pg_\'';
-        return $db->queryCol($sql);
+        return($db->queryCol($sql));
     }
 
     // }}}
@@ -353,13 +353,13 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     {
         $result = $db->query("SELECT * FROM $table");
         if(MDB::isError($result)) {
-            return $result;
+            return($result);
         }
         $columns = $db->getColumnNames($result);
         if(MDB::isError($columns)) {
             $db->freeResult($columns);
         }
-        return $columns;
+        return($columns);
     }
 
     // }}}
@@ -378,7 +378,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     function listViews(&$db)
     {
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
-        return $db->queryCol('SELECT viewname FROM pg_views');
+        return($db->queryCol('SELECT viewname FROM pg_views'));
     }
 
     // }}}
@@ -447,7 +447,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             AND not exists (select 1 from pg_views where viewname = c.relname)
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
             AND c.relname !~ \'^pg_\'';
-        return $db->queryCol($sql);
+        return($db->queryCol($sql));
     }
 }
 

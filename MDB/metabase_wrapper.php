@@ -580,7 +580,7 @@ function MetabaseFetchResultField($database, $result, &$field)
 function MetabaseFetchResultArray($database, $result, &$array, $row)
 {
     global $_MDB_databases;
-    $result = $_MDB_databases[$database]->fetchInto($result, 'NULL', $row);
+    $result = $_MDB_databases[$database]->fetchInto($result, MDB_FETCHMODE_ORDERED, $row);
     if (MDB::isError($result)) {
         $_MDB_databases[$database]->setError('FetchResultArray', $result->getMessage());
         return(0);

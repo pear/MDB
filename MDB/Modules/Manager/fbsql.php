@@ -49,7 +49,7 @@ if(!defined('MDB_MANAGER_FBSQL_INCLUDED'))
 {
     define('MDB_MANAGER_FBSQL_INCLUDED', 1);
 
-require_once 'MDB/Modules/Manager/Common.php';
+require_once('MDB/Modules/Manager/Common.php');
 
 /**
  * MDB FrontBase driver for the management modules
@@ -114,7 +114,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         }
         if(count($has) == 0) {
             return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
-                'Verify transactional table',"could not tell if ".$table_type.' is a supported table type'));
+                'Verify transactional table','could not tell if '.$table_type.' is a supported table type'));
         }
         if(strcmp($has[0][1], 'YES')) {
             return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
@@ -122,7 +122,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                 $table_type.' is not a supported table type by this FrontBase database server'));
         }
         $this->verified_table_types[$table_type] = $db->connection;
-        return (MDB_OK);
+        return(MDB_OK);
     }
 
     // }}}
@@ -139,13 +139,13 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     function createDatabase(&$db, $name)
     {
         if (MDB::isError($result = $db->connect())) {
-            return $result;
+            return($result);
         }
         if (!fbsql_create_db($name, $db->connection)) {
-            return $db->fbsqlRaiseError();
+            return($db->fbsqlRaiseError());
         }
 
-        return (MDB_OK);
+        return(MDB_OK);
     }
 
     // }}}
@@ -162,12 +162,12 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     function dropDatabase(&$db, $name)
     {
         if (MDB::isError($result = $db->connect())) {
-            return $result;
+            return($result);
         }
         if (!fbsql_drop_db($name, $db->connection)) {
-            return $db->fbsqlRaiseError();
+            return($db->fbsqlRaiseError());
         }
-        return (MDB_OK);
+        return(MDB_OK);
     }
 
     // }}}
@@ -207,16 +207,16 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     function createTable(&$db, $name, $fields)
     {
         if (!isset($name) || !strcmp($name, '')) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no valid table name specified');
+            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no valid table name specified'));
         }
         if (count($fields) == 0) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "'.$name.'"');
+            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "'.$name.'"'));
         }
         if(MDB::isError($verify = $this->_verifyTransactionalTableType($db, $db->default_table_type))) {
             return($verify);
         }
         if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'unkown error');
+            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'unkown error'));
         }
         if (isset($db->supported['Transactions'])
             && $db->default_table_type=='BDB')
@@ -225,7 +225,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         }
         $query = "CREATE TABLE $name ($query_fields)".(strlen($db->default_table_type) ? ' TYPE='.$db->default_table_type : '');
 
-        return ($db->query($query));
+        return($db->query($query));
     }
 
     // }}}
@@ -343,11 +343,11 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                     case 'name':
                         break;
                     default:
-                        return $db->raiseError(MDB_ERROR_CANNOT_ALTER, '', '',
-                            'Alter table: change type "'.Key($changes).'" not yet supported');
+                        return($db->raiseError(MDB_ERROR_CANNOT_ALTER, '', '',
+                            'Alter table: change type "'.Key($changes).'" not yet supported'));
                 }
             }
-            return (MDB_OK);
+            return(MDB_OK);
         } else {
             $query = (isset($changes['name']) ? 'RENAME AS '.$changes['name'] : '');
             if (isset($changes['AddedFields'])) {
@@ -415,7 +415,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                     $query .= "CHANGE $old_field_name ".$changes['RenamedFields'][$old_field_name]['Declaration'];
                 }
             }
-            return ($db->query("ALTER TABLE $name $query"));
+            return($db->query("ALTER TABLE $name $query"));
         }
     }
 
@@ -433,9 +433,9 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     {
         $result = $db->queryCol('SHOW DATABASES');
         if(MDB::isError($result)) {
-            return $result;
+            return($result);
         }
-        return ($result);
+        return($result);
     }
 
     // }}}
@@ -452,9 +452,9 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     {
         $result = $db->queryCol('SELECT DISTINCT USER FROM USER');
         if(MDB::isError($result)) {
-            return $result;
+            return($result);
         }
-        return ($result);
+        return($result);
     }
 
     // }}}
@@ -471,14 +471,14 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     {
         $table_names = $db->queryCol('SHOW TABLES');
         if(MDB::isError($table_names)) {
-            return $table_names;
+            return($table_names);
         }
         for($i = 0, $j = count($table_names), $tables = array(); $i < $j; ++$i)
         {
             if (!$db->_isSequenceName($table_names[$i]))
                 $tables[] = $table_names[$i];
         }
-        return ($tables);
+        return($tables);
     }
 
     // }}}
@@ -496,17 +496,17 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     {
         $result = $db->query("SHOW COLUMNS FROM $table");
         if(MDB::isError($result)) {
-            return $result;
+            return($result);
         }
         $columns = $db->getColumnNames($result);
         if(MDB::isError($columns)) {
             $db->freeResult($columns);
-            return $columns;
+            return($columns);
         }
         if(!isset($columns['field'])) {
             $db->freeResult($result);
-            return $db->raiseError(MDB_ERROR_MANAGER, '', '',
-                'List table fields: show columns does not return the table field names');
+            return($db->raiseError(MDB_ERROR_MANAGER, '', '',
+                'List table fields: show columns does not return the table field names'));
         }
         $field_column = $columns['field'];
         for($fields = array(), $field = 0; !$db->endOfResult($result); ++$field) {
@@ -515,7 +515,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                 $fields[] = $field_name;
         }
         $db->freeResult($result);
-        return ($fields);
+        return($fields);
     }
 
     // }}}
@@ -533,24 +533,24 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     function getTableFieldDefinition(&$db, $table, $field_name)
     {
         if ($field_name == $db->dummy_primary_key) {
-            return $db->raiseError(MDB_ERROR_MANAGER, '', '',
-                'Get table field definiton: '.$db->dummy_primary_key.' is an hidden column');
+            return($db->raiseError(MDB_ERROR_MANAGER, '', '',
+                'Get table field definiton: '.$db->dummy_primary_key.' is an hidden column'));
         }
         $result = $db->query("SHOW COLUMNS FROM $table");
         if(MDB::isError($result)) {
-            return $result;
+            return($result);
         }
         $columns = $db->getColumnNames($result);
         if(MDB::isError($columns)) {
             $db->freeResult($columns);
-            return $columns;
+            return($columns);
         }
         if (!isset($columns[$column = 'field'])
             || !isset($columns[$column = 'type']))
         {
             $db->freeResult($result);
-            return $db->raiseError(MDB_ERROR_MANAGER, '', '',
-                'Get table field definition: show columns does not return the column '.$column);
+            return($db->raiseError(MDB_ERROR_MANAGER, '', '',
+                'Get table field definition: show columns does not return the column '.$column));
         }
         $field_column = $columns['field'];
         $type_column = $columns['type'];
@@ -640,8 +640,8 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                         $type[1] = 'date';
                         break;
                     default:
-                        return $db->raiseError(MDB_ERROR_MANAGER, '', '',
-                            'List table fields: unknown database attribute type');
+                        return($db->raiseError(MDB_ERROR_MANAGER, '', '',
+                            'List table fields: unknown database attribute type'));
                 }
                 unset($notnull);
                 if (isset($columns['null'])
@@ -710,7 +710,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                     }
                 }
                 $db->freeResult($result);
-                return ($definition);
+                return($definition);
             }
         }
         if(!$db->options['autofree']) {
@@ -719,8 +719,8 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         if(MDB::isError($row)) {
             return($row);
         }
-        return $db->raiseError(MDB_ERROR_MANAGER, '', '',
-            'Get table field definition: it was not specified an existing table column');
+        return($db->raiseError(MDB_ERROR_MANAGER, '', '',
+            'Get table field definition: it was not specified an existing table column'));
     }
 
     // }}}
@@ -772,7 +772,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
             $query .= key($definition['FIELDS']);
         }
         $query .= ')';
-        return ($db->query($query));
+        return($db->query($query));
     }
 
     // }}}
@@ -789,7 +789,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function dropIndex(&$db, $table, $name)
     {
-        return ($db->query("ALTER TABLE $table DROP INDEX $name"));
+        return($db->query("ALTER TABLE $table DROP INDEX $name"));
     }
 
     // }}}
@@ -839,7 +839,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     function getTableIndexDefinition(&$db, $table, $index_name)
     {
         if($index_name == 'PRIMARY') {
-            return $db->raiseError(MDB_ERROR_MANAGER, '', '', 'Get table index definition: PRIMARY is an hidden index');
+            return($db->raiseError(MDB_ERROR_MANAGER, '', '', 'Get table index definition: PRIMARY is an hidden index'));
         }
         if(MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
             return($result);
@@ -860,9 +860,9 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         }
         $db->freeResult($result);
         if (!isset($definition['FIELDS'])) {
-            return $db->raiseError(MDB_ERROR_MANAGER, '', '', 'Get table index definition: it was not specified an existing table index');
+            return($db->raiseError(MDB_ERROR_MANAGER, '', '', 'Get table index definition: it was not specified an existing table index'));
         }
-        return ($definition);
+        return($definition);
     }
 
     // }}}
@@ -883,25 +883,25 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         $res = $db->query("CREATE TABLE $sequence_name
             (sequence INT DEFAULT 0 NOT NULL AUTO_INCREMENT, PRIMARY KEY (sequence))");
         if (MDB::isError($res)) {
-            return $res;
+            return($res);
         }
         if ($start == 1) {
-            return MDB_OK;
+            return(MDB_OK);
         }
-        $res = $db->query("INSERT INTO $sequence_name (sequence) VALUES (".($start-1).")");
+        $res = $db->query("INSERT INTO $sequence_name (sequence) VALUES (".($start-1).')');
         if (!MDB::isError($res)) {
-            return MDB_OK;
+            return(MDB_OK);
         }
         // Handle error
         $result = $db->query("DROP TABLE $sequence_name");
         if (MDB::isError($result)) {
-            return $db->raiseError(MDB_ERROR, '', '',
+            return($db->raiseError(MDB_ERROR, '', '',
                 'Create sequence: could not drop inconsistent sequence table ('.
-                $result->getMessage().' ('.$result->getUserinfo().'))');
+                $result->getMessage().' ('.$result->getUserinfo().'))'));
         }
-        return $db->raiseError(MDB_ERROR, '', '',
+        return($db->raiseError(MDB_ERROR, '', '',
             'Create sequence: could not create sequence table ('.
-            $res->getMessage().' ('.$res->getUserinfo().'))');
+            $res->getMessage().' ('.$res->getUserinfo().'))'));
     }
 
     // }}}
@@ -918,7 +918,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     function dropSequence(&$db, $seq_name)
     {
         $sequence_name = $db->getSequenceName($seq_name);
-        return ($db->query("DROP TABLE $sequence_name"));
+        return($db->query("DROP TABLE $sequence_name"));
     }
 
     // }}}
@@ -935,14 +935,14 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     {
         $table_names = $db->queryCol('SHOW TABLES');
         if(MDB::isError($table_names)) {
-            return $table_names;
+            return($table_names);
         }
         for($i = 0, $j = count($table_names), $sequences = array(); $i < $j; ++$i)
         {
             if ($sqn = $db->_isSequenceName($table_names[$i]))
                 $sequences[] = $sqn;
         }
-        return ($sequences);
+        return($sequences);
     }
 
     // }}}
