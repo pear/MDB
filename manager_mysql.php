@@ -137,7 +137,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
             return $result;
         }
         if (!mysql_create_db($name, $db->connection)) {
-            return $db->mysqlRaiseError(DB_ERROR_CANNOT_CREATE);
+            return $db->mysqlRaiseError();
         }
 
         return (DB_OK);
@@ -160,7 +160,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
             return $result;
         }
         if (!mysql_drop_db($name, $db->connection)) {
-            return $db->mysqlRaiseError(DB_ERROR_CANNOT_DROP);
+            return $db->mysqlRaiseError();
         }
         return (DB_OK);
     }
