@@ -182,7 +182,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo('<br>affected rows:<br>');
     echo($db->affectedRows().'<br>');
     // subselect test
-    $sub_select = $db->subSelect('SELECT test_name from test WHERE test_name = '.$db->getValue('text', 'gummihuhn'), true);
+    $sub_select = $db->subSelect('SELECT test_name from test WHERE test_name = '.$db->getValue('text', 'gummihuhn'), 'text');
     echo(Var_Dump::display($sub_select).'<br>');
     $query_with_subselect = 'SELECT * FROM test WHERE test_name IN ('.$sub_select.')';
     // run the query and get a result handler
