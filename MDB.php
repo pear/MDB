@@ -235,8 +235,9 @@ class MDB
      * @access  public
      *
      * @param   mixed   $dsn      "data source name", see the MDB::parseDSN
-     *                            method for a description of the dsn format.  Can also be
-     *                            specified as an array of the format returned by MDB::parseDSN.
+     *                            method for a description of the dsn format.
+     *                            Can also be specified as an array of the
+     *                            format returned by MDB::parseDSN.
      *
      * @param   mixed   $options  An associative array of option names and
      *                            their values.
@@ -296,32 +297,39 @@ class MDB
                 $included   = "OCI_INCLUDED";
                 break;
             default:
-                $included = (isset($options["includedconstant"]) ? $options["includedconstant"] : "");
+                $included = (isset($options["includedconstant"]) ?
+                                   $options["includedconstant"] : "");
                 if (!isset($options["include"])
                     || !strcmp($include = $options["includepath"],""))
                 {
                     if (isset($options["includepath"])) {
                         return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
-                            NULL, NULL, 'no valid DBMS driver include path specified', 'MDB_Error', TRUE);
+                            NULL, NULL,
+                            'no valid DBMS driver include path specified',
+                            'MDB_Error', TRUE);
                     } else {
                         return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
-                            NULL, NULL, 'no existing DBMS driver specified', 'MDB_Error', TRUE);
+                            NULL, NULL, 'no existing DBMS driver specified',
+                            'MDB_Error', TRUE);
                     }
                 }
                 if (!isset($options["classname"])
                     || !strcmp($class_name = $options["classname"],""))
                 {
                     return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
-                        NULL, NULL, 'no existing DBMS driver specified', 'MDB_Error', TRUE);
+                        NULL, NULL, 'no existing DBMS driver specified',
+                        'MDB_Error', TRUE);
                 }
         }
-        $include_path = (isset($options["includepath"]) ? $options["includepath"] : dirname(__FILE__));
+        $include_path = (isset($options["includepath"]) ?
+                               $options["includepath"] : dirname(__FILE__));
         if (!strcmp($included,"") || !defined($included))
         {
             $length = strlen($include_path);
             $separator = "";
             if($length) {
-                $directory_separator = (defined("DIRECTORY_SEPARATOR") ? DIRECTORY_SEPARATOR : "/");
+                $directory_separator = (defined("DIRECTORY_SEPARATOR") ?
+                                                DIRECTORY_SEPARATOR : "/");
                 if ($include_path[$length-1]!=$directory_separator)
                     $separator = $directory_separator;
             }
@@ -335,10 +343,12 @@ class MDB
                         closedir($directory);
                     }
                     return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
-                        NULL, NULL, 'no existing DBMS driver specified', 'MDB_Error', TRUE);
+                        NULL, NULL, 'no existing DBMS driver specified',
+                        'MDB_Error', TRUE);
                 } else {
                     return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
-                        NULL, NULL, 'no valid DBMS driver include path specified', 'MDB_Error', TRUE);
+                        NULL, NULL, 'no valid DBMS driver include path specified'
+                        , 'MDB_Error', TRUE);
                 }
             }
             include($include_path.$separator.$include);
@@ -373,8 +383,10 @@ class MDB
         if (isset($options["autofree"])) {
             $db->autofree = $options["autofree"];
         }
-        $db->decimal_places = (isset($options["decimalplaces"]) ? $options["decimalplaces"] : 2);
-        $db->lob_buffer_length = (isset($options["LOBbufferlength"]) ? $options["LOBbufferlength"] : 8000);
+        $db->decimal_places = (isset($options["decimalplaces"]) ?
+                                     $options["decimalplaces"] : 2);
+        $db->lob_buffer_length = (isset($options["LOBbufferlength"]) ?
+                                        $options["LOBbufferlength"] : 8000);
         if (isset($options["loglinebreak"])) {
             $db->log_line_break = $options["loglinebreak"];
         }
@@ -511,7 +523,8 @@ class MDB
             $value = $value->getCode();
         }
 
-        return isset($errorMessages[$value]) ? $errorMessages[$value] : $errorMessages[DB_ERROR];
+        return isset($errorMessages[$value]) ?
+                     $errorMessages[$value] : $errorMessages[DB_ERROR];
     }
 
     /**
@@ -627,7 +640,8 @@ class MDB
         $proto_opts = urldecode($proto_opts);
         if ($parsed['protocol'] == 'tcp') {
             if (strpos($proto_opts, ':') !== FALSE) {
-                list($parsed['hostspec'], $parsed['port']) = explode(':', $proto_opts);
+                list($parsed['hostspec'], $parsed['port']) =
+                                                     explode(':', $proto_opts);
             } else {
                 $parsed['hostspec'] = $proto_opts;
             }
@@ -697,7 +711,8 @@ class MDB_Error extends PEAR_Error
      *
      * @param mixed   $code      MDB error code, or string with error message.
      * @param integer $mode      what "error mode" to operate in
-     * @param integer $level     what error level to use for $mode & PEAR_ERROR_TRIGGER
+     * @param integer $level     what error level to use for
+     *                           $mode & PEAR_ERROR_TRIGGER
      * @param smixed  $debuginfo additional debug info, such as the last query
      */
 
@@ -705,9 +720,11 @@ class MDB_Error extends PEAR_Error
               $level = E_USER_NOTICE, $debuginfo = NULL)
     {
         if (is_int($code)) {
-            $this->PEAR_Error('DB Error: ' . MDB::errorMessage($code), $code, $mode, $level, $debuginfo);
+            $this->PEAR_Error('DB Error: ' . MDB::errorMessage($code), $code,
+                              $mode, $level, $debuginfo);
         } else {
-            $this->PEAR_Error("DB Error: $code", DB_ERROR, $mode, $level, $debuginfo);
+            $this->PEAR_Error("DB Error: $code", DB_ERROR, $mode, $level,
+                              $debuginfo);
         }
     }
 }
@@ -726,7 +743,8 @@ class MDB_Warning extends PEAR_Error
      *
      * @param mixed   $code      DB error code, or string with error message.
      * @param integer $mode      what "error mode" to operate in
-     * @param integer $level     what error level to use for $mode == PEAR_ERROR_TRIGGER
+     * @param integer $level     what error level to use for
+     *                           $mode == PEAR_ERROR_TRIGGER
      * @param mmixed  $debuginfo additional debug info, such as the last query
      *
      */
