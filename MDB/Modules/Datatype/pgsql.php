@@ -512,16 +512,16 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ _retrieveLob()
+    // {{{ _retrieveLOB()
 
     /**
      * retrieve LOB from the database
      *
-     * @param int $lob handle to a lob created by the createLob() function
+     * @param int $lob handle to a lob created by the createLOB() function
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access private
      */
-    function _retrieveLob(&$db, $lob)
+    function _retrieveLOB(&$db, $lob)
     {
         if (!isset($db->lobs[$lob])) {
             return $db->raiseError(MDB_ERROR_INVALID, null, null,
@@ -549,19 +549,19 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ _endOfResultLob()
+    // {{{ _endOfResultLOB()
 
     /**
      * Determine whether it was reached the end of the large object and
      * therefore there is no more data to be read for the its input stream.
      *
-     * @param int    $lob handle to a lob created by the createLob() function
+     * @param int    $lob handle to a lob created by the createLOB() function
      * @return mixed true or false on success, a MDB error on failure
      * @access private
      */
-    function _endOfResultLob(&$db, $lob)
+    function _endOfResultLOB(&$db, $lob)
     {
-        $lobresult = $this->_retrieveLob($db, $lob);
+        $lobresult = $this->_retrieveLOB($db, $lob);
         if (MDB::isError($lobresult)) {
             return $lobresult;
         }
@@ -569,12 +569,12 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ _readResultLob()
+    // {{{ _readResultLOB()
 
     /**
      * Read data from large object input stream.
      *
-     * @param int $lob handle to a lob created by the createLob() function
+     * @param int $lob handle to a lob created by the createLOB() function
      * @param blob $data reference to a variable that will hold data to be
      *      read from the large object input stream
      * @param int $length integer value that indicates the largest ammount of
@@ -582,9 +582,9 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * @return mixed length on success, a MDB error on failure
      * @access private
      */
-    function _readResultLob(&$db, $lob, &$data, $length)
+    function _readResultLOB(&$db, $lob, &$data, $length)
     {
-        $lobresult = $this->_retrieveLob($db, $lob);
+        $lobresult = $this->_retrieveLOB($db, $lob);
         if (MDB::isError($lobresult)) {
             return $lobresult;
         }
@@ -600,16 +600,16 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ _destroyResultLob()
+    // {{{ _destroyResultLOB()
 
     /**
      * Free any resources allocated during the lifetime of the large object
      * handler object.
      *
-     * @param int $lob handle to a lob created by the createLob() function
+     * @param int $lob handle to a lob created by the createLOB() function
      * @access private
      */
-    function _destroyResultLob(&$db, $lob)
+    function _destroyResultLOB(&$db, $lob)
     {
         if (isset($db->lobs[$lob])) {
             if (isset($db->lobs[$lob]['value'])) {

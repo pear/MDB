@@ -574,16 +574,16 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ _retrieveLob()
+    // {{{ _retrieveLOB()
 
     /**
      * retrieve LOB from the database
      * 
-     * @param int $lob handle to a lob created by the createLob() function
+     * @param int $lob handle to a lob created by the createLOB() function
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access private 
      */
-    function _retrieveLob(&$db, $lob)
+    function _retrieveLOB(&$db, $lob)
     {
         if (!isset($db->lobs[$lob])) {
             return $db->raiseError(MDB_ERROR, null, null,
