@@ -418,7 +418,7 @@ class MDB_mysql extends MDB_Common
      *
      * @access public
      */
-    function &query($query, $types = null, $result_mode = false)
+    function &query($query, $types = null, $result_mode = null)
     {
         $this->debug($query, 'query');
         $ismanip = MDB::isManip($query);

@@ -386,7 +386,7 @@ class MDB_mssql extends MDB_Common
      *
      * @access public
      */
-    function &query($query, $types = null, $result_mode = false)
+    function &query($query, $types = null, $result_mode = null)
     {
         $this->debug($query, 'query');
         if ($this->database_name) {

@@ -606,7 +606,7 @@ class MDB_Extended
      * @return mixed a valid ressource pointer or a MDB_Error
      * @access public
      */
-    function limitQuery(&$db, $query, $types, $from, $count, $result_mode = false)
+    function limitQuery(&$db, $query, $types, $from, $count, $result_mode = null)
     {
         $result = $db->setLimit($from, $count);
         if (MDB::isError($result)) {
