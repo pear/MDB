@@ -80,10 +80,10 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $tablespace = $db->options['default_tablespace'];
-        if (MDB::isError($tablespace)) {
-            $tablespace = '';
-        } else {
+        if (!MDB::isError($tablespace) && $tablespace) {
             $tablespace = ' DEFAULT TABLESPACE '.$tablespace;
+        } else {
+            $tablespace = '';
         }
         if (MDB::isError($password = $db->dsn['password'])) {
             $password = $name;
