@@ -82,6 +82,7 @@ class MDB_ibase extends MDB_Common
 
         $this->supported['sequences'] = true;
         $this->supported['indexes'] = true;
+        $this->supported['affected_rows'] = true;
         $this->supported['summary_functions'] = true;
         $this->supported['order_by_text'] = true;
         $this->supported['transactions'] = true;
