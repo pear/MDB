@@ -321,7 +321,13 @@ class MDB_ibase extends MDB_Common
     // }}}
     // {{{ getDatabaseFile()
 
-    function getDatabaseFile($database_name)
+    /**
+     * Builds the string with path+dbname+extension
+     *
+     * @return string full database path+file
+     * @access private
+     */
+    function _getDatabaseFile($database_name)
     {
         if (isset($this->options['database_path'])) {
             $this->database_path = $this->options['database_path'];
@@ -385,7 +391,7 @@ class MDB_ibase extends MDB_Common
      **/
     function connect()
     {
-        $database_file = $this->getDatabaseFile($this->database_name);
+        $database_file = $this->_getDatabaseFile($this->database_name);
 
         if ($this->connection != 0) {
             if (count(array_diff($this->connected_dsn, $this->dsn)) == 0
@@ -968,7 +974,7 @@ class MDB_ibase extends MDB_Common
                     $row = @ibase_fetch_row($result);
                 }
                 //NOT SURE IF REALLY OK... basically it doesn't process $row if it's false
-                if(is_array($row)) {
+                if (is_array($row)) {
                     foreach ($row as $key => $value_with_space) {
                         $row[$key] = rtrim($value_with_space);
                     }
@@ -982,10 +988,9 @@ class MDB_ibase extends MDB_Common
                 }
             }
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                $row = $this->results[$result_value][$rownum];
+                $row = $this->results[$result_value][$rownum+1];
             } else {
-                $row = array_values($this->results[$result_value][$rownum]);
-
+                $row = array_values($this->results[$result_value][$rownum+1]);
             }
             $this->results[$result_value]['highest_fetched_row'] =
                 max($this->results[$result_value]['highest_fetched_row'], $rownum);
