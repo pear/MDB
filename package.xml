@@ -44,10 +44,10 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>0.9.5</version>
+    <version>0.9.6</version>
     <state>beta</state>
-    <date>2002-06-05</date>
-    <notes>added autofree option; dropped setup() infavor of class contructors; minor changes to the API; improvements to the Metabase wrapper</notes>
+    <date>2002-06-12</date>
+    <notes>fixed a serious bug in parser.php that prevented tables from being initialized correctly; added several new methods to better match the PEAR DB feature set; added PHPDoc comments to most methods i ncommon.php; more formating improvements</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
