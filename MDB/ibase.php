@@ -49,6 +49,41 @@ require_once 'MDB/Common.php';
 /**
  * MDB FireBird/InterBase driver
  *
+ * Notes:
+ * - when fetching in associative mode all keys are lowercased.
+ *
+ * - Currently, the driver relies on the Interbase server to use SQL dialect 3
+ *   that was introduced with Interbase 6. Some versions of Interbase server,
+ *   like the Super Server, do not seem to work by default with dialect 3.
+ *   This may lead to errors when trying to create tables using Interbase SQL
+ *   data types that are only available when using this dialect version.
+ *
+ * - Interbase does not support per field index sorting support. Indexes are
+ *   either ascending, descending or both even when they are defined from more
+ *   than one field. Currently Metabase Interbase driver uses the index sorting
+ *   type given by the first field of the index for which it is specified the
+ *   sorting type.
+ *
+ * - The numRows method is emulated by fetching all the rows into memory.
+ *   Avoid using it if for queries with large result sets.
+ *
+ * - Interbase does not provide direct support for returning result sets
+     restrictedto a given range. Such support is emulated in the MDB ibase driver.
+ *
+ * - Current Interbase versions do not support altering table field DEFAULT
+ *   values and NOT NULL constraint. Text fields' length may only be raised in
+ *   increments defined by Interbase, so the Metabase Interbase does not support
+ *   altering text field length yet.
+ *
+ * - createDatabase and dropDatabase are not supported
+ *
+ * - MDB creates Interbase blobs before executing a prepared queries to insert
+ *   or update large object fields. If such queries fail to execute, MDB
+ *   Interbase driver class is not able to reclaim the database space allocated
+ *   for the large object values because there is currently no PHP function to do so.
+ *
+ * - !!!! LOB Handling is currently broken in the interbase driver. !!!!!
+ *
  * @package MDB
  * @category Database
  * @author  Lorenzo Alberton <l.alberton@quipo.it>
@@ -1094,6 +1129,61 @@ class MDB_ibase extends MDB_Common
             return @ibase_free_result($result);
         }
         return true;
+    }
+    // }}}
+    // {{{ getTypeDeclaration()
+
+    /**
+     * Obtain DBMS specific SQL code portion needed to declare an text type
+     * field to be used in statements like CREATE TABLE.
+     *
+     * @param string $field  associative array with the name of the properties
+     *      of the field being declared as array indexes. Currently, the types
+     *      of supported field properties are as follows:
+     *
+     *      length
+     *          Integer value that determines the maximum length of the text
+     *          field. If this argument is missing the field should be
+     *          declared to have the longest length allowed by the DBMS.
+     *
+     *      default
+     *          Text value to be used as default for this field.
+     *
+     *      notnull
+     *          Boolean flag that indicates whether this field is constrained
+     *          to not be set to null.
+     * @return string  DBMS specific SQL code portion that should be used to
+     *      declare the specified field.
+     * @access public
+     */
+    function getTypeDeclaration($field)
+    {
+        switch($field['type'])
+        {
+            case 'text':
+                return('VARCHAR ('.(isset($field['length']) ? $field['length'] : (isset($this->options['DefaultTextFieldLength']) ? $this->options['DefaultTextFieldLength'] : 4000)).')');
+            case
+                return 'VARCHAR ('.$length.')';
+            case 'clob':
+                return 'BLOB SUB_TYPE 1';
+            case 'blob':
+                return 'BLOB SUB_TYPE 0';
+            case 'integer':
+                return 'INTEGER';
+            case 'boolean':
+                return 'CHAR (1)';
+            case 'date':
+                return 'DATE';
+            case 'time':
+                return 'TIME';
+            case 'timestamp':
+                return 'TIMESTAMP';
+            case 'float':
+                return 'DOUBLE PRECISION';
+            case 'decimal':
+                return 'DECIMAL(18,'.$this->decimal_places.')';
+        }
+        return '';
     }
 
     // }}}
