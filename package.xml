@@ -44,15 +44,18 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>0.9.6</version>
+    <version>0.9.7</version>
     <state>beta</state>
-    <date>2002-06-12</date>
-    <notes>fixed a serious bug in parser.php that prevented tables from being initialized correctly; added several new methods to better match the PEAR DB feature set; added PHPDoc comments to most methods i ncommon.php; more formating improvements</notes>
+    <date>2002-06-2</date>
+    <notes>PHPDoc have now been added to all methods in common.php; some API changes, mostly to the transaction methods; introduced a simple subselect emulation; added postgresql driver; fix fetchInto in the pear db wrapper</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
           <file role="php">common.php</file>
           <file role="php">mysql.php</file>
+          <file role="php">pgsql.php</file>
+          <file role="php">manager_common.php</file>
+          <file role="php">manager_mysql.php</file>
           <file role="php">lob.php</file>
           <file role="php">manager.php</file>
           <file role="php">parser.php</file>
