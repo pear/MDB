@@ -76,16 +76,63 @@ function MDB_defaultDebugOutput(&$db, $message)
  */
 class MDB_Common extends PEAR
 {
+    // {{{ properties
+    /**
+    * index of the MDB object withing the global $_MDB_databases array
+    * @var integer
+    * @access private
+    */
     var $database = 0;
-    var $persistent = 1;
 
+    /**
+    * @var string
+    * @access private
+    */
     var $host = '';
+
+    /**
+    * @var string
+    * @access private
+    */
     var $port = '';
+
+    /**
+    * @var string
+    * @access private
+    */
     var $user = '';
+
+    /**
+    * @var string
+    * @access private
+    */
     var $password = '';
+
+    /**
+    * @var string
+    * @access private
+    */
     var $database_name = '';
 
+    /**
+    * @var array
+    * @access private
+    */
     var $supported = array();
+
+    /**
+    * $options["persistent"] -> boolean persistent connection true|false?
+    * $options["debug"] -> integer numeric debug level
+    * $options["autofree"] -> 
+    * $options["lob_buffer_length"] -> 
+    * $options["log_line_break"] -> 
+    * $options["seqname_format"] -> 
+    * $options["includelob"] -> 
+    * $options["includemanager"] -> 
+    * $options["UseTransactions"] -> 
+    * @var array
+    * @access private
+    */
     var $options = array(
             'persistent' => FALSE,
             'debug' => FALSE,
@@ -97,35 +144,139 @@ class MDB_Common extends PEAR
             'includemanager' => FALSE,
             'UseTransactions' => FALSE,
         );
+
+    /**
+    * @var string
+    * @access private
+    */
     var $escape_quotes = '';
+
+    /**
+    * @var integer
+    * @access private
+    */
     var $decimal_places = 2;
 
+    /**
+    * @var string
+    * @access private
+    */
     var $manager_included_constant = '';
+
+    /**
+    * @var string
+    * @access private
+    */
     var $manager_include = '';
+
+    /**
+    * @var string
+    * @access private
+    */
     var $manager_class_name = '';
+
+    /**
+    * @var object
+    * @access private
+    */
     var $manager;
 
+    /**
+    * @var array
+    * @access private
+    */
     var $warnings = array();
+
+    /**
+    * @var string
+    * @access private
+    */
     var $debug = '';
+
+    /**
+    * @var string
+    * @access private
+    */
     var $debug_output = '';
+
+    /**
+    * @var boolean
+    * @access private
+    */
     var $pass_debug_handle = FALSE;
 
+    /**
+    * @var boolean
+    * @access private
+    */
     var $auto_commit = 1;
+
+    /**
+    * @var boolean
+    * @access private
+    */
     var $in_transaction = 0;
 
+    /**
+    * @var integer
+    * @access private
+    */
     var $first_selected_row = 0;
+
+    /**
+    * @var integer
+    * @access private
+    */
     var $selected_row_limit = 0;
-    var $last_query = '';
-    var $affected_rows = -1;
+
+    /**
+    * DB type (mysql, oci8, odbc etc.)
+    * @var string
+    * @access private
+    */
+    var $type;
+
+    /**
+    * @var array
+    * @access private
+    */
     var $prepared_queries = array();
 
-    var $lobs = array();
-    var $clobs = array();
-    var $blobs = array();
+    /**
+    * @var string
+    * @access private
+    */
+    var $last_query = '';
 
-    // deprecated
-    var $last_error = '';
-    var $error_handler = '';
+    /**
+    * @var integer
+    * @access private
+    */
+    var $fetchmode = DB_FETCHMODE_ORDERED;
+
+    /**
+    * @var integer
+    * @access private
+    */
+    var $affected_rows = -1;
+
+    /**
+    * @var array
+    * @access private
+    */
+    var $lobs = array();
+
+    /**
+    * @var array
+    * @access private
+    */
+    var $clobs = array();
+
+    /**
+    * @var array
+    * @access private
+    */
+    var $blobs = array();
 
     // }}}
     // {{{ constructor
@@ -3314,25 +3465,10 @@ class MDB_Common extends PEAR
      */
     function getValue($type, $value)
     {
-        switch ($type) {
-            case 'integer':
-                return($this->getIntegerValue($value));
-            case 'text':
-                return($this->getTextValue($value));
-            case 'boolean':
-                return($this->getBooleanValue($value));
-            case 'date':
-                return($this->getDateValue($value));
-            case 'timestamp':
-                return($this->getTimestampValue($value));
-            case 'time':
-                return($this->getTimeValue($value));
-            case 'float':
-                return($this->getFloatValue($value));
-            case 'decimal':
-                return($this->getDecimalValue($value));
+        if (method_exists($this,"get{$type}Value")) {
+            return $this->{"get{$type}Value"}($value);
         }
-        return('');
+        return $value;
     }
 
     // }}}
