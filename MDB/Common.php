@@ -3735,7 +3735,7 @@ class MDB_Common extends PEAR
                     $key = array_shift($row);
                 }
                 if (!$force_array && count($row) == 1) {
-                    $result = array_shift($row);
+                    $row = array_shift($row);
                 }
                 if ($group) {
                     $all[$key][] = $row;
