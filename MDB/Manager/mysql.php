@@ -47,7 +47,7 @@
 
 if(!defined('MDB_MANAGER_MYSQL_INCLUDED'))
 {
-    define('MDB_MANAGER_MYSQL_INCLUDED',1);
+    define('MDB_MANAGER_MYSQL_INCLUDED', 1);
 
 require_once 'MDB/Manager/Common.php';
 
