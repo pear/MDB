@@ -796,7 +796,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
             $key_name = $row['Key_name'];
             if(!strcmp($index_name, $key_name)) {
                 if(!$row['Non_unique']) {
-                    $definition[$index_name]['unique'] = 1;
+                    $definition['unique'] = 1;
                 }
                 $column_name = $row['Column_name'];
                 $definition['FIELDS'][$column_name] = array();

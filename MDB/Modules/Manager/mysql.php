@@ -879,7 +879,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             $key_name = $row['key_name'];
             if(!strcmp($index_name, $key_name)) {
                 if(!$row['non_unique']) {
-                    $definition[$index_name]['unique'] = 1;
+                    $definition['unique'] = 1;
                 }
                 $column_name = $row['column_name'];
                 $definition['FIELDS'][$column_name] = array();

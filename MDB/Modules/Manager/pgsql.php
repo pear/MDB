@@ -604,7 +604,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
 
         $definition = array();
         if ($row[0]['indisunique'] == 't') {
-            $definition[$index_name]['unique'] = 1;
+            $definition['unique'] = 1;
         }
 
         $index_column_numbers = explode(' ', $row[0]['indkey']);
