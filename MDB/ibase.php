@@ -341,7 +341,7 @@ class MDB_ibase extends MDB_Common
      **/
     function _doConnect($database_name, $persistent)
     {
-        $this->dsn = $dsninfo;
+        $dsninfo = $this->dsn;
         $user = $dsninfo['username'];
         $pw   = $dsninfo['password'];
         $dbhost = $dsninfo['hostspec'] ?
