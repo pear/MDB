@@ -75,13 +75,12 @@ I hope I fixed most of them through the help of the Metabase test suite but ...
 
 Roadmap (Active help and code contributions are requested for all of following):
 - Move all error handling to the PEAR error handler.
-- Change from indirect references to the database objects (keys to the $databases array) in the supporting classes
-  (lib, manager, parser) to direct references to the database object to get rid of unecessary functions
-- Modularization (loading extended features on demand)
 - Making MDB PEAR CS compatible
 - PEAR Doc comments and Documentation
 - Finish up the Metabase wrapper and PEAR DB wrapper
 - Add support for more RDBMS
+Removed from Roadmap:
+- Modularization (loading extended features on demand) - performance is fine so why bother
 
 Credits (never to early for those huh? :-)  ):
 I would especially like to thank Manuel Lemos (Author of Metabase) for getting me involved in this and generally being
