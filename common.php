@@ -4255,7 +4255,7 @@ class MDB_common extends PEAR
                     if (isset($arguments['Error'])) {
                         $arguments['Error'] = $arguments['Type'] . ' is not a valid type of large object';
                     }
-                    return(0);
+                    return($this->raiseError());
             }
         } else {
             if (isset($arguments['Class'])) {
