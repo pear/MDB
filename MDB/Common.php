@@ -1334,7 +1334,7 @@ class MDB_Common extends PEAR
             return $this->raiseError(MDB_ERROR_SYNTAX, null, null,
                 'Query set: it was not specified a valid argument number');
         }
-        $this->prepared_queries[$index]['Values'][$parameter-1] = $value;
+        $this->prepared_queries[$index]['Values'][$parameter-1] = $this->getValue($type, $value);
         $this->prepared_queries[$index]['Types'][$parameter-1] = $type;
         $this->prepared_queries[$index]['Fields'][$parameter-1] = $field;
         return MDB_OK;
@@ -1729,7 +1729,7 @@ class MDB_Common extends PEAR
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT)
+    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum)
     {
         if (MDB::isError($this->endOfResult($result))) {
             if ($this->options['autofree']) {
