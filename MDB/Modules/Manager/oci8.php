@@ -47,16 +47,16 @@
 if (!defined('MDB_MANAGER_OCI8_INCLUDED')) {
     define('MDB_MANAGER_OCI8_INCLUDED', 1);
 
-require_once 'MDB/Modules/Manager/Common.php';
+require_once('MDB/Modules/Manager/Common.php');
 
 /**
- * MDB Xxx driver for the management modules
+ * MDB oci8 driver for the management modules
  * 
  * @package MDB
  * @category Database
  * @author Lukas Smith <smith@backendmedia.com> 
  */
-class MDB_Manager_oci8_ extends MDB_Manager_Common {
+class MDB_Manager_oci8 extends MDB_Manager_Common {
 
     // {{{ createDatabase()
 
@@ -70,18 +70,18 @@ class MDB_Manager_oci8_ extends MDB_Manager_Common {
      */
     function createDatabase(&$db, $name)
     {
-        $user = $db->getOption("DBAUser");
+        $user = $db->getOption('DBAUser');
         if (MDB::isError($user)) {
             return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
-                "it was not specified the Oracle DBAUser option"));
+                'it was not specified the Oracle DBAUser option'));
         }
-        $password = $db->getOption("DBAPassword");
+        $password = $db->getOption('DBAPassword');
         if (MDB::isError($password)) {
             return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
-                "it was not specified the Oracle DBAPassword option"));
+                'it was not specified the Oracle DBAPassword option'));
         }
         if (MDB::isError($db->connect($user, $password, 0))) {
-            $tablespace = $db->getOption("DefaultTablespace");
+            $tablespace = $db->getOption('DefaultTablespace');
             if(MDB::isError($tablespace)) {
                 $tablespace = '';
             } else {
@@ -91,12 +91,12 @@ class MDB_Manager_oci8_ extends MDB_Manager_Common {
                 if (MDB::isError($result = $db->_doQuery('GRANT CREATE SESSION, CREATE TABLE,UNLIMITED TABLESPACE,CREATE SEQUENCE TO '.$db->user))) {
                     if (MDB::isError($result2 = $db->_doQuery('DROP USER '.$db->user.' CASCADE'))) {
                         return($db->raiseError(MDB_Error, '','', 'Create database',
-                            "could not setup the database user (".$result->getUserinfo().") and then could drop its records (".$result2->getUserinfo().")"));
+                            'could not setup the database user ('.$result->getUserinfo().') and then could drop its records ('.$result2->getUserinfo().')'));
                     }
                     return($db->raiseError(MDB_Error, '','', 'Create database',
-                        "could not setup the database user (".$result->getUserinfo().")"));
+                        'could not setup the database user ('.$result->getUserinfo().')'));
                 } else {
-                    return MDB_OK;
+                    return(MDB_OK);
                 }
             }
         }
@@ -116,20 +116,20 @@ class MDB_Manager_oci8_ extends MDB_Manager_Common {
      */
     function dropDatabase(&$db, $name)
     {
-        $user = $db->getOption("DBAUser");
+        $user = $db->getOption('DBAUser');
         if (MDB::isError($user)) {
             return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
-                "it was not specified the Oracle DBAUser option"));
+                'it was not specified the Oracle DBAUser option'));
         }
-        $password = $db->getOption("DBAPassword");
+        $password = $db->getOption('DBAPassword');
         if (MDB::isError($password)) {
             return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
-                "it was not specified the Oracle DBAPassword option"));
+                'it was not specified the Oracle DBAPassword option'));
         }
         if (MDB::isError($db->connect($user, $password, 0))) {
-            return $result;
+            return($result);
         }
-        return($db->_doQuery("DROP USER " . $db->user . " CASCADE"));
+        return($db->_doQuery('DROP USER '.$db->user.' CASCADE'));
     }
 
     // }}}
@@ -238,49 +238,49 @@ class MDB_Manager_oci8_ extends MDB_Manager_Common {
                 next($changes), $change++)
             {
                 switch (key($changes)) {
-                    case "AddedFields":
-                    case "RemovedFields":
-                    case "ChangedFields":
-                    case "name":
+                    case 'AddedFields':
+                    case 'RemovedFields':
+                    case 'ChangedFields':
+                    case 'name':
                         break;
-                    case "RenamedFields":
+                    case 'RenamedFields':
                     default:
                         return($db->raiseError(MDB_ERROR, '', '', 'Alter table',
-                            "change type \"" . key($changes) . "\" not yet supported"));
+                            'change type "'.key($changes).'" not yet supported'));
                 }
             }
             return(MDB_OK);
         } else {
-            if (isset($changes["RemovedFields"])) {
-                $query = " DROP (";
-                $fields = $changes["RemovedFields"];
+            if (isset($changes['RemovedFields'])) {
+                $query = ' DROP (';
+                $fields = $changes['RemovedFields'];
                 for($field = 0, reset($fields);
                     $field < count($fields);
                     next($fields), $field++)
                 {
                     if ($field > 0) {
-                        $query .= ", ";
+                        $query .= ', ';
                     }
                     $query .= key($fields);
                 }
-                $query .= ")";
+                $query .= ')';
                 if (!$db->query("ALTER TABLE $name $query")) {
                     return($db->raiseError());
                 }
-                $query = "";
+                $query = '';
             }
-            $query = (isset($changes["name"]) ? "RENAME TO " . $changes["name"] : "");
-            if (isset($changes["AddedFields"])) {
-                $fields = $changes["AddedFields"];
+            $query = (isset($changes['name']) ? 'RENAME TO '.$changes['name'] : '');
+            if (isset($changes['AddedFields'])) {
+                $fields = $changes['AddedFields'];
                 for($field = 0, reset($fields);
                     $field < count($fields);
                     next($fields), $field++)
                 {
-                    $query .= " ADD (" . $fields[key($fields)]["Declaration"] . ")";
+                    $query .= ' ADD ('.$fields[key($fields)]['Declaration'].')';
                 }
             }
-            if (isset($changes["ChangedFields"])) {
-                $fields = $changes["ChangedFields"];
+            if (isset($changes['ChangedFields'])) {
+                $fields = $changes['ChangedFields'];
                 for($field = 0, reset($fields);
                     $field < count($fields);
                     next($fields), $field++)
@@ -292,33 +292,33 @@ class MDB_Manager_oci8_ extends MDB_Manager_Common {
                     } else {
                         $field_name = $current_name;
                     }
-                    $change = "";
+                    $change = '';
                     $change_type = $change_default = 0;
-                    if (isset($fields[$current_name]["type"])) {
+                    if (isset($fields[$current_name]['type'])) {
                         $change_type = $change_default = 1;
                     }
-                    if (isset($fields[$current_name]["length"])) {
+                    if (isset($fields[$current_name]['length'])) {
                         $change_type = 1;
                     }
-                    if (isset($fields[$current_name]["ChangedDefault"])) {
+                    if (isset($fields[$current_name]['ChangedDefault'])) {
                         $change_default = 1;
                     }
                     if ($change_type) {
-                        $change .= " " . $db->getTypeDeclaration($fields[$current_name]["Definition"]);
+                        $change .= ' '.$db->getTypeDeclaration($fields[$current_name]['Definition']);
                     }
                     if ($change_default) {
-                        $change .= " DEFAULT " . (isset($fields[$current_name]["Definition"]["default"]) ? $db->getFieldValue($fields[$current_name]["Definition"]["type"], $fields[$current_name]["Definition"]["default"]) : "NULL");
+                        $change .= ' DEFAULT '.(isset($fields[$current_name]['Definition']['default']) ? $db->getFieldValue($fields[$current_name]['Definition']['type'], $fields[$current_name]['Definition']['default']) : 'NULL');
                     }
-                    if (isset($fields[$current_name]["ChangedNotNull"])) {
-                        $change .= (isset($fields[$current_name]["notnull"]) ? " NOT" : "") . " NULL";
+                    if (isset($fields[$current_name]['ChangedNotNull'])) {
+                        $change .= (isset($fields[$current_name]['notnull']) ? ' NOT' : '').' NULL';
                     }
-                    if (strcmp($change, "")) {
+                    if (strcmp($change, '')) {
                         $query .= " MODIFY ($field_name$change)";
                     }
                 }
             }
             if($query != '' && MDB::isError($result = $db->query("ALTER TABLE $name $query"))) {
-                return $result;
+                return($result);
             }
             return(MDB_OK);
         }
@@ -338,7 +338,7 @@ class MDB_Manager_oci8_ extends MDB_Manager_Common {
      */
     function createSequence(&$db, $seq_name, $start)
     {
-        return($db->query("CREATE SEQUENCE $name START WITH $start INCREMENT BY 1" . ($start < 1 ? " MINVALUE $start" : "")));
+        return($db->query("CREATE SEQUENCE $seq_name START WITH $start INCREMENT BY 1".($start < 1 ? " MINVALUE $start" : '')));
     }
 
     // }}}
@@ -354,7 +354,7 @@ class MDB_Manager_oci8_ extends MDB_Manager_Common {
      */
     function dropSequence(&$db, $seq_name)
     {
-        return($db->query("DROP SEQUENCE $name"));
+        return($db->query("DROP SEQUENCE $seq_name"));
     }
 }
 
