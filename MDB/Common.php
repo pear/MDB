@@ -243,6 +243,12 @@ class MDB_Common extends PEAR
     var $prepared_queries = array();
 
     /**
+    * @var array
+    * @access private
+    */
+    var $result_types;
+
+    /**
     * @var string
     * @access private
     */
