@@ -66,7 +66,7 @@ require_once 'PEAR.php';
  */
 function MDB_defaultDebugOutput(&$db, $message)
 {
-    $db->debug_output .= $db->database . " $message" . $db->getOption('log_line_break');
+    $db->debug_output .= $db->database.': '.$message.$db->getOption('log_line_break');
 }
 
 /**
@@ -80,64 +80,74 @@ class MDB_Common extends PEAR
 {
     // {{{ properties
     /**
-    * index of the MDB object withing the global $_MDB_databases array
-    * @var integer
-    * @access private
-    */
+     * index of the MDB object withing the global $_MDB_databases array
+     * @var integer
+     * @access private
+     */
     var $database = 0;
 
     /**
-    * @var string
-    * @access private
-    */
+     * assoc mapping native error codes to DB ones
+     * @var array
+     */
+    var $errorcode_map = array();
+
+    /**
+     * @var string
+     * @access private
+     */
     var $host = '';
 
     /**
-    * @var string
-    * @access private
-    */
+     * @var string
+     * @access private
+     */
     var $port = '';
 
     /**
-    * @var string
-    * @access private
-    */
+     * @var string
+     * @access private
+     */
     var $user = '';
 
     /**
-    * @var string
-    * @access private
-    */
+     * @var string
+     * @access private
+     */
     var $password = '';
 
     /**
-    * @var string
-    * @access private
-    */
+     * @var string
+     * @access private
+     */
     var $database_name = '';
 
     /**
-    * @var array
-    * @access private
-    */
+     * @var array
+     * @access private
+     */
     var $supported = array();
 
     /**
-    * $options["persistent"] -> boolean persistent connection true|false?
-    * $options["debug"] -> integer numeric debug level
-    * $options["autofree"] -> boolean
-    * $options["lob_buffer_length"] -> integer LOB buffer length
-    * $options["log_line_break"] -> string line-break format
-    * $options["seqname_format"] -> string pattern for sequence name
-    * $options["includelob"] -> boolean
-    * $options["includemanager"] -> boolean
-    * $options["UseTransactions"] -> boolean
-    * @var array
-    * @access private
-    */
+     * $options["optimize"] -> string 'performance' or 'portability'
+     * $options['persistent'] -> boolean persistent connection?
+     * $options['debug'] -> integer numeric debug level
+     * $options['debug_handler'] -> string function/meothd that captures debug messages
+     * $options['autofree'] -> boolean automatically free result that have been read to the end?
+     * $options['lob_buffer_length'] -> integer LOB buffer length
+     * $options['log_line_break'] -> string line-break format
+     * $options['seqname_format'] -> string pattern for sequence name
+     * $options['include_lob'] -> boolean
+     * $options['include_manager'] -> boolean
+     * $options['use_transactions'] -> boolean
+     * @var array
+     * @access private
+     */
     var $options = array(
+            'optimize' => 'portability',
             'persistent' => false,
-            'debug' => false,
+            'debug' => 0,
+            'debug_handler' => 'MDB_defaultDebugOutput',
             'autofree' => false,
             'lob_buffer_length' => 8192,
             'log_line_break' => "\n",
@@ -148,118 +158,101 @@ class MDB_Common extends PEAR
         );
 
     /**
-    * @var string
-    * @access private
-    */
+     * @var string
+     * @access private
+     */
     var $escape_quotes = '';
 
     /**
-    * @var integer
-    * @access private
-    */
+     * @var integer
+     * @access private
+     */
     var $decimal_places = 2;
 
     /**
-    * @var string
-    * @access private
-    */
-    var $manager_included_constant = '';
-
-    /**
-    * @var string
-    * @access private
-    */
-    var $manager_include = '';
-
-    /**
-    * @var string
-    * @access private
-    */
-    var $manager_class_name = '';
-
-    /**
-    * @var object
-    * @access private
-    */
+     * @var object
+     * @access private
+     */
     var $manager;
 
     /**
-    * @var array
-    * @access private
-    */
+     * @var array
+     * @access private
+     */
     var $warnings = array();
 
     /**
-    * @var string
-    * @access private
-    */
+     * @var string
+     * @access private
+     */
     var $debug = '';
 
     /**
-    * @var string
-    * @access private
-    */
+     * @var string
+     * @access private
+     */
     var $debug_output = '';
 
     /**
-    * @var boolean
-    * @access private
-    */
-    var $pass_debug_handle = false;
-
-    /**
-    * @var boolean
-    * @access private
-    */
+     * @var boolean
+     * @access private
+     */
     var $auto_commit = 1;
 
     /**
-    * @var boolean
-    * @access private
-    */
+     * @var boolean
+     * @access private
+     */
     var $in_transaction = 0;
 
     /**
-    * @var integer
-    * @access private
-    */
+     * @var integer
+     * @access private
+     */
     var $first_selected_row = 0;
 
     /**
-    * @var integer
-    * @access private
-    */
+     * @var integer
+     * @access private
+     */
     var $selected_row_limit = 0;
 
     /**
-    * DB type (mysql, oci8, odbc etc.)
-    * @var string
-    * @access private
-    */
-    var $type;
+     * Database backend used in PHP (mysql, odbc etc.)
+     * @var string
+     * @access private
+     */
+    var $phptype;
 
     /**
-    * @var array
-    * @access private
-    */
+     * Database used with regards to SQL syntax etc.
+     * @var string
+     * @access private
+     */
+    var $dbsyntax;
+
+    /**
+     * @var array
+     * @access private
+     */
     var $prepared_queries = array();
 
     /**
-    * @var string
-    * @access private
-    */
+     * @var string
+     * @access private
+     */
     var $last_query = '';
 
     /**
-    * @var integer
-    * @access private
-    */
+     * @var integer
+     * @access private
+     */
     var $fetchmode = MDB_FETCHMODE_ORDERED;
 
     /**
-    * @var integer
-    * @access private
-    */
+     * @var integer
+     * @access private
+     */
     var $affected_rows = -1;
 
     // }}}
@@ -276,9 +269,6 @@ class MDB_Common extends PEAR
         $this->database = $database;
 
         $this->PEAR('MDB_Error');
-        $this->supported = array();
-        $this->errorcode_map = array();
-        $this->fetchmode = MDB_FETCHMODE_ORDERED;
     }
 
     // }}}
@@ -288,9 +278,9 @@ class MDB_Common extends PEAR
      * String conversation
      *
      * @return string
-     * @access private
+     * @access public
      */
-    function _toString()
+    function toString()
     {
         $info = get_class($this);
         $info .= ': (phptype = ' . $this->phptype . ', dbsyntax = ' . $this->dbsyntax . ')';
@@ -466,23 +456,6 @@ class MDB_Common extends PEAR
     }
 
     // }}}
-    // {{{ captureDebugOutput()
-
-    /**
-     * set a debug handler
-     *
-     * @param string $capture name of the function that should be used in
-     *      debug()
-     * @access public
-     * @see debug()
-     */
-    function captureDebugOutput($capture)
-    {
-        $this->pass_debug_handle = $capture;
-        $this->debug = ($capture ? 'MDB_defaultDebugOutput' : '');
-    }
-
-    // }}}
     // {{{ debug()
 
     /**
@@ -493,12 +466,8 @@ class MDB_Common extends PEAR
      */
     function debug($message)
     {
-        if (strcmp($function = $this->debug, '')) {
-            if ($this->pass_debug_handle) {
-                $function($this, $message);
-            } else {
-                $function($message);
-            }
+        if ($this->debug && $this->option['debug_handler']) {
+        	call_user_func($this->option['debug_handler'], $this, $message);
         }
     }
 
@@ -589,7 +558,7 @@ class MDB_Common extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
-        $class_name = 'MDB_Manager_'.$this->dbsyntax;
+        $class_name = 'MDB_Manager_'.$this->phptype;
         if (!class_exists($class_name)) {
             return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
                 'Unable to load extension');
@@ -619,7 +588,7 @@ class MDB_Common extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
-        $class_name = 'MDB_Datatype_'.$this->dbsyntax;
+        $class_name = 'MDB_Datatype_'.$this->phptype;
         if (!class_exists($class_name)) {
             return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
                 'Unable to load extension');
