@@ -844,28 +844,32 @@ class MDB_mssql extends MDB_Common
     */
     function _mssql_field_flags($table, $column)
     {
-        static $flags = false;
+        static $current_table = null;
+        static $flags;
         // At the first call we discover the flags for all fields
-        if ($flags === false) {
+        if ($table != $current_table) {
             $flags = array();
             // find nullable fields
             $q_nulls = "SELECT syscolumns.name, syscolumns.isnullable
                         FROM sysobjects
                         INNER JOIN syscolumns ON sysobjects.id = syscolumns.id
                         WHERE sysobjects.name ='$table' AND syscolumns.isnullable = 1";
-            $res = $this->getAll($q_nulls, DB_FETCHMODE_ASSOC);
+            $res = $this->query($q_nulls, null, false);
+            $res = $this->fetchAll($res, MDB_FETCHMODE_ASSOC);
             foreach ($res as $data) {
                 if ($data['isnullable'] == 1) {
                     $flags[$data['name']][] = 'isnullable';
                 }
             }
             // find primary keys
-            $res2 = $this->getAll("EXEC SP_PKEYS[$table]", DB_FETCHMODE_ASSOC);
+            $res2 = $this->query("EXEC SP_PKEYS[$table]", null, false);
+            $res2 = $this->fetchAll($res, MDB_FETCHMODE_ASSOC);
             foreach ($res2 as $data) {
                 if (!empty($data['COLUMN_NAME'])) {
                     $flags[$data['COLUMN_NAME']][] = 'primary_key';
                 }
             }
+            $current_table = $table;
         }
         if (isset($flags[$column])) {
             return implode(',', $flags[$column]);
