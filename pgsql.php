@@ -251,7 +251,7 @@ class MDB_driver_pgsql extends MDB_common {
      * Does the grunt work of connecting to the database
      *
      * @return mixed connection resource on success, MDB_Error on failure
-     * @access private
+     * @access privat
      **/
     function _doConnect($database_name, $persistent)
     {
@@ -336,7 +336,7 @@ class MDB_driver_pgsql extends MDB_common {
      * Close the database connection
      *
      * @return boolean
-     * @access private
+     * @access privat
      **/
     function _close()
     {
@@ -362,7 +362,7 @@ class MDB_driver_pgsql extends MDB_common {
      * Execute a query
      * @param string $query the SQL query
      * @return mixed result identifier if query executed, else MDB_error
-     * @access private
+     * @access privat
      **/
     function _doQuery($query)
     {
@@ -383,7 +383,7 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param string $query
      * @return
-     * @access private
+     * @access privat
      */
     function _standaloneQuery($query)
     {
@@ -1392,9 +1392,9 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param int $resource PostgreSQL result identifier
      * @param int $num_field the field number
-     * @return string The flags of the field ('not_NULL', 'default_xx', 'primary_key',
+     * @return string The flags of the field ('not_null', 'default_xx', 'primary_key',
      *                 'unique' and 'multiple_key' are supported)
-     * @access private
+     * @access privat
      **/
     function _pgFieldFlags($resource, $num_field, $table_name)
     {
@@ -1408,7 +1408,7 @@ class MDB_driver_pgsql extends MDB_common {
             AND tab.relname = '$table_name'");
         if (pg_numrows($result) > 0) {
             $row = pg_fetch_row($result, 0);
-            $flags = ($row[0] == 't') ? 'not_NULL ' : '';
+            $flags = ($row[0] == 't') ? 'not_null ' : '';
             
             if ($row[1] == 't') {
                 $result = pg_exec($this->connection, "SELECT a.adsrc
