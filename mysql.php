@@ -1,17 +1,43 @@
 <?php
-/* vim: set expandtab tabstop=4 shiftwidth=4: */
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1997-2002 The PHP Group                                |
+// | Copyright (c) 1998-2002 Manuel Lemos, Tomas V.V.Cox,                 |
+// | Stig. S. Bakken, Lukas Smith                                         |
+// | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
-// | This source file is subject to version 2.02 of the PHP license,      |
-// | that is bundled with this package in the file LICENSE, and is        |
-// | available at through the world-wide-web at                           |
-// | http://www.php.net/license/2_02.txt.                                 |
-// | If you did not receive a copy of the PHP license and are unable to   |
-// | obtain it through the world-wide-web, please send a note to          |
-// | license@php.net so we can mail you a copy immediately.               |
+// | MDB is a merge of PEAR DB and Metabases that provides a unified DB   |
+// | API as well as database abstraction for PHP applications.            |
+// | This LICENSE is in the BSD license style.                            |
+// |                                                                      |
+// | Redistribution and use in source and binary forms, with or without   |
+// | modification, are permitted provided that the following conditions   |
+// | are met:                                                             |
+// |                                                                      |
+// | Redistributions of source code must retain the above copyright       |
+// | notice, this list of conditions and the following disclaimer.        |
+// |                                                                      |
+// | Redistributions in binary form must reproduce the above copyright    |
+// | notice, this list of conditions and the following disclaimer in the  |
+// | documentation and/or other materials provided with the distribution. |
+// |                                                                      |
+// | Neither the name of Manuel Lemos, Tomas V.V.Cox, Stig. S. Bakken,    |
+// | Lukas Smith nor the names of his contributors may be used to endorse |
+// | or promote products derived from this software without specific prior|
+// | written permission.                                                  |
+// |                                                                      |
+// | THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS  |
+// | "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT    |
+// | LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS    |
+// | FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE      |
+// | REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,          |
+// | INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, |
+// | BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS|
+// |  OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED  |
+// | AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT          |
+// | LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY|
+// | WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE          |
+// | POSSIBILITY OF SUCH DAMAGE.                                          |
 // +----------------------------------------------------------------------+
 // | Author: Lukas Smith <smith@dybnet.de>                                |
 // +----------------------------------------------------------------------+
@@ -109,7 +135,7 @@ class MDB_mysql extends MDB_common
     {
         return mysql_errno($this->connection);
     }
-	
+    
     function mysqlRaiseError($errno = NULL)
     {
         if ($errno == NULL) {
@@ -333,12 +359,12 @@ class MDB_mysql extends MDB_common
      */
     function query($query, $types = NULL)
     {
+        $ismanip = MDB::isManip($query);
         $this->last_query = $query;
-        $this->debug("Query: $query");
-        
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;
         $this->first_selected_row = $this->selected_row_limit = 0;
+
         if (!strcmp($this->database_name, "")) {
             return $this->raiseError(DB_ERROR_NODBSELECTED);
         }
@@ -347,44 +373,34 @@ class MDB_mysql extends MDB_common
         if (MDB::isError($result)) {
             return $result;
         }
-        
-        $query_string = strtolower(ltrim($query));
-        $space = strpos($query_string , ' ');
 
-        // did strpos succeed?
-        if (is_int($space)) {
-            $query_string = substr($query_string, 0, $space);
-        }
-
-        $select = ($query_string == 'select' || $query_string == 'show');
-        if ($select && $limit > 0) {
+        if (!$ismanip && $limit > 0 &&
+            substr(strtolower(ltrim($query)), 
+            0, 6) == "select")
+        {
             $query.=" LIMIT $first,$limit";
         }
-
         if (mysql_select_db($this->database_name, $this->connection)
             && ($result = mysql_query($query, $this->connection)))
         {
-            if ($select) {
-                $this->highest_fetched_row[$result] = -1;
-            } else {
+            if ($ismanip) {
                 $this->affected_rows = mysql_affected_rows($this->connection);
-            }
-        } else {
-            return $this->mysqlRaiseError(DB_ERROR);
-        }
-        if (is_resource($result)) {
-            if ($types != NULL) {
-                if (!is_array($types)) {
-                    $types = array($types);
+                return DB_OK;
+            } else {
+                $this->highest_fetched_row[$result] = -1;
+                if ($types != NULL) {
+                    if (!is_array($types)) {
+                        $types = array($types);
+                    }
+                    if (MDB::isError($err = $this->setResultTypes($result, $types))) {
+                        $this->freeResult($result);
+                        return $err;
+                    }
                 }
-                if (MDB::isError($err = $this->setResultTypes($result, $types))) {
-                    $this->freeResult($result);
-                    return $err;
-                }
+                return $result;
             }
-            return $result;
         }
-        return DB_OK;
+        return $this->mysqlRaiseError(DB_ERROR);
     }
 
     // }}}
@@ -1318,15 +1334,15 @@ class MDB_mysql extends MDB_common
      * 
      * @access public
      */
-    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $row = NULL)
+    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        if ($row !== NULL) {
-            if (!@mysql_data_seek($result, $row)) {
+        if ($rownum == NULL) {
+            ++$this->highest_fetched_row[$result];
+        } else {
+            if (!@mysql_data_seek($result, $rownum)) {
                 return NULL;
             }
-            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
-        } else {
-            ++$this->highest_fetched_row[$result];
+            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
         }
         if ($fetchmode & DB_FETCHMODE_ASSOC) {
             $array = mysql_fetch_array($result, MYSQL_ASSOC);
