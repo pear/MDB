@@ -1384,11 +1384,13 @@ class MDB_Common extends PEAR
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
                 'Set selected row range: selecting row ranges is not supported by this driver');
         }
-        if (gettype($first) != 'integer' || $first < 0) {
+        $first = (int)$first;
+        if ($first < 0) {
             return $this->raiseError(MDB_ERROR_SYNTAX, '', '',
                 'Set selected row range: it was not specified a valid first selected range row');
         }
-        if (gettype($limit) != 'integer' || $limit < 1) {
+        $limit = (int)$limit;
+        if ($limit < 1) {
             return $this->raiseError(MDB_ERROR_SYNTAX, '', '',
                 'Set selected row range: it was not specified a valid selected range row limit');
         }
