@@ -1234,7 +1234,7 @@ class MDB_common extends PEAR
     // added $fetchmode
     function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $row = null)
     {
-        return ($this->baseFetchArray($result, &$array, $row));
+        return ($this->baseFetchArray($result, $array, $row));
     }
     
     // renamed for PEAR
@@ -1288,7 +1288,7 @@ class MDB_common extends PEAR
             return ($this->setError("Fetch field", "it was not specified a valid result set"));
         }
         $temp = array();
-        for($success = 1, $column = array(), $row = 0;!$this->EndOfResult($result); $row++) {
+        for($success = 1, $column = array(), $row = 0;!$this->endOfResult($result); $row++) {
             if ($this->ResultIsNull($result, 0, 0)) {
                 continue;
             }
@@ -1324,7 +1324,7 @@ class MDB_common extends PEAR
         }
         $row = 0;
         $all = array();
-        while (DB_OK === $this->fetchInto($result, &$array, $fetchmode, null)) {
+        while (DB_OK === $this->fetchInto($result, $array, $fetchmode, null)) {
             if ($rekey) {
                 if ($fetchmode == DB_FETCHMODE_ASSOC) {
                     reset($array);
@@ -1526,13 +1526,13 @@ class MDB_common extends PEAR
             return $result;
         }
 
-        $err = $this->fetchField($result, &$value,DB_FETCHMODE_ORDERED);
+        $err = $this->fetchField($result, $value, DB_FETCHMODE_ORDERED);
         if ($err !== DB_OK) {
             return $err;
         }
 
         if (isset($prepared_query)) {
-            $result = $this->FreePreparedQuery($prepared_query);
+            $result = $this->freePreparedQuery($prepared_query);
             if (MDB::isError($result))
                 return $result;
         }
@@ -1540,7 +1540,7 @@ class MDB_common extends PEAR
         return $value;
     }
 
-    function &getRow($query, $params = array(),    $fetchmode = DB_FETCHMODE_DEFAULT)
+    function &getRow($query, $params = array(), $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         $fetchmode = (empty($fetchmode)) ? DB_FETCHMODE_DEFAULT : $fetchmode;
         settype($params, 'array');
@@ -1558,13 +1558,13 @@ class MDB_common extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
-        $err = $this->fetchRow($result, &$row, $fetchmode);
+        $err = $this->fetchRow($result, $row, $fetchmode);
         
         if ($err !== DB_OK) {
             return $err;
         }
         if (isset($prepared_query)) {
-            $result = $this->FreePreparedQuery($prepared_query);
+            $result = $this->freePreparedQuery($prepared_query);
             if (MDB::isError($result))
                 return $result;
         }
@@ -1592,13 +1592,13 @@ class MDB_common extends PEAR
             return $result;
         }
         
-        $err = $this->fetchColumn($result, &$col, $fetchmode);
+        $err = $this->fetchColumn($result, $col, $fetchmode);
         
         if ($err !== DB_OK) {
             return $err;
         }
         if (isset($prepared_query)) {
-            $result = $this->FreePreparedQuery($prepared_query);
+            $result = $this->freePreparedQuery($prepared_query);
             if (MDB::isError($result))
                 return $result;
         }
@@ -1626,12 +1626,12 @@ class MDB_common extends PEAR
             return $result;
         }
 
-        $err = $this->fetchAll($result, &$all, $fetchmode);
+        $err = $this->fetchAll($result, $all, $fetchmode);
         if (MDB::isError($err)) {
             return $err;
         }
         if (isset($prepared_query)) {
-            $result = $this->FreePreparedQuery($prepared_query);
+            $result = $this->freePreparedQuery($prepared_query);
             if (MDB::isError($result))
                 return $result;
         }
@@ -1660,12 +1660,12 @@ class MDB_common extends PEAR
             return $result;
         }
 
-        $err = $this->fetchAll($result, &$all, $fetchmode, true, $force_array, $group);
+        $err = $this->fetchAll($result, $all, $fetchmode, true, $force_array, $group);
         if (MDB::isError($err)) {
             return $err;
         }
         if (isset($prepared_query)) {
-            $result = $this->FreePreparedQuery($prepared_query);
+            $result = $this->freePreparedQuery($prepared_query);
             if (MDB::isError($result))
                 return $result;
         }
