@@ -138,20 +138,17 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     }
 
     function verifyFetchedValues(&$result, $rownum, &$data) {
+        $row = $this->db->fetchInto($result, $rownum);
         for ($i = 0; $i < count($this->fields); $i++) {
-            if ($this->types[$i] == 'text' || $this->types[$i] == 'integer') {
-                $func = 'fetch';
-            } else {
-                $func = 'fetch'.$this->types[$i];
-            }
+            $type = $this->types[$i];
             if ($this->types[$i] == 'float') {
                 $delta = 0.0000000001;
             } else {
                 $delta = 0;
             }
-            $value = $this->db->$func($result, $rownum, $i);
+            $value = $row[$i];
             $field = $this->fields[$i];
-            $this->assertEquals($value, $data[$field], "the value retrieved for field \"$field\" ($value) using $func() doesn't match what was stored ($data[$field]).$func", $delta);
+            $this->assertEquals($value, $data[$field], "the value retrieved for field \"$field\" ($value) using type $type doesn't match what was stored ($data[$field]).", $delta);
         }
     }
 
