@@ -554,7 +554,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getBooleanValue(&$db, $value)
     {
-        return ($value === null) ? 'NULL' : $value;
+        return ($value === null) ? 'NULL' : ($value ? 1 : 0);
     }
 
     // }}}
