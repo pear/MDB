@@ -749,7 +749,7 @@ class MDB_pgsql extends MDB_Common
     {
         switch ($type) {
             case MDB_TYPE_BOOLEAN:
-                return(strcmp($value, 't') ? TRUE : FALSE);
+                return(strcmp($value, 't') ? FALSE : TRUE);
             case MDB_TYPE_DECIMAL:
                 return(sprintf('%.'.$this->decimal_places.'f',doubleval($value)/$this->decimal_factor));
             case MDB_TYPE_FLOAT:
