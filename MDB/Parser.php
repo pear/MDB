@@ -16,7 +16,7 @@
  *
  */
 
-class MDB_parser
+class MDB_parser extends PEAR
 {
     /* PUBLIC DATA */
     var $stream_buffer_size = 4096;
@@ -921,5 +921,4 @@ class MDB_parser
         return($this->error);
     }
 };
-
 ?>
