@@ -693,16 +693,12 @@ class MDB_oci8 extends MDB_Common
      * Retrieve the names of columns returned by the DBMS in a query result.
      * 
      * @param resource $result result identifier
-     * @return mixed an associative array variable
-     *                               that will hold the names of columns.The
-     *                               indexes of the array are the column names
-     *                               mapped to lower case and the values are the
-     *                               respective numbers of the columns starting
-     *                               from 0. Some DBMS may not return any
-     *                               columns when the result set does not
-     *                               contain any rows.
-     * 
-     *                               a MDB error on failure
+     * @return mixed associative array variable
+     *      that holds the names of columns. The indexes of the array are
+     *      the column names mapped to lower case and the values are the
+     *      respective numbers of the columns starting from 0. Some DBMS may
+     *      not return any columns when the result set does not contain any
+     *      rows.
      * @access public 
      */
     function getColumnNames($result)
@@ -710,7 +706,7 @@ class MDB_oci8 extends MDB_Common
         $result_value = intval($result);
         if (!isset($this->results[$result_value])) {
             return $this->raiseError(MDB_ERROR, null, null,
-                'getColumnNames: it was specified an inexisting result set');
+                'getColumnNames: specified an nonexistant result set');
         }
         if (!isset($this->results[$result_value]['columns'])) {
             $this->results[$result_value]['columns'] = array();
