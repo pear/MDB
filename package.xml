@@ -8,18 +8,15 @@
     It also provides methods for DB portability and DB feature emulation.
     Most notably it features a DB independent XML-Schema manager.
   </description>
+  <license>
+    PHP
+  </license>
   <maintainers>
     <maintainer>
       <user>lsmith</user>
       <role>lead</role>
       <name>Lukas Kahwe Smith</name>
       <email>lsmith@php.net</email>
-    </maintainer>
-    <maintainer>
-      <user>clinn</user>
-      <role>developer</role>
-      <name>Christopher Linn</name>
-      <email>clinn@dybnet.de</email>
     </maintainer>
     <maintainer>
       <user>ssb</user>
@@ -46,7 +43,7 @@
     <date>2002-05-03</date>
     <notes>First packaged release of MDB</notes>
     <filelist>
-      <dir name="/">
+        <dir name="/" role="php">
           <file>MDB.php</file>
           <file>common.php</file>
           <file>mysql.php</file>
@@ -56,9 +53,9 @@
           <file>xml_parser.php</file>
           <file>metabase_wrapper.php</file>
           <file>pear_wrapper.php</file>
-          <file>README.txt</file>
+          <file>Readme.txt</file>
           <file>MDB_test.php</file>
-          <file>MDB_test_pear_wrapper.php</file>
+          <file>MDB_pear_wrapper_test.php</file>
           <file>driver_test.php</file>
           <file>driver_test_config.php</file>
           <file>driver_test.schema</file>
