@@ -19,6 +19,12 @@
       <email>lsmith@php.net</email>
     </maintainer>
     <maintainer>
+      <user>dickmann</user>
+      <role>contributor</role>
+      <name>Christian Dickmann</name>
+      <email>chrisdicki@gmx.de</email>
+    </maintainer>
+    <maintainer>
       <user>ssb</user>
       <role>contributor</role>
       <name>Stig Sæther Bakken</name>
@@ -38,10 +44,10 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>0.9.3</version>
+    <version>0.9.4</version>
     <state>beta</state>
-    <date>2002-05-17</date>
-    <notes>MDB now uses the currect include path in all situations; improvements to the error handling (thx to Christian Dickmann) and  the pear wrapper were made</notes>
+    <date>2002-05-30</date>
+    <notes>Moved all DB management methods into a seperate class that is loaded on demand; MDB manager can now create an xml schema file from an existing DB;Improvements to the error handling, XMl schema manager and Metabase Wrapper as well as general formatting tweaks</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
