@@ -92,7 +92,15 @@ class MDB_manager extends PEAR
             'ibase' => array()
         )
     );
-
+    var $default_values = array(
+        'integer' => 0,
+        'float' => 0,
+        'decimal' => 0,
+        'text' => '',
+        'timestamp' => '0000-00-00 00:0:00',
+        'date' => '0000-00-00',
+        'time' => '00:0:00'
+    );
     // }}}
     // {{{ raiseError()
 
@@ -1648,32 +1656,6 @@ class MDB_manager extends PEAR
                 if (MDB::isError($definition)) {
                     return ($definition);
                 }
-                if(isset($definition[0][0]['notnull']) && $definition[0][0]['notnull'] && !isset($definition[0][0]['default'])) {
-                    foreach($definition[0] as $field_setdefault) {
-                        switch ($field_setdefault['type']) {
-                            case 'integer':
-                            case 'float':
-                            case 'decimal':
-                                $field_setdefault['default'] = '0';
-                                break;
-                            case 'text':
-                                $field_setdefault['default'] = '';
-                                break;
-                            case 'timestamp':
-                                $field_setdefault['default'] = '0000-00-00 00:0:00';
-                                break;
-                            case 'date':
-                                $field_setdefault['default'] = '0000-00-00';
-                                break;
-                            case 'time':
-                                $field_setdefault['default'] = '00:0:00';
-                                break;
-                            default:
-                                $field_setdefault['default'] = '0';
-                                break;
-                        }
-                    }
-                }
                 $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_name] = $definition[0][0];
                 $field_choices = count($definition[0]);
                 if($field_choices > 1) {
@@ -1722,12 +1704,40 @@ class MDB_manager extends PEAR
                 }
                $this->database_definition['TABLES'][$table_name]['INDEXES'][$index_name] = $definition;
             }
-            if (is_array($this->database_definition['TABLES'][$table_name]['INDEXES']) &&
-                count($this->database_definition['TABLES'][$table_name]['INDEXES']) > 0)
+            // ensure that all fields that have an index on them are set to not null
+            if (is_array($this->database_definition['TABLES'][$table_name]['INDEXES'])
+                && count($this->database_definition['TABLES'][$table_name]['INDEXES']) > 0)
             {
                 foreach($this->database_definition['TABLES'][$table_name]['INDEXES'] as $index_check_null) {
                     foreach($index_check_null['FIELDS'] as $field_name_check_null => $field_check_null) {
                         $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_name_check_null]['notnull'] = 1;
+                    }
+                }
+            }
+            // ensure that all fields that are set to not null also have a default value
+            if (is_array($this->database_definition['TABLES'][$table_name]['FIELDS'])
+                && count($this->database_definition['TABLES'][$table_name]['FIELDS']) > 0)
+            {
+                foreach($this->database_definition['TABLES'][$table_name]['FIELDS'] as $field_set_default_name => $field_set_default) {
+                    if($field_set_default['notnull'] && !isset($field_set_default['default'])) {
+                        if(isset($this->default_values[$field_set_default['type']])) {
+                            $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_set_default_name]['default'] = $this->default_values[$field_set_default['type']];
+                        } else {
+                            $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_set_default_name]['default'] = 0;
+                        }
+                    }
+                    if(is_array($field_set_default['CHOICES'])) {
+                        foreach($field_set_default['CHOICES'] as $field_choices_set_default_name => $field_choices_set_default) {
+                            if($field_choices_set_default['notnull'] && !isset($field_choices_set_default['default'])) {
+                                if(isset($this->default_values[$field_choices_set_default['type']])) {
+                                    $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_set_default_name]['CHOICES']
+                                        [$field_choices_set_default_name]['default'] = $this->default_values[$field_choices_set_default['type']];
+                                } else {
+                                    $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_set_default_name]['CHOICES']
+                                        [$field_choices_set_default_name]['default'] = 0;
+                                }
+                            }
+                        }
                     }
                 }
             }
