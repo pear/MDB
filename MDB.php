@@ -7,144 +7,6 @@
 
 require_once "PEAR.php";
 
-function setupDatabase($arguments, &$database)
-{
-    global $databases;
-
-    $database=count($databases)+1;
-    if (strcmp($error=setupInterface($arguments, $databases[$database]), "")) {
-        unset($databases[$database]);
-        $database=0;
-    } else {
-        $databases[$database]->database=$database;
-    }
-    return($error);
-}
-function setupInterface(&$arguments, &$db)
-{
-    switch(isset($arguments["Type"]) ? $arguments["Type"] : "") {
-        case "ibase";
-            $include="ibase.php";
-            $class_name="MDB_ibase";
-            $included="IBASE_INCLUDED";
-            break;
-        case "ifx";
-            $include="ifx.php";
-            $class_name="MDB_ifx";
-            $included="IFX_INCLUDED";
-            break;
-        case "msql";
-            $include="msql.php";
-            $class_name="MDB_msql";
-            $included="MSQL_INCLUDED";
-            break;
-        case "mssql";
-            $include="mssql.php";
-            $class_name="MDB_mssql";
-            $included="MSSQL_INCLUDED";
-            break;
-        case "mysql";
-            $include="mysql.php";
-            $class_name="MDB_mysql";
-            $included="MYSQL_INCLUDED";
-            break;
-        case "pgsql";
-            $include="pgsql.php";
-            $class_name="MDB_pgsql";
-            $included="PGSQL_INCLUDED";
-            break;
-        case "odbc";
-            $include="odbc.php";
-            $class_name="MDB_odbc";
-            $included="ODBC_INCLUDED";
-            break;
-        case "oci";
-            $include="oci.php";
-            $class_name="MDB_oci";
-            $included="OCI_INCLUDED";
-            break;
-        default:
-            $included=(isset($arguments["IncludedConstant"]) ? $arguments["IncludedConstant"] : "");
-            if (!isset($arguments["Include"])
-                || !strcmp($include=$arguments["Include"],""))
-            {
-                return(isset($arguments["Include"]) ? "it was not specified a valid database include file" : "it was not specified a valid DBMS driver type");
-            }
-            if (!isset($arguments["ClassName"])
-                || !strcmp($class_name=$arguments["ClassName"],""))
-            {
-                return("it was not specified a valid database class name");
-            }
-    }
-    if (!strcmp($included,"")
-        || !defined($included))
-    {
-        $include_path=(isset($arguments["IncludePath"]) ? $arguments["IncludePath"] : "");
-        if ($include_path!=""
-            && $include_path[strlen($include_path)-1]!="/")
-        {
-            $include="/".$include;
-        }
-        if (!file_exists($include_path.$include)) {
-            $directory=0;
-            if (!strcmp($include_path,"")
-                || ($directory=@opendir($include_path)))
-            {
-                if ($directory) {
-                    closedir($directory);
-                }
-                return("it was not specified an existing DBMS driver file");
-            } else {
-                return("it was not specified a valid DBMS driver include path");
-            }
-        }
-        include($include_path.$include);
-    }
-    if (!class_exists($class_name)) {
-        return PEAR::raiseError(null, DB_ERROR_NOT_FOUND,
-            null, null, null, 'MDB_Error', true);
-    }
-    $db = new $class_name;
-    if (isset($arguments["Host"])) {
-        $db->host=$arguments["Host"];
-    }
-    if (isset($arguments["User"])) {
-        $db->user=$arguments["User"];
-    }
-    if (isset($arguments["Password"])) {
-        $db->password=$arguments["Password"];
-    }
-    if (isset($arguments["Persistent"])) {
-        $db->persistent=$arguments["Persistent"];
-    }
-    if (isset($arguments["Debug"])) {
-        $db->debug=$arguments["Debug"];
-    }
-    $db->decimal_places=(isset($arguments["DecimalPlaces"]) ? $arguments["DecimalPlaces"] : 2);
-    $db->lob_buffer_length=(isset($arguments["LOBBufferLength"]) ? $arguments["LOBBufferLength"] : 8000);
-    if (isset($arguments["LogLineBreak"])) {
-        $db->log_line_break=$arguments["LogLineBreak"];
-    }
-    if (isset($arguments["Options"])) {
-        $db->options=$arguments["Options"];
-    }
-    return($db->setup());
-}
-
-function setupDatabaseObject($arguments, &$db)
-{
-    global $databases;
-
-    $database=count($databases)+1;
-    if (strcmp($error=setupInterface($arguments,$db),"")) {
-        unset($databases[$database]);
-    } else {
-        eval("\$databases[\$database]= &\$db;");
-        $db->database=$database;
-    }
-    return($error);
-}
-
 /*
  * The method mapErrorCode in each DB_dbtype implementation maps
  * native error codes to one of these.
@@ -320,9 +182,18 @@ class MDB
 
     function &factory($type)
     {
-        $arguments["Type"] = $type;
-        @$obj = setupDatabaseObject($arguments, &$obj);
-        return $obj;
+        @include_once("${type}.php");
+
+        $classname = "DB_${type}";
+
+        if (!class_exists($classname)) {
+            return PEAR::raiseError(null, DB_ERROR_NOT_FOUND,
+                                    null, null, null, 'DB_Error', true);
+        }
+
+        @$db =& new $classname;
+
+        return $db;
     }
 
     /**
@@ -353,26 +224,123 @@ class MDB
         } else {
             $dsninfo = MDB::parseDSN($dsn);
         }
-        $arguments["Type"] = $dsninfo["phptype"];
-        $arguments["User"] = $dsninfo["username"];
-        $arguments["Password"] = $dsninfo["password"];
-        $arguments["Host"] = $dsninfo["hostspec"];
-        if (!is_array($options) && $options) {
-            $arguments["Persistent"] = true;
+
+        switch(isset($dsninfo["phptype"]) ? $dsninfo["phptype"] : "") {
+            case "ibase";
+                $include="ibase.php";
+                $class_name="MDB_ibase";
+                $included="IBASE_INCLUDED";
+                break;
+            case "ifx";
+                $include="ifx.php";
+                $class_name="MDB_ifx";
+                $included="IFX_INCLUDED";
+                break;
+            case "msql";
+                $include="msql.php";
+                $class_name="MDB_msql";
+                $included="MSQL_INCLUDED";
+                break;
+            case "mssql";
+                $include="mssql.php";
+                $class_name="MDB_mssql";
+                $included="MSSQL_INCLUDED";
+                break;
+            case "mysql";
+                $include="mysql.php";
+                $class_name="MDB_mysql";
+                $included="MYSQL_INCLUDED";
+                break;
+            case "pgsql";
+                $include="pgsql.php";
+                $class_name="MDB_pgsql";
+                $included="PGSQL_INCLUDED";
+                break;
+            case "odbc";
+                $include="odbc.php";
+                $class_name="MDB_odbc";
+                $included="ODBC_INCLUDED";
+                break;
+            case "oci";
+                $include="oci.php";
+                $class_name="MDB_oci";
+                $included="OCI_INCLUDED";
+                break;
+            default:
+                $included = (isset($options["includedconstant"]) ? $options["includedconstant"] : "");
+                if (!isset($options["include"])
+                    || !strcmp($include = $options["includepath"],""))
+                {
+                    return(isset($options["includepath"]) ? "it was not specified a valid database include file" : "it was not specified a valid DBMS driver type");
+                }
+                if (!isset($options["classname"])
+                    || !strcmp($class_name = $options["classname"],""))
+                {
+                    return("it was not specified a valid database class name");
+                }
         }
-        if ($options["IncludePath"]) {
-            $arguments["IncludePath"] = $options["IncludePath"];
+        if (!strcmp($included,"")
+            || !defined($included))
+        {
+            $include_path=(isset($options["includepath"]) ? $options["includepath"] : "");
+            if ($include_path!=""
+                && $include_path[strlen($include_path)-1]!="/")
+            {
+                $include="/".$include;
+            }
+            if (!file_exists($include_path.$include)) {
+                $directory = 0;
+                if (!strcmp($include_path,"")
+                    || ($directory=@opendir($include_path)))
+                {
+                    if ($directory) {
+                        closedir($directory);
+                    }
+                    return("it was not specified an existing DBMS driver file");
+                } else {
+                    return("it was not specified a valid DBMS driver include path");
+                }
+            }
+            include($include_path.$include);
         }
-        $error = setupDatabaseObject($arguments, &$obj);
+        if (!class_exists($class_name)) {
+            return PEAR::raiseError(null, DB_ERROR_NOT_FOUND,
+                null, null, null, 'MDB_Error', true);
+        }
+        $db = new $class_name;
+        if (isset($dsninfo["hostspec"])) {
+            $db->host = $dsninfo["hostspec"];
+        }
+        if (isset($dsninfo["username"])) {
+            $db->user = $dsninfo["username"];
+        }
+        if (isset($dsninfo["password"])) {
+            $db->password = $dsninfo["password"];
+        }
+        if (isset($options["persistent"])) {
+            $db->persistent = $options["persistent"];
+        }
+        if (isset($options["debug"])) {
+            $db->debug = $options["debug"];
+        }
+        $db->decimal_places = (isset($options["decimalplaces"]) ? $options["decimalplaces"] : 2);
+        $db->lob_buffer_length = (isset($options["LOBbufferlength"]) ? $options["LOBbufferlength"] : 8000);
+        if (isset($options["loglinebreak"])) {
+            $db->log_line_break = $options["loglinebreak"];
+        }
+        if (isset($options["options"])) {
+            $db->options = $options["options"];
+        }
+        $db->setup();
         if(isset($dsninfo["database"])) {
-            $obj->setDatabase($dsninfo["database"]);
-            $err = $obj->connect();
+            $db->setDatabase($dsninfo["database"]);
+            $err = $db->connect();
             if (MDB::isError($err)) {
                 $err->addUserInfo($dsn);
                 return $err;
             }
         }
-        return $obj;
+        return $db;
     }
 
     /**
