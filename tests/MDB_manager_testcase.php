@@ -98,7 +98,7 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
            'text',
            'text',
            'boolean',
-           'text',
+           'integer',
            'decimal',
            'float',
            'date',

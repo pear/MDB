@@ -72,7 +72,8 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             exit;
         }
         $this->db->setDatabase($this->database);
-        $this->fields = array('user_name',
+        $this->fields = array(
+                        'user_name',
                         'user_password',
                         'subscribed',
                         'user_id',
@@ -81,17 +82,18 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                         'access_date',
                         'access_time',
                         'approved'
-                        );
-        $this->types = array('text',
-                       'text',
-                       'boolean',
-                       'text',
-                       'decimal',
-                       'float',
-                       'date',
-                       'time',
-                       'timestamp'
-                       );
+                    );
+        $this->types = array(
+                        'text',
+                        'text',
+                        'boolean',
+                        'integer',
+                        'decimal',
+                        'float',
+                        'date',
+                        'time',
+                        'timestamp'
+                    );
         $this->clearTables();
     }
 
@@ -138,7 +140,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
     function verifyFetchedValues(&$result, $rownum, &$data) {
         for ($i = 0; $i < count($this->fields); $i++) {
-            if ($this->types[$i] == 'text') {
+            if ($this->types[$i] == 'text' || $this->types[$i] == 'integer') {
                 $func = 'fetch';
             } else {
                 $func = 'fetch'.$this->types[$i];

@@ -72,7 +72,8 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
             exit;
         }
         $this->db->setDatabase($this->database);
-        $this->fields = array('user_name',
+        $this->fields = array(
+                        'user_name',
                         'user_password',
                         'subscribed',
                         'user_id',
@@ -81,18 +82,19 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
                         'access_date',
                         'access_time',
                         'approved'
-                        );
+                    );
 
-        $this->types = array('text',
-                       'text',
-                       'boolean',
-                       'text',
-                       'decimal',
-                       'float',
-                       'date',
-                       'time',
-                       'timestamp'
-                       );
+        $this->types = array(
+                        'text',
+                        'text',
+                        'boolean',
+                        'integer',
+                        'decimal',
+                        'float',
+                        'date',
+                        'time',
+                        'timestamp'
+                    );
         $this->clearTables();
     }
 
