@@ -807,8 +807,11 @@ class MDB_ibase extends MDB_Common
                 } else {
                     $row = @ibase_fetch_row($result);
                 }
-                foreach ($row as $key => $value_with_space) {
-                    $row[$key] = rtrim($value_with_space);
+                //NOT SURE IF REALLY OK... basically it doesn't process $row if it's false
+                if($row) {
+                    foreach ($row as $key => $value_with_space) {
+                        $row[$key] = rtrim($value_with_space);
+                    }
                 }
                 $this->results[$result_value][$this->results[$result_value]['current_row']+1] = $row;
                 if (!$row) {
@@ -1058,22 +1061,26 @@ class MDB_ibase extends MDB_Common
         if (empty($mode)) {
             for ($i=0; $i<$count; $i++) {
                 $info = @ibase_field_info($id, $i);
-                $res[$i]['table'] = (is_string($result)) ? $result : '';
+                //$res[$i]['table'] = (is_string($result)) ? $result : '';
+                $res[$i]['table'] = (is_string($result)) ? $result : $info['relation'];
                 $res[$i]['name']  = $info['name'];
                 $res[$i]['type']  = $info['type'];
                 $res[$i]['len']   = $info['length'];
-                $res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($info['name'], $result) : '';
+                //$res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($info['name'], $result) : '';
+                $res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($id, $i, $result) : '';
             }
         } else { // full
             $res['num_fields'] = $count;
 
             for ($i=0; $i<$count; $i++) {
                 $info = @ibase_field_info($id, $i);
-                $res[$i]['table'] = (is_string($result)) ? $result : '';
+                //$res[$i]['table'] = (is_string($result)) ? $result : '';
+                $res[$i]['table'] = (is_string($result)) ? $result : $info['relation'];
                 $res[$i]['name']  = $info['name'];
                 $res[$i]['type']  = $info['type'];
                 $res[$i]['len']   = $info['length'];
-                $res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($info['name'], $result) : '';
+                //$res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($info['name'], $result) : '';
+                $res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($id, $i, $result) : '';
                 if ($mode & DB_TABLEINFO_ORDER) {
                     $res['order'][$res[$i]['name']] = $i;
                 }
@@ -1104,6 +1111,8 @@ class MDB_ibase extends MDB_Common
      **/
     function _ibaseFieldFlags($resource, $num_field, $table_name)
     {
+        $field_name = @ibase_field_info($resource, $num_field);
+        $field_name = @$field_name['name'];
         $sql = 'SELECT  R.RDB$CONSTRAINT_TYPE CTYPE'
                .' FROM  RDB$INDEX_SEGMENTS I'
                .' JOIN  RDB$RELATION_CONSTRAINTS R ON I.RDB$INDEX_NAME=R.RDB$INDEX_NAME'
@@ -1113,6 +1122,7 @@ class MDB_ibase extends MDB_Common
         if (empty($result)) {
             return $this->ibaseRaiseError();
         }
+        $flags = '';
         if ($obj = @ibase_fetch_object($result)) {
             ibase_free_result($result);
             if (isset($obj->CTYPE)  && trim($obj->CTYPE) == 'PRIMARY KEY') {
@@ -1151,7 +1161,7 @@ class MDB_ibase extends MDB_Common
             }
         }
 
-         return trim($flags);
+        return trim($flags);
     }
 }
 ?>
