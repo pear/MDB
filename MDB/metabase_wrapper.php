@@ -12,38 +12,38 @@ $databases = array();
 function MetabaseSetupDatabase($arguments, &$database)
 {
     global $databases;
-	$database=count($metabase_databases)+1;
+    $database=count($metabase_databases)+1;
     $dsninfo["phptype"] = $arguments["Type"];
     $dsninfo["username"] = $arguments["User"];
     $dsninfo["password"] = $arguments["Password"];
     $dsninfo["hostspec"] = $arguments["Host"];
-	
-	$options["includedconstant"] = $arguments["IncludedConstant"];
+    
+    $options["includedconstant"] = $arguments["IncludedConstant"];
     $options["includepath"] = $arguments["IncludePath"];
     $options["debug"] = $arguments["Debug"];
-	$options["decimalplaces"] = $arguments["DecimalPlaces"];
-	$options["LOBbufferlength"] = $arguments["LOBBufferLength"];
-	$options["loglinebreak"] = $arguments["LogLineBreak"];
-	$options["options"] = $arguments["Options"];
+    $options["decimalplaces"] = $arguments["DecimalPlaces"];
+    $options["LOBbufferlength"] = $arguments["LOBBufferLength"];
+    $options["loglinebreak"] = $arguments["LogLineBreak"];
+    $options["options"] = $arguments["Options"];
 
-	$db = MDB::connect($dsninfo, $options);
+    $db = MDB::connect($dsninfo, $options);
     
-	if (MDB::isError($db) || !is_object($db)) {
-		$database=0;
-		$error = $db;
+    if (MDB::isError($db) || !is_object($db)) {
+        $database=0;
+        $error = $db;
     } else {
-		$databases[$database] = $db;
-		$databases[$database]->database=$database;
-	}
+        $databases[$database] = $db;
+        $databases[$database]->database=$database;
+    }
     return($error);
 }
 
 function MetabaseSetupDatabaseObject($arguments, &$db)
 {
     global $databases;
-	$error = MetabaseSetupDatabase($arguments, &$database);
-	$db = $databases[$database];
-	return($error);
+    $error = MetabaseSetupDatabase($arguments, &$database);
+    $db = $databases[$database];
+    return($error);
 }
 
 function MetabaseCloseSetup($database)
@@ -720,7 +720,8 @@ function MetabaseShutdownTransactions()
 
 function MetabaseDefaultDebugOutput($database, $message)
 {
-    defaultDebugOutput($database, $message);
+    global $databases;
+    defaultDebugOutput($databases[$database], $message);
 }
 
 function MetabaseCreateLob(&$arguments, &$lob)
@@ -756,7 +757,7 @@ function MetabaseLobError($lob)
 class Metabase_manager_class
 {
     var $MDB_manager_object;
-	
+    
     var $fail_on_invalid_names = 1;
     var $error = "";
     var $warnings = array();
@@ -766,21 +767,21 @@ class Metabase_manager_class
         "create" => 0,
         "TABLES" => array()
     );
-	
+    
     function Metabase_manager_class()
     {
-		global $databases;
-		$this->MDB_manager_object = new MDB_manager;
-		$this->database = count($databases)+1;
-		$this->MDB_manager_object->fail_on_invalid_names = $this->fail_on_invalid_names;
-		$this->MDB_manager_object->error = $this->error;
-		$this->MDB_manager_object->warnings = $this->warnings;
-		$this->MDB_manager_object->database_definition = $this->database_definition;
+        global $databases;
+        $this->MDB_manager_object = new MDB_manager;
+        $this->database = count($databases)+1;
+        $this->MDB_manager_object->fail_on_invalid_names = $this->fail_on_invalid_names;
+        $this->MDB_manager_object->error = $this->error;
+        $this->MDB_manager_object->warnings = $this->warnings;
+        $this->MDB_manager_object->database_definition = $this->database_definition;
     }
-	
-	function SetupDatabase(&$arguments)
-	{
-		$dsninfo["phptype"] = $arguments["Type"];
+    
+    function SetupDatabase(&$arguments)
+    {
+        $dsninfo["phptype"] = $arguments["Type"];
         $dsninfo["username"] = $arguments["User"];
         $dsninfo["password"] = $arguments["Password"];
         $dsninfo["hostspec"] = $arguments["Host"];
@@ -790,102 +791,102 @@ class Metabase_manager_class
         if (isset($arguments["IncludePath"])) {
              $options["includepath"] = $arguments["IncludePath"];
         }
-		
-		if (isset($arguments["Debug"])) {
+        
+        if (isset($arguments["Debug"])) {
              $options["debug"] = $arguments["Debug"];
         }
-		
-		return($this->MDB_manager_object->setupDatabase($dsninfo, $options));
-	}
+        
+        return($this->MDB_manager_object->setupDatabase($dsninfo, $options));
+    }
 
-	function CloseSetup()
-	{
-		return($this->MDB_manager_object->closeSetup());
-	}
+    function CloseSetup()
+    {
+        return($this->MDB_manager_object->closeSetup());
+    }
 
-	function GetField(&$field,$field_name,$declaration,&$query)
-	{
-		return($this->MDB_manager_object->getField(&$field,$field_name,$declaration,&$query));
-	}
+    function GetField(&$field,$field_name,$declaration,&$query)
+    {
+        return($this->MDB_manager_object->getField(&$field,$field_name,$declaration,&$query));
+    }
 
-	function GetFieldList($fields,$declaration,&$query_fields)
-	{
-		return($this->MDB_manager_object->getFieldList($fields,$declaration,&$query_fields));
-	}
+    function GetFieldList($fields,$declaration,&$query_fields)
+    {
+        return($this->MDB_manager_object->getFieldList($fields,$declaration,&$query_fields));
+    }
 
-	function GetFields($table,&$fields)
-	{
-		return($this->MDB_manager_object->getFields($table,&$fields));
-	}
+    function GetFields($table,&$fields)
+    {
+        return($this->MDB_manager_object->getFields($table,&$fields));
+    }
 
-	function CreateTable($table_name,$table)
-	{
-		return($this->MDB_manager_object->createTable($table_name,$table));
-	}
+    function CreateTable($table_name,$table)
+    {
+        return($this->MDB_manager_object->createTable($table_name,$table));
+    }
 
-	function DropTable($table_name)
-	{
-		return($this->MDB_manager_object->dropTable($table_name));
-	}
+    function DropTable($table_name)
+    {
+        return($this->MDB_manager_object->dropTable($table_name));
+    }
 
-	function CreateSequence($sequence_name,$sequence,$created_on_table)
-	{
-		return($this->MDB_manager_object->createSequence($sequence_name,$sequence,$created_on_table));
-	}
+    function CreateSequence($sequence_name,$sequence,$created_on_table)
+    {
+        return($this->MDB_manager_object->createSequence($sequence_name,$sequence,$created_on_table));
+    }
 
-	function DropSequence($sequence_name)
-	{
-		return($this->MDB_manager_object->dropSequence($sequence_name));
-	}
+    function DropSequence($sequence_name)
+    {
+        return($this->MDB_manager_object->dropSequence($sequence_name));
+    }
 
-	function CreateDatabase()
-	{
-		return($this->MDB_manager_object->createDatabase());
-	}
+    function CreateDatabase()
+    {
+        return($this->MDB_manager_object->createDatabase());
+    }
 
-	function AddDefinitionChange(&$changes,$definition,$item,$change)
-	{
-		return($this->MDB_manager_object->addDefinitionChange(&$changes,$definition,$item,$change));
-	}
+    function AddDefinitionChange(&$changes,$definition,$item,$change)
+    {
+        return($this->MDB_manager_object->addDefinitionChange(&$changes,$definition,$item,$change));
+    }
 
-	function CompareDefinitions(&$previous_definition,&$changes)
-	{
-		return($this->MDB_manager_object->compareDefinitions(&$previous_definition,&$changes));
-	}
+    function CompareDefinitions(&$previous_definition,&$changes)
+    {
+        return($this->MDB_manager_object->compareDefinitions(&$previous_definition,&$changes));
+    }
 
-	function AlterDatabase(&$previous_definition,&$changes)
-	{
-		return($this->MDB_manager_object->alterDatabase(&$previous_definition,&$changes));
-	}
+    function AlterDatabase(&$previous_definition,&$changes)
+    {
+        return($this->MDB_manager_object->alterDatabase(&$previous_definition,&$changes));
+    }
 
-	function EscapeSpecialCharacters($string)
-	{
-		return($this->MDB_manager_object->escapeSpecialCharacters($string));
-	}
+    function EscapeSpecialCharacters($string)
+    {
+        return($this->MDB_manager_object->escapeSpecialCharacters($string));
+    }
 
-	function DumpSequence($sequence_name,$output,$eol,$dump_definition)
-	{
-		return($this->MDB_manager_object->dumpSequence($sequence_name,$output,$eol,$dump_definition));
-	}
+    function DumpSequence($sequence_name,$output,$eol,$dump_definition)
+    {
+        return($this->MDB_manager_object->dumpSequence($sequence_name,$output,$eol,$dump_definition));
+    }
 
-	function DumpDatabase($arguments)
-	{
-		return($this->MDB_manager_object->dumpDatabase($arguments));
-	}
+    function DumpDatabase($arguments)
+    {
+        return($this->MDB_manager_object->dumpDatabase($arguments));
+    }
 
-	function ParseDatabaseDefinitionFile($input_file,&$database_definition,&$variables,$fail_on_invalid_names=1)
-	{
-		return($this->MDB_manager_object->parseDatabaseDefinitionFile($input_file,&$database_definition,&$variables,$fail_on_invalid_names=1));
-	}
+    function ParseDatabaseDefinitionFile($input_file,&$database_definition,&$variables,$fail_on_invalid_names=1)
+    {
+        return($this->MDB_manager_object->parseDatabaseDefinitionFile($input_file,&$database_definition,&$variables,$fail_on_invalid_names=1));
+    }
 
-	function DumpDatabaseChanges(&$changes)
-	{
-		return($this->MDB_manager_object->dumpDatabaseChanges(&$changes));
-	}
+    function DumpDatabaseChanges(&$changes)
+    {
+        return($this->MDB_manager_object->dumpDatabaseChanges(&$changes));
+    }
 
-	function UpdateDatabase($current_schema_file,$previous_schema_file,&$arguments,&$variables)
-	{
-		$dsninfo["phptype"] = $arguments["Type"];
+    function UpdateDatabase($current_schema_file,$previous_schema_file,&$arguments,&$variables)
+    {
+        $dsninfo["phptype"] = $arguments["Type"];
         $dsninfo["username"] = $arguments["User"];
         $dsninfo["password"] = $arguments["Password"];
         $dsninfo["hostspec"] = $arguments["Host"];
@@ -895,18 +896,18 @@ class Metabase_manager_class
         if (isset($arguments["IncludePath"])) {
              $options["includepath"] = $arguments["IncludePath"];
         }
-		
-		if (isset($arguments["Debug"])) {
+        
+        if (isset($arguments["Debug"])) {
              $options["debug"] = $arguments["Debug"];
         }
-		
-		return($this->MDB_manager_object->updateDatabase($current_schema_file,$previous_schema_file,&$dsninfo,&$variables,$options));
-	}
+        
+        return($this->MDB_manager_object->updateDatabase($current_schema_file,$previous_schema_file,&$dsninfo,&$variables,$options));
+    }
 
-	function DumpDatabaseContents($schema_file,&$setup_arguments,&$dump_arguments,&$variables)
-	{
-		return($this->MDB_manager_object->dumpDatabaseContents($schema_file,&$setup_arguments,&$dump_arguments,&$variables));
-	}
+    function DumpDatabaseContents($schema_file,&$setup_arguments,&$dump_arguments,&$variables)
+    {
+        return($this->MDB_manager_object->dumpDatabaseContents($schema_file,&$setup_arguments,&$dump_arguments,&$variables));
+    }
 };
 
 ?>
