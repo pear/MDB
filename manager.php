@@ -99,7 +99,7 @@ class MDB_manager extends PEAR
         'text' => '',
         'timestamp' => '0001-01-01 00:0:00',
         'date' => '0001-01-01',
-        'time' => '00:0:00'
+        'time' => '00:00:00'
     );
     // }}}
     // {{{ raiseError()
