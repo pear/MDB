@@ -412,11 +412,11 @@ class MDB_PEAR_PROXY
                     }
                     $set .= "$value = ?";
                 }
-                $sql = "UPDATE $table SET $set";
+                $query = "UPDATE $table SET $set";
                 if ($where) {
-                    $sql .= " WHERE $where";
+                    $query .= " WHERE $where";
                 }
-                return($sql);
+                return($query);
                 break;
             default:
                 $this->raiseError(DB_ERROR_SYNTAX);

@@ -323,7 +323,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     function listTables(&$db)
     {
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
-        $sql = 'SELECT c.relname as "Name"
+        $query = 'SELECT c.relname as "Name"
             FROM pg_class c, pg_user u
             WHERE c.relowner = u.usesysid AND c.relkind = \'r\'
             AND not exists (select 1 from pg_views where viewname = c.relname)
@@ -337,7 +337,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
             AND c.relname !~ \'^pg_\'
             AND c.relname !~ \'^pga_\'';
-        return($db->queryCol($sql));
+        return($db->queryCol($query));
     }
 
     // }}}
@@ -664,7 +664,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     function listSequences(&$db)
     {
         // gratuitously stolen and adapted from PEAR DB _getSpecialQuery in pgsql.php
-        $sql = 'SELECT c.relname as "Name"
+        $query = 'SELECT c.relname as "Name"
             FROM pg_class c, pg_user u
             WHERE c.relowner = u.usesysid AND c.relkind = \'S\'
             AND not exists (select 1 from pg_views where viewname = c.relname)
@@ -676,7 +676,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             AND not exists (select 1 from pg_views where viewname = c.relname)
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
             AND c.relname !~ \'^pg_\'';
-        return($db->queryCol($sql));
+        return($db->queryCol($query));
     }
 }
 

@@ -1801,12 +1801,12 @@ class MDB_ibase extends MDB_Common
     {
         $field_name = @ibase_field_info($resource, $num_field);
         $field_name = @$field_name['name'];
-        $sql = 'SELECT  R.RDB$CONSTRAINT_TYPE CTYPE'
+        $query = 'SELECT  R.RDB$CONSTRAINT_TYPE CTYPE'
                .' FROM  RDB$INDEX_SEGMENTS I'
                .' JOIN  RDB$RELATION_CONSTRAINTS R ON I.RDB$INDEX_NAME=R.RDB$INDEX_NAME'
               .' WHERE  I.RDB$FIELD_NAME=\''.$field_name.'\''
                  .' AND UPPER(R.RDB$RELATION_NAME)=\''.strtoupper($table_name).'\'';
-        $result = @ibase_query($this->connection, $sql);
+        $result = @ibase_query($this->connection, $query);
         if (empty($result)) {
             return $this->ibaseRaiseError();
         }
@@ -1821,7 +1821,7 @@ class MDB_ibase extends MDB_Common
             }
         }
 
-        $sql = 'SELECT  R.RDB$NULL_FLAG AS NFLAG,'
+        $query = 'SELECT  R.RDB$NULL_FLAG AS NFLAG,'
                      .' R.RDB$DEFAULT_SOURCE AS DSOURCE,'
                      .' F.RDB$FIELD_TYPE AS FTYPE,'
                      .' F.RDB$COMPUTED_SOURCE AS CSOURCE'
@@ -1829,7 +1829,7 @@ class MDB_ibase extends MDB_Common
                .' JOIN  RDB$FIELDS F ON R.RDB$FIELD_SOURCE=F.RDB$FIELD_NAME'
               .' WHERE  UPPER(R.RDB$RELATION_NAME)=\''.strtoupper($table_name).'\''
                 .' AND  R.RDB$FIELD_NAME=\''.$field_name.'\'';
-        $result = @ibase_query($this->connection, $sql);
+        $result = @ibase_query($this->connection, $query);
         if (empty($result)) {
             return $this->ibaseRaiseError();
         }
