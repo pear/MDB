@@ -58,7 +58,12 @@ class DB
 {
     function &factory($type)
     {
-        return MDB::factory($type);
+        $db =& MDB::factory($type);
+        if(PEAR::isError($db)) {
+            return $db;
+        }
+        $obj =& new MDB_PEAR_PROXY($db);
+        return $obj;
     }
 
     function &connect($dsn, $options = FALSE)
@@ -66,9 +71,8 @@ class DB
         if (!is_array($options) && $options) {
             $options['persistent'] = TRUE;
         }
-        $db = MDB::connect($dsn, $options);
-        if(PEAR::isError($db))
-        {
+        $db =& MDB::connect($dsn, $options);
+        if(PEAR::isError($db)) {
             return $db;
         }
         $obj =& new MDB_PEAR_PROXY($db);
