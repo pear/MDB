@@ -3911,7 +3911,7 @@ class MDB_common extends PEAR
      *
      * @access public
      */
-    function queryOne($query, $type = NULL)
+    function queryOne($query, $type = NULL, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         if($type != NULL) {
             $types = array($type);
@@ -3920,7 +3920,7 @@ class MDB_common extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
-        return ($this->fetchOne($result));
+        return ($this->fetchOne($result, $fetchmode));
     }
 
     // }}}
@@ -3936,18 +3936,19 @@ class MDB_common extends PEAR
      *      expected datatypes of the result set columns, so that the eventual
      *      conversions may be performed. The default list of datatypes is
      *      empty, meaning that no conversion is performed.
+     * @param int      $fetchmode how the array data should be indexed
      *
      * @return mixed data array on success, a DB error on failure
      *
      * @access public
      */
-    function queryRow($query, $types = NULL)
+    function queryRow($query, $types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         $result = $this->query($query, $types);
         if (MDB::isError($result)) {
             return $result;
         }
-        return ($this->fetchRow($result));
+        return ($this->fetchRow($result, $fetchmode));
     }
 
     // }}}
@@ -3962,12 +3963,14 @@ class MDB_common extends PEAR
      *      datatype of the result set field, so that an eventual conversion
      *      may be performed. The default datatype is text, meaning that no
      *      conversion is performed
+     * @param int      $fetchmode how the array data should be indexed
+     * @param int      $colnum    the row number to fetch
      *
      * @return mixed data array on success, a DB error on failure
      *
      * @access public
      */
-    function queryCol($query, $type = NULL)
+    function queryCol($query, $type = NULL, $fetchmode = DB_FETCHMODE_DEFAULT, $colnum = '0')
     {
         if($type != NULL) {
             $types = array($type);
@@ -3976,7 +3979,7 @@ class MDB_common extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
-        return ($this->fetchCol($result));
+        return ($this->fetchCol($result, $fetchmode, $colnum));
     }
 
     // }}}
@@ -3991,17 +3994,18 @@ class MDB_common extends PEAR
      *      expected datatypes of the result set columns, so that the eventual
      *      conversions may be performed. The default list of datatypes is
      *      empty, meaning that no conversion is performed.
+     * @param int      $fetchmode how the array data should be indexed
      *
      * @return mixed data array on success, a DB error on failure
      *
      * @access public
      */
-    function queryAll($query, $types = NULL)
+    function queryAll($query, $types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         if (MDB::isError($result = $this->query($query, $types))) {
             return $result;
         }
-        return ($this->fetchAll($result));
+        return ($this->fetchAll($result, $fetchmode));
     }
 
     // }}}
