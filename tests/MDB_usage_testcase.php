@@ -413,7 +413,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         }
     }
-
+    
     /**
      * Test paged queries
      *
@@ -424,7 +424,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $this->assertTrue(FALSE, 'This database does not support paged queries');
             return;
         }
-
+        
         $data = array();
         $total_rows = 5;
 
@@ -495,6 +495,39 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->assertTrue($this->db->endOfResult($result), 'the query result did not seem to have reached the end of result as expected');
 
+    }
+
+    /**
+     * Test the handling of sequences
+     */
+    function testSequnces() {
+        if (!$this->db->support('Sequences')) {
+            $this->assertTrue(FALSE, 'This database does not support sequences');
+            return;
+        }
+
+        for ($start_value = 1; $start_value < 4; $start_value++) {
+            $sequence_name = "test_sequence_$start_value";
+
+            $this->db->dropSequence($sequence_name);
+
+            $result = $this->db->createSequence($sequence_name, $start_value);
+            $this->assertTrue(!MDB::isError($result), "Error creating sequence $sequence_name with start value $start_value");
+
+            for ($sequence_value = $start_value; $sequence_value < ($start_value + 4); $sequence_value++) {
+                $value = $this->db->nextId($sequence_name, FALSE);
+                
+                $this->assertEquals($sequence_value, $value, 'The returned sequence value is $value and not $sequence_value as expected with sequence start value with $start_value');
+
+            }
+
+            $result = $this->db->dropSequence($sequence_name);
+
+            if (MDB::isError($result)) {
+                $this->assertTrue(FALSE, "Error dropping sequence $sequence_name : " . $result->getMessage());
+            }
+
+        }
     }
 
 }
