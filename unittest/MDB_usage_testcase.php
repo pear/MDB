@@ -500,7 +500,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     /**
      * Test the handling of sequences
      */
-    function testSequnces() {
+    function testSequences() {
         if (!$this->db->support('Sequences')) {
             $this->assertTrue(FALSE, 'This database does not support sequences');
             return;
@@ -517,7 +517,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             for ($sequence_value = $start_value; $sequence_value < ($start_value + 4); $sequence_value++) {
                 $value = $this->db->nextId($sequence_name, FALSE);
                 
-                $this->assertEquals($sequence_value, $value, 'The returned sequence value is $value and not $sequence_value as expected with sequence start value with $start_value');
+                $this->assertEquals($sequence_value, $value, "The returned sequence value is $value and not $sequence_value as expected with sequence start value with $start_value");
 
             }
 
@@ -527,6 +527,24 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $this->assertTrue(FALSE, "Error dropping sequence $sequence_name : " . $result->getMessage());
             }
 
+        }
+
+        // Test ondemand creation of sequences
+        $sequence_name = 'test_ondemand';
+
+        $this->db->dropSequence($sequence_name);
+
+        for ($sequence_value = 1; $sequence_value < 4; $sequence_value++) {
+            $value = $this->db->nextId($sequence_name);
+            
+            $this->assertEquals($sequence_value, $value, "Error in ondemand sequences. The returned sequence value is $value and not $sequence_value as expected");
+            
+        }
+        
+        $result = $this->db->dropSequence($sequence_name);
+
+        if (MDB::isError($result)) {
+            $this->assertTrue(FALSE, "Error dropping sequence $sequence_name : " . $result->getMessage());
         }
     }
 
