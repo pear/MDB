@@ -1085,7 +1085,6 @@ class MDB_fbsql extends MDB_Common
         return($value);
     }
 
-
     // }}}
     // {{{ currId()
 
