@@ -4,8 +4,6 @@
   <name>MDB</name>
   <summary>database abstraction layer</summary>
   <description>
-Documentation can be found at: http://www.backendmedia.com/MDB/docs/
-
     PEAR MDB is a merge of the PEAR DB and Metabase php database abstraction layers.
 
     It provides a common API for all support RDBMS. The main difference to most other DB abstraction packages is that MDB goes much further to ensure portability. Among other things MDB features:
@@ -39,8 +37,7 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     Oracle
     Frontbase
     Querysim
-    Interbase
-    Firebird
+    Interbase/Firebird
     MSSQL
     Other soon to follow.
   </description>
@@ -98,9 +95,9 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.1.4RC3</version>
+    <version>1.1.4RC4</version>
     <state>devel</state>
-    <date>2003-10-23</date>
+    <date>2003-11-12</date>
     <notes>
       - added MDB::isConnection()
       - minor improvements to the test suite
@@ -117,6 +114,11 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
       - fixed bug in interbase driver LOB handling
       - interbase/oci8 driver: fixed autofree in fetchInto()
       - fixed bug 22328 in the mysql driver
+      - fixed issues in MDB::singleton() if instances of MDB have been disconnected
+      - added a test for MDB::singleton()
+      - fixed issues with PHP5
+      - added notes at the top of the driver regarding driver specfic issues
+      - fixed typos in the mssql driver
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
