@@ -115,7 +115,7 @@ class MDB_Date
     function date2Mdbstamp($hour = NULL, $minute = NULL, $second = NULL,
         $month = NULL, $day = NULL, $year = NULL)
     {
-        return MDB_Date::unix2Mdbstamp(mktime($hour, $minute, $second, $month, $day, $year));
+        return MDB_Date::unix2Mdbstamp(mktime($hour, $minute, $second, $month, $day, $year, 0));
     }
 
     // }}}
@@ -145,8 +145,10 @@ class MDB_Date
      */
     function mdbstamp2Unix($mdb_timestamp)
     {
-        return strtotime($mdb_timestamp);
-    }
+        $arr = MDB_Date::mdbstamp2Date($mdb_timestamp);
+
+        return mktime($arr['hour'], $arr['minute'], $arr['second'], $arr['month'], $arr['day'], $arr['year'], 0);
+        }
 
     // }}}
     // {{{ mdbstamp2Date()
