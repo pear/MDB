@@ -57,6 +57,22 @@ xml_parser.php (this is actually a seperate project of Manuel Lemos that is used
 Var_Dump.php (used in MDB_test.php to display test results)
 Readme.txt (you are reading it currently)
 
+Documentation
+There is currently work underway in terms of including phpdoc comments. But this will probably take until early
+June to be considered half way complete. Alot of the internal API is borrowed from PEAR DB. Since there are a large
+number of new methods available thx to the Metabasebasis of MDB you will also have to take a look in the Metabase
+documentation (which can be found at the Url mentioned above, but does require that you register with phpclasses).
+Alot of these Metabase functions have been renamed, but this has been marked in the code for most of them.
+Some methods have been shortend a bit and those are not all documented in the code, but finding the method should not
+be all that hard in these cases.
+
+For example ($db being an MDB object):
+$converted_value=MetabaseGetTimestampFieldValue($database, $value)
+would now be
+$converted_value=$db->getTimestampValue($value)
+
+If you want to help out with documentation please email me.
+
 Testing
 driver_test.php is the testing suite provided by Metabase
 you will need to configure the mysql section of driver_test_config.php to fit your enviornment
@@ -73,12 +89,12 @@ and what should be moved to the wrappers because it may not be needed anymore.
 There might be little tricky bugs that were introduced during the reformatting and restructuring process.
 I hope I fixed most of them through the help of the Metabase test suite but ...
 
-Roadmap (Active help and code contributions are requested for all of following):
+Roadmap in order of importance (Active help and code contributions are requested for all of following):
 - Move all error handling to the PEAR error handler.
-- Making MDB PEAR CS compatible
 - PEAR Doc comments and Documentation
-- Finish up the Metabase wrapper and PEAR DB wrapper
+- More tests with Metabase and PEAR DB wrapper
 - Add support for more RDBMS
+- Making MDB PEAR CS compatible
 Removed from Roadmap:
 - Modularization (loading extended features on demand) - performance is fine so why bother
 
@@ -89,6 +105,7 @@ I would also like to thank Tomas Cox and Stig S. Bakken from the PEAR projects f
 undertstanding PEAR, solving problems and trusting me enough.
 Furthermore I would like to thank for Alex Black for being so enthusiastic about this project and offering
 binarycloud as a test bed for this project.
+Christian Dickmann for being the first to put MDb to some real use and making MDb use PEAR Error.
 Finally Peter Bowyer for starting the discussion that made people pick up this project again after the first versions
 of what was then called "metapear" have been ideling without much feedback.
 I guess I should also thank DybNet (my company :-)  ) for providing the necessary means to develop this on
