@@ -98,9 +98,7 @@ class MDB_xxx extends MDB_Common
     */
     function MDB_xxx($dsninfo = NULL, $options = NULL)
     {
-        if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
-            return($common_contructor);
-        }
+        $this->MDB_common($dsninfo, $options);
         $this->phptype = 'xxx';
         $this->dbsyntax = 'xxx';
 
@@ -213,7 +211,7 @@ class MDB_xxx extends MDB_Common
      **/
     function connect()
     {
-        // take this from the corresponding Metabase driver: Connect()
+        // take this from the corresponding Metabase driver: Connect() and Setup()
         if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
             return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
                 NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',

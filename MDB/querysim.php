@@ -268,18 +268,6 @@ class MDB_querysim extends MDB_Common
         );
         // let runtime options overwrite defaults
         $this->options = array_merge($querySimOptions, $this->options);
-        
-        // set connect options
-        // not as clean as DB....
-        if (is_array($options)) {
-            foreach ($options as $option => $value) {
-                if ((in_array($option, array('columnDelim','dataDelim','eolDelim')))
-                    && ($value == '\\')) {
-                        // hack to work around raiseError not working here
-                        die("MDB Error: option $option cannot be set to '\\'");
-                }
-            }
-        }
     }
     // }}}
 
@@ -298,7 +286,7 @@ class MDB_querysim extends MDB_Common
      */
     function connect()
     {
-        if ($this->connection) {
+        if($this->connection != 0) {
             if (!strcmp($this->selected_database, $this->database_name)
                 && ($this->opened_persistent == $this->options['persistent']))
             {
@@ -308,6 +296,15 @@ class MDB_querysim extends MDB_Common
                 $this->_close($this->connection);
             }
             $this->connection = 0;
+        }
+        if(is_array($options)) {
+            foreach($options as $option => $value) {
+                if((in_array($option, array('columnDelim','dataDelim','eolDelim')))
+                    && ($value == '\\')) {
+                        return $this->raiseError(MDB_ERROR, null, null,
+                            "MDB Error: option $option cannot be set to '\\'");
+                }
+            }
         }
         $connection = 1;// sim connect
         // if external, check file...
