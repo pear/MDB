@@ -85,7 +85,7 @@ class MDB_fbsql extends MDB_Common
     */
     function MDB_fbsql()
     {
-        $this->MDB_common();
+        $this->MDB_Common();
         $this->phptype = 'fbsql';
         $this->dbsyntax = 'fbsql';
         
@@ -1144,12 +1144,12 @@ class MDB_fbsql extends MDB_Common
     // {{{ fetchInto()
 
     /**
-     * Fetch a row and insert the data into an existing array.
+     * Fetch a row and return data in an array.
      *
-     * @param resource  $result     result identifier
-     * @param int       $fetchmode  how the array data should be indexed
-     * @param int       $rownum     the row number to fetch
-     * @return int data array on success, a MDB error on failure
+     * @param resource $result result identifier
+     * @param int $fetchmode ignored
+     * @param int $rownum the row number to fetch
+     * @return mixed data array or NULL on success, a MDB error on failure
      * @access public
      */
     function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)

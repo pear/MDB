@@ -54,7 +54,7 @@ require_once('MDB/Common.php');
  * @author  Paul Cooper <pgc@ucecom.com>
  */
 
-class MDB_pgsql extends MDB_common
+class MDB_pgsql extends MDB_Common
 {
     var $connection = 0;
     var $connected_host;
@@ -76,7 +76,7 @@ class MDB_pgsql extends MDB_common
     */
     function MDB_pgsql()
     {
-        $this->MDB_common();
+        $this->MDB_Common();
         $this->phptype = 'pgsql';
         $this->dbsyntax = 'pgsql';
 
@@ -1249,12 +1249,12 @@ class MDB_pgsql extends MDB_common
     // {{{ fetchInto()
 
     /**
-     * Fetch a row and insert the data into an existing array.
+     * Fetch a row and return data in an array.
      *
-     * @param resource  $result     result identifier
-     * @param int       $fetchmode  how the array data should be indexed
-     * @param int       $rownum     the row number to fetch
-     * @return int data array on success, a MDB error on failure
+     * @param resource $result result identifier
+     * @param int $fetchmode ignored
+     * @param int $rownum the row number to fetch
+     * @return mixed data array or NULL on success, a MDB error on failure
      * @access public
      */
     function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)

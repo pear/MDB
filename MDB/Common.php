@@ -3553,12 +3553,12 @@ class MDB_Common extends PEAR
     // {{{ fetchInto()
 
     /**
-     * Fetch a row and insert the data into an existing array.
+     * Fetch a row and return data in an array.
      *
      * @param resource $result result identifier
      * @param int $fetchmode ignored
      * @param int $rownum the row number to fetch
-     * @return int data array or NULL on success, a MDB error on failure
+     * @return mixed data array or NULL on success, a MDB error on failure
      * @access public
      */
     function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)

@@ -54,7 +54,7 @@ require_once('MDB/Common.php');
  * @author  Lorenzo Alberton <l.alberton@quipo.it>
  */
 
-class MDB_ibase extends MDB_common
+class MDB_ibase extends MDB_Common
 {
     var $connection = 0;
     var $connected_host;
@@ -86,7 +86,7 @@ class MDB_ibase extends MDB_common
     */
     function MDB_ibase()
     {
-        $this->MDB_common();
+        $this->MDB_Common();
         $this->phptype  = 'ibase';
         $this->dbsyntax = 'ibase';
 
@@ -753,12 +753,12 @@ class MDB_ibase extends MDB_common
     // {{{ fetchInto()
 
     /**
-     * Fetch a row and insert the data into an existing array.
+     * Fetch a row and return data in an array.
      *
-     * @param resource  $result     result identifier
-     * @param int       $fetchmode  how the array data should be indexed
-     * @param int       $rownum     the row number to fetch
-     * @return int data array on success, a MDB error on failure
+     * @param resource $result result identifier
+     * @param int $fetchmode ignored
+     * @param int $rownum the row number to fetch
+     * @return mixed data array or NULL on success, a MDB error on failure
      * @access public
      */
     function fetchInto($result, $fetchmode=MDB_FETCHMODE_DEFAULT, $rownum=NULL)
