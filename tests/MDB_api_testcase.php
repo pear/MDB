@@ -105,7 +105,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function methodExists($name) {
-        if (array_key_exists(strtolower($name), array_flip(get_class_methods($this->db)))) {
+        if (array_key_exists(strtolower($name), array_change_key_case(array_flip(get_class_methods($this->db))))) {
             return true;
         }
         $this->assertTrue(false, 'method '. $name.' not implemented in '.get_class($this->db));
