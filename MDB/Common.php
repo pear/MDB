@@ -3600,9 +3600,6 @@ class MDB_Common extends PEAR
         } else {
             $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
         }
-        if ($rownum + 1 > $this->numRows($result)) {
-            return(NULL);
-        }
         $columns = $this->numCols($result);
         if (MDB::isError($columns)) {
             return($columns);
@@ -3687,15 +3684,12 @@ class MDB_Common extends PEAR
     {
         $fetchmode = is_numeric($colnum) ? MDB_FETCHMODE_ORDERED : MDB_FETCHMODE_ASSOC;
         $column = array();
-        $rownum = 0;
         $row = $this->fetchInto($result, $fetchmode, $rownum);
         if (is_array($row)) {
             if (isset($row[$colnum])) {
                 $column[] = $row[$colnum];
-                ++$rownum;
-                while (is_array($row = $this->fetchInto($result, $fetchmode, $rownum))) {
+                while (is_array($row = $this->fetchInto($result, $fetchmode))) {
                     $column[] = $row[$colnum];
-                    ++$rownum;
                 }
             } else {
                 $this->freeResult($result);
@@ -3744,8 +3738,7 @@ class MDB_Common extends PEAR
             }
         }
         $all = array();
-        $rownum = 0;
-        while (is_array($row = $this->fetchInto($result, $fetchmode, $rownum))) {
+        while (is_array($row = $this->fetchInto($result, $fetchmode))) {
             if ($rekey) {
                 if ($fetchmode & MDB_FETCHMODE_ASSOC) {
                     $key = reset($row);
@@ -3770,7 +3763,6 @@ class MDB_Common extends PEAR
                    $all[] = $row;
                 }
             }
-            ++$rownum;
         }
         if (!$this->options['autofree']) {
             $this->freeResult($result);
@@ -3802,6 +3794,7 @@ class MDB_Common extends PEAR
         if ($type != NULL) {
             $type = array($type);
         }
+        $this->setSelectedRowRange(0, 1);
         $result = $this->query($query, $type);
         if (MDB::isError($result)) {
             return($result);
@@ -3828,6 +3821,7 @@ class MDB_Common extends PEAR
      */
     function queryRow($query, $types = NULL, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
+        $this->setSelectedRowRange(0, 1);
         $result = $this->query($query, $types);
         if (MDB::isError($result)) {
             return($result);
@@ -3921,6 +3915,7 @@ class MDB_Common extends PEAR
             $type = array($type);
         }
         settype($params, 'array');
+        $this->setSelectedRowRange(0, 1);
         if (count($params) > 0) {
             $prepared_query = $this->prepareQuery($query);
             if (MDB::isError($prepared_query)) {
@@ -3972,6 +3967,7 @@ class MDB_Common extends PEAR
     function getRow($query, $types = NULL, $params = array(), $param_types = NULL, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
         settype($params, 'array');
+        $this->setSelectedRowRange(0, 1);
         if (count($params) > 0) {
             $prepared_query = $this->prepareQuery($query);
             if (MDB::isError($prepared_query)) {
