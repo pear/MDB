@@ -73,8 +73,7 @@ require_once 'testUtils.php';
 require_once 'MDB.php';
 require_once 'Console_TestListener.php';
 
-MDB::loadFile('Manager');
-MDB::loadFile('Date');
+MDB::loadClass('Date');
 
 foreach ($testcases as $testcase) {
     include_once $testcase.'.php';
