@@ -312,5 +312,4 @@ function lobError($lob)
 
     return($lobs[$lob]->error);
 }
-
 ?>
