@@ -1235,13 +1235,13 @@ class MDB_manager extends PEAR
         return($escaped);
     }
 
-    function dumpSequence($sequence_name, $output, $eol, $dump_definition)
+    function dumpSequence($sequence_name, $eol, $dump_definition)
     {
         $sequence_definition = $this->database_definition["SEQUENCES"][$sequence_name];
         if ($dump_definition) {
             $start = $sequence_definition["start"];
         } else {
-            if ($this->database->support("currId")) {
+            if ($this->database->support("CurrId")) {
                 $result = $this->database->currId($sequence_name, $start);
                 if (MDB::isError($result)) {
                     return $result;
@@ -1256,12 +1256,12 @@ class MDB_manager extends PEAR
                 $this->warnings[] = "database does not support getting current sequence value, the sequence value was incremented";
             }
         }
-        $output("$eol <sequence>$eol  <name>$sequence_name</name>$eol  <start>$start</start>$eol");
+        $buffer = "$eol <sequence>$eol  <name>$sequence_name</name>$eol  <start>$start</start>$eol";
         if (isset($sequence_definition["on"])) {
-            $output("  <on>$eol   <table>".$sequence_definition["on"]["table"]."</table>$eol   <field>".$sequence_definition["on"]["field"]."</field>$eol  </on>$eol");
+            $buffer .= "  <on>$eol   <table>".$sequence_definition["on"]["table"]."</table>$eol   <field>".$sequence_definition["on"]["field"]."</field>$eol  </on>$eol";
         }
-        $output(" </sequence>$eol");
-        return(1);
+        $buffer .= " </sequence>$eol";
+        return ($buffer);
     }
 
 
@@ -1290,7 +1290,6 @@ class MDB_manager extends PEAR
             return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
                 'no valid output function specified', 'MDB_Error', TRUE);
         }
-        
         $output = $arguments["Output"];
         $eol = (isset($arguments["EndOfLine"]) ? $arguments["EndOfLine"] : "\n");
         $dump_definition = isset($arguments["Definition"]);
@@ -1494,9 +1493,14 @@ class MDB_manager extends PEAR
                     $sequence < count($sequences[$table_name]);
                     $sequence++)
                 {
-                    $result = $this->dumpSequence($sequences[$table_name][$sequence], $output, $eol, $dump_definition);
+                    $result = $this->dumpSequence($sequences[$table_name][$sequence], $eol, $dump_definition);
                     if (MDB::isError($result)) {
                         return $result;
+                    }
+                    if ($fp) {
+                        fwrite($fp, $result);
+                    } else {
+                        $output($result);
                     }
                 }
             }
@@ -1506,9 +1510,14 @@ class MDB_manager extends PEAR
                 $sequence < count($sequences[""]);
                 $sequence++)
             {
-                $result = $this->dumpSequence($sequences[""][$sequence], $output, $eol, $dump_definition);
+                $result = $this->dumpSequence($sequences[""][$sequence], $eol, $dump_definition);
                 if (MDB::isError($result)) {
                     return $result;
+                }
+                if ($fp) {
+                       fwrite($fp, $result);
+                   } else {
+                       $output($result);
                 }
             }
         }
@@ -1868,6 +1877,28 @@ class MDB_manager extends PEAR
                 }
                 $this->database_definition["TABLES"][$table_name]["FIELDS"][$field_name] = $definition[0];
             }
+        }
+        if (!$this->database->listSequences($sequences)) {
+            return($this->database->error());
+        }
+        for($sequence = 0; $sequence < count($sequences); $sequence++) {
+            $sequence_name = $sequences[$sequence];
+            if ($this->database->support("CurrId")) {
+                $result = $this->database->currId($sequence_name, $start);
+                if (MDB::isError($result)) {
+                    return $result;
+                }
+                $start++;
+            } else {
+                $result = $this->database->nextId($sequence_name, $start);
+                if (MDB::isError($result)) {
+                    return $result;
+                }
+                // XXX needs more checking
+                $this->warnings[] = "database does not support getting current sequence value, the sequence value was incremented";
+            }
+            $sequence_definition["start"] = $start;
+            $this->database_definition["SEQUENCES"][$sequence_name] = $sequence_definition;
         }
         return("");
     }
