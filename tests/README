@@ -13,7 +13,7 @@ are already created.
 
 To setup the tests
 
-* requires PHPUnit and HTML_IT to be installed
+* requires PHPUnit to be installed
 
 * copy the file test_setup.php.dist to test_setup.php
 
@@ -22,7 +22,11 @@ To setup the tests
   $dbarray is an array of databases to test.
 
 * point your browser at test.php for the results, and then fix the
-  bugs!
+  bugs! 
+
+* by default test.php will use all tests in the testcases - if
+  you want to pick specific tests, use testchoose.php to pick just the
+  tests you want to run
 
 Writing tests:
 
