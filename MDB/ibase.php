@@ -859,7 +859,6 @@ class MDB_ibase extends MDB_Common
                     $this->current_row[$result_value]);
         } else {
             $this->current_row[$result_value] = $rownum;
-            //++$this->current_row[$result_value];
         }
         if (isset($this->results[$result_value][$rownum])
             && $this->results[$result_value][$rownum]
