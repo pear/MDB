@@ -1471,17 +1471,8 @@ class MDB_oci8 extends MDB_Common {
         if ($ondemand && MDB::isError($result)
             && $result->getCode() == MDB_ERROR_NOSUCHTABLE)
         {
-            // Since we are create the sequence on demand
-            // we know the first id = 1 so initialize the
-            // sequence at 2
-            $result = $this->createSequence($seq_name, 2);
-            if (MDB::isError($result)) {
-                return($this->raiseError(MDB_ERROR, NULL, NULL,
-                    'Next ID: on demand sequence could not be created'));
-            } else {
-                // First ID of a newly created sequence is 1
-                return(1);
-            }
+            $result = $this->createSequence($seq_name, 1);
+            return $this->nextId($seq_name, false);
         }
         return($this->fetchOne($result));
     }
