@@ -475,7 +475,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $this->db->setSelectedRowRange($start_row, $rows);
 
-            $result = $this->db->query('SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users ORDER BY user_id');
+            $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users ORDER BY user_id');
 
             if (MDB::isError($result)) {
                 $this->assertTrue(FALSE, 'Error executing select query' . $result->getMessage());
@@ -547,6 +547,127 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $this->assertTrue(FALSE, "Error dropping sequence $sequence_name : " . $result->getMessage());
         }
     }
+
+
+    /**
+     * Test replace query
+     *
+     * The replace method emulates the replace query of mysql
+     */
+    function testReplace() {
+        if (!$this->db->support('Replace')) {
+            $this->assertTrue(FALSE, 'This database does not support sequences');
+            return;
+        }
+        $row = 1234;
+        $data = array();
+        $data["user_name"] = "user_$row";
+        $data["user_password"] = "somepassword";
+        $data["subscribed"] = $row % 2;
+        $data["user_id"] = $row;
+        $data["quota"] = strval($row/100);
+        $data["weight"] = sqrt($row);
+        $data["access_date"] = MDB_date::mdbToday();
+        $data["access_time"] = MDB_date::mdbTime();
+        $data["approved"] = MDB_date::mdbNow();
+
+        $fields=array(
+                      "user_name" => array(
+                                           "Value" => "user_$row",
+                                           "Type" => "text"
+                                         ),
+                      "user_password" => array(
+                                               "Value" => $data["user_password"],
+                                               "Type" => "text"
+                                             ),
+                      "subscribed" => array(
+                                            "Value" => $data["subscribed"],
+                                            "Type" => "boolean"
+                                          ),
+                      "user_id" => array(
+                                         "Value" => $data["user_id"],
+                                         "Type" => "integer",
+                                         "Key" => 1
+                                       ),
+                      "quota" => array(
+                                       "Value" => $data["quota"],
+                                       "Type" => "decimal"
+                                     ),
+                      "weight" => array(
+                                        "Value" => $data["weight"],
+                                        "Type" => "float"
+                                      ),
+                      "access_date" => array(
+                                             "Value" => $data["access_date"],
+                                             "Type" => "date"
+                                           ),
+                      "access_time" => array(
+                                             "Value" => $data["access_time"],
+                                             "Type" => "time"
+                                           ),
+                      "approved" => array(
+                                          "Value" => $data["approved"],
+                                          "Type" => "timestamp"
+                                        )
+                      );
+
+        $support_affected_rows = $this->db->support('AffectedRows');
+
+        $result = $this->db->replace('users', $fields);
+
+        if (MDB::isError($result)) {
+            $this->assertTrue(FALSE, 'Replace failed');
+        }
+
+        if ($support_affected_rows) {
+            $affected_rows = $this->db->affectedRows();
+
+            $this->assertEquals($affected_rows, 1, "replacing a row in an empty table returned $affected_rows unlike 1 as expected");
+        }
+
+        $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users');
+
+        if (MDB::isError($result)) {
+            $this->assertTrue(FALSE, 'Error selecting from users' . $result->getMessage());
+        }
+  
+        $this->verifyFetchedValues($result, 0, $data);
+
+        $row = 4321;
+        $fields["user_name"]["Value"] = $data["user_name"] = "user_$row";
+        $fields["user_password"]["Value"] = $data["user_password"] = "somepassword";
+        $fields["subscribed"]["Value"] = $data["subscribed"] = $row % 2;
+        $fields["quota"]["Value"] = $data["quota"] = strval($row/100);
+        $fields["weight"]["Value"] = $data["weight"] = sqrt($row);
+        $fields["access_date"]["Value"] = $data["access_date"] = MDB_date::mdbToday();
+        $fields["access_time"]["Value"] = $data["access_time"] = MDB_date::mdbTime();
+        $fields["approved"]["Value"] = $data["approved"] = MDB_date::mdbNow();
+
+        $result = $this->db->replace('users', $fields);
+
+        if (MDB::isError($result)) {
+            $this->assertTrue(FALSE, 'Replace failed');
+        }
+
+        if ($support_affected_rows) {
+            $affected_rows = $this->db->affectedRows();
+
+            $this->assertEquals($affected_rows, 1, "replacing a row in an empty table returned $affected_rows unlike 1 as expected");
+        }
+
+        $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users');
+
+        if (MDB::isError($result)) {
+            $this->assertTrue(FALSE, 'Error selecting from users' . $result->getMessage());
+        }
+  
+        $this->verifyFetchedValues($result, 0, $data);
+
+        $this->assertTrue($this->db->endOfResult($result), 'the query result did not seem to have reached the end of result as expected');
+
+        $this->db->freeResult($result);
+    }
+
 
 }
 
