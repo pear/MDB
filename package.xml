@@ -80,42 +80,53 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <state>stable</state>
-    <date>2002-09-08</date>
-    <notes>First stable release (repackaged RC4). Added Paul Cooper to the list of contributors. Please see README.txt for details.</notes>
+    <date>XXX</date>
+    <notes>Minor bugfixes and API changes; Added PHPUnit test suite; Fixed directory structure</notes>
     <filelist>
-        <dir name="/" baseinstalldir="MDB">
-          <file role="php">MDB.php</file>
-          <file role="php">common.php</file>
-          <file role="php">mysql.php</file>
-          <file role="php">pgsql.php</file>
-          <file role="php">manager_common.php</file>
-          <file role="php">manager_mysql.php</file>
-          <file role="php">manager_pgsql.php</file>
-          <file role="php">lob.php</file>
-          <file role="php">manager.php</file>
-          <file role="php">parser.php</file>
-          <file role="php">date.php</file>
-          <file role="php">metabase_wrapper.php</file>
-          <file role="php">pear_wrapper.php</file>
-          <file role="php">reverse_engineer_xml_schema.php</file>
-          <file role="doc">Readme.txt</file>
-          <file role="doc">xml_schema_documentation.html</file>
-          <file role="doc">tutorial.html</file>
-          <file role="doc">xml_schema.xsl</file>
-          <file role="doc">driver_skeleton.php</file>
-          <file role="doc">manager_driver_skeleton.php</file>
+      <file role="php" baseinstalldir="/">MDB.php</file>
+      <dir name="MDB">
+        <file role="php">common.php</file>
+        <file role="php">mysql.php</file>
+        <file role="php">pgsql.php</file>
+        <file role="php">manager_common.php</file>
+        <file role="php">manager_mysql.php</file>
+        <file role="php">manager_pgsql.php</file>
+        <file role="php">lob.php</file>
+        <file role="php">date.php</file>
+        <file role="php">manager.php</file>
+        <file role="php">parser.php</file>
+        <file role="doc">README</file>
+        <file role="doc">xml_schema_documentation.html</file>
+        <file role="doc">tutorial.html</file>
+        <file role="doc">xml_schema.xsl</file>
+        <file role="doc">driver_skeleton.php</file>
+        <file role="doc">manager_driver_skeleton.php</file>
+      </dir>
+      <dir name="tools">
+        <file role="php">metabase_wrapper.php</file>
+        <file role="php">pear_wrapper.php</file>
+        <file role="php">reverse_engineer_xml_schema.php</file>
+      </dir>
+      <dir name="unittest">
+        <file role="test">test.php</file>
+        <file role="test">test_setup.php.dist</file>
+        <file role="test">MDB_api_testcase.php</file>
+        <file role="test">MDB_manager_testcase.php</file>
+        <file role="test">MDB_useage_testcase.schema</file>
+        <file role="test">driver_test.schema</file>
+        <file role="test">lob_test.schema</file>
+        <file role="doc">README</file>
+        <dir name="othertests">
           <file role="test">MDB_test.php</file>
           <file role="test">MDB_pear_wrapper_test.php</file>
           <file role="test">driver_test.php</file>
           <file role="test">driver_test_config.php</file>
-          <file role="test">driver_test.schema</file>
           <file role="test">setup_test.php</file>
-          <file role="test">lob_test.schema</file>
           <file role="test">test.schema</file>
-          <file role="test">Var_Dump.php</file>
         </dir>
+      </dir>
     </filelist>
     <deps>
         <dep type="php" rel="ge" version="4.0.4pl1" />
