@@ -103,6 +103,8 @@
     echo Var_Dump::display($db->getRow("SELECT * FROM numbers WHERE number = ?",$array))."<br>";
     echo "<br>see getCol in action:<br>";
     echo Var_Dump::display($db->getCol("SELECT * FROM numbers",$array))."<br>";
+    echo "<br>see getAll in action:<br>";
+    echo Var_Dump::display($db->getAll("SELECT * FROM test"))."<br>";
     echo "<br>see getAssoc in action:<br>";
     echo Var_Dump::display($db->getAssoc("SELECT * FROM test", false, "", DB_FETCHMODE_ASSOC))."<br>";
     echo "tableInfo on a string:<br>";
