@@ -334,14 +334,11 @@ class MDB
                 NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
         $db =& new $class_name($dsninfo, $options);
-        if(isset($dsninfo['database'])) {
+        if(!MDB::isError($db) && isset($dsninfo['database'])) {
             $db->setDatabase($dsninfo['database']);
             $err = $db->connect();
             if (MDB::isError($err)) {
-                $dsn = $dsninfo['phptype'].'://'.$dsninfo['username'].':'
-                    .$dsninfo['password'].'@'.$dsninfo['hostspec']
-                    .(isset($dsninfo['port']) ? (':'.$dsninfo['port']) : '')
-                    .'/'.$dsninfo['database'];
+                $dsn = $db->getDSN;
                 $err->addUserInfo($dsn);
                 return $err;
             }
