@@ -272,6 +272,47 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
         $this->db->freePreparedQuery($prepared_query);
     }
+
+    /**
+     * http://pear.php.net/bugs/bug.php?id=946
+     */
+    function testBug946() {
+        $data = array();
+        $total_rows = 5;
+
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
+
+        for ($row = 0; $row < $total_rows; $row++) {
+            $data[$row]['user_name'] = "user_$row";
+            $data[$row]['user_password'] = 'somepassword';
+            $data[$row]['subscribed'] = (boolean)($row % 2);
+            $data[$row]['user_id'] = $row;
+            $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
+            $data[$row]['weight'] = sqrt($row);
+            $data[$row]['access_date'] = MDB_Date::mdbToday();
+            $data[$row]['access_time'] = MDB_Date::mdbTime();
+            $data[$row]['approved'] = MDB_Date::mdbNow();
+
+            $this->insertTestValues($prepared_query, $data[$row]);
+
+            $result = $this->db->executeQuery($prepared_query);
+
+            if (MDB::isError($result)) {
+                $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
+            }
+        }
+
+        $result = $this->db->query('SELECT * FROM users');
+        $numrows = $this->db->numRows($result);
+        while ($row = $this->db->fetchInto($result)) {
+            if (MDB::isError($row)) {
+                $this->assertTrue(false, 'Error fetching a row'.$row->getMessage());
+            }
+        }
+
+        $this->db->freeResult($result);
+        $this->db->freePreparedQuery($prepared_query);
+    }
 }
 
 ?>
