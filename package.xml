@@ -129,9 +129,13 @@ Minor bugfixes and API changes
         <file role="test">MDB_api_testcase.php</file>
         <file role="test">MDB_manager_testcase.php</file>
         <file role="test">MDB_usage_testcase.php</file>
+        <file role="test">MDB_bugs_testcase.php</file>
         <file role="test">README</file>
         <file role="test">setup_test.php</file>
         <file role="test">test.php</file>
+        <file role="test">test.css</file>
+        <file role="test">testchoose.php</file>
+        <file role="test">testUtils.php</file>
         <file role="test">test.schema</file>
         <file role="test">test_setup.php.dist</file>
         <file role="test">driver_test_config.php</file>
