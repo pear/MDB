@@ -17,7 +17,6 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     // MDB.php doesnt have to be included since manager.php does that
     // manager.php is only necessary for handling xml schema files
     require_once 'MDB.php';
-    MDB::loadFile('Manager');
     // only including this to output result data
     require_once 'Var_Dump.php';
 
@@ -61,7 +60,8 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     if (MDB::isError($db)) {
         die (__LINE__.$db->getMessage());
     }
-
+/*
+    MDB::loadFile('Manager');
     $manager =& new MDB_Manager;
     $input_file = 'metapear_test_db.schema';
     // you can either pass a dsn string, a dsn array or an exisiting db connection
@@ -71,7 +71,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     // in that case MDB will just compare the two schemas and make any necessary modifications to the existing DB
     echo(Var_Dump::display($manager->updateDatabase($input_file, $input_file.'.before')).'<br>');
     echo('updating database from xml schema file<br>');
-
+*/
     echo('switching to database: '.$db_name.'<br>');
     $db->setDatabase($db_name);
     // happy query
@@ -113,7 +113,8 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo(Var_Dump::display($array).'<br>');
     // save some time with this function
     // lets just get all and free the result
-    $array = $db->queryAll($query);
+    Var_Dump::display($db->loadExtended());
+    $array = $db->extended->queryAll($db, $query);
     echo('<br>all with just one call:<br>');
     echo(Var_Dump::display($array).'<br>');
     // run the query with the offset 1 and count 1 and get a result handler
@@ -123,8 +124,9 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo('<br>associative array with offset 1 and count 1:<br>');
     echo(Var_Dump::display($array).'<br>');
     // lets create a sequence
+    echo(Var_Dump::display($db->loadManager()).'<br>');
     echo('<br>create a new seq with start 3 name real_funky_id<br>');
-    $err = $db->createSequence('real_funky_id', 3);
+    $err = $db->manager->createSequence($db, 'real_funky_id', 3);
     if (MDB::isError($err)) {
             echo('<br>could not create sequence again<br>');
     }
@@ -155,27 +157,27 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo(Var_Dump::display($db->executeMultiple($prepared_query, null, $alldata)).'<br>');
     $array = array(4);
     echo('<br>see getOne in action:<br>');
-    echo(Var_Dump::display($db->getOne('SELECT trans_en FROM numbers WHERE number = ?','text',$array)).'<br>');
-    echo('<br>see getRow in action:<br>');
+    echo(Var_Dump::display($db->extended->getOne($db, 'SELECT trans_en FROM numbers WHERE number = ?','text',$array)).'<br>');
     $db->setFetchmode(MDB_FETCHMODE_ASSOC);
     echo('<br>default fetchmode ist now MDB_FETCHMODE_ASSOC<br>');
-    echo(Var_Dump::display($db->getRow('SELECT * FROM numbers WHERE number = ?',array('integer','text','text'),$array)));
+    echo('<br>see getRow in action:<br>');
+    echo(Var_Dump::display($db->extended->getRow($db, 'SELECT * FROM numbers WHERE number = ?',array('integer','text','text'),$array)));
     echo('default fetchmode ist now MDB_FETCHMODE_ORDERED<br>');
     $db->setFetchmode(MDB_FETCHMODE_ORDERED);
     echo('<br>see getCol in action:<br>');
-    echo(Var_Dump::display($db->getCol('SELECT * FROM numbers','text', null, null, 1)).'<br>');
+    echo(Var_Dump::display($db->extended->getCol($db, 'SELECT * FROM numbers','text', null, null, 1)).'<br>');
     echo('<br>see getAll in action:<br>');
-    echo(Var_Dump::display($db->getAll('SELECT * FROM test',array('integer','text','text'))).'<br>');
+    echo(Var_Dump::display($db->extended->getAll($db, 'SELECT * FROM test',array('integer','text','text'))).'<br>');
     echo('<br>see getAssoc in action:<br>');
-    echo(Var_Dump::display($db->getAssoc('SELECT * FROM test',array('integer','text','text'), null, null, MDB_FETCHMODE_ASSOC)).'<br>');
+    echo(Var_Dump::display($db->extended->getAll($db, 'SELECT * FROM test',array('integer','text','text'), null, null, MDB_FETCHMODE_ASSOC)).'<br>');
     echo('tableInfo on a string:<br>');
     echo(Var_Dump::display($db->tableInfo('numbers')).'<br>');
     echo('<br>just a simple update query:<br>');
-    echo(Var_Dump::display($db->query('UPDATE numbers set trans_en ='.$db->getIntegerValue(0))).'<br>');
+    echo(Var_Dump::display($db->query('UPDATE numbers set trans_en ='.$db->getValue('integer', 0))).'<br>');
     echo('<br>affected rows:<br>');
     echo($db->affectedRows().'<br>');
     // subselect test
-    $sub_select = $db->subSelect('SELECT test_name from test WHERE test_name = '.$db->getTextValue('gummihuhn'), true);
+    $sub_select = $db->subSelect('SELECT test_name from test WHERE test_name = '.$db->getValue('text', 'gummihuhn'), true);
     echo(Var_Dump::display($sub_select).'<br>');
     $query_with_subselect = 'SELECT * FROM test WHERE test_name IN ('.$sub_select.')';
     // run the query and get a result handler
@@ -183,9 +185,8 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     $result = $db->query($query_with_subselect);
     $array = $db->fetchAll($result);
     echo('<br>all with subselect:<br>');
-    echo(Var_Dump::display($array).'<br>');
     echo('<br>drop index (will fail if the index was never created):<br>');
-    echo(Var_Dump::display($db->dropIndex('test', 'test_id_index')).'<br>');
+    echo(Var_Dump::display($db->manager->dropIndex($db, 'test', 'test_id_index')).'<br>');
     $index_def = array(
         'FIELDS' => array(
             'test_id' => array(
@@ -194,7 +195,8 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
         )
     );
     echo('<br>create index:<br>');
-    echo(Var_Dump::display($db->createIndex('test', 'test_id_index', $index_def)).'<br>');
+    echo(Var_Dump::display($db->manager->createIndex($db, 'test', 'test_id_index', $index_def)).'<br>');
+/*
     if ($db_type == 'mysql') {
         $manager->captureDebugOutput(true);
         $manager->database->setOption('log_line_break', '<br>');
@@ -215,6 +217,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
         // this is the database definition as an array
         echo(Var_Dump::display($manager->database_definition).'<br>');
     }
+*/
     echo('<br>just a simple delete query:<br>');
     echo(Var_Dump::display($db->query('DELETE FROM numbers')).'<br>');
     // You can disconnect from the database with:
