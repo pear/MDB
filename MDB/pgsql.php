@@ -73,6 +73,7 @@ class MDB_pgsql extends MDB_Common
 
         $this->supported['sequences'] = true;
         $this->supported['indexes'] = true;
+        $this->supported['affected_rows'] = true;
         $this->supported['summary_functions'] = true;
         $this->supported['order_by_text'] = true;
         $this->supported['transactions'] = true;
@@ -157,9 +158,8 @@ class MDB_pgsql extends MDB_Common
      */
     function errorNative()
     {
-        return pg_ErrorMessage($this->connection);
+        return @pg_ErrorMessage($this->connection);
     }
-
 
     // }}}
     // {{{ autoCommit()
@@ -412,7 +412,8 @@ class MDB_pgsql extends MDB_Common
      **/
     function _doQuery($query)
     {
-        if (($result = @pg_Exec($this->connection, $query))) {
+        $result = @pg_Exec($this->connection, $query);
+        if ($result) {
             $this->affected_rows = (isset($this->supported['affected_rows']) ? pg_cmdTuples($result) : -1);
         } else {
             return $this->pgsqlRaiseError();
@@ -503,16 +504,9 @@ class MDB_pgsql extends MDB_Common
             $this->affected_rows = @pg_cmdtuples($result);
             return MDB_OK;
         } elseif ((preg_match('/^\s*\(?\s*SELECT\s+/si', $query)
-                && !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query)
-            ) || preg_match('/^\s*EXPLAIN/si',$query )
+                && !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query))
+            || preg_match('/^\s*EXPLAIN/si',$query)
         ) {
-            /* PostgreSQL commands:
-               ABORT, ALTER, BEGIN, CLOSE, CLUSTER, COMMIT, COPY,
-               CREATE, DECLARE, DELETE, DROP TABLE, EXPLAIN, FETCH,
-               GRANT, INSERT, LISTEN, LOAD, LOCK, MOVE, NOTIFY, RESET,
-               REVOKE, ROLLBACK, SELECT, SELECT INTO, SET, SHOW,
-               UNLISTEN, UPDATE, VACUUM
-            */
             $this->results[intval($result)]['highest_fetched_row'] = -1;
             if ($types != null) {
                 if (!is_array($types)) {
@@ -817,11 +811,7 @@ class MDB_pgsql extends MDB_Common
             $row = @pg_fetch_row($result, $rownum);
         }
         if (!$row) {
-            $errno = @pg_errormessage($this->connection);
-            if (!$errno) {
-                return null;
-            }
-            return $this->pgsqlRaiseError($errno);
+            return null;
         }
         $this->results[$result_value]['highest_fetched_row'] =
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
