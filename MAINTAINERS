@@ -1,7 +1,7 @@
 Maintainers for MDB database backends/drivers:
 
-ibase       : Paul Cooper <pgc@ucecom.com> (might write one)
-fbird       : 
+ibase       : Lorenzo Alberton <l.alberton@quipo.it>
+fbird       : Lorenzo Alberton <l.alberton@quipo.it>
 msql        : 
 mssql       : Frank M. Kromann <frank@kromann.info> (is writting one)
 mysql       : Lukas Smith <smith@backendmedia.com>
@@ -10,5 +10,6 @@ odbc        : Pierre-Alain Joye <paj@pearfr.org> (is writting one)
 pgsql       : Paul Cooper <pgc@ucecom.com>
 sybase      : 
 ifx         : 
-fbsql       : Frank M. Kromann <frank@kromann.info> (is writting one)
+fbsql       : Frank M. Kromann <frank@kromann.info>
 dbase       : 
+sqlite      : Tal Peer <tal@php.net>
