@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1998-2002 Manuel Lemos, Tomas V.V.Cox,                 |                             |
+// | Copyright (c) 1998-2002 Manuel Lemos, Tomas V.V.Cox,                 |
 // | Stig. S. Bakken, Lukas Smith                                         |
 // | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
@@ -121,7 +121,7 @@ class MDB_pgsql extends MDB_common
             }
         }
 
-        $this->decimal_factor = pow(10.0, $this->decimal_places);
+        $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
 
         $this->errorcode_map = array();
     }
@@ -172,13 +172,13 @@ class MDB_pgsql extends MDB_common
             if(!strcmp($this->connected_host, $this->host)
                && !strcmp($this->connected_port, $port)
                && !strcmp($this->selected_database, $this->database_name)
-               && ($this->opened_persistent == $this->persistent)) 
+               && ($this->opened_persistent == $this->options['persistent'])) 
                 return(1);
             pg_Close($this->connection);
             $this->affected_rows = -1;
             $this->connection = 0;
         }
-        $this->connection = $this->_doConnect($this->database_name, $this->persistent);
+        $this->connection = $this->_doConnect($this->database_name, $this->options['persistent']);
         if(MDB::isError($this->connection)) {
             return $this->connection;
         }
@@ -191,7 +191,7 @@ class MDB_pgsql extends MDB_common
         $this->connected_host = $this->host;
         $this->connected_port = $port;
         $this->selected_database = $this->database_name;
-        $this->opened_persistent = $this->persistent;
+        $this->opened_persistent = $this->options['persistent'];
         return(DB_OK);
     }
 
@@ -419,7 +419,7 @@ class MDB_pgsql extends MDB_common
         return(pg_freeresult($result));
     }
 
-    function standaloneQuery($query)
+    function _standaloneQuery($query)
     {
         if(($connection = $this->_doConnect("template1", 0)) == 0) {
             return(0);
@@ -478,7 +478,7 @@ class MDB_pgsql extends MDB_common
         if(($lo = pg_locreate($this->connection))) {
             if(($handle=pg_loopen($this->connection,$lo,"w"))) {
                 while(!MetabaseEndOfLOB($lob)) {
-                    if(MetabaseReadLOB($lob, $data, $this->lob_buffer_length) < 0) {
+                    if(MetabaseReadLOB($lob, $data, $this->options['lob_buffer_length']) < 0) {
                         $this->SetError("Get LOB field value", MetabaseLOBError($lob));
                         $success = 0;
                         break;
@@ -572,7 +572,7 @@ class MDB_pgsql extends MDB_common
             $value = (strcmp($value,"Y") ? 0 : 1);
             return (DB_OK);
         case METABASE_TYPE_DECIMAL:
-            $value = sprintf("%." . $this->decimal_places . "f", doubleval($value)/$this->decimal_factor);
+            $value = sprintf("%." . $this->options['decimal_places'] . "f", doubleval($value)/$this->decimal_factor);
             return (DB_OK);
         case METABASE_TYPE_FLOAT:
             $value = doubleval($value);
@@ -598,31 +598,15 @@ class MDB_pgsql extends MDB_common
      * not exist, it will be created, unless $ondemand is false.
      *
      * @access public
-     * @param string $seq_name the name of the sequence
+     * @param string  $name     name of the sequence
+     * @param int     $value    reference to a var into
+     *                          which the Id will be stored
      * @param bool $ondemand whether to create the sequence on demand
      * @return a sequence integer, or a DB error
      */
-	 
-	 // Metabase version of nextId()
-     function getSequenceNextValue($name, &$value)
-     {
-         if(!($result = $this->Query("SELECT NEXTVAL ('$name')"))) {
-             return(0);
-         }
-         if($this->numRows($result) == 0) {
-             $this->freeResult($result);
-             return($this->SetError("Get sequence next value","could not find value in sequence table"));
-         }
-         $value = intval($this->fetchResult($result, 0, 0));
-         $this->freeResult($result);
-         return (DB_OK);
-     }
-
-    function nextId($seq_name, $ondemand = true)
+    function nextId($seq_name, &$value, $ondemand = true)
     {
-        //temp hack - need to figure this out in pear
-        //        $seqname = $this->getSequenceName($seq_name);
-        $seqname = $seq_name;
+        $seqname = $this->getSequenceName($seq_name);
         $repeat = 0;
         do {
             $this->pushErrorHandling(PEAR_ERROR_RETURN);
@@ -644,12 +628,14 @@ class MDB_pgsql extends MDB_common
         }
         $this->fetchInto($result, $arr, DB_FETCHMODE_ORDERED);
         $this->freeResult($result);
-        return $arr[0];
+        $value = $arr[0];
+        return (DB_OK);
     }
 
     function currId($name, &$value)
     {
-        if(!($result = $this->query("SELECT last_value FROM $name"))) {
+        $seqname = $this->getSequenceName($seq_name);
+        if(!($result = $this->query("SELECT last_value FROM $seqname"))) {
             return(0);
         }
         if($this->numRows($result) == 0) {
@@ -890,7 +876,7 @@ class MDB_pgsql extends MDB_common
         if (!$array) {
             $errno = @pg_errormessage($this->connection);
             if (!$errno) {
-                if($this->autofree) {
+                if($this->options['autofree']) {
                     $this->freeResult($result);
                 }
                 return NULL;
