@@ -61,6 +61,8 @@ require_once('MDB/Common.php');
  *   this driver those capabilities may be emulated using other SQL statements
  *   to recreate the tables with a new definition.
  *
+ *   MDB_Manager_mssql::getTableFieldDefinition() is still alpha quality
+ *
  * @package MDB
  * @category Database
  * @author  Frank M. Kromann <frank@kromann.info>
