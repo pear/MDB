@@ -4,7 +4,7 @@ if(!defined("MDB_MANAGER_DATABASE_INCLUDED"))
     define("MDB_MANAGER_DATABASE_INCLUDED",1);
 
 /*
- * manager_database.php
+ * manager_common.php
  *
  * @(#) $Header$
  *
@@ -52,7 +52,6 @@ class MDB_manager_database_class extends PEAR
                 $query = $db->getDecimalDeclaration($field_name, $field);
                 break;
             default:
-                //return($this->setError("Get field", "type \"".$field["type"]."\" is not yet supported"));
                 return $db->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Get field: type \"".$field["type"]."\" is not yet supported");
                 break;
         }
@@ -69,8 +68,9 @@ class MDB_manager_database_class extends PEAR
                 $query_fields.= ", ";
             }
             $field_name = key($fields);
-            if (!$this->getField(&$db, $fields[$field_name], $field_name, $query)) {
-                return(0);
+            $result = $this->getField(&$db, $fields[$field_name], $field_name, $query);
+            if (MDB::isError($result)) {
+                return $result;
             }
             $query_fields .= $query;
         }

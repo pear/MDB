@@ -229,9 +229,11 @@ class MDB_common extends PEAR
                     if ($directory) {
                         closedir($directory);
                     }
-                    return($this->SetError($scope,"it was not specified an existing $extension file ($include)"));
+                    return $this->raiseError(DB_ERROR_LOADEXTENSION, "", "", 
+                        $scope.': it was not specified an existing '.$extension.' file ('.$include.')');
                 } else {
-                    return($this->SetError($scope,"it was not specified a valid $extension include path"));
+                    return $this->raiseError(DB_ERROR_LOADEXTENSION, "", "", 
+                        $scope.': it was not specified a valid '.$extension.' include path');
                 }
             }
             include($include_path.$separator.$include);
@@ -244,14 +246,18 @@ class MDB_common extends PEAR
         if (isset($this->manager)) {
             return(1);
         }
-        if (!$this->loadExtension($scope, "database manager", "MDB_MANAGER_DATABASE_INCLUDED", "manager_common.php")) {
-            return(0);
+        $result = $this->loadExtension($scope, "database manager", "MDB_MANAGER_DATABASE_INCLUDED", "manager_common.php");
+        if (MDB::isError($result)) {
+            return($result);
         }
         if (strlen($this->manager_class_name)) {
             if(strlen($this->manager_include) == 0)
-                return($this->SetError($scope, "it was not configured a valid database manager include file"));
-            if(!$this->loadExtension($scope, "database manager", $this->manager_included_constant, $this->manager_include))
-                return(0);
+                return $this->raiseError(DB_LOADEXTENSION, "", "", 
+                    $scope.': it was not configured a valid database manager include file');
+            $result = $this->loadExtension($scope, "database manager", $this->manager_included_constant, $this->manager_include);
+            if (MDB::isError($result)) {
+                return($result);
+            }
             $class_name = $this->manager_class_name;
         } else {
             $class_name = "MDB_manager_database_class";
@@ -262,104 +268,117 @@ class MDB_common extends PEAR
 
     function createDatabase($database)
     {
-        if(!$this->loadManager("Create database")) {
-            return(0);
+        $result = $this->loadManager("Create database");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->createDatabase($this, $database));
     }
 
     function dropDatabase($database)
     {
-        if(!$this->loadManager("Drop database")) {
-            return(0);
+        $result = $this->loadManager("Drop database");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->dropDatabase($this, $database));
     }
 
     function createTable($name, &$fields)
     {
-        if(!$this->loadManager("Create table")) {
-            return(0);
+        $result = $this->loadManager("Create table");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->createTable($this, $name, $fields));
     }
 
     function dropTable($name)
     {
-        if(!$this->loadManager("Drop table")) {
-            return(0);
+        $result = $this->loadManager("Drop table");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->dropTable($this, $name));
     }
 
     function alterTable($name, &$changes, $check)
     {
-        if(!$this->loadManager("Alter table")) {
-            return(0);
+        $result = $this->loadManager("Alter table");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->alterTable($this, $name, $changes, $check));
     }
 
     function listTables(&$tables)
     {
-        if(!$this->loadManager("List tables")) {
-            return(0);
+        $result = $this->loadManager("List tables");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->listTables($this, $tables));
     }
 
     function listTableFields($table, &$fields)
     {
-        if(!$this->loadManager("List table fields")) {
-            return(0);
+        $result = $this->loadManager("List table fields");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->listTableFields($this, $table, $fields));
     }
 
     function getTableFieldDefinition($table, $field, &$definition)
     {
-        if(!$this->loadManager("Get table field definition")) {
-            return(0);
+        $result = $this->loadManager("Get table field definition");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->getTableFieldDefinition($this, $table, $field, $definition));
     }
 
     function createIndex($table, $name, &$definition)
     {
-        if(!$this->loadManager("Create index")) {
-            return(0);
+        $result = $this->loadManager("Create index");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->createIndex($this, $table, $name, $definition));
     }
 
     function dropIndex($table, $name)
     {
-        if(!$this->loadManager("Drop index")) {
-            return(0);
+        $result = $this->loadManager("Drop index");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->dropIndex($this, $table ,$name));
     }
 
     function createSequence($name, $start)
     {
-        if(!$this->loadManager("Create sequence")) {
-            return(0);
+        $result = $this->loadManager("Create sequence");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->createSequence($this, $name, $start));
     }
 
     function dropSequence($name)
     {
-        if(!$this->loadManager("Drop sequence")) {
-            return(0);
+        $result = $this->loadManager("Drop sequence");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->dropSequence($this, $name));
     }
 
     function listSequences(&$sequences)
     {
-        if(!$this->loadManager("List sequences")) {
-            return(0);
+        $result = $this->loadManager("List sequences");
+        if (MDB::isError($result)) {
+            return($result);
         }
         return($this->manager->listSequences($this, $sequences));
     }
@@ -936,7 +955,8 @@ class MDB_common extends PEAR
                         break;
                     default:
                         if (!$this->ConvertResult($row[$column], $type)) {
-                            return(0);
+                            return $this->raiseError(DB_ERROR_INVALID, "", "", 
+                                'convertResultRow: attempt to convert result value to an unknown type '.$type);
                         }
                         break;
                 }
@@ -1303,10 +1323,12 @@ class MDB_common extends PEAR
     function fetchField($result, &$value, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         if (!$result) {
-            return ($this->setError("Fetch field", "it was not specified a valid result set"));
+            return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
+                    'Fetch field: it was not specified a valid result set');
         }
         if ($this->endOfResult($result)) {
-            $success = $this->setError("Fetch field", "result set is empty");
+            $success = $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
+                    'Fetch field: result set is empty');
         } else {
             if ($this->resultIsNull($result, 0, 0)) {
                 unset($value);
@@ -1326,10 +1348,12 @@ class MDB_common extends PEAR
     function fetchRow($result, &$row, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         if (!$result) {
-            return ($this->setError("Fetch field", "it was not specified a valid result set"));
+            return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
+                    'Fetch row: it was not specified a valid result set');
         }
         if ($this->endOfResult($result)) {
-            $success = $this->setError("Fetch field", "result set is empty");
+            $success = $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
+                    'Fetch row: result set is empty');
         } else {
             $success = $this->fetchInto($result, $row, $fetchmode, 0);
         }
@@ -1344,7 +1368,8 @@ class MDB_common extends PEAR
     function fetchColumn($result, &$column, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         if (!$result) {
-            return ($this->setError("Fetch field", "it was not specified a valid result set"));
+            return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
+                    'Fetch column: it was not specified a valid result set');
         }
         $temp = array();
         for($success = 1, $column = array(), $row = 0;!$this->endOfResult($result); $row++) {
@@ -1371,7 +1396,8 @@ class MDB_common extends PEAR
     function fetchAll($result, &$all, $fetchmode = DB_FETCHMODE_DEFAULT, $rekey = false, $force_array = false, $group = false)
     {
         if (!$result) {
-            return ($this->setError("Fetch field","it was not specified a valid result set"));
+            return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
+                    'Fetch All: it was not specified a valid result set');
         }
         if($rekey) {
             $cols = $this->numCols($result);

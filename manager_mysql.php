@@ -30,7 +30,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
             return $result;
         }
         if (!mysql_drop_db($name, $this->connection)) {
-            return $$db->mysqlRaiseError(DB_ERROR_CANNOT_DROP);
+            return $db->mysqlRaiseError(DB_ERROR_CANNOT_DROP);
         }
         return (1);
     }
@@ -141,14 +141,15 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
                     $query .= "CHANGE $old_field_name ".$changes["RenamedFields"][$old_field_name]["Declaration"];
                 }
             }
-            return ($db->Query("ALTER TABLE $name $query"));
+            return ($db->query("ALTER TABLE $name $query"));
         }
     }
 
     function listTables(&$db, &$tables)
     {
-        if(!$db->queryColumn("SHOW TABLES",$table_names)) {
-            return(0);
+        $result = $db->queryColumn("SHOW TABLES", $table_names);
+        if(MDB::isError($result)) {
+            return $result;
         }
         $prefix_length = strlen($db->sequence_prefix);
         for($tables = array(), $table = 0; $table < count($table_names); ++$table)
@@ -161,16 +162,18 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
 
     function listTableFields(&$db, $table, &$fields)
     {
-        if(!($result=$db->query("SHOW COLUMNS FROM $table"))) {
-            return(0);
+        $result = $db->query("SHOW COLUMNS FROM $table");
+        if(MDB::isError($result)) {
+            return $result;
         }
-        if(!$db->getColumnNames($result, $columns)) {
+        $result2 = $db->getColumnNames($result, $columns);
+        if(MDB::isError($result2)) {
             $db->freeResult($result);
-            return(0);
+            return $result2;
         }
         if(!isset($columns["field"])) {
             $db->freeResult($result);
-            return($db->setError("List table fields","show columns does not return the table field names"));
+            return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table fields: show columns does not return the table field names');
         }
         $field_column=$columns["field"];
         for($fields=array(), $field = 0; !$db->endOfResult($result); ++$field) {
@@ -186,20 +189,22 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
     {
         $field_name = strtolower($field);
         if ($field_name == $db->dummy_primary_key) {
-            return($db->SetError("List table fields",$db->dummy_primary_key." is an hidden column"));
+            return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table fields: '.$db->dummy_primary_key.' is an hidden column');
         }
-        if (!($result=$db->query("SHOW COLUMNS FROM $table"))) {
-            return(0);
+        $result = $db->query("SHOW COLUMNS FROM $table");
+        if(MDB::isError($result)) {
+            return $result;
         }
-        if (!$db->getColumnNames($result,$columns)) {
+        $result2 = $db->getColumnNames($result, $columns);
+        if(MDB::isError($result)) {
             $db->freeResult($result);
-            return(0);
+            return $result2;
         }
         if (!isset($columns[$column = "field"])
             && !isset($columns[$column = "type"]))
         {
             $db->freeResult($result);
-            return($db->setError("List table fields","show columns does not return the column $column"));
+            return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table fields: show columns does not return the column '.$column);
         }
         $field_column = $columns["field"];
         $type_column = $columns["type"];
@@ -284,7 +289,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
                         break;
 
                     default:
-                        return($db->SetError("List table fields","unknown database attribute type"));
+                        return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table fields: unknown database attribute type');
                 }
                 unset($notnull);
                 if (isset($columns["null"])
@@ -315,10 +320,10 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
             }
         }
         $db->freeResult($result);
-        if($success == DB_OK) {
+        if($success === DB_OK) {
             return(0);
         }
-        return($db->setError("List table fields","it was not specified an existing table column"));
+        return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table fields: it was not specified an existing table column');
     }
 
     function createSequence(&$db, $name, $start)
@@ -377,13 +382,14 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
 
     function listSequences(&$db, &$sequences)
     {
-        if (!$db->queryColumn("SHOW TABLES",$table_names)) {
-            return(0);
+        $result = $db->queryColumn("SHOW TABLES", $sequences);
+        if(MDB::isError($result)) {
+            return $result;
         }
         $prefix_length = strlen($db->sequence_prefix);
-        for($sequences = array(),$table = 0;$table < count($table_names); ++$table) {
-            if (substr($table_names[$table], 0, $prefix_length) == $db->sequence_prefix) {
-                $sequences[] = substr($table_names[$table], $prefix_length);
+        for($sequences = array(),$sequence = 0;$sequence < count($sequences); ++$sequence) {
+            if (substr($sequences[$sequence], 0, $prefix_length) == $db->sequence_prefix) {
+                $sequences[] = substr($sequences[$sequence], $prefix_length);
             }
         }
         return(1);
