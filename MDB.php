@@ -419,7 +419,7 @@ class MDB
      */
     function loadClass($module)
     {
-        @include_once 'MDB/Modules/'.$module.'.php';
+        include_once 'MDB/Modules/'.$module.'.php';
     }
     
     // }}}
