@@ -372,6 +372,51 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         }
     }
 
+    /**
+     * Tests escaping of text values with special characters
+     *
+     */
+    function testEscapeSequences() {
+        $test_strings=array(
+                            "'",
+                            "\"",
+                            "\\",
+                            "%",
+                            "_",
+                            "''",
+                            "\"\"",
+                            "\\\\",
+                            "\\'\\'",
+                            "\\\"\\\""
+                            );
+
+        for($string=0; $string < count($test_strings); $string++) {
+            $this->clearTable();
+
+            $value = $this->db->getTextValue($test_strings[$string]);
+
+            $result = $this->db->query("INSERT INTO users (user_name,user_password,user_id) VALUES ($value,$value,0)");
+
+            if (MDB::isError($result)) {
+                $this->assertTrue(FALSE, 'Error executing insert query' . $result->getMessage());
+            }
+
+            $result = $this->db->query("SELECT user_name,user_password FROM users");
+
+            if (MDB::isError($result)) {
+                $this->assertTrue(FALSE, 'Error executing select query' . $result->getMessage());
+            }
+            
+            $this->assertTrue(!$this->db->endOfResult($result), "The query result seems to have reached the end of result earlier than expected");
+
+            $value = $this->db->fetch($result, 0, 'user_name');
+
+            $this->assertEquals(rtrim($value), $test_strings[$string], "the value retrieved for field \"$field\" (\"$value\") doesn't match what was stored (" . $test_strings[$string] . ")");
+
+        }
+
+    }
+
 }
 
 ?>
