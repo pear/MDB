@@ -18,6 +18,8 @@
 //
 // $Id$
 
+// This version will be synced with the real class when needed.
+
 require_once 'PEAR.php';
 
 // +-----------------------------------+
