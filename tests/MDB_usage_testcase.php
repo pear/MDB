@@ -165,9 +165,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data['user_id'] = $row;
         $data['quota'] = strval($row/100);
         $data['weight'] = sqrt($row);
-        $data['access_date'] = MDB_date::mdbToday();
-        $data['access_time'] = MDB_date::mdbTime();
-        $data['approved'] = MDB_date::mdbNow();
+        $data['access_date'] = MDB_Date::mdbToday();
+        $data['access_time'] = MDB_Date::mdbTime();
+        $data['approved'] = MDB_Date::mdbNow();
 
         $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
@@ -210,9 +210,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $data[$row]['user_id'] = $row;
             $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
             $data[$row]['weight'] = sqrt($row);
-            $data[$row]['access_date'] = MDB_date::mdbToday();
-            $data[$row]['access_time'] = MDB_date::mdbTime();
-            $data[$row]['approved'] = MDB_date::mdbNow();
+            $data[$row]['access_date'] = MDB_Date::mdbToday();
+            $data[$row]['access_time'] = MDB_Date::mdbTime();
+            $data[$row]['approved'] = MDB_Date::mdbNow();
 
             $this->insertTestValues($prepared_query, $data[$row]);
 
@@ -295,9 +295,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data['user_id'] = $row;
         $data['quota'] = strval($row/100);
         $data['weight'] = sqrt($row);
-        $data['access_date'] = MDB_date::mdbToday();
-        $data['access_time'] = MDB_date::mdbTime();
-        $data['approved'] = MDB_date::mdbNow();
+        $data['access_date'] = MDB_Date::mdbToday();
+        $data['access_time'] = MDB_Date::mdbTime();
+        $data['approved'] = MDB_Date::mdbNow();
 
         $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
@@ -448,9 +448,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $data[$row]['user_id'] = $row;
             $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
             $data[$row]['weight'] = sqrt($row);
-            $data[$row]['access_date'] = MDB_date::mdbToday();
-            $data[$row]['access_time'] = MDB_date::mdbTime();
-            $data[$row]['approved'] = MDB_date::mdbNow();
+            $data[$row]['access_date'] = MDB_Date::mdbToday();
+            $data[$row]['access_time'] = MDB_Date::mdbTime();
+            $data[$row]['approved'] = MDB_Date::mdbNow();
 
             $this->insertTestValues($prepared_query, $data[$row]);
 
@@ -576,9 +576,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data['user_id'] = $row;
         $data['quota'] = strval($row/100);
         $data['weight'] = sqrt($row);
-        $data['access_date'] = MDB_date::mdbToday();
-        $data['access_time'] = MDB_date::mdbTime();
-        $data['approved'] = MDB_date::mdbNow();
+        $data['access_date'] = MDB_Date::mdbToday();
+        $data['access_time'] = MDB_Date::mdbTime();
+        $data['approved'] = MDB_Date::mdbNow();
 
         $fields = array(
                       'user_name' => array(
@@ -648,9 +648,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $fields['subscribed']['Value'] = $data['subscribed'] = $row % 2;
         $fields['quota']['Value'] = $data['quota'] = strval($row/100);
         $fields['weight']['Value'] = $data['weight'] = sqrt($row);
-        $fields['access_date']['Value'] = $data['access_date'] = MDB_date::mdbToday();
-        $fields['access_time']['Value'] = $data['access_time'] = MDB_date::mdbTime();
-        $fields['approved']['Value'] = $data['approved'] = MDB_date::mdbNow();
+        $fields['access_date']['Value'] = $data['access_date'] = MDB_Date::mdbToday();
+        $fields['access_time']['Value'] = $data['access_time'] = MDB_Date::mdbTime();
+        $fields['approved']['Value'] = $data['approved'] = MDB_Date::mdbNow();
 
         $result = $this->db->replace('users', $fields);
 
@@ -697,9 +697,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $data[$row]['user_id'] = $row;
             $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
             $data[$row]['weight'] = sqrt($row);
-            $data[$row]['access_date'] = MDB_date::mdbToday();
-            $data[$row]['access_time'] = MDB_date::mdbTime();
-            $data[$row]['approved'] = MDB_date::mdbNow();
+            $data[$row]['access_date'] = MDB_Date::mdbToday();
+            $data[$row]['access_time'] = MDB_Date::mdbTime();
+            $data[$row]['approved'] = MDB_Date::mdbNow();
 
             $this->insertTestValues($prepared_query, $data[$row]);
 
@@ -774,9 +774,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data['user_id'] = $row;
         $data['quota'] = strval($row/100);
         $data['weight'] = sqrt($row);
-        $data['access_date'] = MDB_date::mdbToday();
-        $data['access_time'] = MDB_date::mdbTime();
-        $data['approved'] = MDB_date::mdbNow();
+        $data['access_date'] = MDB_Date::mdbToday();
+        $data['access_time'] = MDB_Date::mdbTime();
+        $data['approved'] = MDB_Date::mdbNow();
 
         $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
 

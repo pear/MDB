@@ -132,9 +132,9 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
             $data[$row]['user_id'] = $row;
             $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
             $data[$row]['weight'] = sqrt($row);
-            $data[$row]['access_date'] = MDB_date::mdbToday();
-            $data[$row]['access_time'] = MDB_date::mdbTime();
-            $data[$row]['approved'] = MDB_date::mdbNow();
+            $data[$row]['access_date'] = MDB_Date::mdbToday();
+            $data[$row]['access_time'] = MDB_Date::mdbTime();
+            $data[$row]['approved'] = MDB_Date::mdbNow();
 
             $this->insertTestValues($prepared_query, $data[$row]);
 
