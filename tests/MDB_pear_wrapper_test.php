@@ -71,7 +71,7 @@
     echo $db->affectedRows()."<br>";
     // lets try an prepare execute combo
     $alldata = array(  array(1, 'one', 'un'),
-                       array(2, 'two', 'deus'),
+                       array(2, 'two', 'deux'),
                        array(3, 'three', 'trois'),
                        array(4, 'four', 'quatre'));
     $prepared_query = $db->prepare("INSERT INTO numbers VALUES(?,?,?)");
