@@ -75,6 +75,7 @@ The files that make up MDB are:
   lob.php
   manager.php
   parser.php
+  date.php
   metabase_wrapper.php
   pear_wrapper.php
   reverse_engineer_xml_schema.php
@@ -86,8 +87,6 @@ The important pieces for testing right now are:
   MDB_pear_wrapper_test.php (several calls to the MDB PEAR Wrapper)
 
 Other Included Files
-  xml_parser.php (this is actually a seperate project of Manuel Lemos
-                  that is used for the schema management)
   Var_Dump.php (used in MDB_test.php and MDB_pear_wrapper_test.php
                 to display test results)
   xml_schema_documentation.html (This document describe the format of
