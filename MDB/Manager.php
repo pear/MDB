@@ -1551,74 +1551,60 @@ class MDB_manager
     function dumpDatabaseChanges(&$changes)
     {
         if (isset($changes["TABLES"])) {
-            for($change = 0, reset($changes["TABLES"]);
-                $change < count($changes["TABLES"]);
-                next($changes["TABLES"]), $change++)
+            foreach($changes["TABLES"] as $table_name => $table)
             {
-                $table_name = key($changes["TABLES"]);
                 $this->database->debug("$table_name:");
-                if (isset($changes["tables"][$table_name]["Add"])) {
+                if (isset($table["Add"])) {
                     $this->database->debug("\tAdded table '$table_name'");
+                } elseif (isset($table["Remove"])) {
+                    $this->database->debug("\tRemoved table '$table_name'");
                 } else {
-                    if (isset($changes["TABLES"][$table_name]["Remove"])) {
-                        $this->database->debug("\tRemoved table '$table_name'");
-                    } else {
-                        if (isset($changes["TABLES"][$table_name]["name"])) {
-                            $this->database->debug("\tRenamed table '$table_name' to '".$changes["TABLES"][$table_name]["name"]."'");
+                    if (isset($table["name"])) {
+                        $this->database->debug("\tRenamed table '$table_name' to '".$table["name"]."'");
+                    }
+                    if (isset($table["AddedFields"])) {
+                        foreach($table["AddedFields"] as $field_name => $field) {
+                            $this->database->debug("\tAdded field '".$field_name."'");
                         }
-                        if (isset($changes["TABLES"][$table_name]["AddedFields"])) {
-                            $fields = $changes["TABLES"][$table_name]["AddedFields"];
-                            for($field = 0, reset($fields);
-                                $field < count($fields);
-                                $field++, next($fields))
-                            {
-                                $this->database->debug("\tAdded field '".key($fields)."'");
+                    }
+                    if (isset($table["RemovedFields"])) {
+                        foreach($table["RemovedFields"] as $field_name => $field) {
+                            $this->database->debug("\tRemoved field '".$field_name."'");
+                        }
+                    }
+                    if (isset($table["RenamedFields"])) {
+                        foreach($table["RenamedFields"] as $field_name => $field) {
+                            $this->database->debug("\tRenamed field '".$field_name."' to '".$field["name"]."'");
+                        }
+                    }
+                    if (isset($table["ChangedFields"])) {
+                        foreach($table["ChangedFields"] as $field_name => $field) {
+                            if (isset($field["type"])) {
+                                $this->database->debug(
+                                    "\tChanged field '$field_name' type to '".$field["type"]."'");
                             }
-                        }
-                        if (isset($changes["TABLES"][$table_name]["RemovedFields"])) {
-                            $fields = $changes["TABLES"][$table_name]["RemovedFields"];
-                            for($field = 0, reset($fields);
-                                $field < count($fields);
-                                $field++, next($fields))
+                            if (isset($field["unsigned"]))
                             {
-                                $this->database->debug("\tRemoved field '".key($fields)."'");
+                                $this->database->debug(
+                                    "\tChanged field '$field_name' type to '".
+                                    ($field["unsigned"] ? "" : "not ")."unsigned'");
                             }
-                        }
-                        if (isset($changes["TABLES"][$table_name]["RenamedFields"])) {
-                            $fields = $changes["TABLES"][$table_name]["RenamedFields"];
-                            for($field = 0, reset($fields);
-                                $field < count($fields);
-                                $field++, next($fields))
+                            if (isset($field["length"]))
                             {
-                                $this->database->debug("\tRenamed field '".key($fields)."' to '".$fields[key($fields)]["name"]."'");
+                                $this->database->debug(
+                                    "\tChanged field '$field_name' length to '".
+                                    ($field["length"] == 0 ? "no length" : $field["length"])."'");
                             }
-                        }
-                        if (isset($changes["TABLES"][$table_name]["ChangedFields"])) {
-                            $fields = $changes["TABLES"][$table_name]["ChangedFields"];
-                            for($field = 0, reset($fields);
-                                $field < count($fields);
-                                $field++, next($fields))
+                            if (isset($field["ChangedDefault"]))
                             {
-                                $field_name = key($fields);
-                                if (isset($fields[$field_name]["type"])) {
-                                    $this->database->debug("\tChanged field '$field_name' type to '".$fields[$field_name]["type"]."'");
-                                }
-                                if (isset($fields[$field_name]["unsigned"]))
-                                {
-                                    $this->database->debug("\tChanged field '$field_name' type to '".($fields[$field_name]["unsigned"] ? "" : "not ")."unsigned'");
-                                }
-                                if (isset($fields[$field_name]["length"]))
-                                {
-                                    $this->database->debug("\tChanged field '$field_name' length to '".($fields[$field_name]["length"] == 0 ? "no length" : $fields[$field_name]["length"])."'");
-                                }
-                                if (isset($fields[$field_name]["ChangedDefault"]))
-                                {
-                                    $this->database->debug("\tChanged field '$field_name' default to ".(isset($fields[$field_name]["default"]) ? "'".$fields[$field_name]["default"]."'" : "NULL"));
-                                }
-                                if (isset($fields[$field_name]["ChangedNotNull"]))
-                                {
-                                    $this->database->debug("\tChanged field '$field_name' notnull to ".(isset($fields[$field_name]["notnull"]) ? "'1'" : "0"));
-                                }
+                                $this->database->debug(
+                                    "\tChanged field '$field_name' default to ".
+                                    (isset($field["default"]) ? "'".$field["default"]."'" : "NULL"));
+                            }
+                            if (isset($field["ChangedNotNull"]))
+                            {
+                                $this->database->debug(
+                                   "\tChanged field '$field_name' notnull to ".(isset($field["notnull"]) ? "'1'" : "0"));
                             }
                         }
                     }
@@ -1626,31 +1612,22 @@ class MDB_manager
             }
         }
         if (isset($changes["SEQUENCES"])) {
-            for($change = 0, reset($changes["SEQUENCES"]);
-                $change < count($changes["SEQUENCES"]);
-                next($changes["SEQUENCES"]), $change++)
+            foreach($changes["SEQUENCES"] as $sequence_name => $sequence) 
             {
-                $sequence_name = key($changes["SEQUENCES"]);
                 $this->database->debug("$sequence_name:");
-                if (isset($changes["SEQUENCES"][$sequence_name]["Add"])) {
+                if (isset($sequence["Add"])) {
                     $this->database->debug("\tAdded sequence '$sequence_name'");
+                } elseif (isset($sequence["Remove"])) {
+                    $this->database->debug("\tRemoved sequence '$sequence_name'");
                 } else {
-                    if (isset($changes["SEQUENCES"][$sequence_name]["Remove"])) {
-                        $this->database->debug("\tRemoved sequence '$sequence_name'");
-                    } else {
-                        if (isset($changes["SEQUENCES"][$sequence_name]["name"])) {
-                            $this->database->debug("\tRenamed sequence '$sequence_name' to '".$changes["SEQUENCES"][$sequence_name]["name"]."'");
-                        }
-                        if (isset($changes["SEQUENCES"][$sequence_name]["Change"])) {
-                            $sequences = $changes["SEQUENCES"][$sequence_name]["Change"];
-                            for($sequence = 0, reset($sequences);
-                                $sequence < count($sequences);
-                                $sequence++, next($sequences))
-                            {
-                                $sequence_name = key($sequences);
-                                if (isset($sequences[$sequence_name]["start"])) {
-                                    $this->database->debug("\tChanged sequence '$sequence_name' start to '".$sequences[$sequence_name]["start"]."'");
-                                }
+                    if (isset($sequence["name"])) {
+                        $this->database->debug("\tRenamed sequence '$sequence_name' to '".$sequence["name"]."'");
+                    }
+                    if (isset($sequence["Change"])) {
+                        foreach($sequence["Change"] as $sequence_name => $sequence) {
+                            if (isset($sequence["start"])) {
+                                $this->database->debug(
+                                    "\tChanged sequence '$sequence_name' start to '".$sequence["start"]."'");
                             }
                         }
                     }
@@ -1658,46 +1635,32 @@ class MDB_manager
             }
         }
         if (isset($changes["INDEXES"])) {
-            for($change = 0, reset($changes["INDEXES"]);
-                $change < count($changes["INDEXES"]);
-                next($changes["INDEXES"]), $change++)
+            foreach($changes["INDEXES"] as $table_name => $table)
             {
-                $table_name = key($changes["INDEXES"]);
                 $this->database->debug("$table_name:");
-                if (isset($changes["INDEXES"][$table_name]["AddedIndexes"])) {
-                    $indexes = $changes["INDEXES"][$table_name]["AddedIndexes"];
-                    for($index = 0, reset($indexes);
-                        $index < count($indexes);
-                        next($indexes), $index++)
-                    {
-                        $this->database->debug("\tAdded index '".key($indexes)."' of table '$table_name'");
+                if (isset($table["AddedIndexes"])) {
+                    foreach($table["AddedIndexes"] as $index_name => $index) {
+                        $this->database->debug("\tAdded index '".$index_name."' of table '$table_name'");
                     }
                 }
-                if (isset($changes["INDEXES"][$table_name]["RemovedIndexes"])) {
-                    $indexes = $changes["INDEXES"][$table_name]["RemovedIndexes"];
-                    for($index = 0, reset($indexes);
-                        $index < count($indexes);
-                        next($indexes), $index++)
-                    {
-                        $this->database->debug("\tRemoved index '".key($indexes)."' of table '$table_name'");
+                if (isset($table["RemovedIndexes"])) {
+                    foreach($table["RemovedIndexes"] as $index_name => $index) {
+                        $this->database->debug("\tRemoved index '".$index_name."' of table '$table_name'");
                     }
                 }
-                if (isset($changes["INDEXES"][$table_name]["ChangedIndexes"])) {
-                    $indexes = $changes["INDEXES"][$table_name]["ChangedIndexes"];
-                    for($index = 0, reset($indexes);
-                        $index < count($indexes);
-                        next($indexes), $index++)
-                    {
-                        if (isset($indexes[key($indexes)]["name"])) {
-                            $this->database->debug("\tRenamed index '".key($indexes)."' to '".$indexes[key($indexes)]["name"]."' on table '$table_name'");
+                if (isset($table["ChangedIndexes"])) {
+                    foreach($table["ChangedIndexes"] as $index_name => $index) {
+                        if (isset($index["name"])) {
+                            $this->database->debug(
+                                "\tRenamed index '".$index_name."' to '".$index["name"]."' on table '$table_name'");
                         }
-                        if (isset($indexes[key($indexes)]["ChangedUnique"]))
-                        {
-                            $this->database->debug("\tChanged index '".key($indexes)."' unique to '".isset($indexes[key($indexes)]["unique"])."' on table '$table_name'");
+                        if (isset($index["ChangedUnique"])) {
+                            $this->database->debug(
+                                "\tChanged index '".$index_name."' unique to '".
+                                isset($index["unique"])."' on table '$table_name'");
                         }
-                        if (isset($indexes[key($indexes)]["ChangedFields"]))
-                        {
-                            $this->database->debug("\tChanged index '".key($indexes)."' on table '$table_name'");
+                        if (isset($index["ChangedFields"])) {
+                            $this->database->debug("\tChanged index '".$index_name."' on table '$table_name'");
                         }
                     }
                 }
@@ -1834,5 +1797,4 @@ class MDB_manager
         return($this->dumpDatabase($dump_arguments));
     }
 };
-
 ?>
