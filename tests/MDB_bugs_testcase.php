@@ -125,28 +125,25 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
      */
     function testFetchModeBug() {
         $data = array();
-        $total_rows = 3;
 
         $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-        for ($row = 0; $row < $total_rows; $row++) {
-            $data[$row]['user_name'] = "user_$row";
-            $data[$row]['user_password'] = 'somepassword';
-            $data[$row]['subscribed'] = $row % 2 ? true : false;
-            $data[$row]['user_id'] = $row;
-            $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
-            $data[$row]['weight'] = sqrt($row);
-            $data[$row]['access_date'] = MDB_Date::mdbToday();
-            $data[$row]['access_time'] = MDB_Date::mdbTime();
-            $data[$row]['approved'] = MDB_Date::mdbNow();
+        $data['user_name'] = "user_=";
+        $data['user_password'] = 'somepassword';
+        $data['subscribed'] = true;
+        $data['user_id'] = 0;
+        $data['quota'] = sprintf("%.2f",strval(2/100));
+        $data['weight'] = sqrt(0);
+        $data['access_date'] = MDB_Date::mdbToday();
+        $data['access_time'] = MDB_Date::mdbTime();
+        $data['approved'] = MDB_Date::mdbNow();
 
-            $this->insertTestValues($prepared_query, $data[$row]);
+        $this->insertTestValues($prepared_query, $data);
 
-            $result = $this->db->executeQuery($prepared_query);
-            
-            if (MDB::isError($result)) {
-                $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
-            }
+        $result = $this->db->executeQuery($prepared_query);
+        
+        if (MDB::isError($result)) {
+            $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
         }
 
         $this->db->freePreparedQuery($prepared_query);
@@ -159,8 +156,8 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
         $this->db->setFetchMode(MDB_FETCHMODE_ASSOC);
 
-        $field = $this->db->fetchOne($result);
-        $this->assertEquals($field, $data[0]['user_name'], "The data returned ($field) does not match that expected ($data[0]['user_name'])");
+        $value = $this->db->fetchOne($result);
+        $this->assertEquals($value, $data['user_name'], "The data returned ($value) does not match that expected (".$data['user_name'].")");
         $this->db->freeResult($result);
     }
 
