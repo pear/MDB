@@ -69,13 +69,13 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      * @return mixed converted value
      * @access public
      */
-    function convertResult(&$db, $result, $value, $type)
+    function convertResult(&$db, $value, $type)
     {
         switch($type) {
             case MDB_TYPE_DECIMAL:
                 return sprintf('%.'.$db->decimal_places.'f', doubleval($value)/$db->decimal_factor);
             default:
-                return $this->_baseConvertResult($db, $result, $value, $type);
+                return $this->_baseConvertResult($db, $value, $type);
         }
     }
 

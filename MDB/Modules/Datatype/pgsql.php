@@ -68,7 +68,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * @return mixed converted value or a MDB error on failure
      * @access public
      */
-    function convertResult(&$db, $result, $value, $type)
+    function convertResult(&$db, $value, $type)
     {
         switch ($type) {
             case MDB_TYPE_BOOLEAN:
@@ -84,7 +84,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
             case MDB_TYPE_TIMESTAMP:
                 return substr($value, 0, strlen('YYYY-MM-DD HH:MM:SS'));
             default:
-                return $this->_baseConvertResult($db, $result, $value, $type);
+                return $this->_baseConvertResult($db, $value, $type);
         }
     }
 

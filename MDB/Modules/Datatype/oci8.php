@@ -67,7 +67,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
      * @return mixed converted value
      * @access public 
      */
-    function convertResult(&$db, $result, $value, $type)
+    function convertResult(&$db, $value, $type)
     {
         switch ($type) {
             case MDB_TYPE_DATE:
@@ -75,7 +75,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
             case MDB_TYPE_TIME:
                 return substr($value, strlen('YYYY-MM-DD '), strlen('HH:MI:SS'));
             default:
-                return $this->_baseConvertResult($db, $result, $value, $type);
+                return $this->_baseConvertResult($db, $value, $type);
         }
     }
 

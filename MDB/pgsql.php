@@ -728,7 +728,7 @@ class MDB_pgsql extends MDB_Common
             return($this->pgsqlRaiseError($errno));
         }
         if (isset($this->results[$result_value]['types'][$field])) {
-            $value = $this->datatype->convertResult($this, $result, $value, $this->results[$result_value]['types'][$field]);
+            $value = $this->datatype->convertResult($this, $value, $this->results[$result_value]['types'][$field]);
         }
         return($value);
     }

@@ -141,7 +141,7 @@ class MDB_Datatype_Common
      * @return object a MDB error on failure
      * @access private
      */
-    function _baseConvertResult(&$db, $result, $value, $type)
+    function _baseConvertResult(&$db, $value, $type)
     {
         switch ($type) {
             case MDB_TYPE_TEXT:
@@ -192,9 +192,9 @@ class MDB_Datatype_Common
      * @return mixed converted value or a MDB error on failure
      * @access public
      */
-    function convertResult(&$db, $result, $value, $type)
+    function convertResult(&$db, $value, $type)
     {
-        return $this->_baseConvertResult($db, $result, $value, $type);
+        return $this->_baseConvertResult($db, $value, $type);
     }
 
     // }}}
@@ -228,7 +228,7 @@ class MDB_Datatype_Common
                         $row[$key] = intval($row[$key]);
                         break;
                     default:
-                        $value = $this->convertResult($db, $result, $row[$key], $type);
+                        $value = $this->convertResult($db, $row[$key], $type);
                         if (MDB::isError($value)) {
                             return $value;
                         }
