@@ -325,7 +325,6 @@ class MDB
             $db->captureDebugOutput(TRUE);
         }
         if(isset($dsninfo['database'])) {
-            $db->setDatabase($dsninfo['database']);
             $err = $db->connect();
             if (MDB::isError($err)) {
                 $dsn = $db->getDSN();

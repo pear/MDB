@@ -737,6 +737,9 @@ class MDB_Common extends PEAR
         if(isset($dsninfo['password'])) {
             $this->password = $dsninfo['password'];
         }
+        if(isset($dsninfo['database'])) {
+            $this->database_name = $dsninfo['database'];
+        }
         return(MDB_OK);
     }
 
@@ -746,15 +749,30 @@ class MDB_Common extends PEAR
     /**
      * return the DSN as a string
      *
-     * @return string DSN
+     * @param string     $type    type to return
+     * @return mixed DSN in the chosen type
      * @access public
      */
-    function getDSN()
+    function getDSN($type = 'string')
     {
-        return($this->phptype.'://'.$this->user.':'
-            .$this->password.'@'.$this->host
-            .(isset($this->port) ? (':'.$this->port) : '')
-            .'/'.$this->database_name);
+        switch($type) {
+            case 'array':
+                $dsn = array(
+                    'phptype' => $this->phptype,
+                    'username' => $this->user,
+                    'password' => $this->password,
+                    'hostspec' => $this->host,
+                    'database' => $this->database_name
+                );
+                break;
+            default:
+                $dsn = $this->phptype.'://'.$this->user.':'
+                    .$this->password.'@'.$this->host
+                    .(isset($this->port) ? (':'.$this->port) : '')
+                    .'/'.$this->database_name;
+                break;
+        }
+        return($dsn);
     }
 
     // }}}
