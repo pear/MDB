@@ -243,7 +243,7 @@ class Var_Dump extends PEAR
                         VAR_DUMP_ARRAY_VALUE => VAR_DUMP_NON_EXISTENT
                     );
             }
-        }		
+        }        
     }
     // }}}
 
@@ -325,7 +325,7 @@ class Var_Dump extends PEAR
             $except_array = array();
         }
         
-        if (!is_array($array)) {	
+        if (!is_array($array)) {    
             return $this->_parseVariable($array);
         } else {
             if (count($array)==0) {
@@ -333,7 +333,7 @@ class Var_Dump extends PEAR
                     array(
                         VAR_DUMP_ARRAY_TYPE  => VAR_DUMP_EMPTY_ARRAY,
                         VAR_DUMP_ARRAY_VALUE => ""
-                    );		
+                    );        
             } else {
                 $localArray = array();
                 foreach($array as $key => $value) {
@@ -343,7 +343,7 @@ class Var_Dump extends PEAR
                         $localArray[$key] = array(
                             VAR_DUMP_ARRAY_TYPE  => VAR_DUMP_NOT_PARSED,
                             VAR_DUMP_ARRAY_VALUE => ""
-                        );		
+                        );        
                     }
                 }
                 return $localArray;
@@ -364,14 +364,14 @@ class Var_Dump extends PEAR
     */
     function _parseObject($object)
     {
-        if (!is_object($object)) {	
+        if (!is_object($object)) {    
             return $this->_parseVariable($object);
         } else {
             $className    = get_class($object);
             $parent       = get_parent_class($object);
             $classVars    = get_class_vars($className);
             $classMethods = get_class_methods($className);
-            $objectVars   = get_object_vars($object);		
+            $objectVars   = get_object_vars($object);        
             return
                 array(
                     VAR_DUMP_OBJECT_CLASS_NAME    => $this->_parseVariable($className),
@@ -462,9 +462,9 @@ class Var_Dump extends PEAR
     */
     function _displayTableText($array)
     {
-        echo "<pre>";	
+        echo "<pre>";    
         var_dump($array);
-        echo "</pre>";	
+        echo "</pre>";    
     }
     // }}}
 
@@ -480,7 +480,7 @@ class Var_Dump extends PEAR
     * @param int   $level Level of recursion
     */      
     function _displayTableHTML($array, $level = 0)
-    {	
+    {    
         $table = "";
         
         $table_header = <<<EOL
@@ -497,7 +497,7 @@ EOL;
 EOL;
         if (is_array($array)) {
             if ($this->_isSingleVariable($array)) {
-                $table .= $this->_displayCellHTML($array[VAR_DUMP_ARRAY_TYPE],$array[VAR_DUMP_ARRAY_VALUE]);				
+                $table .= $this->_displayCellHTML($array[VAR_DUMP_ARRAY_TYPE],$array[VAR_DUMP_ARRAY_VALUE]);                
             } else {
 
                 if ($level==0 and count($array)==1) {
@@ -537,7 +537,7 @@ EOL;
                     $table .= $table_footer;
                 }
             }
-        } else {		
+        } else {        
             $table .= $array;
         }
         return $table;
@@ -638,7 +638,7 @@ EOL;
         }
     }
     // }}}
-	    
+        
 }
 
 ?>
