@@ -977,7 +977,7 @@ class MDB_ibase extends MDB_Common
                 $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
             }
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                $row = $row;
+                //$row = $row; //WHAT IS THIS???
             } else {
                 $row = array_values($row);
             }
@@ -995,9 +995,9 @@ class MDB_ibase extends MDB_Common
             if (!is_array($row)) {
                 return null;
             }
-            foreach ($row as $key => $value_with_space) {
-                $row[$key] = rtrim($value_with_space);
-            }
+        }
+        foreach ($row as $key => $value_with_space) {
+            $row[$key] = rtrim($value_with_space);
         }
         if (isset($this->results[$result_value]['types'])) {
             $row = $this->datatype->convertResultRow($result, $row);
