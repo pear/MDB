@@ -48,10 +48,6 @@
 require_once 'PEAR.php';
 require_once dirname(__FILE__).'/MDB.php';
 require_once dirname(__FILE__).'/parser.php';
-/*
-require_once(dirname(__FILE__).'/parser.php');
-require_once(dirname(__FILE__).'/xml_parser.php');
-*/
 
 define('MDB_MANAGER_DUMP_ALL',          0);
 define('MDB_MANAGER_DUMP_STRUCTURE',    1);
