@@ -505,12 +505,12 @@ class MDB_ibase extends MDB_Common
     function &query($query, $types = null, $result_mode = null)
     {
         $this->debug($query, 'query');
+        $this->last_query = $query;
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;
         $this->first_selected_row = $this->selected_row_limit = 0;
-        $connected = $this->connect();
-        if (MDB::isError($connected)) {
-            return $connected;
+        if (MDB::isError($connect = $this->connect())) {
+            return $connect;
         }
 
         if (!MDB::isError($result = $this->_doQuery($query, $first, $limit, 0))) {
@@ -595,17 +595,20 @@ class MDB_ibase extends MDB_Common
     function _getColumn($result, $field)
     {
         $result_value = intval($result);
-        $colNames = $this->getColumnNames($result);
-        if (is_integer($field)) {
-            if (($column = $field)<0 || $column>=count($colNames)) {
+        if (MDB::isError($names = $this->getColumnNames($result))) {
+            return $names;
+        }
+        if (is_int($field)) {
+            if ($field < 0 || $field >= count($names)) {
                 return $this->raiseError(MDB_ERROR, null, null,
-                    'getColumn attempted to fetch an query result column out of range');
+                    'attempted to fetch an query result column out of range');
             }
+            $column = $field;
         } else {
             $name = strtolower($field);
-            if (!isset($colNames[$name])) {
+            if (!isset($this->results[$result_value]['columns'][$name])) {
                 return $this->raiseError(MDB_ERROR, null, null,
-                    'getColumn attempted to fetch an unknown query result column');
+                    'attempted to fetch an unknown query result column');
             }
             $column = $this->results[$result_value]['columns'][$name];
         }
@@ -659,8 +662,7 @@ class MDB_ibase extends MDB_Common
      */
     function numCols($result)
     {
-        $result_value = intval($result);
-        if (!isset($this->results[$result_value])) {
+        if (!isset($this->results[intval($result)])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'numCols: specified an nonexistant result set');
         }
@@ -686,14 +688,16 @@ class MDB_ibase extends MDB_Common
                     'endOfResult: attempted to check the end of an unknown result');
             }
             if (isset($this->results[$result_value]['rows'])) {
-                return $this->results[$result_value]['highest_fetched_row'] >= $this->results[$result_value]['rows']-1;
+                return $this->results[$result_value]['highest_fetched_row'] >=
+                    $this->results[$result_value]['rows']-1;
             }
             if (isset($this->results[$result_value]['row_buffer'])) {
                 return false;
             }
             if (isset($this->results[$result_value]['limits'])) {
                 if (MDB::isError($this->_skipLimitOffset($result))
-                    || $this->results[$result_value]['current_row'] + 1 >= $this->results[$result_value]['limits'][1]
+                    || $this->results[$result_value]['current_row'] + 1 >=
+                        $this->results[$result_value]['limits'][1]
                 ) {
                     $this->results[$result_value]['rows'] = 0;
                     return true;
@@ -705,7 +709,7 @@ class MDB_ibase extends MDB_Common
                 $this->results[$result_value]['row_buffer'] = $row;
                 return false;
             }
-            $this->results[$result_value]['rows'] = ++$this->results[$result_value]['current_row'];
+            unset($this->results[$result_value]['row_buffer']);
             return true;
         }
         return $this->raiseError(MDB_ERROR, null, null,
@@ -720,23 +724,25 @@ class MDB_ibase extends MDB_Common
      *    field is a null.
      *
      * @param resource $result result identifier
-     * @param int $row number of the row where the data can be found
+     * @param int $rownum number of the row where the data can be found
      * @param int $field field number where the data can be found
      * @return mixed true or false on success, a MDB error on failure
      * @access public
      */
-    function resultIsNull($result, $row, $field)
+    function resultIsNull($result, $rownum, $field)
     {
         $result_value = intval($result);
         if (MDB::isError($column = $this->_getColumn($result, $field))) {
             return $column;
         }
-        if (MDB::isError($fetchrow = $this->fetchRow($result, MDB_FETCHMODE_ORDERED, $row))) {
-            return $fetchrow;
+        $row = $this->fetchRow($result, MDB_FETCHMODE_ORDERED, $rownum);
+        if (MDB::isError($row)) {
+            return $row;
         }
         $this->results[$result_value]['highest_fetched_row'] =
-            max($this->results[$result_value]['highest_fetched_row'], $row);
-        return !isset($this->results[$result_value][$row][$column]);
+            max($this->results[$result_value]['highest_fetched_row'], $rownum);
+        $this->results[$result_value][$rownum][$column] = $row;
+        return !isset($this->results[$result_value][$rownum][$column]);
     }
 
     // }}}
@@ -754,11 +760,13 @@ class MDB_ibase extends MDB_Common
         if ($this->options['result_buffering']) {
             $result_value = intval($result);
             if (!isset($this->results[$result_value]['rows'])) {
-                if (MDB::isError($getcolumnnames = $this->getColumnNames($result))) {
+                $getcolumnnames = $this->getColumnNames($result)
+                if (MDB::isError($getcolumnnames)) {
                     return $getcolumnnames;
                 }
                 if (isset($this->results[$result_value]['limits'])) {
-                    if (MDB::isError($skipfirstrow = $this->_skipLimitOffset($result))) {
+                    $skipfirstrow = $this->_skipLimitOffset($result);
+                    if (MDB::isError($skipfirstrow)) {
                         $this->results[$result_value]['rows'] = 0;
                         return $skipfirstrow;
                     }
@@ -801,16 +809,12 @@ class MDB_ibase extends MDB_Common
      */
     function freeResult($result)
     {
-        $result_value = intval($result);
-        if (isset($this->results[$result_value])) {
-            unset($this->results[$result_value]);
+        if (!is_resource($result)) {
+            return $this->raiseError(MDB_ERROR, null, null,
+                'freeResult: attemped to free an unknown query result');
         }
-        if (is_resource($result)) {
-            return @ibase_free_result($result);
-        }
-
-        return $this->raiseError(MDB_ERROR, null, null,
-            'freeResult: attemped to free an unknown query result');
+        unset($this->results[intval($result)]);
+        return @ibase_free_result($result);
     }
 
     // }}}
@@ -828,6 +832,9 @@ class MDB_ibase extends MDB_Common
      */
     function nextID($seq_name, $ondemand = true)
     {
+        if (MDB::isError($connect = $this->connect())) {
+            return $connect;
+        }
         $sequence_name = $this->getSequenceName($seq_name);
         $this->pushErrorHandling(PEAR_ERROR_RETURN);
         $result = $this->_doQuery("SELECT GEN_ID($sequence_name, 1) as the_value FROM RDB\$DATABASE");
@@ -849,7 +856,7 @@ class MDB_ibase extends MDB_Common
             }
             return $result;
         }
-        $value = $this->fetchOne($result);
+        $value = $this->fetch($result);
         $this->freeResult($result);
         return $value;
     }
@@ -872,7 +879,7 @@ class MDB_ibase extends MDB_Common
             return $this->raiseError(MDB_ERROR, null, null,
                 'currID: Unable to select from ' . $seqname) ;
         }
-        $value = $this->fetchOne($result);
+        $value = $this->fetch($result);
         $this->freeResult($result);
         if (MDB::isError($value)) {
             return $this->raiseError(MDB_ERROR, null, null,
@@ -897,7 +904,7 @@ class MDB_ibase extends MDB_Common
      * @return mixed string on success, a MDB error on failure
      * @access public
      */
-    function fetch($result, $rownum, $field)
+    function fetch($result, $rownum = 0, $field = 0)
     {
         $result_value = intval($result);
         if (MDB::isError($column = $this->_getColumn($result, $field))) {
@@ -948,9 +955,6 @@ class MDB_ibase extends MDB_Common
                 return null;
             }
             if (MDB::isError($this->_skipLimitOffset($result))) {
-                if ($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
                 return null;
             }
         }
@@ -976,12 +980,8 @@ class MDB_ibase extends MDB_Common
                     }
                 }
                 if (!$row) {
-                    if ($this->options['autofree']) {
-                        $this->freeResult($result);
-                    }
                     return null;
                 }
-                $this->results[$result_value]['current_row']++;
                 $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
             }
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
@@ -1004,9 +1004,6 @@ class MDB_ibase extends MDB_Common
                 }
             }
             if (!$row) {
-                if ($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
                 return null;
             }
         }
@@ -1014,198 +1011,6 @@ class MDB_ibase extends MDB_Common
             $row = $this->datatype->convertResultRow($result, $row);
         }
         return $row;
-    }
-
-    // }}}
-    // {{{ nextResult()
-
-    /**
-     * Move the internal ibase result pointer to the next available result
-     *
-     * @param a valid ibase result resource
-     * @return true if a result is available otherwise return false
-     * @access public
-     */
-    function nextResult($result)
-    {
-        return false;
-    }
-
-    // }}}
-    // {{{ tableInfo()
-
-    /**
-     * returns meta data about the result set
-     *
-     * @param  mixed $resource FireBird/InterBase result identifier or table name
-     * @param mixed $mode depends on implementation
-     * @return array an nested array, or a MDB error
-     * @access public
-     */
-    function tableInfo($result, $mode = null)
-    {
-        $count = 0;
-        $id = 0;
-        $res = array();
-
-        /**
-         * depending on $mode, metadata returns the following values:
-         *
-         * - mode is false (default):
-         * $result[]:
-         *    [0]['table']  table name
-         *    [0]['name']   field name
-         *    [0]['type']   field type
-         *    [0]['len']    field length
-         *    [0]['flags']  field flags
-         *
-         * - mode is MDB_TABLEINFO_ORDER
-         * $result[]:
-         *    ['num_fields'] number of metadata records
-         *    [0]['table']  table name
-         *    [0]['name']   field name
-         *    [0]['type']   field type
-         *    [0]['len']    field length
-         *    [0]['flags']  field flags
-         *    ['order'][field name]  index of field named 'field name'
-         *    The last one is used, if you have a field name, but no index.
-         *    Test:  if (isset($result['meta']['myfield'])) { ...
-         *
-         * - mode is MDB_TABLEINFO_ORDERTABLE
-         *     the same as above. but additionally
-         *    ['ordertable'][table name][field name] index of field
-         *       named 'field name'
-         *
-         *       this is, because if you have fields from different
-         *       tables with the same field name * they override each
-         *       other with MDB_TABLEINFO_ORDER
-         *
-         *       you can combine MDB_TABLEINFO_ORDER and
-         *       MDB_TABLEINFO_ORDERTABLE with MDB_TABLEINFO_ORDER |
-         *       MDB_TABLEINFO_ORDERTABLE * or with MDB_TABLEINFO_FULL
-         **/
-
-        // if $result is a string, then we want information about a
-        // table without a resultset
-        if (is_string($result)) {
-            $id = ibase_query($this->connection,"SELECT * FROM $result");
-            if (empty($id)) {
-                return $this->ibaseRaiseError();
-            }
-        } else { // else we want information about a resultset
-            $id = $result;
-            if (empty($id)) {
-                return $this->ibaseRaiseError();
-            }
-        }
-
-        $count = @ibase_num_fields($id);
-
-        // made this IF due to performance (one if is faster than $count if's)
-        if (empty($mode)) {
-            for ($i=0; $i<$count; $i++) {
-                $info = @ibase_field_info($id, $i);
-                //$res[$i]['table'] = (is_string($result)) ? $result : '';
-                $res[$i]['table'] = (is_string($result)) ? $result : $info['relation'];
-                $res[$i]['name']  = $info['name'];
-                $res[$i]['type']  = $info['type'];
-                $res[$i]['len']   = $info['length'];
-                //$res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($info['name'], $result) : '';
-                $res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($id, $i, $result) : '';
-            }
-        } else { // full
-            $res['num_fields'] = $count;
-
-            for ($i=0; $i<$count; $i++) {
-                $info = @ibase_field_info($id, $i);
-                //$res[$i]['table'] = (is_string($result)) ? $result : '';
-                $res[$i]['table'] = (is_string($result)) ? $result : $info['relation'];
-                $res[$i]['name']  = $info['name'];
-                $res[$i]['type']  = $info['type'];
-                $res[$i]['len']   = $info['length'];
-                //$res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($info['name'], $result) : '';
-                $res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($id, $i, $result) : '';
-                if ($mode & MDB_TABLEINFO_ORDER) {
-                    $res['order'][$res[$i]['name']] = $i;
-                }
-                if ($mode & MDB_TABLEINFO_ORDERTABLE) {
-                    $res['ordertable'][$res[$i]['table']][$res[$i]['name']] = $i;
-                }
-            }
-        }
-
-        // free the result only if we were called on a table
-        if (is_string($result) && is_resource($id)) {
-            @ibase_free_result($id);
-        }
-        return $res;
-    }
-
-    // }}}
-    // {{{ _ibaseFieldFlags()
-
-    /**
-     * get the Flags of a Field
-     *
-     * @param int $resource FireBird/InterBase result identifier
-     * @param int $num_field the field number
-     * @return string The flags of the field ('not_null', 'default_xx', 'primary_key',
-     *                 'unique' and 'multiple_key' are supported)
-     * @access private
-     **/
-    function _ibaseFieldFlags($resource, $num_field, $table_name)
-    {
-        $field_name = @ibase_field_info($resource, $num_field);
-        $field_name = @$field_name['name'];
-        $sql = 'SELECT R.RDB$CONSTRAINT_TYPE CTYPE'
-               .' FROM  RDB$INDEX_SEGMENTS I'
-               .' JOIN  RDB$RELATION_CONSTRAINTS R ON I.RDB$INDEX_NAME=R.RDB$INDEX_NAME'
-               .' WHERE I.RDB$FIELD_NAME=\''.$field_name.'\''
-               .' AND   R.RDB$RELATION_NAME=\''.$table_name.'\'';
-        $result = ibase_query($this->connection, $sql);
-        if (empty($result)) {
-            return $this->ibaseRaiseError();
-        }
-        $flags = '';
-        if ($obj = @ibase_fetch_object($result)) {
-            ibase_free_result($result);
-            if (isset($obj->CTYPE)  && trim($obj->CTYPE) == 'PRIMARY KEY') {
-                $flags = 'primary_key ';
-            }
-            if (isset($obj->CTYPE)  && trim($obj->CTYPE) == 'UNIQUE') {
-                $flags .= 'unique_key ';
-            }
-        }
-
-        $sql = 'SELECT  R.RDB$NULL_FLAG AS NFLAG,'
-                     .' R.RDB$DEFAULT_SOURCE AS DSOURCE,'
-                     .' F.RDB$FIELD_TYPE AS FTYPE,'
-                     .' F.RDB$COMPUTED_SOURCE AS CSOURCE'
-               .' FROM  RDB$RELATION_FIELDS R '
-               .' JOIN  RDB$FIELDS F ON R.RDB$FIELD_SOURCE=F.RDB$FIELD_NAME'
-              .' WHERE  R.RDB$RELATION_NAME=\''.$table_name.'\''
-                .' AND  R.RDB$FIELD_NAME=\''.$field_name.'\'';
-        $result = ibase_query($this->connection, $sql);
-        if (empty($result)) {
-            return $this->ibaseRaiseError();
-        }
-        if ($obj = @ibase_fetch_object($result)) {
-            ibase_free_result($result);
-            if (isset($obj->NFLAG)) {
-                $flags .= 'not_null ';
-            }
-            if (isset($obj->DSOURCE)) {
-                $flags .= 'default ';
-            }
-            if (isset($obj->CSOURCE)) {
-                $flags .= 'computed ';
-            }
-            if (isset($obj->FTYPE)  && $obj->FTYPE == 261) {
-                $flags .= 'blob ';
-            }
-        }
-
-        return trim($flags);
     }
 }
 ?>
