@@ -133,6 +133,8 @@ class MDB_oci8 extends MDB_Common {
             923 => MDB_ERROR_SYNTAX,
             942 => MDB_ERROR_NOSUCHTABLE,
             955 => MDB_ERROR_ALREADY_EXISTS,
+            1400 => MDB_ERROR_CONSTRAINT_NOT_NULL,
+            1407 => MDB_ERROR_CONSTRAINT_NOT_NULL,
             1476 => MDB_ERROR_DIVZERO,
             1722 => MDB_ERROR_INVALID_NUMBER,
             2289 => MDB_ERROR_NOSUCHTABLE,
@@ -182,11 +184,11 @@ class MDB_oci8 extends MDB_Common {
         if ($errno === NULL) {
             $error = @OCIError($this->connection);
             return($this->raiseError($this->errorCode($error['code']),
-                NULL, NULL, NULL, $error['message']));
+                NULL, NULL, $message, $error['message']));
         } elseif (is_resource($errno)) {
             $error = @OCIError($errno);
             return($this->raiseError($this->errorCode($error['code']),
-                NULL, NULL, NULL, $error['message']));
+                NULL, NULL, $message, $error['message']));
         }
         return($this->raiseError($this->errorCode($errno), NULL, NULL, $message));
     }
