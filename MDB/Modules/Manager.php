@@ -97,8 +97,8 @@ class MDB_manager extends PEAR
         'float' => 0,
         'decimal' => 0,
         'text' => '',
-        'timestamp' => '0000-00-00 00:0:00',
-        'date' => '0000-00-00',
+        'timestamp' => '0001-01-01 00:0:00',
+        'date' => '0001-01-01',
         'time' => '00:0:00'
     );
     // }}}
