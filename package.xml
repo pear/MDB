@@ -82,7 +82,7 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
   <release>
     <version>1.1.0b1</version>
     <state>stable</state>
-    <date>XXX</date>
+    <date>2002-11-02</date>
     <notes>
 PEAR-ized directory structure and class names
 Added PHPUnit test suite
@@ -118,11 +118,11 @@ Minor bugfixes and API changes
         <file role="doc">skeleton.php</file>
         <file role="doc">Modules_Manager_skeleton.php</file>
       </dir>
-      <dir name="examples">
+<!--      <dir name="examples">
         <file role="doc">MDB_test.php</file>
         <file role="doc">MDB_pear_wrapper_test.php</file>
         <file role="doc">metapear_test_db.schema</file>
-      </dir>
+      </dir> -->
       <dir name="tests">
         <file role="test">driver_test.schema</file>
         <file role="test">lob_test.schema</file>
@@ -133,7 +133,7 @@ Minor bugfixes and API changes
         <file role="test">README</file>
         <file role="test">setup_test.php</file>
         <file role="test">test.php</file>
-        <file role="test">test.css</file>
+        <file role="test">tests.css</file>
         <file role="test">testchoose.php</file>
         <file role="test">testUtils.php</file>
         <file role="test">test.schema</file>
