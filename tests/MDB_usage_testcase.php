@@ -587,44 +587,44 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data['approved'] = MDB_Date::mdbNow();
 
         $fields = array(
-                      'user_name' => array(
-                                           'Value' => "user_$row",
-                                           'Type' => 'text'
-                                         ),
-                      'user_password' => array(
-                                               'Value' => $data['user_password'],
-                                               'Type' => 'text'
-                                             ),
-                      'subscribed' => array(
-                                            'Value' => $data['subscribed'],
-                                            'Type' => 'boolean'
-                                          ),
-                      'user_id' => array(
-                                         'Value' => $data['user_id'],
-                                         'Type' => 'integer',
-                                         'Key' => 1
-                                       ),
-                      'quota' => array(
-                                       'Value' => $data['quota'],
-                                       'Type' => 'decimal'
-                                     ),
-                      'weight' => array(
-                                        'Value' => $data['weight'],
-                                        'Type' => 'float'
-                                      ),
-                      'access_date' => array(
-                                             'Value' => $data['access_date'],
-                                             'Type' => 'date'
-                                           ),
-                      'access_time' => array(
-                                             'Value' => $data['access_time'],
-                                             'Type' => 'time'
-                                           ),
-                      'approved' => array(
-                                          'Value' => $data['approved'],
-                                          'Type' => 'timestamp'
-                                        )
-                      );
+            'user_name' => array(
+                'value' => "user_$row",
+                'type' => 'text'
+            ),
+            'user_password' => array(
+                'value' => $data['user_password'],
+                'type' => 'text'
+            ),
+            'subscribed' => array(
+                'value' => $data['subscribed'],
+                'type' => 'boolean'
+            ),
+            'user_id' => array(
+                'value' => $data['user_id'],
+                'type' => 'integer',
+                'key' => 1
+            ),
+            'quota' => array(
+                'value' => $data['quota'],
+                'type' => 'decimal'
+            ),
+            'weight' => array(
+                'value' => $data['weight'],
+                'type' => 'float'
+            ),
+            'access_date' => array(
+                'value' => $data['access_date'],
+                'type' => 'date'
+            ),
+            'access_time' => array(
+                'value' => $data['access_time'],
+                'type' => 'time'
+            ),
+            'approved' => array(
+                'value' => $data['approved'],
+                'type' => 'timestamp'
+            )
+        );
 
         $support_affected_rows = $this->db->support('AffectedRows');
 
@@ -649,14 +649,14 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $this->verifyFetchedValues($result, 0, $data);
 
         $row = 4321;
-        $fields['user_name']['Value'] = $data['user_name'] = "user_$row";
-        $fields['user_password']['Value'] = $data['user_password'] = 'somepassword';
-        $fields['subscribed']['Value'] = $data['subscribed'] = $row % 2 ? true : false;
-        $fields['quota']['Value'] = $data['quota'] = strval($row/100);
-        $fields['weight']['Value'] = $data['weight'] = sqrt($row);
-        $fields['access_date']['Value'] = $data['access_date'] = MDB_Date::mdbToday();
-        $fields['access_time']['Value'] = $data['access_time'] = MDB_Date::mdbTime();
-        $fields['approved']['Value'] = $data['approved'] = MDB_Date::mdbNow();
+        $fields['user_name']['value'] = $data['user_name'] = "user_$row";
+        $fields['user_password']['value'] = $data['user_password'] = 'somepassword';
+        $fields['subscribed']['value'] = $data['subscribed'] = $row % 2 ? true : false;
+        $fields['quota']['value'] = $data['quota'] = strval($row/100);
+        $fields['weight']['value'] = $data['weight'] = sqrt($row);
+        $fields['access_date']['value'] = $data['access_date'] = MDB_Date::mdbToday();
+        $fields['access_time']['value'] = $data['access_time'] = MDB_Date::mdbTime();
+        $fields['approved']['value'] = $data['approved'] = MDB_Date::mdbNow();
 
         $result = $this->db->replace('users', $fields);
 
