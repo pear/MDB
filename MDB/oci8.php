@@ -94,8 +94,7 @@ class MDB_oci8 extends MDB_Common
         $this->supported['replace'] = 1;
         $this->supported['sub_selects'] = 1;
         
-        $this->options['DBAUser'] = false;
-        $this->options['DBAPassword'] = false;
+        $this->options['password'] = false;
         
         $this->errorcode_map = array(
             900 => MDB_ERROR_SYNTAX,
@@ -261,7 +260,7 @@ class MDB_oci8 extends MDB_Common
     /**
      * Connect to the database
      * 
-     * @return true on success, MDB_Error on failure
+     * @return MDB_OK on success, MDB_Error on failure
      */
     function connect()
     {
@@ -293,7 +292,10 @@ class MDB_oci8 extends MDB_Common
         }
         putenv('ORACLE_SID='.$sid);
         $function = ($this->options['persistent'] ? 'OCIPLogon' : 'OCINLogon');
-        $connection = $function($this->dsn['username'], $this->dsn['password'], $sid);
+        if (MDB::isError($password = $this->getOption('password'))) {
+            $password = $this->database_name;
+        }
+        $connection = $function($this->database_name, $password, $sid);
         if (!$connection) {
             return $this->oci8RaiseError(null,
                 'Connect: Could not connect to Oracle server');
@@ -512,6 +514,58 @@ class MDB_oci8 extends MDB_Common
             return $success;
         }
         return $result;
+    }
+
+    // }}}
+    // {{{ standaloneQuery()
+
+   /**
+     * execute a query as DBA
+     * 
+     * @param string $query the SQL query
+     * @return mixed MDB_OK on success, a MDB error on failure
+     * @access public
+     */
+    function standaloneQuery($query)
+    {
+        if (isset($this->dsn['hostspec'])) {
+            $sid = $this->dsn['hostspec'];
+        } else {
+            $sid = getenv('ORACLE_SID');
+        }
+        if (!strcmp($sid, '')) {
+            return $this->raiseError(MDB_ERROR, null, null,
+                'connect: it was not specified a valid Oracle Service IDentifier (SID)');
+        }
+
+        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+            return $this->raiseError(MDB_ERROR_NOT_FOUND, null, null,
+                'connect: extension '.$this->phptype.' is not compiled into PHP');
+        }
+
+        if (isset($this->options['HOME'])) {
+            putenv('ORACLE_HOME='.$this->options['HOME']);
+        }
+        putenv('ORACLE_SID='.$sid);
+        $function = ($this->options['persistent'] ? 'OCIPLogon' : 'OCINLogon');
+        $connection = $function($this->dsn['username'], $this->dsn['password'], $sid);
+        if ($connection == 0) {
+            return $this->oci8RaiseError('standaloneQuery: Could not connect to the Microsoft SQL server');
+        }
+        $result = @OCIParse($connection, $query);
+        if (!$result) {
+            return $this->oci8RaiseError('standaloneQuery: Could not query a Microsoft SQL server');
+        }
+        if ($this->auto_commit) {
+            $success = @OCIExecute($result, OCI_COMMIT_ON_SUCCESS);
+        } else {
+            $success = @OCIExecute($result, OCI_DEFAULT);
+        }
+        if (!$success) {
+            return $this->oci8RaiseError($result);
+        }
+        @OCILogOff(connection);
+        return MDB_OK;
     }
 
     // }}}
@@ -975,9 +1029,9 @@ class MDB_oci8 extends MDB_Common
                 $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
             }
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                $row = $this->results[$result_value][$rownum+1];
+                $row = $this->results[$result_value][$rownum];
             } else {
-                $row = array_values($this->results[$result_value][$rownum+1]);
+                $row = array_values($this->results[$result_value][$rownum]);
             }
             $this->results[$result_value]['highest_fetched_row'] =
                 max($this->results[$result_value]['highest_fetched_row'], $rownum);
