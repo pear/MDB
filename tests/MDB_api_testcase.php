@@ -46,6 +46,10 @@
 class MDB_Api_TestCase extends PHPUnit_TestCase {
     //contains the dsn of the database we are testing
     var $dsn;
+    //contains the options that should be used during testing
+    var $options;
+    //contains the name of the database we are testing
+    var $database;
     //contains the MDB object of the db once we have connected
     var $db;
     // contains field names from the test table
@@ -60,7 +64,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     function setUp() {
         global $dsn, $options, $database;
         $this->dsn = $dsn;
-         $this->options = $options;
+        $this->options = $options;
         $this->database = $database;
         $this->db =& MDB::connect($dsn, $options);
         if (MDB::isError($this->db)) {
@@ -135,7 +139,9 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $this->assertEquals(!$option, $this->db->getOption('persistent'));
         $this->db->setOption('persistent', $option);
     }
+
 /*
+// incorrectly expects a specific escape character
     function testGetTextValue() {
         if (!$this->methodExists('getTextValue')) {
             return;
@@ -145,15 +151,12 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $this->assertEquals("'Mr O\'Leary'", $text);
     }
 */
-    function testLoadModule() {
-        $this->assertTrue(FALSE, 'Test stub: please fill in');
-    }
 
     function testLoadManager() {
         if (!$this->methodExists('loadManager')) {
             return;
         }
-        $this->assertTrue(!MDB::isError($this->db->loadManager('Create database')));
+        $this->assertTrue(!MDB::isError($this->db->loadManager('Load Management Class')));
     }
 
     // test of the driver

@@ -46,6 +46,10 @@
 class MDB_Bugs_TestCase extends PHPUnit_TestCase {
     //contains the dsn of the database we are testing
     var $dsn;
+    //contains the options that should be used during testing
+    var $options;
+    //contains the name of the database we are testing
+    var $database;
     //contains the MDB object of the db once we have connected
     var $db;
     // contains field names from the test table
@@ -60,6 +64,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
     function setUp() {
         global $dsn, $options, $database;
         $this->dsn = $dsn;
+        $this->options = $options;
         $this->database = $database;
         $this->db =& MDB::connect($dsn, $options);
         if (MDB::isError($this->db)) {
