@@ -69,7 +69,7 @@ echo ('
         }
         ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
         require_once('MDB.php');
-        require_once('Var_Dump.php');
+        @include_once('Var_Dump.php');
         MDB::loadFile('Manager');
         $dsn = $_REQUEST['type'].'://'.$_REQUEST['user'].':'.$_REQUEST['pass'].'@'.$_REQUEST['host'].'/'.$_REQUEST['name'];
 
@@ -95,29 +95,48 @@ echo ('
                         $dump_what = MDB_MANAGER_DUMP_ALL;
                         break;
                 }
-                Var_Dump::display($manager->dumpDatabase(
-                    array(
-                        'Output_Mode' => 'file',
-                        'Output' => $_REQUEST['file']
-                    ),
-                    $dump_what
-                ));
+                if (class_exists('Var_Dump')) {
+                    Var_Dump::display($manager->updateDatabase($_REQUEST['file']));
+                } else {
+                    var_dump($manager->updateDatabase($_REQUEST['file']));
+                }
+                $dump_config = array(
+                    'Output_Mode' => 'file',
+                    'Output' => $_REQUEST['file']
+                );
+                if (class_exists('Var_Dump')) {
+                    Var_Dump::display($manager->dumpDatabase($dump_config, $dump_what));
+                } else {
+                    var_dump($manager->dumpDatabase($dump_config, $dump_what));
+                }
             } else if($_REQUEST['action'] == 'create') {
-                Var_Dump::display($manager->updateDatabase($_REQUEST['file']));
+                if (class_exists('Var_Dump')) {
+                    Var_Dump::display($manager->updateDatabase($_REQUEST['file']));
+                } else {
+                    var_dump($manager->updateDatabase($_REQUEST['file']));
+                }
             } else {
                 $error = 'no action selected';
             }
             $warnings = $manager->getWarnings();
             if(count($warnings) > 0) {
                 echo('Warnings<br>');
-                Var_Dump::display($warnings);
+                if (class_exists('Var_Dump')) {
+                    Var_Dump::display($warnings);
+                } else {
+                    var_dump($warnings);
+                }
             }
             if($manager->options['debug']) {
                 echo('Debug messages<br>');
                 echo($manager->debugOutput().'<br>');
             }
             echo('Database structure<br>');
-            Var_Dump::display($manager->database_definition);
+            if (class_exists('Var_Dump')) {
+                Var_Dump::display($manager->database_definition);
+            } else {
+                var_dump($manager->database_definition);
+            }
             $manager->disconnect();
         }
     }
