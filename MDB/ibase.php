@@ -837,7 +837,7 @@ class MDB_ibase extends MDB_Common
                     ) {
                         $row = array_change_key_case($row);
                         $this->results[$result_value][$this->results[$result_value]['current_row'] + 1] = $row;
-                        $this->results[$result_value]['current_row']++);
+                        $this->results[$result_value]['current_row']++;
                     }
                 }
                 $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row'] + 1;
@@ -956,7 +956,7 @@ class MDB_ibase extends MDB_Common
         if (MDB::isError($row = $this->fetchRow($result, MDB_FETCHMODE_ORDERED, $rownum))) {
             return $row;
         }
-        return $row[$column]);
+        return $row[$column];
     }
 
     // }}}

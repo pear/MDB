@@ -712,7 +712,7 @@ class MDB_oci8 extends MDB_Common
                     return true;
                 }
             }
-            if (@OCIFetchInto($result, $this->results[$result_value]['row_buffer']), OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS) {
+            if (@OCIFetchInto($result, $this->results[$result_value]['row_buffer'], OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS)) {
                 return false;
             }
             unset($this->results[$result_value]['row_buffer']);
@@ -786,7 +786,7 @@ class MDB_oci8 extends MDB_Common
                         && @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS)
                     ) {
                         $this->results[$result_value][$this->results[$result_value]['current_row'] + 1] = $row;
-                        $this->results[$result_value]['current_row']++);
+                        $this->results[$result_value]['current_row']++;
                     }
                 }
                 $this->rows[$result_value] = $this->results[$result_value]['current_row'] + 1;
@@ -886,7 +886,7 @@ class MDB_oci8 extends MDB_Common
         if (MDB::isError($row = $this->fetchRow($result, MDB_FETCHMODE_ORDERED, $rownum))) {
             return $row;
         }
-        return $row[$column]);
+        return $row[$column];
     }
 
     // }}}
