@@ -41,7 +41,7 @@
     $result = $db->query($query);
     echo '<br>numCols() ';
     Var_Dump::display($result->numCols());
-    $result->fetchInto(&$arr);
+    $result->fetchInto($arr);
     echo '<br>fetchInto() ';
     Var_Dump::display($arr);
     echo '<br>free() ';
