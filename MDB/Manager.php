@@ -1403,7 +1403,7 @@ class MDB_manager extends PEAR
     }
 
     // }}}
-    // {{{ _parseDatabaseDefinitionFile()
+    // {{{ parseDatabaseDefinitionFile()
 
     /**
      * Parse a database definition file by creating a Metabase schema format
@@ -1416,9 +1416,9 @@ class MDB_manager extends PEAR
      * @param bool $fail_on_invalid_names (optional) make function fail on invalid
      * names
      * @return mixed DB_OK on success, or a MDB error object
-     * @access private
+     * @access public
      */
-    function _parseDatabaseDefinitionFile($input_file, $variables, $fail_on_invalid_names = 1)
+    function parseDatabaseDefinitionFile($input_file, $variables, $fail_on_invalid_names = 1)
     {
         $parser =& new MDB_Parser($variables, $fail_on_invalid_names);
         $res    =  $parser->setInputFile($input_file);
@@ -1579,13 +1579,13 @@ class MDB_manager extends PEAR
      * @param array $variables an associative array that the defines the text string values
      * that are meant to be used to replace the variables that are used in the
      * schema description as defined for the
-     * MDB_manager::_parseDatabaseDefinitionFile function.
+     * MDB_manager::parseDatabaseDefinitionFile function.
      * @return mixed DB_OK on success, or a MDB error object
      * @access private
      */
     function _dumpDatabaseContents($schema_file, $setup_arguments, $dump_arguments, $variables)
     {
-        $database_definition = $this->_parseDatabaseDefinitionFile($schema_file,
+        $database_definition = $this->parseDatabaseDefinitionFile($schema_file,
             $variables, $this->options['fail_on_invalid_names']);
         if (MDB::isError($database_definition)) {
             return $database_definition;
@@ -2034,14 +2034,14 @@ class MDB_manager extends PEAR
      * @param string $previous_schema_file name the previously installed database
      * schema definition file.
      * @param array $variables an associative array that is passed to the argument
-     * of the same name to the _parseDatabaseDefinitionFile function. (there third
+     * of the same name to the parseDatabaseDefinitionFile function. (there third
      * param)
      * @return mixed DB_OK on success, or a MDB error object
      * @access public
      */
     function updateDatabase($current_schema_file, $previous_schema_file = FALSE, $variables = array())
     {
-        $database_definition = $this->_parseDatabaseDefinitionFile($current_schema_file,
+        $database_definition = $this->parseDatabaseDefinitionFile($current_schema_file,
             $variables, $this->options['fail_on_invalid_names']);
         if (MDB::isError($database_definition)) {
             return $database_definition;
@@ -2049,7 +2049,7 @@ class MDB_manager extends PEAR
         $this->database_definition = $database_definition;
         $copy = 0;
         if ($previous_schema_file && file_exists($previous_schema_file)) {
-            $previous_definition = $this->_parseDatabaseDefinitionFile($previous_schema_file, $variables, 0);
+            $previous_definition = $this->parseDatabaseDefinitionFile($previous_schema_file, $variables, 0);
             if (MDB::isError($previous_definition)) {
                 return $previous_definition;
             }

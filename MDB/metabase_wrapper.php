@@ -1562,7 +1562,7 @@ class Metabase_manager_class
 
     function ParseDatabaseDefinitionFile($input_file, &$database_definition, &$variables, $fail_on_invalid_names = 1)
     {
-        $result = $this->MDB_manager_object->_parseDatabaseDefinitionFile($input_file, $variables, $fail_on_invalid_names);
+        $result = $this->MDB_manager_object->parseDatabaseDefinitionFile($input_file, $variables, $fail_on_invalid_names);
         if (MDB::isError($result)) {
             return(0);
         } else {
