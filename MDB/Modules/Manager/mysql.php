@@ -104,7 +104,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         {
             return MDB_OK;
         }
-        $result = $db->query("SHOW VARIABLES LIKE '$check'", null);
+        $result = $db->query("SHOW VARIABLES LIKE '$check'", null, false);
         if (MDB::isError($result)) {
             return $db->raiseError();
         }
@@ -433,7 +433,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      */
     function listDatabases(&$db)
     {
-        $result = $db->query('SHOW DATABASES');
+        $result = $db->query('SHOW DATABASES', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -452,7 +452,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      */
     function listUsers(&$db)
     {
-        $result = $db->query('SELECT DISTINCT USER FROM USER');
+        $result = $db->query('SELECT DISTINCT USER FROM USER', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -496,7 +496,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      */
     function listTableFields(&$db, $table)
     {
-        $result = $db->query("SHOW COLUMNS FROM $table");
+        $result = $db->query("SHOW COLUMNS FROM $table", null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -602,7 +602,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      */
     function listTableIndexes(&$db, $table)
     {
-        if (MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
+        if (MDB::isError($result = $db->query("SHOW INDEX FROM $table", null, false))) {
             return $result;
         }
         $indexes_all = $db->fetchCol($result, 'Key_name');

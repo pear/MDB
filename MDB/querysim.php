@@ -228,7 +228,6 @@ class MDB_querysim extends MDB_Common
     var $opened_persistent = '';
 
     var $escape_quotes = "\\";
-    var $decimal_factor = 1.0;
 
     var $highest_fetched_row = array();
     var $columns = array();
@@ -390,7 +389,7 @@ class MDB_querysim extends MDB_Common
      * @param string The QuerySim text
      * @param array   $types  array that contains the types of the columns in
      *                        the result set
-     * @param mixed $return_obj boolean or string which specifies which class to use
+     * @param mixed $result_mode boolean or string which specifies which class to use
      *
      * @return mixed Simulated result set as a multidimentional
      * array if valid QuerySim text was passed in.  A MDB error
@@ -398,7 +397,7 @@ class MDB_querysim extends MDB_Common
      *
      * @access public
      */
-    function &query($query, $types = null, $return_obj = false)
+    function &query($query, $types = null, $result_mode = null)
     {
         if ($this->database_name) {
             $query = $this->_readFile();
@@ -425,7 +424,7 @@ class MDB_querysim extends MDB_Common
                 $result[1] = array_slice($result[1], $first-1, $limit);
             }
             $this->results[$this->_querySimSignature($result)]['highest_fetched_row'] = -1;
-            $result= $this->_return_result($result, $return_obj);
+            $result= $this->_return_result($result, $result_mode);
             return $result;
         }
         $error =& $this->raiseError();

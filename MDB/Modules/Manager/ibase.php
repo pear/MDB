@@ -368,7 +368,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
      */
     function listTableFields(&$db, $table)
     {
-        $result = $db->query("SELECT RDB$FIELD_SOURCE FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME='$table'");
+        $result = $db->query("SELECT RDB$FIELD_SOURCE FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME='$table'", null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -537,7 +537,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function listSequences(&$db)
     {
-        $result = $db->query("SELECT RDB\$GENERATOR_NAME FROM RDB\$GENERATORS");
+        $result = $db->query("SELECT RDB\$GENERATOR_NAME FROM RDB\$GENERATORS", null, false);
         if (MDB::isError($result)) {
             return $result;
         }

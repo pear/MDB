@@ -91,27 +91,30 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo('<br>row:<br>');
     echo(Var_Dump::display($array).'<br>');
     // run the query and get a result handler
-    $result = $db->query($query, null, 'result');
+    $result = $db->query($query, null, 'Result');
     // lets just get row:0 and free the result
     $array = $result->fetchRow();
     $result->freeResult();
     echo('<br>row from object:<br>');
     echo(Var_Dump::display($array).'<br>');
     // run the query and get a result handler
-    $db->setResultClass('result');
+    echo('<br>setting new result mode with setResultMode:<br>');
+    $db->setResultMode('Result');
     $result = $db->query($query, null, true);
     // lets just get row:0 and free the result
     $array = $result->fetchRow();
     $result->freeResult();
-    echo('<br>row from object defined with setResultClass:<br>');
+    echo('<br>row from object defined with default result mode:<br>');
     echo(Var_Dump::display($array).'<br>');
     // run the query and get a result handler
-    $result = $db->query($query);
+    $result = $db->query($query, null, false);
     // lets just get column:0 and free the result
     $array = $db->fetchCol($result);
     $db->freeResult($result);
-    echo('<br>column:<br>');
+    echo('<br>column overriding default result mode with false:<br>');
     echo(Var_Dump::display($array).'<br>');
+    echo '<br>unset default result class<br>';
+    $db->setResultMode(false);
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get column:0 and free the result
@@ -137,7 +140,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo('<br>all with just one call:<br>');
     echo(Var_Dump::display($array).'<br>');
     // run the query with the offset 1 and count 1 and get a result handler
-    $result = $db->limitQuery($query, null, 1, 1);
+    $result = $db->extended->limitQuery($db, $query, null, 1, 1);
     // lets just get everything but with an associative array and free the result
     $array = $db->fetchAll($result, MDB_FETCHMODE_ASSOC);
     $db->freeResult($result);

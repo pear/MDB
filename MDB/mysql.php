@@ -67,7 +67,6 @@ class MDB_mysql extends MDB_Common
     var $opened_persistent = '';
 
     var $escape_quotes = "\\";
-    var $decimal_factor = 1.0;
 
     var $highest_fetched_row = array();
     var $columns = array();
@@ -99,12 +98,10 @@ class MDB_mysql extends MDB_Common
         $this->supported['LOBs'] = 1;
         $this->supported['replace'] = 1;
         $this->supported['sub_selects'] = 0;
-        
-        $this->decimal_factor = pow(10.0, $this->decimal_places);
-        
+
         $this->options['default_table_type'] = false;
         $this->options['fixed_float'] = false;
-        
+
         $this->errorcode_map = array(
             1004 => MDB_ERROR_CANNOT_CREATE,
             1005 => MDB_ERROR_CANNOT_CREATE,
@@ -415,13 +412,13 @@ class MDB_mysql extends MDB_Common
      * @param string  $query  the SQL query
      * @param mixed   $types  string or array that contains the types of the
      *                        columns in the result set
-     * @param mixed $return_obj boolean or string which specifies which class to use
+     * @param mixed $result_mode boolean or string which specifies which class to use
      *
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      *
      * @access public
      */
-    function &query($query, $types = null, $return_obj = false)
+    function &query($query, $types = null, $result_mode = false)
     {
         $this->debug($query, 'query');
         $ismanip = MDB::isManip($query);
@@ -462,7 +459,7 @@ class MDB_mysql extends MDB_Common
                         return $err;
                     }
                 }
-                $result =& $this->_return_result($result, $return_obj);
+                $result =& $this->_return_result($result, $result_mode);
                 return $result;
             }
         }
@@ -489,7 +486,7 @@ class MDB_mysql extends MDB_Common
         if ($this->supported['sub_selects'] == 1) {
             return $query;
         }
-        $result = $this->query($query, $type);
+        $result = $this->query($query, $type, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -774,7 +771,7 @@ class MDB_mysql extends MDB_Common
             }
             return $result;
         }
-        $result = $this->query("SELECT last_insert_id()");
+        $result = $this->query("SELECT last_insert_id()", 'integer', false);
         $value = $this->fetchOne($result);
         $this->freeResult($result);
         $result = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
@@ -797,7 +794,7 @@ class MDB_mysql extends MDB_Common
     function currId($seq_name)
     {
         $sequence_name = $this->getSequenceName($seq_name);
-        $result = $this->query("SELECT MAX(sequence) FROM $sequence_name", 'integer');
+        $result = $this->query("SELECT MAX(sequence) FROM $sequence_name", 'integer', false);
         if (MDB::isError($result)) {
             return $result;
         }

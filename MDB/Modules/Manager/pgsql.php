@@ -258,16 +258,24 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             $query = '';
             if (isSet($changes['added_fields'])) {
                 $fields = $changes['added_fields'];
-                for ($field = 0, reset($fields); $field < count($fields); next($fields), $field++) {
-                    if (MDB::isError($result = $db->query("ALTER TABLE $name ADD ".$fields[key($fields)]['declaration']))) {
+                for ($field = 0, reset($fields);
+                    $field < count($fields);
+                    next($fields), $field++
+                ) {
+                    $result = $db->query("ALTER TABLE $name ADD ".$fields[key($fields)]['declaration']);
+                    if (MDB::isError($result)) {
                         return $result;
                     }
                 }
             }
             if (isSet($changes['removed_fields'])) {
                 $fields = $changes['removed_fields'];
-                for ($field = 0, reset($fields); $field < count($fields); next($fields), $field++) {
-                    if (MDB::isError($result = $db->query("ALTER TABLE $name DROP ".key($fields)))) {
+                for ($field = 0, reset($fields);
+                    $field < count($fields);
+                    next($fields), $field++
+                 ) {
+                    $result = $db->query("ALTER TABLE $name DROP ".key($fields));
+                    if (MDB::isError($result)) {
                         return $result;
                     }
                 }
@@ -288,7 +296,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listDatabases(&$db)
     {
-        $result = $db->query('SELECT datname FROM pg_database');
+        $result = $db->query('SELECT datname FROM pg_database', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -307,7 +315,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listUsers(&$db)
     {
-        $result = $db->query('SELECT usename FROM pg_user');
+        $result = $db->query('SELECT usename FROM pg_user', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -341,7 +349,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
             AND c.relname !~ \'^pg_\'
             AND c.relname !~ \'^pga_\'';
-        $result = $db->query($sql);
+        $result = $db->query($sql, null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -361,7 +369,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      */
     function listTableFields(&$db, $table)
     {
-        $result = $db->query("SELECT * FROM $table");
+        $result = $db->query("SELECT * FROM $table", null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -385,7 +393,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     function listViews(&$db)
     {
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
-        $result = $db->query('SELECT viewname FROM pg_views');
+        $result = $db->query('SELECT viewname FROM pg_views', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -408,7 +416,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
                                 FROM pg_class WHERE oid IN
                                   (SELECR indexrelid FROM pg_index, pg_class 
                                    WHERE (pg_class.relname='$table') 
-                                   AND (pg_class.oid=pg_index.indrelid))");
+                                   AND (pg_class.oid=pg_index.indrelid))", null, false);
         return $db->fetchCol($result);
     }
 
@@ -474,7 +482,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
             AND c.relname !~ \'^pg_\'';
 
-        $result = $db->query($sql);
+        $result = $db->query($sql, null, false);
         if (MDB::isError($result)) {
             return $result;
         }

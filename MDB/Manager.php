@@ -541,7 +541,7 @@ class MDB_Manager extends PEAR
             if($this->database->support('summary_functions')) {
                 $field = "MAX($field)";
             }
-            $result = $this->database->query("SELECT $field FROM $table");
+            $result = $this->database->query("SELECT $field FROM $table", 'integer', false);
             if(MDB::isError($result)) {
                 return($result);
             }
@@ -1958,7 +1958,7 @@ class MDB_Manager extends PEAR
                             $types[] = $field['type'];
                         }
                         $query = 'SELECT '.implode(',',array_keys($table['fields']))." FROM $table_name";
-                        $result = $this->database->query($query, $types);
+                        $result = $this->database->query($query, $types, false);
                         if(MDB::isError($result)) {
                             return($result);
                         }

@@ -531,13 +531,13 @@ class MDB_oci8 extends MDB_Common
      * @param string $query the SQL query
      * @param array $types array that contains the types of the columns in
      *                         the result set
-     * @param mixed $return_obj boolean or string which specifies which class to use
+     * @param mixed $result_mode boolean or string which specifies which class to use
      *
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      *
      * @access public
      */
-    function &query($query, $types = null, $return_obj = false)
+    function &query($query, $types = null, $result_mode = false)
     {
         $this->debug($query, 'query');
         $this->last_query = $query;
@@ -557,7 +557,7 @@ class MDB_oci8 extends MDB_Common
                     return $err;
                 }
             }
-            $result= $this->_return_result($result, $return_obj);
+            $result= $this->_return_result($result, $result_mode);
             return $result;
         }
         $error =& $this->oci8RaiseError();

@@ -86,7 +86,7 @@ class MDB_Extended
         if ($type != null) {
             $type = array($type);
         }
-        $result = $db->query($query, $type);
+        $result = $db->query($query, $type, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -119,7 +119,7 @@ class MDB_Extended
      */
     function queryRow(&$db, $query, $types = null, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
-        $result = $db->query($query, $types);
+        $result = $db->query($query, $types, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -154,7 +154,7 @@ class MDB_Extended
         if ($type != null) {
             $type = array($type);
         }
-        $result = $db->query($query, $type);
+        $result = $db->query($query, $type, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -196,7 +196,7 @@ class MDB_Extended
     function queryAll(&$db, $query, $types = null, $fetchmode = MDB_FETCHMODE_DEFAULT,
         $rekey = false, $force_array = false, $group = false)
     {
-        if (MDB::isError($result = $db->query($query, $types))) {
+        if (MDB::isError($result = $db->query($query, $types, false))) {
             return $result;
         }
         $all = $db->fetchAll($result, $fetchmode, $rekey, $force_array, $group);
@@ -591,6 +591,28 @@ class MDB_Extended
             default:
                 $db->raiseError(MDB_ERROR_SYNTAX);
         }
+    }
+
+    /**
+     * Generates a limited query
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param string $query query
+     * @param array   $types  array that contains the types of the columns in
+     *                        the result set
+     * @param integer $from the row to start to fetching
+     * @param integer $count the numbers of rows to fetch
+     * @param mixed $result_mode boolean or string which specifies which class to use
+     * @return mixed a valid ressource pointer or a MDB_Error
+     * @access public
+     */
+    function limitQuery(&$db, $query, $types, $from, $count, $result_mode = false)
+    {
+        $result = $db->setLimit($from, $count);
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        return $db->query($query, $types, $result_mode);
     }
 }
 ?>

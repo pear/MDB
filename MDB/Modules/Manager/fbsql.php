@@ -105,7 +105,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         {
             return MDB_OK;
         }
-        $result = $db->query("SHOW VARIABLES LIKE '$check'", null);
+        $result = $db->query("SHOW VARIABLES LIKE '$check'", null, false);
         if (MDB::isError($result)) {
             return $db->raiseError();
         }
@@ -432,7 +432,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listDatabases(&$db)
     {
-        $result = $db->query('SHOW DATABASES');
+        $result = $db->query('SHOW DATABASES', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -455,7 +455,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listUsers(&$db)
     {
-        $result = $db->query('SELECT DISTINCT USER FROM USER');
+        $result = $db->query('SELECT DISTINCT USER FROM USER', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -474,7 +474,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listTables(&$db)
     {
-        $result = $db->query('SHOW TABLES');
+        $result = $db->query('SHOW TABLES', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -503,7 +503,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listTableFields(&$db, $table)
     {
-        $result = $db->query("SHOW COLUMNS FROM $table");
+        $result = $db->query("SHOW COLUMNS FROM $table", null, false);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -609,7 +609,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listTableIndexes(&$db, $table)
     {
-        if (MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
+        if (MDB::isError($result = $db->query("SHOW INDEX FROM $table", 'text', false))) {
             return $result;
         }
         $indexes_all = $db->fetchCol($result, 'Key_name');
@@ -695,7 +695,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listSequences(&$db)
     {
-        $result = $db->query('SHOW TABLES');
+        $result = $db->query('SHOW TABLES', 'text', false);
         if (MDB::isError($result)) {
             return $result;
         }

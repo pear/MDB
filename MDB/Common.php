@@ -243,6 +243,12 @@ class MDB_Common extends PEAR
     var $last_query = '';
 
     /**
+     * @var mixed
+     * @access private
+     */
+    var $_result_mode = false;
+
+    /**
      * @var integer
      * @access private
      */
@@ -436,24 +442,36 @@ class MDB_Common extends PEAR
     }
 
     // }}}
-    // {{{ setResultClass()
+    // {{{ setResultMode()
 
     /**
-     * set result class
+     * set result mode
+     * Setting the mode to a string value will mean that all ressources are
+     * Setting the mode to false or null will mean that ressources are returned
+     * wrapped inside a class with the name $mode
      *
-     * @param string $class name of the class (without the 'MDB_' prefix)
+     * @param mixed $mode false or string name of the class
+     * @param boolean $prefix detrmine if the class name shoul be prefixed with 'MDB_'
      * @return mixed MDB_OK or MDB_Error
      * @access public
      */
-    function setResultClass($class)
+    function setResultMode($mode, $prefix = true)
     {
-        MDB::loadClass($class);
-        $class_name = 'MDB_'.$class;
-        if (!class_exists($class_name)) {
+        if (is_string($mode)) {
+            if ($prefix) {
+                $class_name = 'MDB_'.$mode;
+            } else {
+                $class_name = $mode;
+            }
+            @MDB::loadClass($mode);
+            if (class_exists($class_name)) {
+                $this->_result_mode = $class_name;
+                return MDB_OK;
+            }
             return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
-                "result class ($class_name) does not exist");
+            "setResultMode: result class ($class_name) does not exist");
         }
-        $this->_result_class = $class;
+        $this->_result_mode = false;
         return MDB_OK;
     }
 
@@ -464,25 +482,25 @@ class MDB_Common extends PEAR
      * determine if the resource should be wrapped in a class
      *
      * @param resource $result result ressource
-     * @param mixed $return_obj boolean or string which specifies which class to use
+     * @param mixed $result_mode boolean or string which specifies which class to use
      * @return mixed resource or result object or MDB_Error
      * @access private
      */
-    function &_return_result($result, $return_obj)
+    function &_return_result($result, $result_mode)
     {
-        if ($return_obj) {
-            if (is_string($return_obj)) {
-                MDB::loadClass($return_obj);
-                $class_name = 'MDB_'.$return_obj;
+        if ($result_mode || ($result_mode !== false && $this->_result_mode)) {
+            if (is_string($result_mode)) {
+                $class_name = 'MDB_'.$result_mode;
+                @MDB::loadClass($result_mode);
                 if (!class_exists($class_name)) {
                     return $this->raiseError(MDB_ERROR, null, null,
-                        "result class ($class_name) does not exist");
+                        "_return_result_ result class ($class_name) does not exist");
                 }
-            } elseif (isset($this->_result_class)) {
-                $class_name = 'MDB_'.$this->_result_class;
+            } elseif ($this->_result_mode) {
+                $class_name = $this->_result_mode;
             } else {
                 return $this->raiseError(MDB_ERROR, null, null,
-                    "no result class defined");
+                    "_return_result_: no result class defined");
             }
             $result =& new $class_name($this, $result);
         }
@@ -796,11 +814,11 @@ class MDB_Common extends PEAR
      * @param string $query the SQL query
      * @param array   $types  array that contains the types of the columns in
      *                        the result set
-     * @param mixed $return_obj boolean or string which specifies which class to use
+     * @param mixed $result_mode boolean or string which specifies which class to use
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function &query($query, $types = null, $return_obj = false)
+    function &query($query, $types = null, $result_mode = false)
     {
         $this->debug($query, 'query');
         $error =& $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Query: database queries are not implemented');
@@ -841,26 +859,6 @@ class MDB_Common extends PEAR
 
     // }}}
     // {{{ limitQuery()
-
-    /**
-     * Generates a limited query
-     *
-     * @param string $query query
-     * @param array   $types  array that contains the types of the columns in
-     *                        the result set
-     * @param integer $from the row to start to fetching
-     * @param integer $count the numbers of rows to fetch
-     * @return mixed a valid ressource pointer or a MDB_Error
-     * @access public
-     */
-    function limitQuery($query, $types = null, $from, $count)
-    {
-        $result = $this->setLimit($from, $count);
-        if (MDB::isError($result)) {
-            return $result;
-        }
-        return $this->query($query, $types);
-    }
 
     // }}}
     // {{{ subSelect()
@@ -953,7 +951,8 @@ class MDB_Common extends PEAR
     function replace($table, $fields)
     {
         if (!$this->supported['replace']) {
-            return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Replace: replace query is not supported');
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                'Replace: replace query is not supported');
         }
         $count = count($fields);
         for($keys = 0, $condition = $insert = $values = '', reset($fields), $field = 0;
@@ -1227,7 +1226,7 @@ class MDB_Common extends PEAR
      */
     function _executePreparedQuery($prepared_query, $query, $types = null)
     {
-        return $this->query($query, $types);
+        return $this->query($query, $types, false);
     }
 
     // }}}

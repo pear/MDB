@@ -338,7 +338,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      */
     function listDatabases(&$db)
     {
-        $result = $db->query("SELECT table_name, tablespace_name FROM user_tables");
+        $result = $db->query("SELECT table_name, tablespace_name FROM user_tables", null, false);
         if (MDB::isError($result)) {
             return $result;
         }

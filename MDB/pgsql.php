@@ -90,8 +90,6 @@ class MDB_pgsql extends MDB_Common
         $this->supported['LOBs'] = 1;
         $this->supported['replace'] = 1;
         $this->supported['sub_selects'] = 1;
-        
-        $this->decimal_factor = pow(10.0, $this->decimal_places);
     }
 
     // }}}
@@ -433,13 +431,13 @@ class MDB_pgsql extends MDB_Common
      * @param string $query the SQL query
      * @param array $types array that contains the types of the columns in
      *                         the result set
-     * @param mixed $return_obj boolean or string which specifies which class to use
+     * @param mixed $result_mode boolean or string which specifies which class to use
      *
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      *
      * @access public
      */
-    function &query($query, $types = null, $return_obj = false)
+    function &query($query, $types = null, $result_mode = false)
     {
         $this->debug($query, 'query');
         $ismanip = MDB::isManip($query);
@@ -492,7 +490,7 @@ class MDB_pgsql extends MDB_Common
                     return $err;
                 }
             }
-            $result= $this->_return_result($result, $return_obj);
+            $result= $this->_return_result($result, $result_mode);
             return $result;
         } else {
             $this->affected_rows = 0;
@@ -662,7 +660,7 @@ class MDB_pgsql extends MDB_Common
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
-        $result = $this->query("SELECT NEXTVAL('$sequence_name')");
+        $result = $this->query("SELECT NEXTVAL('$sequence_name')", 'integer', false);
         $this->popExpect();
         if (MDB::isError($result)) {
             if ($ondemand && $result->getCode() == MDB_ERROR_NOSUCHTABLE) {
