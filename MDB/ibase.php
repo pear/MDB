@@ -189,6 +189,7 @@ class MDB_ibase extends MDB_Common
             $error_regexps = array(
                 '/[tT]able not found/' => MDB_ERROR_NOSUCHTABLE,
                 '/[tT]able .* already exists/' => MDB_ERROR_ALREADY_EXISTS,
+                '/validation error for column .* value "\*\*\* null/' => MDB_ERROR_CONSTRAINT_NOT_NULL,
                 '/violation of [\w ]+ constraint/' => MDB_ERROR_CONSTRAINT,
                 '/conversion error from string/' => MDB_ERROR_INVALID_NUMBER,
                 '/no permission for/' => MDB_ERROR_ACCESS_VIOLATION,
