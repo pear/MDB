@@ -893,7 +893,9 @@ class MDB_oci8 extends MDB_Common {
             if (!isset($this->results[$result_value][$this->highest_fetched_row[$result_value]])
                 || $this->results[$result_value][$this->highest_fetched_row[$result_value]] !== false
             ) {
-                while((!isset($this->limits[$result_value]) || $this->highest_fetched_row[$result_value] >= $this->limits[$result_value][1])
+                while((!isset($this->limits[$result_value])
+                    || $this->highest_fetched_row[$result_value] >= $this->limits[$result_value][1]
+                )
                     && @OCIFetchInto($result, $buffer, OCI_RETURN_NULLS)
                 ) {
                     ++$this->highest_fetched_row[$result_value];
@@ -1546,7 +1548,7 @@ class MDB_oci8 extends MDB_Common {
                 unset($this->row_buffer[$result_value]);
             }
             if (!isset($this->results[$result_value][$this->current_row[$result_value]])
-                || $this->results[$result_value][$this->current_row[$result_value]] !== false
+                || end($this->results[$result_value]) !== false
             ) {
                 while($this->current_row[$result_value] < $rownum
                     && @OCIFetchInto($result, $buffer, OCI_RETURN_NULLS)
