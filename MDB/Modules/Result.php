@@ -92,7 +92,7 @@ class MDB_result
      *
      * @access public
      */
-    function &fetchRow($fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
+    function fetchRow($fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         if ($fetchmode === MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
