@@ -133,7 +133,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         for ($row = 0; $row < $total_rows; $row++) {
             $data[$row]['user_name'] = "user_$row";
             $data[$row]['user_password'] = 'somepassword';
-            $data[$row]['subscribed'] = $row % 2;
+            $data[$row]['subscribed'] = $row % 2 ? true : false;
             $data[$row]['user_id'] = $row;
             $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
             $data[$row]['weight'] = sqrt($row);

@@ -161,7 +161,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data = array();
         $data['user_name'] = "user_$row";
         $data['user_password'] = 'somepassword';
-        $data['subscribed'] = $row % 2;
+        $data['subscribed'] = $row % 2 ? true : false;
         $data['user_id'] = $row;
         $data['quota'] = strval($row/100);
         $data['weight'] = sqrt($row);
@@ -292,7 +292,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data = array();
         $data['user_name'] = "user_$row";
         $data['user_password'] = 'somepassword';
-        $data['subscribed'] = $row % 2;
+        $data['subscribed'] = $row % 2 ? true : false;
         $data['user_id'] = $row;
         $data['quota'] = strval($row/100);
         $data['weight'] = sqrt($row);
@@ -446,7 +446,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         for ($row = 0; $row < $total_rows; $row++) {
             $data[$row]['user_name'] = "user_$row";
             $data[$row]['user_password'] = 'somepassword';
-            $data[$row]['subscribed'] = $row % 2;
+            $data[$row]['subscribed'] = $row % 2 ? true : false;
             $data[$row]['user_id'] = $row;
             $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
             $data[$row]['weight'] = sqrt($row);
@@ -578,7 +578,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data = array();
         $data['user_name'] = "user_$row";
         $data['user_password'] = 'somepassword';
-        $data['subscribed'] = $row % 2;
+        $data['subscribed'] = $row % 2 ? true : false;
         $data['user_id'] = $row;
         $data['quota'] = strval($row/100);
         $data['weight'] = sqrt($row);
@@ -651,7 +651,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $row = 4321;
         $fields['user_name']['Value'] = $data['user_name'] = "user_$row";
         $fields['user_password']['Value'] = $data['user_password'] = 'somepassword';
-        $fields['subscribed']['Value'] = $data['subscribed'] = $row % 2;
+        $fields['subscribed']['Value'] = $data['subscribed'] = $row % 2 ? true : false;
         $fields['quota']['Value'] = $data['quota'] = strval($row/100);
         $fields['weight']['Value'] = $data['weight'] = sqrt($row);
         $fields['access_date']['Value'] = $data['access_date'] = MDB_Date::mdbToday();
@@ -699,7 +699,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         for ($row = 0; $row < $total_rows; $row++) {
             $data[$row]['user_name'] = "user_$row";
             $data[$row]['user_password'] = 'somepassword';
-            $data[$row]['subscribed'] = $row % 2;
+            $data[$row]['subscribed'] = $row % 2 ? true : false;
             $data[$row]['user_id'] = $row;
             $data[$row]['quota'] = sprintf("%.2f",strval(1+($row+1)/100));
             $data[$row]['weight'] = sqrt($row);
@@ -776,7 +776,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data = array();
         $data['user_name'] = "user_$row";
         $data['user_password'] = 'somepassword';
-        $data['subscribed'] = $row % 2;
+        $data['subscribed'] = $row % 2 ? true : false;
         $data['user_id'] = $row;
         $data['quota'] = strval($row/100);
         $data['weight'] = sqrt($row);
