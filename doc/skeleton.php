@@ -730,6 +730,8 @@ class MDB_xxx extends MDB_Common
     function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = 0)
     {
         // take this from the corresponding Metabase driver: FetchResultArray()
+        // possibly you also need to take code from Metabases FetchRow() method
+        // note Metabases FetchRow() method should not be confused with MDB's fetchRow()
     }
 
     // }}}
