@@ -56,8 +56,6 @@ require_once 'MDB/Common.php';
 
 class MDB_ibase extends MDB_Common
 {
-    // {{{ class vars
-
     var $connection = 0;
     var $connected_host;
     var $connected_port;
@@ -65,22 +63,14 @@ class MDB_ibase extends MDB_Common
     var $selected_database_file = '';
     var $opened_persistent = '';
     var $transaction_id = 0;
-    var $auto_commit = true; //added
+    var $auto_commit = true;
 
     var $escape_quotes = "'";
     var $decimal_factor = 1.0;
 
-    var $results = array();
-    var $current_row = array();
-    var $columns = array();
-    var $rows = array();
-    var $limits = array();
-    var $row_buffer = array();
-    var $highest_fetched_row = array();
     var $query_parameters = array();
     var $query_parameter_values = array();
 
-    // }}}
     // {{{ constructor
 
     /**
@@ -630,6 +620,35 @@ class MDB_ibase extends MDB_Common
     }
 
     // }}}
+    // {{{ _getColumn()
+
+    /**
+     * Get key for a given field with a result set.
+     *
+     * @param resource $result
+     * @param mixed $field integer or string key for the column
+     * @return mixed column from the result handle or a MDB error on failure
+     * @access private
+     */
+    function _getColumn($result, $field)
+    {
+        $result_value = intval($result);
+        $colNames = $this->getColumnNames($result);
+        if (is_integer($field)) {
+            if (($column = $field)<0 || $column>=count($colNames)) {
+                return $this->raiseError(MDB_ERROR, '', '', 'getColumn attempted to fetch an query result column out of range');
+            }
+        } else {
+            $name = strtolower($field);
+            if (!isset($colNames[$name])) {
+                return $this->raiseError(MDB_ERROR, '', '', 'getColumn attempted to fetch an unknown query result column');
+            }
+            $column = $this->results[$result_value]['columns'][$name];
+        }
+        return $column;
+    }
+
+    // }}}
     // {{{ getColumnNames()
 
     /**
@@ -725,8 +744,8 @@ class MDB_ibase extends MDB_Common
             }
             if (isset($this->results[$result_value]['limits'])) {
                 if (MDB::isError($this->_skipLimitOffset($result))
-                    || $this->results[$result_value]['current_row'] + 1 >= $this->results[$result_value]['limits'][1])
-                {
+                    || $this->results[$result_value]['current_row'] + 1 >= $this->results[$result_value]['limits'][1]
+                ) {
                     $this->results[$result_value]['rows'] = 0;
                     return true;
                 }
@@ -737,40 +756,11 @@ class MDB_ibase extends MDB_Common
                 $this->results[$result_value]['row_buffer'] = $row;
                 return false;
             }
-            $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row']+1;
+            $this->results[$result_value]['rows'] = ++$this->results[$result_value]['current_row'];
             return true;
         }
         return $this->raiseError(MDB_ERROR, null, null,
             'endOfResult: not supported if option "result_buffering" is not enabled');
-    }
-
-    // }}}
-    // {{{ _getColumn()
-
-    /**
-     * Get key for a given field with a result set.
-     *
-     * @param resource $result
-     * @param mixed $field integer or string key for the column
-     * @return mixed column from the result handle or a MDB error on failure
-     * @access private
-     */
-    function _getColumn($result, $field)
-    {
-        $result_value = intval($result);
-        $colNames = $this->getColumnNames($result);
-        if (is_integer($field)) {
-            if (($column = $field)<0 || $column>=count($colNames)) {
-                return $this->raiseError(MDB_ERROR, '', '', 'getColumn attempted to fetch an query result column out of range');
-            }
-        } else {
-            $name = strtolower($field);
-            if (!isset($colNames[$name])) {
-                return $this->raiseError(MDB_ERROR, '', '', 'getColumn attempted to fetch an unknown query result column');
-            }
-            $column = $this->results[$result_value]['columns'][$name];
-        }
-        return $column;
     }
 
     // }}}
@@ -966,9 +956,9 @@ class MDB_ibase extends MDB_Common
      * Fetch a row and return data in an array.
      *
      * @param resource $result result identifier
-     * @param int $fetchmode ignored
+     * @param int $fetchmode how the array data should be indexed
      * @param int $rownum the row number to fetch
-     * @return mixed data array or null on success, a MDB error on failure
+     * @return int data array on success, a MDB error on failure
      * @access public
      */
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
@@ -976,18 +966,24 @@ class MDB_ibase extends MDB_Common
         $result_value = intval($result);
         if ($this->options['result_buffering']) {
             if ($rownum == null) {
-                $rownum = $this->results[$result_value]['highest_fetched_row']+1;
+                $rownum = $this->results[$result_value]['highest_fetched_row'] + 1;
             }
             if (isset($this->results[$result_value][$rownum])) {
+                $this->results[$result_value]['highest_fetched_row'] =
+                    max($this->results[$result_value]['highest_fetched_row'], $rownum);
                 if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                    return $this->results[$result_value][$rownum];
+                    $row = $this->results[$result_value][$rownum];
                 } else {
-                    return array_values($this->results[$result_value][$rownum]);
+                    $row = array_values($this->results[$result_value][$rownum]);
                 }
+                if (isset($this->results[intval($result)]['types'])) {
+                    $row = $this->datatype->convertResultRow($this, $result, $row);
+                }
+                return $row;
             }
         }
-        if (isset($this->limits[$result_value])) {
-            if ($rownum >= $this->limits[$result_value][1]) {
+        if (isset($this->results[$result_value]['limits'])) {
+            if ($rownum >= $this->results[$result_value]['limits'][1]) {
                 return null;
             }
             if (MDB::isError($this->_skipLimitOffset($result))) {
@@ -1000,7 +996,8 @@ class MDB_ibase extends MDB_Common
         if ($this->options['result_buffering']) {
             if (isset($this->results[$result_value]['row_buffer'])) {
                 $this->results[$result_value]['current_row']++;
-                $this->results[$result_value][$this->results[$result_value]['current_row']] = $this->results[$result_value]['row_buffer'];
+                $this->results[$result_value][$this->results[$result_value]['current_row']] =
+                    $this->results[$result_value]['row_buffer'];
                 unset($this->results[$result_value]['row_buffer']);
             }
             while ($this->results[$result_value]['current_row'] < $rownum) {
@@ -1025,7 +1022,14 @@ class MDB_ibase extends MDB_Common
                     return null;
                 }
             }
-            $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
+            if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+                $row = $this->results[$result_value][$rownum];
+            } else {
+                $row = array_values($this->results[$result_value][$rownum]);
+
+            }
+            $this->results[$result_value]['highest_fetched_row'] =
+                max($this->results[$result_value]['highest_fetched_row'], $rownum);
         } else {
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                 $row = @ibase_fetch_assoc($result);

@@ -479,7 +479,7 @@ class MDB_oci8 extends MDB_Common
                                     $result_value = intval($statement);
                                     $this->results[$result_value]['current_row'] = -1;
                                     if ($limit > 0) {
-                                        $this->limits[$result_value] = array($first, $limit, 0);
+                                        $this->results[$result_value]['limits'] = array($first, $limit, 0);
                                     }
                                     $this->results[$result_value]['highest_fetched_row'] = -1;
                                     break;
@@ -582,10 +582,10 @@ class MDB_oci8 extends MDB_Common
     function _skipLimitOffset($result)
     {
         $result_value = intval($result);
-        $first = $this->limits[$result_value][0];
-        for(;$this->limits[$result_value][2] < $first;$this->limits[$result_value][2]++) {
+        $first = $this->results[$result_value]['limits'][0];
+        for (;$this->results[$result_value]['limits'][2] < $first;$this->results[$result_value]['limits'][2]++) {
             if (!@OCIFetch($result)) {
-                $this->limits[$result_value][2] = $first;
+                $this->results[$result_value]['limits'][2] = $first;
                 return $this->raiseError(MDB_ERROR, null, null,
                     'Skip first rows: could not skip a query result row');
             }
@@ -700,15 +700,17 @@ class MDB_oci8 extends MDB_Common
                 return $this->raiseError(MDB_ERROR, null, null,
                     'End of result: attempted to check the end of an unknown result');
             }
-            if (isset($this->rows[$result_value])) {
-                return $this->results[$result_value]['highest_fetched_row'] >= $this->rows[$result_value]-1;
+            if (isset($this->results[$result_value]['rows'])) {
+                return $this->results[$result_value]['highest_fetched_row'] >= $this->results[$result_value]['rows']-1;
             }
             if (isset($this->results[$result_value]['row_buffer'])) {
                 return false;
             }
-            if (isset($this->limits[$result_value])) {
-                if (MDB::isError($this->_skipLimitOffset($result)) || $this->results[$result_value]['current_row'] + 1 >= $this->limits[$result_value][1]) {
-                    $this->rows[$result_value] = 0;
+            if (isset($this->results[$result_value]['limits'])) {
+                if (MDB::isError($this->_skipLimitOffset($result))
+                    || $this->results[$result_value]['current_row'] + 1 >= $this->results[$result_value]['limits'][1]
+                ) {
+                    $this->results[$result_value]['rows'] = 0;
                     return true;
                 }
             }
@@ -716,7 +718,7 @@ class MDB_oci8 extends MDB_Common
                 return false;
             }
             unset($this->results[$result_value]['row_buffer']);
-            $this->rows[$result_value] = $this->results[$result_value]['current_row'] + 1;
+            $this->results[$result_value]['rows'] = ++$this->results[$result_value]['current_row'];
             return true;
         }
         return $this->raiseError(MDB_ERROR, null, null,
@@ -763,16 +765,16 @@ class MDB_oci8 extends MDB_Common
     {
         if ($this->options['result_buffering']) {
             $result_value = intval($result);
-            if (!isset($this->rows[$result_value])) {
+            if (!isset($this->results[$result_value]['rows'])) {
                 if (MDB::isError($getcolumnnames = $this->getColumnNames($result))) {
                     return $getcolumnnames;
                 }
-                if (isset($this->limits[$result_value])) {
+                if (isset($this->results[$result_value]['limits'])) {
                     if (MDB::isError($skipfirstrow = $this->_skipLimitOffset($result))) {
-                        $this->rows[$result_value] = 0;
+                        $this->results[$result_value]['rows'] = 0;
                         return $skipfirstrow;
                     }
-                    $limit = $this->limits[$result_value][1];
+                    $limit = $this->results[$result_value]['limits'][1];
                 } else {
                     $limit = 0;
                 }
@@ -789,9 +791,9 @@ class MDB_oci8 extends MDB_Common
                         $this->results[$result_value]['current_row']++;
                     }
                 }
-                $this->rows[$result_value] = $this->results[$result_value]['current_row'] + 1;
+                $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row'] + 1;
             }
-            return $this->rows[$result_value];
+            return $this->results[$result_value]['rows'];
         }
         return $this->raiseError(MDB_ERROR, null, null,
             'Number of rows: nut supported if option "result_buffering" is not enabled');
@@ -893,7 +895,7 @@ class MDB_oci8 extends MDB_Common
     // {{{ fetchRow()
 
     /**
-     * Fetch a row and insert the data into an existing array.
+     * Fetch a row and return data in an array.
      * 
      * @param resource $result result identifier
      * @param int $fetchmode how the array data should be indexed
@@ -906,18 +908,24 @@ class MDB_oci8 extends MDB_Common
         $result_value = intval($result);
         if ($this->options['result_buffering']) {
             if ($rownum == null) {
-                $rownum = $this->results[$result_value]['highest_fetched_row']+1;
+                $rownum = $this->results[$result_value]['highest_fetched_row'] + 1;
             }
             if (isset($this->results[$result_value][$rownum])) {
+                $this->results[$result_value]['highest_fetched_row'] =
+                    max($this->results[$result_value]['highest_fetched_row'], $rownum);
                 if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                    return $this->results[$result_value][$rownum];
+                    $row = $this->results[$result_value][$rownum];
                 } else {
-                    return array_values($this->results[$result_value][$rownum]);
+                    $row = array_values($this->results[$result_value][$rownum]);
                 }
+                if (isset($this->results[intval($result)]['types'])) {
+                    $row = $this->datatype->convertResultRow($this, $result, $row);
+                }
+                return $row;
             }
         }
-        if (isset($this->limits[$result_value])) {
-            if ($rownum >= $this->limits[$result_value][1]) {
+        if (isset($this->results[$result_value]['limits'])) {
+            if ($rownum >= $this->results[$result_value]['limits'][1]) {
                 return null;
             }
             if (MDB::isError($this->_skipLimitOffset($result))) {
@@ -930,7 +938,8 @@ class MDB_oci8 extends MDB_Common
         if ($this->options['result_buffering']) {
             if (isset($this->results[$result_value]['row_buffer'])) {
                 $this->results[$result_value]['current_row']++;
-                $this->results[$result_value][$this->results[$result_value]['current_row']] = $this->results[$result_value]['row_buffer'];
+                $this->results[$result_value][$this->results[$result_value]['current_row']] =
+                    $this->results[$result_value]['row_buffer'];
                 unset($this->results[$result_value]['row_buffer']);
             }
             while ($this->results[$result_value]['current_row'] < $rownum) {
@@ -941,7 +950,7 @@ class MDB_oci8 extends MDB_Common
                 } else {
                     $moredata = @OCIFetchInto($result, $row, OCI_RETURN_NULLS+OCI_RETURN_LOBS);
                 }
-                $this->results[$result_value][$this->results[$result_value]['current_row']+1] = $row;
+                $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
                 if (!$moredata) {
                     if ($this->options['autofree']) {
                         $this->freeResult($result);
@@ -949,8 +958,13 @@ class MDB_oci8 extends MDB_Common
                     return null;
                 }
             }
-            $row = $this->results[$result_value][$rownum];
-            $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
+            if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+                $row = $this->results[$result_value][$rownum];
+            } else {
+                $row = array_values($this->results[$result_value][$rownum]);
+            }
+            $this->results[$result_value]['highest_fetched_row'] =
+                max($this->results[$result_value]['highest_fetched_row'], $rownum);
         } else {
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                 $moredata = @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS);
