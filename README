@@ -201,22 +201,26 @@ new driver.
 - More tests with Metabase and PEAR DB wrapper (you)
 
 1.0.x (as needed)
-- Add more PHPDoc comments (lsmith)
-- Add ability to snyc two databases (structure and/or content)
+- Finish PHPDoc comments (lsmith)
 - Add support for more RDBMS (you)
 - Finish reverse engineering parts of the pgsql driver (pgc)
 - Add testing suite
   (currently there is only the test suite provided by Metabase)
+- Add missing features to the manager needed for the MDB_frontend project
+    - Add ability to snyc two databases (structure and/or content)
+    - Add ability to dump just one table
+    - Improve reservse engineering of existing DB's to xml schema files
 
 1.1 Release (Fall 2002)
-- Finish PHPDoc comments (lsmith)
 - Write Docbook documentation
 - Add support for more RDBMS (you)
-- Complete testing suite
+- Complete testing suite (pgc)
+- Store the contents of LOB fields into seperate files when dumping
 
 Sometime
 - Interactive Application for Schema Reverse Engineering to better handle
   ambiguities that cannot be resolved automatically
+  (moved to seperate project MDB_frontend)
 - SQL Funtion Abstraction (for example SUBSTRING() and SUBSTR())
 - Different modes: performance, portability
 
