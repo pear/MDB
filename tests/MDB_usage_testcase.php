@@ -312,7 +312,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
         }
 
-        $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users');
+        $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users', array('text', 'text'));
 
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error selecting from users'.$result->getMessage());
@@ -361,7 +361,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $this->assertTrue(false, 'Error executing insert query'.$result->getMessage());
             }
 
-            $result = $this->db->query('SELECT user_name,user_password FROM users');
+            $result = $this->db->query('SELECT user_name,user_password FROM users', array('text', 'text'));
 
             if (MDB::isError($result)) {
                 $this->assertTrue(false, 'Error executing select query'.$result->getMessage());
@@ -413,7 +413,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $this->assertTrue(false, 'Error executing insert query'.$result->getMessage());
             }
 
-            $result = $this->db->query('SELECT user_name,user_password FROM users');
+            $result = $this->db->query('SELECT user_name,user_password FROM users', array('text', 'text'));
 
             if (MDB::isError($result)) {
                 $this->assertTrue(false, 'Error executing select query'.$result->getMessage());
