@@ -2600,6 +2600,10 @@ class MDB_common extends PEAR {
         switch ($type) {
             case MDB_TYPE_TEXT:
                 return ($value);
+            case MDB_TYPE_BLOB:
+                return ($value);
+            case MDB_TYPE_CLOB:
+                return ($value);
             case MDB_TYPE_INTEGER:
                 return (intval($value));
             case MDB_TYPE_BOOLEAN:
@@ -2665,6 +2669,8 @@ class MDB_common extends PEAR {
                 }
                 switch ($type = $this->result_types[$result][$column]) {
                     case MDB_TYPE_TEXT:
+                    case MDB_TYPE_BLOB:
+                    case MDB_TYPE_CLOB:
                         break;
                     case MDB_TYPE_INTEGER:
                         $row[$column] = intval($row[$column]);
@@ -3656,8 +3662,8 @@ class MDB_common extends PEAR {
     // {{{ queryRow()
 
     /**
-     * Execute the specified query, fetch the value from the first column of
-     * the first row of the result set into a given variable and then frees
+     * Execute the specified query, fetch the value from the first
+     * row of the result set into a given variable and then frees
      * the result set.
      *
      * @param string $query the SELECT query statement to be executed.
@@ -3711,9 +3717,8 @@ class MDB_common extends PEAR {
     // {{{ queryAll()
 
     /**
-     * Execute the specified query, fetch the value from the first column of
-     * the first row of the result set into a given variable and then frees
-     * the result set.
+     * Execute the specified query, fetch all the rows of the result set into
+     * a given variable and then frees the result set.
      *
      * @param string $query the SELECT query statement to be executed.
      * @param array $types optional array argument that specifies a list of
