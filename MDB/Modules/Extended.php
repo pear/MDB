@@ -83,7 +83,13 @@ class MDB_Extended
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchOne($result);
+        $one = $db->fetchOne($result);
+
+        if (!$this->options['autofree'] || $one != null) {
+            $this->freeResult($result);
+        }
+
+        return $one;
     }
 
     // }}}
@@ -109,7 +115,13 @@ class MDB_Extended
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchRow($result, $fetchmode);
+        $row = $db->fetchRow($result, $fetchmode);
+
+        if (!$this->options['autofree'] || $row != null) {
+            $this->freeResult($result);
+        }
+
+        return $row;
     }
 
     // }}}
@@ -137,7 +149,13 @@ class MDB_Extended
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result, $colnum);
+        $col = $db->fetchCol($result, $colnum);
+
+        if (!$this->options['autofree']) {
+            $this->freeResult($result);
+        }
+
+        return $col;
     }
 
     // }}}
@@ -171,7 +189,13 @@ class MDB_Extended
         if (MDB::isError($result = $db->query($query, $types))) {
             return $result;
         }
-        return $db->fetchAll($result, $fetchmode, $rekey, $force_array, $group);
+        $all = $db->fetchAll($result, $fetchmode, $rekey, $force_array, $group);
+
+        if (!$this->options['autofree']) {
+            $this->freeResult($result);
+        }
+
+        return $all;
     }
 
     // }}}
@@ -192,39 +216,36 @@ class MDB_Extended
      * @return mixed MDB_Error or the returned value of the query
      * @access public
      */
-    function &getOne($query, $type = null, $params = array(), $param_types = null)
+    function getOne(&$db, $query, $type = null, $params = array(), $param_types = null)
     {
         if ($type != null) {
             $type = array($type);
         }
         settype($params, 'array');
-        if (count($params) > 0) {
-            $prepared_query = $db->prepareQuery($query);
-            if (MDB::isError($prepared_query)) {
-                return $prepared_query;
-            }
-            $db->setParamArray($prepared_query, $params, $param_types);
-            $result = $db->executeQuery($prepared_query, $type);
-        } else {
-            $result = $db->query($query, $type);
+        if (count($params) == 0) {
+            return $this->queryOne($db, $query, $type);
         }
 
+        $prepared_query = $db->prepareQuery($query);
+        if (MDB::isError($prepared_query)) {
+            return $prepared_query;
+        }
+
+        $db->setParamArray($prepared_query, $params, $param_types);
+        $result = $db->executeQuery($prepared_query, $type);
         if (MDB::isError($result)) {
             return $result;
         }
 
-        $value = $db->fetchOne($result, MDB_FETCHMODE_ORDERED);
-        if (MDB::isError($value)) {
-            return $value;
-        }
-        if (isset($prepared_query)) {
-            $result = $db->freePreparedQuery($prepared_query);
-            if (MDB::isError($result)) {
-                return $result;
-            }
+        $row = $db->fetchRow($result, MDB_FETCHMODE_ORDERED);
+
+        $db->freePreparedQuery($prepared_query);
+
+        if (!$this->options['autofree'] || $row != null) {
+            $this->freeResult($result);
         }
 
-        return $value;
+        return $row[0];
     }
 
     // }}}
@@ -246,33 +267,29 @@ class MDB_Extended
      * 0, or a MDB error code.
      * @access public
      */
-    function &getRow($query, $types = null, $params = array(), $param_types = null, $fetchmode = MDB_FETCHMODE_DEFAULT)
+    function getRow(&$db, $query, $types = null, $params = array(), $param_types = null, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
         settype($params, 'array');
         if (count($params) > 0) {
-            $prepared_query = $db->prepareQuery($query);
-            if (MDB::isError($prepared_query)) {
-                return $prepared_query;
-            }
-            $db->setParamArray($prepared_query, $params, $param_types);
-            $result = $db->executeQuery($prepared_query, $types);
-        } else {
-            $result = $db->query($query, $types);
+            return $this->queryRow($db, $query, $types, $fetchmode);
+        }
+        $prepared_query = $db->prepareQuery($query);
+        if (MDB::isError($prepared_query)) {
+            return $prepared_query;
         }
 
+        $db->setParamArray($prepared_query, $params, $param_types);
+        $result = $db->executeQuery($prepared_query, $types);
         if (MDB::isError($result)) {
             return $result;
         }
 
         $row = $db->fetchRow($result, $fetchmode);
-        if (MDB::isError($row)) {
-            return $row;
-        }
-        if (isset($prepared_query)) {
-            $result = $db->freePreparedQuery($prepared_query);
-            if (MDB::isError($result)) {
-                return $result;
-            }
+
+        $db->freePreparedQuery($prepared_query);
+
+        if (!$this->options['autofree'] || $row != null) {
+            $this->freeResult($result);
         }
 
         return $row;
@@ -298,145 +315,36 @@ class MDB_Extended
      * row at index 0, or a MDB error code.
      * @access public
      */
-    function &getCol($query, $type = null, $params = array(), $param_types = null, $colnum = 0)
+    function getCol(&$db, $query, $type = null, $params = array(), $param_types = null, $colnum = 0)
     {
         if ($type != null) {
             $type = array($type);
         }
         settype($params, 'array');
         if (count($params) > 0) {
-            $prepared_query = $db->prepareQuery($query);
-
-            if (MDB::isError($prepared_query)) {
-                return $prepared_query;
-            }
-            $db->setParamArray($prepared_query, $params, $param_types);
-            $result = $db->executeQuery($prepared_query, $type);
-        } else {
-            $result = $db->query($query, $type);
+            $result = $this->queryCol($db, $query, $type, $colnum);
         }
 
+        $prepared_query = $db->prepareQuery($query);
+        if (MDB::isError($prepared_query)) {
+            return $prepared_query;
+        }
+
+        $db->setParamArray($prepared_query, $params, $param_types);
+        $result = $db->executeQuery($prepared_query, $type);
         if (MDB::isError($result)) {
             return $result;
         }
 
         $col = $db->fetchCol($result, $colnum);
-        if (MDB::isError($col)) {
-            return $col;
+
+        $db->freePreparedQuery($prepared_query);
+
+        if (!$this->options['autofree']) {
+            $this->freeResult($result);
         }
-        if (isset($prepared_query)) {
-            $result = $db->freePreparedQuery($prepared_query);
-            if (MDB::isError($result)) {
-                return $result;
-            }
-        }
+
         return $col;
-    }
-
-    // }}}
-    // {{{ getAssoc()
-
-    /**
-     * Fetch the entire result set of a query and return it as an
-     * associative array using the first column as the key.
-     *
-     * If the result set contains more than two columns, the value
-     * will be an array of the values from column 2-n.  If the result
-     * set contains only two columns, the returned value will be a
-     * scalar with the value of the second column (unless forced to an
-     * array with the $force_array parameter).  A MDB error code is
-     * returned on errors.  If the result set contains fewer than two
-     * columns, a MDB_ERROR_TRUNCATED error is returned.
-     *
-     * For example, if the table 'mytable' contains:
-     *
-     *   ID      TEXT       DATE
-     * --------------------------------
-     *   1       'one'      944679408
-     *   2       'two'      944679408
-     *   3       'three'    944679408
-     *
-     * Then the call getAssoc('SELECT id,text FROM mytable') returns:
-     *    array(
-     *      '1' => 'one',
-     *      '2' => 'two',
-     *      '3' => 'three',
-     *    )
-     *
-     * ...while the call getAssoc('SELECT id,text,date FROM mytable') returns:
-     *    array(
-     *      '1' => array('one', '944679408'),
-     *      '2' => array('two', '944679408'),
-     *      '3' => array('three', '944679408')
-     *    )
-     *
-     * If the more than one row occurs with the same value in the
-     * first column, the last row overwrites all previous ones by
-     * default.  Use the $group parameter if you don't want to
-     * overwrite like this.  Example:
-     *
-     * getAssoc('SELECT category,id,name FROM mytable', null, null
-     *           MDB_FETCHMODE_ASSOC, false, true) returns:
-     *    array(
-     *      '1' => array(array('id' => '4', 'name' => 'number four'),
-     *                   array('id' => '6', 'name' => 'number six')
-     *             ),
-     *      '9' => array(array('id' => '4', 'name' => 'number four'),
-     *                   array('id' => '6', 'name' => 'number six')
-     *             )
-     *    )
-     *
-     * Keep in mind that database functions in PHP usually return string
-     * values for results regardless of the database's internal type.
-     *
-     * @param string $query the SQL query
-     * @param array $types array that contains the types of the columns in
-     *       the result set
-     * @param array $params array if supplied, prepare/execute will be used
-     *       with this array as execute parameters
-     * @param array $param_types array that contains the types of the values
-     *       defined in $params
-     * @param boolean $force_array used only when the query returns
-     * exactly two columns.  If true, the values of the returned array
-     * will be one-element arrays instead of scalars.
-     * @param boolean $group if true, the values of the returned array
-     *       is wrapped in another array.  If the same key value (in the first
-     *       column) repeats itself, the values will be appended to this array
-     *       instead of overwriting the existing values.
-     * @return array associative array with results from the query.
-     * @access public
-     */
-    function &getAssoc($query, $types = null, $params = array(), $param_types = null,
-        $fetchmode = MDB_FETCHMODE_ORDERED, $force_array = false, $group = false)
-    {
-        settype($params, 'array');
-        if (count($params) > 0) {
-            $prepared_query = $db->prepareQuery($query);
-
-            if (MDB::isError($prepared_query)) {
-                return $prepared_query;
-            }
-            $db->setParamArray($prepared_query, $params, $param_types);
-            $result = $db->executeQuery($prepared_query, $types);
-        } else {
-            $result = $db->query($query, $types);
-        }
-
-        if (MDB::isError($result)) {
-            return $result;
-        }
-
-        $all = $db->fetchAll($result, $fetchmode, true, $force_array, $group);
-        if (MDB::isError($all)) {
-            return $all;
-        }
-        if (isset($prepared_query)) {
-            $result = $db->freePreparedQuery($prepared_query);
-            if (MDB::isError($result)) {
-                return $result;
-            }
-        }
-        return $all;
     }
 
     // }}}
@@ -453,41 +361,46 @@ class MDB_Extended
      * @param array $param_types array that contains the types of the values
      *       defined in $params
      * @param integer $fetchmode the fetch mode to use
+     * @param boolean $rekey if set to true, the $all will have the first
+     *       column as its first dimension
+     * @param boolean $force_array used only when the query returns exactly
+     *       two columns. If true, the values of the returned array will be
+     *       one-element arrays instead of scalars.
+     * @param boolean $group if true, the values of the returned array is
+     *       wrapped in another array.  If the same key value (in the first
+     *       column) repeats itself, the values will be appended to this array
+     *       instead of overwriting the existing values.
      * @return array an nested array, or a MDB error
      * @access public
      */
-    function &getAll($query, $types = null, $params = array(), $param_types = null, $fetchmode = MDB_FETCHMODE_DEFAULT)
+    function getAll(&$db, $query, $types = null, $params = array(), $param_types = null, $fetchmode = MDB_FETCHMODE_DEFAULT,
+        $rekey = false, $force_array = false, $group = false)
     {
         settype($params, 'array');
         if (count($params) > 0) {
-            $prepared_query = $db->prepareQuery($query);
-
-            if (MDB::isError($prepared_query)) {
-                return $prepared_query;
-            }
-            $db->setParamArray($prepared_query, $params, $param_types);
-            $result = $db->executeQuery($prepared_query, $types);
-        } else {
-            $result = $db->query($query, $types);
+            return $this->queryAll($db, $query, $types, $fetchmode, $rekey, $force_array, $group);
         }
 
+        $prepared_query = $db->prepareQuery($query);
+        if (MDB::isError($prepared_query)) {
+            return $prepared_query;
+        }
+
+        $db->setParamArray($prepared_query, $params, $param_types);
+        $result = $db->executeQuery($prepared_query, $types);
         if (MDB::isError($result)) {
             return $result;
         }
 
-        $all = $db->fetchAll($result, $fetchmode);
-        if (MDB::isError($all)) {
-            return $all;
+        $all = $db->fetchAll($result, $fetchmode, $rekey, $force_array, $group);
+
+        $db->freePreparedQuery($prepared_query);
+
+        if (!$this->options['autofree']) {
+            $this->freeResult($result);
         }
-        if (isset($prepared_query)) {
-            $result = $db->freePreparedQuery($prepared_query);
-            if (MDB::isError($result)) {
-                return $result;
-            }
-        }
+
         return $all;
     }
 }
-
-
 ?>
