@@ -591,23 +591,23 @@ class MDB_mssql extends MDB_Common
     function convertResult($value, $type)
     {
         switch($type) {
-            case METABASE_TYPE_BOOLEAN:
+            case MDB_TYPE_BOOLEAN:
                 return(strcmp($value,"1") ? 0 : 1);
-            case METABASE_TYPE_DECIMAL:
-                return($valur);
-            case METABASE_TYPE_FLOAT:
+            case MDB_TYPE_DECIMAL:
+                return($value);
+            case MDB_TYPE_FLOAT:
                 return(doubleval($value));
-            case METABASE_TYPE_DATE:
+            case MDB_TYPE_DATE:
                 if(strlen($value) > 10) {
                     $value=substr($value,0,10);
                 }
                 return($value);
-            case METABASE_TYPE_TIME:
+            case MDB_TYPE_TIME:
                 if(strlen($value) > 8) {
                     $value=substr($value,11,8);
                 }
                 return($value);
-            case METABASE_TYPE_TIMESTAMP:
+            case MDB_TYPE_TIMESTAMP:
                 return($value);
             default:
                 return($this->baseConvertResult($value,$type));
