@@ -189,7 +189,7 @@ class MDB_ibase extends MDB_Common
             $error_regexps = array(
                 '/[tT]able not found/' => MDB_ERROR_NOSUCHTABLE,
                 '/[tT]able .* already exists/' => MDB_ERROR_ALREADY_EXISTS,
-                '/violation of FOREIGN KEY constraint/' => MDB_ERROR_CONSTRAINT,
+                '/violation of [\w ]+ constraint/' => MDB_ERROR_CONSTRAINT,
                 '/conversion error from string/' => MDB_ERROR_INVALID_NUMBER,
                 '/no permission for/' => MDB_ERROR_ACCESS_VIOLATION,
                 '/arithmetic exception, numeric overflow, or string truncation/' => MDB_ERROR_DIVZERO
@@ -246,7 +246,7 @@ class MDB_ibase extends MDB_Common
                 $error_regexps = array(
                     '/[tT]able not found/' => MDB_ERROR_NOSUCHTABLE,
                     '/[tT]able .* already exists/' => MDB_ERROR_ALREADY_EXISTS,
-                    '/violation of FOREIGN KEY constraint/' => MDB_ERROR_CONSTRAINT,
+                    '/violation of [\w ]+ constraint/' => MDB_ERROR_CONSTRAINT,
                     '/conversion error from string/' => MDB_ERROR_INVALID_NUMBER,
                     '/no permission for/' => MDB_ERROR_ACCESS_VIOLATION,
                     '/arithmetic exception, numeric overflow, or string truncation/' => MDB_ERROR_DIVZERO
@@ -657,7 +657,7 @@ class MDB_ibase extends MDB_Common
             $columns = ibase_num_fields($result);
             for ($column=0; $column < $columns; $column++) {
                 $column_info = ibase_field_info($result, $column);
-                $this->columns[$result_value][strtolower($column_info["name"])] = $column;
+                $this->columns[$result_value][strtolower($column_info['name'])] = $column;
             }
         }
         return $this->columns[$result_value];
@@ -1778,7 +1778,7 @@ class MDB_ibase extends MDB_Common
                .' FROM  RDB$INDEX_SEGMENTS I'
                .' JOIN  RDB$RELATION_CONSTRAINTS R ON I.RDB$INDEX_NAME=R.RDB$INDEX_NAME'
               .' WHERE  I.RDB$FIELD_NAME=\''.$field_name.'\''
-                 .' AND R.RDB$RELATION_NAME=\''.$table_name.'\'';
+                 .' AND UPPER(R.RDB$RELATION_NAME)=\''.strtoupper($table_name).'\'';
         $result = ibase_query($this->connection, $sql);
         if (empty($result)) {
             return $this->ibaseRaiseError();
@@ -1800,7 +1800,7 @@ class MDB_ibase extends MDB_Common
                      .' F.RDB$COMPUTED_SOURCE AS CSOURCE'
                .' FROM  RDB$RELATION_FIELDS R '
                .' JOIN  RDB$FIELDS F ON R.RDB$FIELD_SOURCE=F.RDB$FIELD_NAME'
-              .' WHERE  R.RDB$RELATION_NAME=\''.$table_name.'\''
+              .' WHERE  UPPER(R.RDB$RELATION_NAME)=\''.strtoupper($table_name).'\''
                 .' AND  R.RDB$FIELD_NAME=\''.$field_name.'\'';
         $result = ibase_query($this->connection, $sql);
         if (empty($result)) {
