@@ -3729,8 +3729,7 @@ class MDB_Common extends PEAR
         while (is_array($row = $this->fetchInto($result, $fetchmode, $rownum))) {
             if ($rekey) {
                 if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-                    reset($result);
-                    $key = current($row);
+                    $key = reset($row);
                     unset($result[key($row)]);
                 } else {
                     $key = array_shift($row);
@@ -3745,7 +3744,7 @@ class MDB_Common extends PEAR
                 }
             } else {
                 if ($fetchmode & MDB_FETCHMODE_FLIPPED) {
-                    foreach ($result as $key => $val) {
+                    foreach ($row as $key => $val) {
                         $all[$key][] = $val;
                     }
                 } else {
