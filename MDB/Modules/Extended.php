@@ -633,5 +633,34 @@ class MDB_Extended
         }
         return $db->query($query, $types, $result_mode);
     }
+
+
+    // }}}
+    // {{{ implodeArray()
+
+    /**
+     * apply a type to all values of an array and return as a comma seperated string
+     * useful for generating IN statements
+     *
+     * @access public
+     *
+     * @param array $array data array
+     * @param string $type determines type of the field
+     *
+     * @return string comma seperated values
+     */
+    function implodeArray($array, $type = false)
+    {
+        if (!is_array($array) || count($array) == 0) {
+            return 'NULL';
+        }
+        if ($type) {
+            foreach($array as $value) {
+                $return[] = $this->getValue($type, $value);
+            }
+            return implode(', ', $return);
+        }
+        return implode(', ', $array);
+    }
 }
 ?>
