@@ -83,29 +83,6 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
             $this->assertTrue(false, 'Could not connect to manager in setUp');
             exit;
         }
-        $this->fields = array(
-            'user_name',
-            'user_password',
-            'subscribed',
-            'user_id',
-            'quota',
-            'weight',
-            'access_date',
-            'access_time',
-            'approved'
-        );
-        
-        $this->types = array(
-           'text',
-           'text',
-           'boolean',
-           'text',
-           'decimal',
-           'float',
-           'date',
-           'time',
-           'timestamp'
-       );
     }
 
     function tearDown() {
@@ -141,7 +118,7 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
             }
             $this->assertFalse(MDB::isError($result), 'Error creating database');
         } else if ($result->getCode() == MDB_ERROR_UNSUPPORTED) {
-            $this->assertTrue(false, 'Database creation not supported');
+            $this->assertTrue(false, 'Database management not supported');
         }
     }
 
