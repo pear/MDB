@@ -76,7 +76,7 @@
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get column:0 and free the result
-    $array = $db->fetchCol($result, DB_FETCHMODE_DEFAULT, 2);
+    $array = $db->fetchCol($result, 2);
     echo '<br>get column #2 (counting from 0):<br>';
     echo Var_Dump::display($array).'<br>';
     // run the query and get a result handler
@@ -188,7 +188,7 @@
             ),
             MDB_MANAGER_DUMP_STRUCTURE
         )).'<br>';
-        if($manager->debug) {
+        if($manager->options['debug']) {
             echo $manager->debugOutput().'<br>';
         }
         // this is the database definition as an array

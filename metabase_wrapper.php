@@ -604,7 +604,7 @@ function MetabaseFetchResultRow($database, $result, &$row)
 function MetabaseFetchResultColumn($database, $result, &$column)
 {
     global $databases;
-    $result = $databases[$database]->fetchCol($result, DB_FETCHMODE_ORDERED);
+    $result = $databases[$database]->fetchCol($result);
     if (MDB::isError($result)) {
         $databases[$database]->setError('FetchResultColumn', $result->getMessage());
         return(0);
