@@ -410,7 +410,7 @@ class MDB_pgsql extends MDB_Common
     function _doQuery($query)
     {
         if (($result = @pg_Exec($this->connection, $query))) {
-            $this->affected_rows = (isset($this->supported['AffectedRows']) ? @pg_cmdtuples($result) : -1);
+            $this->affected_rows = ($this->support('AffectedRows') ? @pg_cmdtuples($result) : -1);
         } else {
             $error = @pg_errormessage($this->connection);
             return($this->pgsqlRaiseError());

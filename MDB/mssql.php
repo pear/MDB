@@ -210,7 +210,7 @@ class MDB_mssql extends MDB_Common
     function autoCommit($auto_commit)
     {
         $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
-        if (!isset($this->supported['Transactions'])) {
+        if (!$this->support('Transactions')) {
             return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Auto-commit transactions: transactions are not in use'));
         }
@@ -248,7 +248,7 @@ class MDB_mssql extends MDB_Common
     function commit()
     {
         $this->debug("Commit Transaction");
-        if (!isset($this->supported['Transactions'])) {
+        if (!$this->support('Transactions')) {
             return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Commit transactions: transactions are not in use'));
         }
@@ -279,7 +279,7 @@ class MDB_mssql extends MDB_Common
     function rollback()
     {
         $this->debug("Rollback Transaction");
-        if (!isset($this->supported['Transactions'])) {
+        if (!$this->support('Transactions')) {
             return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Rollback transactions: transactions are not in use'));
         }
@@ -346,7 +346,7 @@ class MDB_mssql extends MDB_Common
                 $php_errormsg));
         }
 
-        if(isset($this->supported['Transactions']) && !$this->auto_commit
+        if ($this->support('Transactions') && !$this->auto_commit
             && !$this->_doQuery("BEGIN TRANSACTION"))
         {
             @mssql_close($this->connection);
@@ -374,7 +374,7 @@ class MDB_mssql extends MDB_Common
     function _close()
     {
         if ($this->connection != 0) {
-            if (isset($this->supported['Transactions']) && !$this->auto_commit) {
+            if ($this->support('Transactions') && !$this->auto_commit) {
                 $result = $this->_doQuery("ROLLBACK TRANSACTION");
             }
             @mssql_close($this->connection);

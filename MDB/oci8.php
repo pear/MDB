@@ -1,4 +1,4 @@
-<?php 
+<?php
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
@@ -80,7 +80,7 @@ require_once('MDB/Common.php');
  *
  * @package MDB
  * @category Database
- * @author Lukas Smith <smith@backendmedia.com> 
+ * @author Lukas Smith <smith@backendmedia.com>
  */
 class MDB_oci8 extends MDB_Common {
     var $connection = 0;
@@ -109,7 +109,7 @@ class MDB_oci8 extends MDB_Common {
         $this->MDB_Common();
         $this->phptype = 'oci8';
         $this->dbsyntax = 'oci8';
-        
+
         $this->supported['Sequences'] = 1;
         $this->supported['Indexes'] = 1;
         $this->supported['SummaryFunctions'] = 1;
@@ -121,10 +121,10 @@ class MDB_oci8 extends MDB_Common {
         $this->supported['LOBs'] = 1;
         $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 1;
-        
+
         $this->options['DBAUser'] = FALSE;
         $this->options['DBAPassword'] = FALSE;
-        
+
         $this->errorcode_map = array(
             1 => MDB_ERROR_CONSTRAINT,
             900 => MDB_ERROR_SYNTAX,
@@ -149,8 +149,8 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Get the native error code of the last error (if any) that
      * occured on the current connection.
-     * 
-     * @access public 
+     *
+     * @access public
      * @return int native oci8 error code
      */
     function errorNative($statement = NULL)
@@ -173,11 +173,11 @@ class MDB_oci8 extends MDB_Common {
      * This method is used to communicate an error and invoke error
      * callbacks etc.  Basically a wrapper for MDB::raiseError
      * that checks for native error msgs.
-     * 
+     *
      * @param integer $errno error code
      * @param string  $message userinfo message
      * @return object a PEAR error object
-     * @access public 
+     * @access public
      * @see PEAR_Error
      */
     function oci8RaiseError($errno = NULL, $message = NULL)
@@ -204,7 +204,7 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Define whether database changes done on the database be automatically
      * committed. This function may also implicitly start or end a transaction.
-     * 
+     *
      * @param boolean $auto_commit flag that indicates whether the database
      *                                 changes should be committed right after
      *                                 executing every query statement. If this
@@ -212,7 +212,7 @@ class MDB_oci8 extends MDB_Common {
      *                                 started. Otherwise, if a transaction is
      *                                 in progress it is ended by committing any
      *                                 database changes that were pending.
-     * @access public 
+     * @access public
      * @return mixed MDB_OK on success, a MDB error on failure
      */
     function autoCommit($auto_commit)
@@ -237,14 +237,14 @@ class MDB_oci8 extends MDB_Common {
      * progress. This function may only be called when auto-committing is
      * disabled, otherwise it will fail. Therefore, a new transaction is
      * implicitly started after committing the pending changes.
-     * 
-     * @access public 
+     *
+     * @access public
      * @return mixed MDB_OK on success, a MDB error on failure
      */
     function commit()
     {
         $this->debug('Commit Transaction');
-        if (!isset($this->supported['Transactions'])) {
+        if (!$this->support('Transactions')) {
             return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Commit transactions: transactions are not in use'));
         }
@@ -270,8 +270,8 @@ class MDB_oci8 extends MDB_Common {
      * progress. This function may only be called when auto-committing is
      * disabled, otherwise it will fail. Therefore, a new transaction is
      * implicitly started after canceling the pending changes.
-     * 
-     * @access public 
+     *
+     * @access public
      * @return mixed MDB_OK on success, a MDB error on failure
      */
     function rollback()
@@ -296,7 +296,7 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * Connect to the database
-     * 
+     *
      * @return TRUE on success, MDB_Error on failure
      */
     function connect($user = NULL , $password = NULL, $persistent = NULL)
@@ -368,8 +368,8 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * all the RDBMS specific things needed close a DB connection
-     * 
-     * @access private 
+     *
+     * @access private
      */
     function _close()
     {
@@ -386,7 +386,7 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * all the RDBMS specific things needed close a DB connection
-     * 
+     *
      * @access private
      */
     function _doQuery($query, $first = 0, $limit = 0, $prepared_query = 0)
@@ -547,8 +547,8 @@ class MDB_oci8 extends MDB_Common {
 
    /**
      * Send a query to the database and return any results
-     * 
-     * @access public 
+     *
+     * @access public
      * @param string $query the SQL query
      * @param array $types array that contains the types of the columns in
      *                         the result set
@@ -633,7 +633,7 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * Retrieve the names of columns returned by the DBMS in a query result.
-     * 
+     *
      * @param resource $result result identifier
      * @return mixed an associative array variable
      *                               that will hold the names of columns.The
@@ -643,9 +643,9 @@ class MDB_oci8 extends MDB_Common {
      *                               from 0. Some DBMS may not return any
      *                               columns when the result set does not
      *                               contain any rows.
-     * 
+     *
      *                               a MDB error on failure
-     * @access public 
+     * @access public
      */
     function getColumnNames($result)
     {
@@ -673,7 +673,7 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * Count the number of columns returned by the DBMS in a query result.
-     * 
+     *
      * @param resource $result result identifier
      * @return mixed integer value with the number of columns, a MDB error
      *      on failure
@@ -694,10 +694,10 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * check if the end of the result set has been reached
-     * 
+     *
      * @param resource $result result identifier
      * @return mixed TRUE or FALSE on sucess, a MDB error on failure
-     * @access public 
+     * @access public
      */
     function endOfResult($result)
     {
@@ -731,10 +731,10 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * fetch a lob value from a result set
-     * 
+     *
      * @param int $lob handle to a lob created by the createLob() function
      * @return mixed MDB_OK on success, a MDB error on failure
-     * @access private 
+     * @access private
      */
     function _retrieveLob($lob)
     {
@@ -765,12 +765,12 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * fetch value from a result set
-     * 
+     *
      * @param resource $result result identifier
      * @param int $rownum number of the row where the data can be found
      * @param int $colnum field number where the data can be found
      * @return mixed string on success, a MDB error on failure
-     * @access public 
+     * @access public
      */
     function fetch($result, $rownum, $colnum)
     {
@@ -790,13 +790,13 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * fetch a clob value from a result set
-     * 
+     *
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
      * @return mixed content of the specified data cell, a MDB error on failure,
      *                a MDB error on failure
-     * @access public 
+     * @access public
      */
     function fetchClob($result, $row, $field)
     {
@@ -807,12 +807,12 @@ class MDB_oci8 extends MDB_Common {
     // {{{ fetchBlob()
     /**
      * fetch a blob value from a result set
-     * 
+     *
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
      * @return mixed content of the specified data cell, a MDB error on failure
-     * @access public 
+     * @access public
      */
     function fetchBlob($result, $row, $field)
     {
@@ -825,12 +825,12 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Determine whether the value of a query result located in given row and
      *    field is a NULL.
-     * 
+     *
      * @param resource $result result identifier
      * @param int $rownum number of the row where the data can be found
      * @param int $field field number where the data can be found
      * @return mixed TRUE or FALSE on success, a MDB error on failure
-     * @access public 
+     * @access public
      */
     function resultIsNull($result, $rownum, $field)
     {
@@ -846,11 +846,11 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * convert a value to a RDBMS indepdenant MDB type
-     * 
+     *
      * @param mixed $value value to be converted
      * @param int $type constant that specifies which type to convert to
      * @return mixed converted value
-     * @access public 
+     * @access public
      */
     function convertResult($value, $type)
     {
@@ -869,10 +869,10 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * returns the number of rows in a result object
-     * 
+     *
      * @param ressource $result a valid result ressouce pointer
      * @return mixed MDB_Error or the number of rows
-     * @access public 
+     * @access public
      */
     function numRows($result)
     {
@@ -918,10 +918,10 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * Free the internal resources associated with $result.
-     * 
+     *
      * @param  $result result identifier
      * @return bool TRUE on success, FALSE if $result is invalid
-     * @access public 
+     * @access public
      */
     function freeResult($result)
     {
@@ -959,13 +959,13 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * Obtain DBMS specific native datatype as a string
-     * 
+     *
      * @param string $field associative array with the name of the properties
      *        of the field being declared as array indexes. Currently, the types
      *        of supported field properties are as follows:
-     * 
+     *
      * @return string with the correct RDBMS native type
-     * @access public 
+     * @access public
      */
     function getTypeDeclaration($field)
     {
@@ -996,26 +996,26 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Obtain DBMS specific SQL code portion needed to declare an integer type
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *        of the field being declared as array indexes. Id
      * ently, the types
      *        of supported field properties are as follows:
-     * 
+     *
      *        unsigned
      *            Boolean flag that indicates whether the field should be
      *            declared as unsigned integer if possible.
-     * 
+     *
      *        default
      *            Integer value to be used as default for this field.
-     * 
+     *
      *        notnull
      *            Boolean flag that indicates whether this field is constrained
      *            to not be set to NULL.
      * @return string DBMS specific SQL code portion that should be used to
      *        declare the specified field.
-     * @access public 
+     * @access public
      */
     function getIntegerDeclaration($name, $field)
     {
@@ -1032,26 +1032,26 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Obtain DBMS specific SQL code portion needed to declare an text type
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *        of the field being declared as array indexes. Currently, the types
      *        of supported field properties are as follows:
-     * 
+     *
      *        length
      *            Integer value that determines the maximum length of the text
      *            field. If this argument is missing the field should be
      *            declared to have the longest length allowed by the DBMS.
-     * 
+     *
      *        default
      *            Text value to be used as default for this field.
-     * 
+     *
      *        notnull
      *            Boolean flag that indicates whether this field is constrained
      *            to not be set to NULL.
      * @return string DBMS specific SQL code portion that should be used to
      *        declare the specified field.
-     * @access public 
+     * @access public
      */
     function getTextDeclaration($name, $field)
     {
@@ -1066,23 +1066,23 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
      * large object type field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *        of the field being declared as array indexes. Currently, the types
      *        of supported field properties are as follows:
-     * 
+     *
      *        length
      *            Integer value that determines the maximum length of the large
      *            object field. If this argument is missing the field should be
      *            declared to have the longest length allowed by the DBMS.
-     * 
+     *
      *        notnull
      *            Boolean flag that indicates whether this field is constrained
      *            to not be set to NULL.
      * @return string DBMS specific SQL code portion that should be used to
      *        declare the specified field.
-     * @access public 
+     * @access public
      */
     function getClobDeclaration($name, $field)
     {
@@ -1095,23 +1095,23 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
      * object type field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *        of the field being declared as array indexes. Currently, the types
      *        of supported field properties are as follows:
-     * 
+     *
      *        length
      *            Integer value that determines the maximum length of the large
      *            object field. If this argument is missing the field should be
      *            declared to have the longest length allowed by the DBMS.
-     * 
+     *
      *        notnull
      *            Boolean flag that indicates whether this field is constrained
      *            to not be set to NULL.
      * @return string DBMS specific SQL code portion that should be used to
      *        declare the specified field.
-     * @access public 
+     * @access public
      */
     function getBlobDeclaration($name, $field)
     {
@@ -1124,21 +1124,21 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Obtain DBMS specific SQL code portion needed to declare a boolean type
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *        of the field being declared as array indexes. Currently, the types
      *        of supported field properties are as follows:
-     * 
+     *
      *        default
      *            Boolean value to be used as default for this field.
-     * 
+     *
      *        notnullL
      *            Boolean flag that indicates whether this field is constrained
      *            to not be set to NULL.
      * @return string DBMS specific SQL code portion that should be used to
      *        declare the specified field.
-     * @access public 
+     * @access public
      */
     function getBooleanDeclaration($name, $field)
     {
@@ -1154,21 +1154,21 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Obtain DBMS specific SQL code portion needed to declare a date type
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *        of the field being declared as array indexes. Currently, the types
      *        of supported field properties are as follows:
-     * 
+     *
      *        default
      *            Date value to be used as default for this field.
-     * 
+     *
      *        notnull
      *            Boolean flag that indicates whether this field is constrained
      *            to not be set to NULL.
      * @return string DBMS specific SQL code portion that should be used to
      *        declare the specified field.
-     * @access public 
+     * @access public
      */
     function getDateDeclaration($name, $field)
     {
@@ -1184,21 +1184,21 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Obtain DBMS specific SQL code portion needed to declare a timestamp
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *        of the field being declared as array indexes. Currently, the types
      *        of supported field properties are as follows:
-     * 
+     *
      *        default
      *            Timestamp value to be used as default for this field.
-     * 
+     *
      *        notnull
      *            Boolean flag that indicates whether this field is constrained
      *            to not be set to NULL.
      * @return string DBMS specific SQL code portion that should be used to
      *        declare the specified field.
-     * @access public 
+     * @access public
      */
     function getTimestampDeclaration($name, $field)
     {
@@ -1214,21 +1214,21 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Obtain DBMS specific SQL code portion needed to declare a time
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *        of the field being declared as array indexes. Currently, the types
      *        of supported field properties are as follows:
-     * 
+     *
      *        default
      *            Time value to be used as default for this field.
-     * 
+     *
      *        notnull
      *            Boolean flag that indicates whether this field is constrained
      *            to not be set to NULL.
      * @return string DBMS specific SQL code portion that should be used to
      *        declare the specified field.
-     * @access public 
+     * @access public
      */
     function getTimeDeclaration($name, $field)
     {
@@ -1244,21 +1244,21 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Obtain DBMS specific SQL code portion needed to declare a float type
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *        of the field being declared as array indexes. Currently, the types
      *        of supported field properties are as follows:
-     * 
+     *
      *        default
      *            Float value to be used as default for this field.
-     * 
+     *
      *        notnull
      *            Boolean flag that indicates whether this field is constrained
      *            to not be set to NULL.
      * @return string DBMS specific SQL code portion that should be used to
      *        declare the specified field.
-     * @access public 
+     * @access public
      */
     function getFloatDeclaration($name, $field)
     {
@@ -1274,21 +1274,21 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Obtain DBMS specific SQL code portion needed to declare a decimal type
      * field to be used in statements like CREATE TABLE.
-     * 
+     *
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *        of the field being declared as array indexes. Currently, the types
      *        of supported field properties are as follows:
-     * 
+     *
      *        default
      *            Decimal value to be used as default for this field.
-     * 
+     *
      *        notnull
      *            Boolean flag that indicates whether this field is constrained
      *            to not be set to NULL.
      * @return string DBMS specific SQL code portion that should be used to
      *        declare the specified field.
-     * @access public 
+     * @access public
      */
     function getDecimalDeclaration($name, $field)
     {
@@ -1304,13 +1304,13 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
-     * 
+     *
      * @param resource $prepared_query query handle from prepare()
-     * @param  $parameter 
-     * @param  $clob 
+     * @param  $parameter
+     * @param  $clob
      * @return string text string that represents the given argument value in
      *        a DBMS specific format.
-     * @access public 
+     * @access public
      */
     function getClobValue($prepared_query, $parameter, $clob)
     {
@@ -1322,11 +1322,11 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * free a character large object
-     * 
+     *
      * @param resource $prepared_query query handle from prepare()
-     * @param string $blob 
-     * @param string $value 
-     * @access public 
+     * @param string $blob
+     * @param string $value
+     * @access public
      */
     function freeClobValue($prepared_query, $clob, &$value)
     {
@@ -1339,13 +1339,13 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
-     * 
+     *
      * @param resource $prepared_query query handle from prepare()
-     * @param  $parameter 
-     * @param  $blob 
+     * @param  $parameter
+     * @param  $blob
      * @return string text string that represents the given argument value in
      *        a DBMS specific format.
-     * @access public 
+     * @access public
      */
     function getBlobValue($prepared_query, $parameter, $blob)
     {
@@ -1357,11 +1357,11 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * free a binary large object
-     * 
+     *
      * @param resource $prepared_query query handle from prepare()
-     * @param string $blob 
-     * @param string $value 
-     * @access public 
+     * @param string $blob
+     * @param string $value
+     * @access public
      */
     function freeBlobValue($prepared_query, $blob, &$value)
     {
@@ -1374,11 +1374,11 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
-     * 
+     *
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *        a DBMS specific format.
-     * @access public 
+     * @access public
      */
     function getDateValue($value)
     {
@@ -1391,11 +1391,11 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
-     * 
+     *
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *        a DBMS specific format.
-     * @access public 
+     * @access public
      */
     function getTimestampValue($value)
     {
@@ -1408,11 +1408,11 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      *        compose query statements.
-     * 
+     *
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *        a DBMS specific format.
-     * @access public 
+     * @access public
      */
     function getTimeValue($value)
     {
@@ -1425,11 +1425,11 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
-     * 
+     *
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *        a DBMS specific format.
-     * @access public 
+     * @access public
      */
     function getFloatValue($value)
     {
@@ -1442,11 +1442,11 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
-     * 
+     *
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *        a DBMS specific format.
-     * @access public 
+     * @access public
      */
     function getDecimalValue($value)
     {
@@ -1458,13 +1458,13 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * returns the next free id of a sequence
-     * 
+     *
      * @param string $seq_name name of the sequence
      * @param boolean $ondemand when TRUE the seqence is
      *                           automatic created, if it
      *                           not exists
      * @return mixed MDB_Error or id
-     * @access public 
+     * @access public
      */
     function nextId($seq_name, $ondemand = TRUE)
     {
@@ -1628,10 +1628,10 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Move the internal oracle result pointer to the next available result
      * Currently not supported
-     * 
+     *
      * @param $result a oracle valid result resource
      * @return TRUE if a result is available otherwise return FALSE
-     * @access public 
+     * @access public
      */
     function nextResult($result)
     {
@@ -1643,11 +1643,11 @@ class MDB_oci8 extends MDB_Common {
 
     /**
      * returns meta data about the result set
-     * 
+     *
      * @param resource $result result identifier
      * @param mixed $mode depends on implementation
      * @return array an nested array, or a MDB error
-     * @access public 
+     * @access public
      */
     function tableInfo($result, $mode = NULL)
     {
@@ -1655,7 +1655,7 @@ class MDB_oci8 extends MDB_Common {
         $res = array();
         /**
          * depending on $mode, metadata returns the following values:
-         * 
+         *
          * - mode is FALSE (default):
          * $res[]:
          *    [0]['table']       table name
@@ -1665,7 +1665,7 @@ class MDB_oci8 extends MDB_Common {
          *    [0]['nullable']    field can be NULL (boolean)
          *    [0]['format']      field precision if NUMBER
          *    [0]['default']     field default value
-         * 
+         *
          * - mode is MDB_TABLEINFO_ORDER
          * $res[]:
          *    ['num_fields']     number of fields
@@ -1679,20 +1679,20 @@ class MDB_oci8 extends MDB_Common {
          *    ['order'][field name] index of field named 'field name'
          *    The last one is used, if you have a field name, but no index.
          *    Test:  if (isset($result['order']['myfield'])) { ...
-         * 
+         *
          * - mode is MDB_TABLEINFO_ORDERTABLE
          *     the same as above. but additionally
          *    ['ordertable'][table name][field name] index of field
          *       named 'field name'
-         * 
+         *
          *       this is, because if you have fields from different
          *       tables with the same field name * they override each
          *       other with MDB_TABLEINFO_ORDER
-         * 
+         *
          *       you can combine DB_TABLEINFO_ORDER and
          *       MDB_TABLEINFO_ORDERTABLE with MDB_TABLEINFO_ORDER |
          *       MDB_TABLEINFO_ORDERTABLE * or with MDB_TABLEINFO_FULL
-         */ 
+         */
         // if $result is a string, we collect info for a table only
         if (is_string($result)) {
             if (MDB::isError($connect = $this->connect())) {

@@ -72,7 +72,7 @@ class MDB_fbsql extends MDB_Common
 
     var $escape_quotes = "'";
     var $decimal_factor = 1.0;
-    
+
     var $max_text_length = 32768;
 
     var $highest_fetched_row = array();
@@ -89,7 +89,7 @@ class MDB_fbsql extends MDB_Common
         $this->MDB_Common();
         $this->phptype = 'fbsql';
         $this->dbsyntax = 'fbsql';
-        
+
         $this->supported['Sequences'] = 1;
         $this->supported['Indexes'] = 1;
         $this->supported['AffectedRows'] = 1;
@@ -100,9 +100,9 @@ class MDB_fbsql extends MDB_Common
         $this->supported['LOBs'] = 1;
         $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 1;
-        
+
         $this->decimal_factor = pow(10.0, $this->decimal_places);
-        
+
         $this->errorcode_map = array(
             1004 => MDB_ERROR_CANNOT_CREATE,
             1005 => MDB_ERROR_CANNOT_CREATE,
@@ -191,7 +191,7 @@ class MDB_fbsql extends MDB_Common
     function autoCommit($auto_commit)
     {
         $this->debug('AutoCommit: '.($auto_commit ? 'On' : 'Off'));
-        if (!isset($this->supported['Transactions'])) {
+        if (!$this->support('Transactions')) {
             return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Auto-commit transactions: transactions are not in use'));
         }
@@ -233,7 +233,7 @@ class MDB_fbsql extends MDB_Common
     function commit()
     {
         $this->debug('Commit Transaction');
-        if (!isset($this->supported['Transactions'])) {
+        if (!$this->support('Transactions')) {
             return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Commit transactions: transactions are not in use'));
         }
@@ -260,7 +260,7 @@ class MDB_fbsql extends MDB_Common
     function rollback()
     {
         $this->debug('Rollback Transaction');
-        if (!isset($this->supported['Transactions'])) {
+        if (!$this->support('Transactions')) {
             return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Rollback transactions: transactions are not in use'));
         }
@@ -316,7 +316,7 @@ class MDB_fbsql extends MDB_Common
                 $php_errormsg));
         }
 
-        if (isset($this->supported['Transactions']) && !$this->auto_commit) {
+        if ($this->support('Transactions') && !$this->auto_commit) {
             if (!@fbsql_query('SET AUTOCOMMIT FALSE;', $this->connection)) {
                 @fbsql_close($this->connection);
                 $this->connection = 0;
@@ -344,7 +344,7 @@ class MDB_fbsql extends MDB_Common
     function _close()
     {
         if ($this->connection != 0) {
-            if (isset($this->supported['Transactions']) && !$this->auto_commit) {
+            if ($this->support('Transactions') && !$this->auto_commit) {
                 $result = $this->autoCommit(TRUE);
             }
             @fbsql_close($this->connection);
@@ -1084,11 +1084,11 @@ class MDB_fbsql extends MDB_Common
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
-     * 
+     *
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *        a DBMS specific format.
-     * @access public 
+     * @access public
      */
     function getDateValue($value)
     {
@@ -1101,11 +1101,11 @@ class MDB_fbsql extends MDB_Common
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
-     * 
+     *
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *        a DBMS specific format.
-     * @access public 
+     * @access public
      */
     function getTimestampValue($value)
     {
@@ -1118,11 +1118,11 @@ class MDB_fbsql extends MDB_Common
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      *        compose query statements.
-     * 
+     *
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *        a DBMS specific format.
-     * @access public 
+     * @access public
      */
     function getTimeValue($value)
     {
