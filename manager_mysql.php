@@ -53,6 +53,65 @@ if(!defined("MDB_MANAGER_MYSQL_INCLUDED"))
 
 class MDB_manager_mysql_class extends MDB_manager_common
 {
+    var $verified_table_types = array();
+
+    // }}}
+    // {{{ _verifyTransactionalTableType()
+
+    /**
+     * verify that chosen transactional table hanlder is available in the database
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string $table_type name of the table handler
+     * 
+     * @access private
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
+    function _verifyTransactionalTableType(&$db, $table_type)
+    {
+        switch(strtoupper($table_type)) {
+            case "BERKELEYDB":
+            case "BDB":
+                $check = "have_bdb";
+                break;
+            case "INNODB":
+                $check = "have_innobase";
+                break;
+            case "GEMINI":
+                $check = "have_gemini";
+                break;
+            case "HEAP":
+            case "ISAM":
+            case "MERGE":
+            case "MRG_MYISAM":
+            case "MYISAM":
+            case "":
+                return(DB_OK);
+            default:
+                return($db->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Verify transactional table",$table_type." is not a supported table type"));
+        }
+        if(!$db->connect()) {
+            return($db->raiseError());
+        }
+        if(isset($this->verified_table_types[$table_type])
+            && $this->verified_table_types[$table_type] == $db->connection)
+        {
+            return(DB_OK);
+        }
+        if(MDB::isError($has = $db->queryAll("SHOW VARIABLES LIKE '$check'", NULL, DB_FETCHMODE_ORDERED))) {
+            return($db->raiseError());
+        }
+        if(count($has) == 0) {
+            return($db->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Verify transactional table","could not tell if ".$table_type." is a supported table type"));
+        }
+        if(strcmp($has[0][1], "YES")) {
+            return($db->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Verify transactional table",$table_type." is not a supported table type by this MySQL database server"));
+        }
+        $this->verified_table_types[$table_type] = $db->connection;
+        return (DB_OK);
+    }
+
     // }}}
     // {{{ createDatabase()
 
@@ -146,13 +205,19 @@ class MDB_manager_mysql_class extends MDB_manager_common
         if (count($fields) == 0) {
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'no fields specified for table "'.$name.'"');
         }
-        if (MDB::isError($query_fields = $this->getFieldList($db, $fields))) {
+        if(MDB::isError($verify = $this->_verifyTransactionalTableType($db, $db->default_table_type))) {
+            return($verify);
+        }
+        if (MDB::isError($query_fields = $this->getFieldDeclarationList($db, $fields))) {
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'unkown error');
         }
-        if (isset($db->supported["Transactions"])) {
+        if (isset($db->supported["Transactions"])
+            && $db->default_table_type=="BDB")
+        {
             $query_fields .= ", dummy_primary_key INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (dummy_primary_key)";
         }
-        $query = "CREATE TABLE $name ($query_fields)".(isset($db->supported["Transactions"]) ? " TYPE = BDB" : "");
+        $query = "CREATE TABLE $name ($query_fields)".(strlen($db->default_table_type) ? " TYPE=".$db->default_table_type : "");
+
         return ($db->query($query));
     }
 
@@ -802,6 +867,9 @@ class MDB_manager_mysql_class extends MDB_manager_common
      */ 
     function createSequence(&$db, $seq_name, $start)
     {
+        if(MDB::isError($verify = $this->_verifyTransactionalTableType($db,$db->default_table_type))) {
+            return($verify);
+        }
         $sequence_name = $db->getSequenceName($seq_name);
         $res = $db->query("CREATE TABLE $sequence_name
             (sequence INT DEFAULT 0 NOT NULL AUTO_INCREMENT, PRIMARY KEY (sequence))");
@@ -910,5 +978,4 @@ class MDB_manager_mysql_class extends MDB_manager_common
 }
 
 }
-
 ?>
