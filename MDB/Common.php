@@ -2708,11 +2708,11 @@ class MDB_Common extends PEAR
      */
     function resultIsNull($result, $row, $field)
     {
-        $res = $this->fetch($result, $row, $field);
-        if (MDB::isError($res)) {
-            return($res);
+        $result = $this->fetch($result, $row, $field);
+        if (MDB::isError($result)) {
+            return($result);
         }
-        return(!isset($res));
+        return(!isset($result));
     }
 
     // }}}
@@ -3569,7 +3569,7 @@ class MDB_Common extends PEAR
         }
         if (MDB::isError($this->endOfResult($result))) {
             $this->freeResult($result);
-            $res = $this->raiseError(MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
+            $result = $this->raiseError(MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
                 'Fetch field: result set is empty');
         }
         if ($rownum == NULL) {
@@ -3587,19 +3587,19 @@ class MDB_Common extends PEAR
         }
         for($column = 0; $column < $columns; $column++) {
             if (!$this->resultIsNull($result, $rownum, $column)) {
-                $res = $this->fetch($result, $rownum, $column);
-                if (MDB::isError($res)) {
-                    if ($res->getMessage() == '') {
+                $result = $this->fetch($result, $rownum, $column);
+                if (MDB::isError($result)) {
+                    if ($result->getMessage() == '') {
                         if ($this->options['autofree']) {
                             $this->freeResult($result);
                         }
                         return(NULL);
                     } else {
-                        return($res);
+                        return($result);
                     }
                 }
             }
-            $array[$column] = $res;
+            $array[$column] = $result;
         }
         if (isset($this->result_types[$result])) {
             $array = $this->convertResultRow($result, $array);
@@ -3619,14 +3619,17 @@ class MDB_Common extends PEAR
      */
     function fetchOne($result)
     {
-        $res = $this->fetchInto($result, MDB_FETCHMODE_ORDERED);
-        if (!$this->options['autofree'] || $res != NULL) {
+        $row = $this->fetchInto($result, MDB_FETCHMODE_ORDERED);
+        if (!$this->options['autofree'] || $row != NULL) {
             $this->freeResult($result);
         }
-        if (MDB::isError($res)) {
-            return($res);
+        if (MDB::isError($result)) {
+            return($result);
         }
-        return($res[0]);
+        if (is_array($row)) {
+            return($row[0]);
+        }
+        return(NULL);
     }
 
     // }}}
@@ -3643,11 +3646,11 @@ class MDB_Common extends PEAR
      */
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        $res = $this->fetchInto($result, $fetchmode, $rownum);
-        if (!$this->options['autofree'] || $res != NULL) {
+        $row = $this->fetchInto($result, $fetchmode, $rownum);
+        if (!$this->options['autofree'] || $row != NULL) {
             $this->freeResult($result);
         }
-        return($res);
+        return($row);
     }
 
     // }}}
@@ -3663,27 +3666,27 @@ class MDB_Common extends PEAR
      */
     function fetchCol($result, $colnum = 0)
     {
-        $fetchmode = is_int($colnum) ? MDB_FETCHMODE_ORDERED : MDB_FETCHMODE_ASSOC;
+        $fetchmode = is_numeric($colnum) ? MDB_FETCHMODE_ORDERED : MDB_FETCHMODE_ASSOC;
         $column = array();
-        $res = $this->fetchInto($result, $fetchmode, 0);
-        if(is_array($res)) {
-            if(isset($res[$colnum])) {
-                $column[] = $res[$colnum];
+        $row = $this->fetchInto($result, $fetchmode, 0);
+        if (is_array($row)) {
+            if (isset($row[$colnum])) {
+                $column[] = $row[$colnum];
             } else {
                 $this->freeResult($result);
                 return($this->raiseError(MDB_ERROR_TRUNCATED));
             }
         }
-        $row = 1;
-        while (is_array($res = $this->fetchInto($result, $fetchmode, $row))) {
-            $column[] = $res[$colnum];
-            ++$row;
+        $rownum = 1;
+        while (is_array($row = $this->fetchInto($result, $fetchmode, $rownum))) {
+            $column[] = $row[$colnum];
+            ++$rownum;
         }
         if (!$this->options['autofree']) {
             $this->freeResult($result);
         }
-        if (MDB::isError($res)) {
-            return($res);
+        if (MDB::isError($row)) {
+            return($row);
         }
         return($column);
     }
@@ -3720,40 +3723,40 @@ class MDB_Common extends PEAR
             }
         }
         $all = array();
-        $row = 0;
-        while (is_array($res = $this->fetchInto($result, $fetchmode, $row))) {
+        $rownum = 0;
+        while (is_array($row = $this->fetchInto($result, $fetchmode, $rownum))) {
             if ($rekey) {
                 if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-                    reset($res);
-                    $key = current($res);
-                    unset($res[key($res)]);
+                    reset($result);
+                    $key = current($row);
+                    unset($result[key($row)]);
                 } else {
-                    $key = array_shift($res);
+                    $key = array_shift($row);
                 }
-                if (!$force_array && count($res) == 1) {
-                    $res = array_shift($res);
+                if (!$force_array && count($row) == 1) {
+                    $result = array_shift($row);
                 }
                 if ($group) {
-                    $all[$key][] = $res;
+                    $all[$key][] = $row;
                 } else {
-                    $all[$key] = $res;
+                    $all[$key] = $row;
                 }
             } else {
                 if ($fetchmode & MDB_FETCHMODE_FLIPPED) {
-                    foreach ($res as $key => $val) {
+                    foreach ($result as $key => $val) {
                         $all[$key][] = $val;
                     }
                 } else {
-                   $all[] = $res;
+                   $all[] = $row;
                 }
             }
-            ++$row;
+            ++$rownum;
         }
         if (!$this->options['autofree']) {
             $this->freeResult($result);
         }
-        if (MDB::isError($res)) {
-            return($res);
+        if (MDB::isError($row)) {
+            return($row);
         }
         return($all);
     }
