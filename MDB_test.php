@@ -61,7 +61,7 @@
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get column:0 and free the result
-    $db->fetchColumn($result, $array);
+    $db->fetchCol($result, $array);
     echo "<br>column:<br>";
     echo Var_Dump::display($array)."<br>";
     // run the query and get a result handler
