@@ -1705,7 +1705,8 @@ class MDB_manager extends PEAR
                $this->database_definition['TABLES'][$table_name]['INDEXES'][$index_name] = $definition;
             }
             // ensure that all fields that have an index on them are set to not null
-            if (is_array($this->database_definition['TABLES'][$table_name]['INDEXES'])
+            if (isset($this->database_definition['TABLES'][$table_name]['INDEXES'])
+                && is_array($this->database_definition['TABLES'][$table_name]['INDEXES'])
                 && count($this->database_definition['TABLES'][$table_name]['INDEXES']) > 0)
             {
                 foreach($this->database_definition['TABLES'][$table_name]['INDEXES'] as $index_check_null) {
@@ -1719,16 +1720,16 @@ class MDB_manager extends PEAR
                 && count($this->database_definition['TABLES'][$table_name]['FIELDS']) > 0)
             {
                 foreach($this->database_definition['TABLES'][$table_name]['FIELDS'] as $field_set_default_name => $field_set_default) {
-                    if($field_set_default['notnull'] && !isset($field_set_default['default'])) {
+                    if(isset($field_set_default['notnull']) && $field_set_default['notnull'] && !isset($field_set_default['default'])) {
                         if(isset($this->default_values[$field_set_default['type']])) {
                             $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_set_default_name]['default'] = $this->default_values[$field_set_default['type']];
                         } else {
                             $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_set_default_name]['default'] = 0;
                         }
                     }
-                    if(is_array($field_set_default['CHOICES'])) {
+                    if(isset($field_set_default['CHOICES']) && is_array($field_set_default['CHOICES'])) {
                         foreach($field_set_default['CHOICES'] as $field_choices_set_default_name => $field_choices_set_default) {
-                            if($field_choices_set_default['notnull'] && !isset($field_choices_set_default['default'])) {
+                            if(isset($field_choices_set_default['notnull']) && $field_choices_set_default['notnull'] && !isset($field_choices_set_default['default'])) {
                                 if(isset($this->default_values[$field_choices_set_default['type']])) {
                                     $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_set_default_name]['CHOICES']
                                         [$field_choices_set_default_name]['default'] = $this->default_values[$field_choices_set_default['type']];
@@ -1938,12 +1939,16 @@ class MDB_manager extends PEAR
                             $buffer .= ("$eol  </initialization>$eol");
                         }
                     } else {
+                        $types = array();
+                        foreach($table['FIELDS'] as $field) {
+                            $types[] = $field['type'];
+                        }
                         $query = 'SELECT '.implode(',',array_keys($table['FIELDS']))." FROM $table_name";
-                        $result = $this->database->query($query);
+                        $result = $this->database->queryAll($query, $types);
                         if (MDB::isError($result)) {
                             return $result;
                         }
-                        $rows = $this->database->numRows($result);
+                        $rows = count($result);
                         if ($rows > 0) {
                             $buffer = ("$eol  <initialization>$eol");
                             if ($output) {
@@ -1954,7 +1959,7 @@ class MDB_manager extends PEAR
                             
                             for($row = 0; $row < $rows; $row++) {
                                 $buffer = ("$eol   <insert>$eol");
-                                $values = $this->database->fetchInto($result, MDB_FETCHMODE_ASSOC);
+                                $values = $result[$row];
                                 if(!is_array($values)) {
                                     break;
                                 } else {
@@ -1981,7 +1986,6 @@ class MDB_manager extends PEAR
                             $buffer = '';
                         }
                     }
-                    $this->database->freeResult($result);
                 }
                 $buffer .= ("$eol </table>$eol");
                 if ($output) {
