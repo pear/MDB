@@ -98,7 +98,7 @@ class MDB_mysql extends MDB_common
             return ($this->raiseError(DB_ERROR_UNSUPPORTED));
         }
         
-        @ini_set('track_errors', true);
+        @ini_set('track_errors', TRUE);
         $this->connection = @$function(
             $this->host.(!strcmp($port,"") ? "" : ":".$port), 
             $this->user, $this->password);
@@ -146,14 +146,17 @@ class MDB_mysql extends MDB_common
             if (isset($this->supported["Transactions"]) && !$this->auto_commit) {
                 $result = $this->autoCommitTransactions(1);
             }
-            mysql_Close($this->connection);
+            mysql_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
             
             // XXX needed: ?
-            if (isset($result) && MDB::isError($result))
+            if (isset($result) && MDB::isError($result)) {
                 return $result;
+            }
+            return TRUE;
         }
+        return FALSE;
     }
 
     function query($query)
@@ -179,7 +182,7 @@ class MDB_mysql extends MDB_common
         }
         if (($select = ($query_string == "select" || $query_string == "show")) && $limit>0) {
             $query.=" LIMIT $first,$limit";
-}
+        }
         if (mysql_select_db($this->database_name, $this->connection)
             && ($result = mysql_query($query, $this->connection)))
         {
@@ -192,7 +195,10 @@ class MDB_mysql extends MDB_common
             //return ($this->setError("Query",mysql_error($this->connection)));
             return $this->mysqlRaiseError(DB_ERROR);
         }
-        return ($result);
+        if (is_resource($result)) {
+            return $result;
+        }
+        return DB_OK;
     }
 
     function replace($table, &$fields)
@@ -273,7 +279,7 @@ class MDB_mysql extends MDB_common
     {
         $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
         $res = mysql_result($result, $row, $field);
-        if (!$res && $res != null) {
+        if (!$res && $res != NULL) {
             $errno = @mysql_errno($this->connection);
             if($errno) {
                 return $this->mysqlRaiseError($errno);
@@ -285,11 +291,11 @@ class MDB_mysql extends MDB_common
     // renamed for PEAR
     // used to be : fetchResultArray
     // added $fetchmode
-    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $row = null)
+    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $row = NULL)
     {
-        if ($row !== null) {
+        if ($row !== NULL) {
             if (!@mysql_data_seek($result, $row)) {
-                return null;
+                return NULL;
             }
         }
         $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
@@ -304,7 +310,7 @@ class MDB_mysql extends MDB_common
                 if($this->autofree) {
                     $this->freeResult($result);
                 }
-                return null;
+                return NULL;
             }
             return $this->mysqlRaiseError($errno);
         }
@@ -354,9 +360,15 @@ class MDB_mysql extends MDB_common
 
     function freeResult($result)
     {
-        if(isset($this->highest_fetched_row[$result])) {unset($this->highest_fetched_row[$result]);}
-        if(isset($this->columns[$result])) {unset($this->columns[$result]);}
-        if(isset($this->result_types[$result])) {unset($this->result_types[$result]);}
+        if(isset($this->highest_fetched_row[$result])) {
+            unset($this->highest_fetched_row[$result]);
+        }
+        if(isset($this->columns[$result])) {
+            unset($this->columns[$result]);
+        }
+        if(isset($this->result_types[$result])) {
+            unset($this->result_types[$result]);
+        }
         return (mysql_free_result($result));
     }
 
@@ -525,18 +537,28 @@ class MDB_mysql extends MDB_common
 
     // renamed for PEAR
     // used to be: getSequenceNextValue
-    function nextId($name)
+    function nextId($name, $ondemand = FALSE)
     {
         $sequence_name = $this->sequence_prefix.$name;
         $res = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
         if (MDB::isError($res)) {
-            return $res;
+            $res = $this->queryField("SHOW TABLES WHERE '$sequence_name'", $check);
+            if(MDB::isError($res) && !$check && $ondemand) {
+                $created = $this->createSequence($name);
+                if (MDB::isError($created)) {
+                    return $this->raiseError(DB_ERROR, "", "", 
+                        'Next ID: on demand sequence could not be created');
+                }
+                return $this->nextId($name, FALSE);
+            }
+            return $this->raiseError(DB_ERROR, "", "", 
+                'Next ID: sequence could not be incremented');
         }
         $value = intval(mysql_insert_id());
         $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($res)) {
             // XXX warning or error?
-//            $this->warning = "could delete previous sequence table values";
+            // $this->warning = "could delete previous sequence table values";
             return $this->raiseError(DB_ERROR, "", "", 
                 'Next ID: could delete previous sequence table values');
         }
@@ -549,11 +571,12 @@ class MDB_mysql extends MDB_common
     {
         $sequence_name = $this->sequence_prefix.$name;
         $result = $this->Query("SELECT MAX(sequence) FROM $sequence_name");
-        if (MDB::isError($result))
+        if (MDB::isError($result)) {
             return $result;
-            
+        }
+        
         $value = intval($this->fetch($result,0,0));
-        $this->FreeResult($result);
+        $this->freeResult($result);
         return ($value);
     }
 
@@ -569,20 +592,23 @@ class MDB_mysql extends MDB_common
         }
         if ($this->connection) {
             if ($auto_commit) {
-                $result = $this->Query('COMMIT');
-                if (MDB::isError($result))
+                $result = $this->query('COMMIT');
+                if (MDB::isError($result)) {
                     return $result;
-                $result = $this->Query('SET AUTOCOMMIT = 1');
-                if (MDB::isError($result))
+                }
+                $result = $this->query('SET AUTOCOMMIT = 1');
+                if (MDB::isError($result)) {
                     return $result;
+                }
             } else {
-                $result = $this->Query('SET AUTOCOMMIT = 0');
-                if (MDB::isError($result))
+                $result = $this->query('SET AUTOCOMMIT = 0');
+                if (MDB::isError($result)) {
                     return $result;
+                }
             }
         }
         $this->auto_commit = $auto_commit;
-        return ($this->RegisterTransactionShutdown($auto_commit));
+        return ($this->registerTransactionShutdown($auto_commit));
     }
 
     function commitTransaction()
@@ -616,6 +642,24 @@ class MDB_mysql extends MDB_common
     // ********************
     // new methods for PEAR
     // ********************
+
+    // }}}
+    // {{{ errorNative()
+
+    /**
+     * Get the native error code of the last error (if any) that
+     * occured on the current connection.
+     *
+     * @access public
+     *
+     * @return int native MySQL error code
+     */
+
+    function errorNative()
+    {
+        return mysql_errno($this->connection);
+    }
+
     /**
      * Move the internal mysql result pointer to the next available result
      * Currently not supported
@@ -629,18 +673,18 @@ class MDB_mysql extends MDB_common
      
     function nextResult($result)
     {
-        return false;
+        return FALSE;
     }
 
-    function mysqlRaiseError($errno = null)
+    function mysqlRaiseError($errno = NULL)
     {
-        if ($errno == null) {
+        if ($errno == NULL) {
             $errno = $this->errorCode(mysql_errno($this->connection));
         }
-        return $this->raiseError($errno, null, null, null, @mysql_error($this->connection));
+        return $this->raiseError($errno, NULL, NULL, NULL, @mysql_error($this->connection));
     }
     
-    function tableInfo($result, $mode = null) {
+    function tableInfo($result, $mode = NULL) {
         $count = 0;
         $id     = 0;
         $res  = array();
