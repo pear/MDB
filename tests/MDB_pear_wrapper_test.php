@@ -4,8 +4,8 @@
 // MDB test script for the PEAR DB Wrapper.
 //
 
-    require_once('pear_wrapper.php');
-    require_once('Var_Dump.php');
+    require_once 'MDB/peardb_wrapper.php';
+    require_once 'Var_Dump.php';
 
     // just for kicks you can mess up this part to see some pear error handling
     $user = 'metapear';

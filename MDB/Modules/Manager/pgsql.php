@@ -44,9 +44,7 @@
 //
 // $Id$
 
-
-if (!defined('MDB_MANAGER_PGSQL_INCLUDED')) {
-    define('MDB_MANAGER_PGSQL_INCLUDED', 1);
+require_once 'MDB/Manager/Common.php';
 
 /**
 * MDB MySQL driver for the management extensions
@@ -446,9 +444,6 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             AND c.relname !~ \'^pg_\'';
         return $db->queryCol($sql);
     }
-
-    // }}}
 }
 
-};
 ?>

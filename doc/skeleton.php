@@ -63,7 +63,7 @@
 if (!defined('MDB_XXX_INCLUDED')) {
     define('MDB_XXX_INCLUDED', 1);
 
-require_once (dirname(__FILE__).'/Common.php');
+require_once 'MDB/Common.php';
 
 /**
 * MDB XXX driver

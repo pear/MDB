@@ -45,8 +45,8 @@
 // $Id$
 //
 
-require_once(dirname(__FILE__).'/MDB.php');
-require_once(dirname(__FILE__).'/date.php');
+require_once 'MDB.php';
+require_once 'MDB/Date.php';
 
 /**
 * Wrapper that makes MDB behave like Metabase

@@ -44,10 +44,7 @@
 //
 // $Id$
 
-if (!defined('MDB_PGSQL_INCLUDED')) {
-    define('MDB_PGSQL_INCLUDED', 1);
-
-require_once (dirname(__FILE__).'/common.php');
+require_once 'MDB/Common.php';
 
 /**
 * MDB PostGreSQL driver
@@ -67,10 +64,6 @@ class MDB_pgsql extends MDB_common
     var $escape_quotes = "\\";
     var $decimal_factor = 1.0;
 
-    var $manager_class_name = 'MDB_Manager_pgsql';
-    var $manager_include = 'MDB/Manager/pgsql.php';
-    var $manager_included_constant = 'MDB_MANAGER_PGSQL_INCLUDED';
-
     var $highest_fetchd_row = array();
     var $columns = array();
 
@@ -82,7 +75,6 @@ class MDB_pgsql extends MDB_common
     */
     function MDB_pgsql($dsninfo = NULL, $options = NULL)
     {
-        $options = array_merge(array('seqname_format' => '%s_seq',), $options);
         if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
             return $common_contructor;
         }
@@ -1479,5 +1471,4 @@ class MDB_pgsql extends MDB_common
     }
 }
 
-};
 ?>

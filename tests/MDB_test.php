@@ -6,9 +6,9 @@
 
     // MDB.php doesnt have to be included since manager.php does that
     // manager.php is only necessary for handling xml schema files
-    require_once('manager.php');
+    require_once 'MDB/Manager.php';
     // only including this to output result data
-    require_once('Var_Dump.php');
+    require_once 'Var_Dump.php';
 
     // just for kicks you can mess up this part to see some pear error handling
     $user = 'metapear';
@@ -40,10 +40,10 @@
     // With MDB::isError you can differentiate between an error or
     // a valid connection.
     if (MDB::isError($db)) {
-        die ($db->getMessage());
+        die (__LINE__.$db->getMessage());
     }
 
-    $manager = new MDB_manager;
+    $manager =& new MDB_Manager;
     $input_file = 'metapear_test_db.schema';
     // you can either pass a dsn string, a dsn array or an exisiting db connection
     $manager->connect($db);

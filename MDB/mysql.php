@@ -45,10 +45,7 @@
 // $Id$
 //
 
-if (!defined('MDB_MYSQL_INCLUDED')) {
-    define('MDB_MYSQL_INCLUDED', 1);
-
-require_once (dirname(__FILE__).'/Common.php');
+require_once 'MDB/Common.php';
 
 /**
 * MDB MySQL driver
@@ -71,10 +68,6 @@ class MDB_mysql extends MDB_Common
     var $escape_quotes = "\\";
     var $decimal_factor = 1.0;
 
-    var $manager_class_name = 'MDB_Manager_mysql';
-    var $manager_include = 'MDB/Manager/mysql.php';
-    var $manager_included_constant = 'MDB_MANAGER_MYSQL_INCLUDED';
-
     var $highest_fetched_row = array();
     var $columns = array();
 
@@ -91,10 +84,10 @@ class MDB_mysql extends MDB_Common
     */
     function MDB_mysql($dsninfo = NULL, $options = NULL)
     {
-        $options = array_merge(array('seqname_format' => '%s_seq',), $options);
         if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
             return $common_contructor;
         }
+        
         $this->phptype = 'mysql';
         $this->dbsyntax = 'mysql';
 
@@ -1494,9 +1487,6 @@ class MDB_mysql extends MDB_Common
         }
         return $res;
     }
-
-    // }}}
 }
 
-};
 ?>

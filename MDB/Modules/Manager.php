@@ -45,9 +45,8 @@
 // $Id$
 //
 
-require_once 'PEAR.php';
-require_once dirname(__FILE__).'/MDB.php';
-require_once dirname(__FILE__).'/Parser.php';
+require_once 'MDB.php';
+require_once 'MDB/Parser.php';
 
 define('MDB_MANAGER_DUMP_ALL',          0);
 define('MDB_MANAGER_DUMP_STRUCTURE',    1);

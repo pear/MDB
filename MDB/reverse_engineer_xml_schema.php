@@ -58,12 +58,12 @@ echo ('
 ');
 
     if(isset($_REQUEST['submit']) && $_REQUEST['file'] != '') {
-        require_once('manager.php');
-        require_once('Var_Dump.php');
+        require_once 'MDB/Manager.php';
+        require_once 'Var_Dump.php';
 
         $dsn = $_REQUEST['type'].'://'.$_REQUEST['user'].':'.$_REQUEST['pass'].'@'.$_REQUEST['host'].'/'.$_REQUEST['name'];
 
-        $manager = new MDB_Manager;
+        $manager =& new MDB_Manager;
         $err = $manager->connect($dsn);
         if(MDB::isError($err)) {
             $error = $err->getMessage();

@@ -45,10 +45,6 @@
 // $Id$
 //
 
-if(!defined('MDB_MANAGER_COMMON_INCLUDED'))
-{
-    define('MDB_MANAGER_COMMON_INCLUDED',1);
-
 /**
 * Base class for the management extensions that is extended by each MDB driver
 *
@@ -713,5 +709,4 @@ class MDB_Manager_common
     }
 }
 
-};
 ?>

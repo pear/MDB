@@ -45,7 +45,7 @@
 // $Id$
 //
 
-require_once (dirname(__FILE__).'/MDB.php');
+require_once 'MDB.php';
 
 /*
  * The method mapErrorCode in each MDB_dbtype implementation maps

@@ -51,8 +51,8 @@ require_once 'PHPUnit/PHPUnit.php';
 require_once 'HTML/IT.php';
 require_once 'test_setup.php';
 
-require_once '../manager.php';
-require_once '../date.php';
+require_once 'MDB/Manager.php';
+require_once 'MDB/Date.php';
 
 $tpl = new IntegratedTemplate('./templates');
 
