@@ -54,17 +54,16 @@ if(!defined('MDB_LOB_INCLUDED'))
  *
  * @package MDB
  * @category Database
- * @ @access private
+ * @access private
  * @author  Lukas Smith <smith@backendmedia.com>
  */
 class MDB_LOB
 {
-    
     var $database;
     var $lob;
     var $data = '';
     var $position = 0;
-    
+
     function create(&$arguments)
     {
         if(isset($arguments['Data'])) {
@@ -72,17 +71,17 @@ class MDB_LOB
         }
         return (MDB_OK);
     }
-    
+
     function destroy()
     {
         $this->data = '';
     }
-    
+
     function endOfLob()
     {
         return($this->position >= strlen($this->data));
     }
-    
+
     function readLob(&$data, $length)
     {
         $length = min($length, strlen($this->data) - $this->position);
@@ -94,9 +93,8 @@ class MDB_LOB
 
 class MDB_LOB_Result extends MDB_LOB
 {
-    
     var $result_lob = 0;
-    
+
     function create(&$arguments)
     {
         if(!isset($arguments['ResultLOB'])) {
@@ -107,17 +105,17 @@ class MDB_LOB_Result extends MDB_LOB
         $this->result_lob = $arguments['ResultLOB'];
         return (MDB_OK);
     }
-    
+
     function destroy()
     {
         $this->database->_destroyResultLob($this->result_lob);
     }
-    
+
     function endOfLob()
     {
         return($this->database->endOfResultLob($this->result_lob));
     }
-    
+
     function readLob(&$data, $length)
     {
         $read_length = $this->database->_readResultLob($this->result_lob, $data, $length);
@@ -135,10 +133,9 @@ class MDB_LOB_Result extends MDB_LOB
 
 class MDB_LOB_Input_File extends MDB_LOB
 {
-    
     var $file = 0;
     var $opened_file = 0;
-    
+
     function create(&$arguments)
     {
         if(isset($arguments['File'])) {
@@ -166,7 +163,7 @@ class MDB_LOB_Input_File extends MDB_LOB
         }
         return (MDB_OK);
     }
-    
+
     function destroy()
     {
         if($this->opened_file) {
@@ -175,11 +172,11 @@ class MDB_LOB_Input_File extends MDB_LOB
             $this->opened_file = 0;
         }
     }
-    
+
     function endOfLob() {
         return(feof($this->file));
     }
-    
+
     function readLob(&$data, $length)
     {
         if(gettype($data = @fread($this->file, $length))!= 'string') {
@@ -193,13 +190,12 @@ class MDB_LOB_Input_File extends MDB_LOB
 
 class MDB_LOB_Output_File extends MDB_LOB
 {
-    
     var $file = 0;
     var $opened_file = 0;
     var $input_lob = 0;
     var $opened_lob = 0;
     var $buffer_length = 8000;
-    
+
     function create(&$arguments)
     {
         if(isset($arguments['BufferLength'])) {
@@ -269,7 +265,7 @@ class MDB_LOB_Output_File extends MDB_LOB
         }
         return (MDB_OK);
     }
-    
+
     function destroy()
     {
         if($this->opened_file) {
@@ -283,12 +279,12 @@ class MDB_LOB_Output_File extends MDB_LOB
             $this->opened_lob = 0;
         }
     }
-    
+
     function endOfLob()
     {
         return($this->database->endOfLob($this->input_lob));
     }
-    
+
     function readLob(&$data, $length) {
         $buffer_length = ($length == 0 ? $this->buffer_length : $length);
         $written_full = 0;
