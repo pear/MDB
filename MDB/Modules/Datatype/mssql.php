@@ -73,7 +73,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
     {
         switch($type) {
             case METABASE_TYPE_BOOLEAN:
-                return strcmp($value,"1") ? false : true;
+                return $value == '1') ? true : false;
             case METABASE_TYPE_DATE:
                 if (strlen($value) > 10) {
                     $value = substr($value,0,10);
