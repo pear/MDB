@@ -159,19 +159,25 @@ If you want to help out with documentation please email me.
 
 ** Testing:
 
-You will need to setup the following user, with the right to create new
-databases:
+For most of the tests you can set the username/password/hostname in the relevant
+config file. The user will need to have the right to create new databases.
 
-username = metapear
-password = funky
+test.php: Is the native testing suite provided by MDB. Please see the README in
+the unittest directory for details.
 
 driver_test.php: Is the testing suite provided by Metabase you will need
-to configure the mysql and pgsql section of driver_test_config.php to fit
-your enviornment and then select a DB to be tested.
+to configure what driver to test and the relevant section in the array found in
+driver_test_config.php to fit your enviornment.
 
 MDB_test.php: Several test calls to MDB's native API.
 
 MDB_pear_wrapper_test.php: Several test calls to MDB's PEAR DB Wrapper.
+
+MDB_test.php and MDB_pear_wrapper_test.php require the VAR_Dump package and are
+configured to use the following settings:
+username = metapear
+password = funky
+hostname = localhost
 
 ** How to write new Drivers:
 
@@ -201,13 +207,8 @@ surely be faster and it will ensure that the new driver takes full
 advantage of the MDB framework (which is to large parts based on
 Metabase).
 
-In order to test the results driver_test.php will be the most
-comprehensive. This test suite uses the Metabase Wrapper however. Also
-this test suite requires alot of the management method to be in place as well.
-Therefore, I recommend getting MDB_test.php to work first and after that
-worry about driver_test.php. Also keep in mind that you will have to
-modify driver_test_config.php before running driver_test.php with the
-new driver.
+In order to check compliance of the driver with MDB you can use the testing
+suite (see the "testing" section above)
 
 ** Roadmap:
 
