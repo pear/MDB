@@ -71,7 +71,8 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
             exit;
         }
         $this->db->setDatabase($this->database);
-        $this->fields = array('user_name',
+        $this->fields = array(
+                        'user_name',
                         'user_password',
                         'subscribed',
                         'user_id',
@@ -80,18 +81,18 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
                         'access_date',
                         'access_time',
                         'approved'
-                        );
-
-        $this->types = array('text',
-                       'text',
-                       'boolean',
-                       'text',
-                       'decimal',
-                       'float',
-                       'date',
-                       'time',
-                       'timestamp'
-                       );
+                    );
+        $this->types = array(
+                        'text',
+                        'text',
+                        'boolean',
+                        'integer',
+                        'decimal',
+                        'float',
+                        'date',
+                        'time',
+                        'timestamp'
+                    );
         $this->clearTables();
     }
 
@@ -115,7 +116,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
     function insertTestValues($prepared_query, &$data) {
         for ($i = 0; $i < count($this->fields); $i++) {
-            $this->db->setParam($prepared_query, ($i + 1), $data[$this->fields[$i]], $this->types[$i]);
+            $this->db->setParam($prepared_query, ($i + 1), $data[$this->fields[$i]]);
         }
     }
 
@@ -125,7 +126,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
     function testFetchModeBug() {
         $data = array();
 
-        $prepared_query = $this->db->prepare('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $prepared_query = $this->db->prepare('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
 
         $data['user_name'] = "user_=";
         $data['user_password'] = 'somepassword';
