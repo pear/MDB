@@ -1221,7 +1221,7 @@ class MDB_fbsql extends MDB_Common
      */
     function getFloatValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "$value");
+        return(($value === NULL) ? 'NULL' : (float)$value);
     }
 
     // }}}
@@ -1238,7 +1238,7 @@ class MDB_fbsql extends MDB_Common
      */
     function getDecimalValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : strval(round(doubleval($value)*$this->decimal_factor)));
+        return(($value === NULL) ? 'NULL' : strval(round(doubleval($value)*$this->decimal_factor)));
     }
 
     // }}}

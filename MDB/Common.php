@@ -1533,10 +1533,6 @@ class MDB_Common extends PEAR
             if (isset($fields[$name]['Null']) && $fields[$name]['Null']) {
                 $value = 'NULL';
             } else {
-                if (!isset($fields[$name]['Value'])) {
-                    return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, NULL, NULL,
-                        'no value for field "' . $name . '" specified'));
-                }
                 if(isset($fields[$name]['Type'])) {
                     switch ($fields[$name]['Type']) {
                         case 'text':
@@ -1546,7 +1542,7 @@ class MDB_Common extends PEAR
                             $value = $this->getBooleanValue($fields[$name]['Value']);
                             break;
                         case 'integer':
-                            $value = strval($fields[$name]['Value']);
+                            $value = $this->getIntegerValue($fields[$name]['Value']);
                             break;
                         case 'decimal':
                             $value = $this->getDecimalValue($fields[$name]['Value']);
@@ -1573,7 +1569,7 @@ class MDB_Common extends PEAR
             }
             $values .= $value;
             if (isset($fields[$name]['Key']) && $fields[$name]['Key']) {
-                if ($value == 'NULL') {
+                if ($value === 'NULL') {
                     return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, NULL, NULL,
                         'key values may not be NULL'));
                 }
@@ -1936,6 +1932,11 @@ class MDB_Common extends PEAR
     function setParamArray($prepared_query, $params, $types = NULL)
     {
         if (is_array($types)) {
+            if (count($params) != count($types)) {
+                return $this->raiseError(MDB_ERROR_SYNTAX, NULL, NULL,
+                    'setParamArray: the number of given types ('.count($types).')'
+                    .'is not corresponding to the number of given parameters ('.count($params).')');
+            }
             for($i = 0, $j = count($params); $i < $j; ++$i) {
                 switch ($types[$i]) {
                     case 'NULL':
@@ -2836,8 +2837,7 @@ class MDB_Common extends PEAR
      *
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
-     *       of the field being declared as array indexes. Id
-     ently, the types
+     *       of the field being declared as array indexes. Currently, the types
      *       of supported field properties are as follows:
      *
      *       unsigned
@@ -3129,7 +3129,7 @@ class MDB_Common extends PEAR
      */
     function getIntegerValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "$value");
+        return(($value === NULL) ? 'NULL' : (int)$value);
     }
 
     // }}}
@@ -3146,8 +3146,7 @@ class MDB_Common extends PEAR
      */
     function getTextValue($value)
     {
-        $value = $this->_quote($value);
-        return("'$value'");
+        return(($value === NULL) ? 'NULL' : "'".$this->_quote($value)."'");
     }
 
     // }}}
@@ -3234,7 +3233,7 @@ class MDB_Common extends PEAR
      */
     function getBooleanValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : ($value ? "'Y'" : "'N'"));
+        return(($value === NULL) ? 'NULL' : ($value ? "'Y'" : "'N'"));
     }
 
     // }}}
@@ -3251,7 +3250,7 @@ class MDB_Common extends PEAR
      */
     function getDateValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "'$value'");
+        return(($value === NULL) ? 'NULL' : "'$value'");
     }
 
     // }}}
@@ -3268,7 +3267,7 @@ class MDB_Common extends PEAR
      */
     function getTimestampValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "'$value'");
+        return(($value === NULL) ? 'NULL' : "'$value'");
     }
 
     // }}}
@@ -3285,7 +3284,7 @@ class MDB_Common extends PEAR
      */
     function getTimeValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "'$value'");
+        return(($value === NULL) ? 'NULL' : "'$value'");
     }
 
     // }}}
@@ -3302,7 +3301,7 @@ class MDB_Common extends PEAR
      */
     function getFloatValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "'$value'");
+        return(($value === NULL) ? 'NULL' : "'$value'");
     }
 
     // }}}
@@ -3319,7 +3318,7 @@ class MDB_Common extends PEAR
      */
     function getDecimalValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "'$value'");
+        return(($value === NULL) ? 'NULL' : "'$value'");
     }
 
     // }}}

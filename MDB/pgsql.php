@@ -1167,7 +1167,7 @@ class MDB_pgsql extends MDB_common
      */
     function getFloatValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : $value);
+        return(($value === NULL) ? 'NULL' : $value);
     }
 
     // }}}
@@ -1184,7 +1184,7 @@ class MDB_pgsql extends MDB_common
      */
     function getDecimalValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : strval(round($value*$this->decimal_factor)));
+        return(($value === NULL) ? 'NULL' : strval(round($value*$this->decimal_factor)));
     }
 
     // }}}

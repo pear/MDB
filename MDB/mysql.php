@@ -580,10 +580,6 @@ class MDB_mysql extends MDB_Common
             if (isset($fields[$name]['Null']) && $fields[$name]['Null']) {
                 $value = 'NULL';
             } else {
-                if (!isset($fields[$name]['Value'])) {
-                    return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, NULL, NULL,
-                        'no value for field "'.$name.'" specified'));
-                }
                 if(isset($fields[$name]['Type'])) {
                     switch ($fields[$name]['Type']) {
                         case 'text':
@@ -593,7 +589,7 @@ class MDB_mysql extends MDB_Common
                             $value = $this->getBooleanValue($fields[$name]['Value']);
                             break;
                         case 'integer':
-                            $value = strval($fields[$name]['Value']);
+                            $value = $this->getIntegerValue($fields[$name]['Value']);
                             break;
                         case 'decimal':
                             $value = $this->getDecimalValue($fields[$name]['Value']);
@@ -620,9 +616,9 @@ class MDB_mysql extends MDB_Common
             }
             $values .= $value;
             if (isset($fields[$name]['Key']) && $fields[$name]['Key']) {
-                if ($value == 'NULL') {
+                if ($value === 'NULL') {
                     return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, NULL, NULL,
-                        'key values may not be NULL'));
+                        $name.': key values may not be NULL'));
                 }
                 $keys++;
             }
@@ -1247,7 +1243,7 @@ class MDB_mysql extends MDB_Common
      */
     function getFloatValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "$value");
+        return(($value === NULL) ? 'NULL' : (float)$value);
     }
 
     // }}}
@@ -1264,7 +1260,7 @@ class MDB_mysql extends MDB_Common
      */
     function getDecimalValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : strval(round(doubleval($value)*$this->decimal_factor)));
+        return(($value === NULL) ? 'NULL' : strval(round(doubleval($value)*$this->decimal_factor)));
     }
 
     // }}}

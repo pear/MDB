@@ -970,20 +970,9 @@ class MDB_oci8 extends MDB_Common {
      * Obtain DBMS specific native datatype as a string
      * 
      * @param string $field associative array with the name of the properties
-     *        of the field being declared as array indexes. Id
-     * ently, the types
+     *        of the field being declared as array indexes. Currently, the types
      *        of supported field properties are as follows:
      * 
-     *        unsigned
-     *            Boolean flag that indicates whether the field should be
-     *            declared as unsigned integer if possible.
-     * 
-     *        default
-     *            Integer value to be used as default for this field.
-     * 
-     *        notnull
-     *            Boolean flag that indicates whether this field is constrained
-     *            to not be set to NULL.
      * @return string with the correct RDBMS native type
      * @access public 
      */
@@ -1378,7 +1367,7 @@ class MDB_oci8 extends MDB_Common {
      */
     function getDateValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "TO_DATE('$value','YYYY-MM-DD')");
+        return($value === NULL) ? 'NULL' : "TO_DATE('$value','YYYY-MM-DD')");
     }
 
     // }}}
@@ -1395,7 +1384,7 @@ class MDB_oci8 extends MDB_Common {
      */
     function getTimestampValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "TO_DATE('$value','YYYY-MM-DD HH24:MI:SS')");
+        return($value === NULL) ? 'NULL' : "TO_DATE('$value','YYYY-MM-DD HH24:MI:SS')");
     }
 
     // }}}
@@ -1412,7 +1401,7 @@ class MDB_oci8 extends MDB_Common {
      */
     function getTimeValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "TO_DATE('0001-01-01 $value','YYYY-MM-DD HH24:MI:SS')");
+        return($value === NULL) ? 'NULL' : "TO_DATE('0001-01-01 $value','YYYY-MM-DD HH24:MI:SS')");
     }
 
     // }}}
@@ -1429,7 +1418,7 @@ class MDB_oci8 extends MDB_Common {
      */
     function getFloatValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "$value");
+        return(($value === NULL) ? 'NULL' : (float)$value);
     }
 
     // }}}
@@ -1446,7 +1435,7 @@ class MDB_oci8 extends MDB_Common {
      */
     function getDecimalValue($value)
     {
-        return(!strcmp($value, 'NULL') ? 'NULL' : "$value");
+        return($value === NULL) ? 'NULL' : $value);
     }
 
     // }}}
