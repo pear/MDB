@@ -70,7 +70,7 @@ class MDB_Common extends PEAR
      * @var integer
      * @access private
      */
-    var $database = 0;
+    var $db_index = 0;
 
     /**
      * assoc mapping native error codes to DB ones
@@ -463,7 +463,7 @@ class MDB_Common extends PEAR
      * wrapped inside a class with the name $mode
      *
      * @param mixed $mode false or string name of the class
-     * @param boolean $prefix detrmine if the class name shoul be prefixed with 'MDB_'
+     * @param boolean $prefix determine if the class name shoul be prefixed with 'MDB_'
      * @return mixed MDB_OK or MDB_Error
      * @access public
      */
@@ -513,7 +513,7 @@ class MDB_Common extends PEAR
                 $class_name = $this->result_mode;
             } else {
                 $error =& $this->raiseError(MDB_ERROR, null, null,
-                    "no result class defined");
+                    'no result class defined');
                 return $error;
             }
             $result =& new $class_name($this, $result);
@@ -574,7 +574,7 @@ class MDB_Common extends PEAR
      * @param string $message Message with information for the user.
      * @access public
      */
-    function debug($message, $scope='')
+    function debug($message, $scope = '')
     {
         if ($this->options['debug'] && $this->options['debug_handler']) {
             call_user_func($this->options['debug_handler'], $this, $scope, $message);
@@ -819,7 +819,7 @@ class MDB_Common extends PEAR
             default:
                 $dsn = $this->phptype.'://'.$this->dsn['username'];':'.
                     $this->dsn['password'].'@'.$this->dsn['hostspec'].
-                    (isset($this->dsn['port']) ? (':'.$this->dsn['port']) : '').
+                    (this->dsn['port'] ? (':'.$this->dsn['port']) : '').
                     '/'.$this->database_name;
                 break;
         }
@@ -830,7 +830,7 @@ class MDB_Common extends PEAR
     // {{{ standaloneQuery()
 
    /**
-     * execute a query as DBA
+     * execute a query as database administrator
      * 
      * @param string $query the SQL query
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -918,7 +918,7 @@ class MDB_Common extends PEAR
             return $query;
         }
         return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-            'subselect: method not implemented');
+            'subSelect: method not implemented');
     }
 
     // }}}
@@ -1071,7 +1071,7 @@ class MDB_Common extends PEAR
      */
     function prepare($query)
     {
-        $this->debug($query, 'prepareQuery');
+        $this->debug($query, 'prepare');
         $positions = array();
         for ($position = 0;
             $position < strlen($query) && is_int($question = strpos($query, '?', $position));
@@ -1079,7 +1079,7 @@ class MDB_Common extends PEAR
             if (is_int($quote = strpos($query, "'", $position)) && $quote < $question) {
                 if (!is_int($end_quote = strpos($query, "'", $quote + 1))) {
                     return $this->raiseError(MDB_ERROR_SYNTAX, null, null,
-                        'prepareQuery: query with an unterminated text string specified');
+                        'prepare: query with an unterminated text string specified');
                 }
                 switch ($this->escape_quotes) {
                     case '':
@@ -1413,7 +1413,7 @@ class MDB_Common extends PEAR
     {
         if (!$this->support('affected_rows')) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'affected_rows: method not implemented');
+                'affectedRows: method not implemented');
         }
         if ($this->affected_rows == -1) {
             return $this->raiseError(MDB_ERROR_NEED_MORE_DATA);
@@ -1594,7 +1594,7 @@ class MDB_Common extends PEAR
      */
     function support($feature)
     {
-        return isset($this->supported[$feature]) && $this->supported[$feature];
+        return (isset($this->supported[$feature]) && $this->supported[$feature]);
     }
 
     // }}}
@@ -1875,13 +1875,17 @@ class MDB_Common extends PEAR
  */
 function MDB_defaultDebugOutput(&$db, $scope, $message)
 {
-    $db->debug_output .= $scope.'('.$db->database.'): '.$message.$db->getOption('log_line_break');
+    $db->debug_output .= $scope.'('.$db->db_index.'): '.$message.$db->getOption('log_line_break');
 }
 
 // Used by many drivers
 if (!function_exists('array_change_key_case')) {
-    define('CASE_UPPER', 1);
-    define('CASE_LOWER', 0);
+    if (!defined('CASE_UPPER')) {
+        define('CASE_UPPER', 1);
+    }
+    if (!defined('CASE_LOWER')) {
+        define('CASE_LOWER', 0);
+    }
     function &array_change_key_case(&$array, $case)
     {
         $casefunc = ($case == CASE_LOWER) ? 'strtolower' : 'strtoupper';
