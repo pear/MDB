@@ -14,11 +14,8 @@
       - added quoteIdentifier() method
       - added sequence_col_name option to make the column name inside sequence
         emulation tables configurable
-      MDB_Manager_mysql:
-      - fixed mysql 4.0.13 issue in createSequence()
-      - fixed bug #963 ensuring the correct case is used when doing assoc fetches based on portability flag setting
-      all drivers:
-      - unified the native error raising methods (tested on oracle, pgsql, mysql and ibase)
+      - renamed toString() to __toString() in order to take advantage of new PHP5
+        goodness and made it public
       MDB_ibase:
       - fixed several bugs in the buffering code
       - fixed NULL management
@@ -36,6 +33,10 @@
       - removed broken implementations of currId()
       - added quoteIdentifier() method
       MDB_Manager_mysql:
+      - fixed mysql 4.0.13 issue in createSequence()
+      - fixed bug #963 ensuring the correct case is used when doing assoc fetches based on portability flag setting
+      all drivers:
+      - unified the native error raising methods (tested on oracle, pgsql, mysql and ibase)
       - fixed bug #1159 which would break index handling in getTableFieldDefinition() if not in portability mode
       MDB_Manager_mssql:
       - added listTables() and listTableFields()

@@ -306,7 +306,7 @@ class MDB_Common extends PEAR
     }
 
     // }}}
-    // {{{ toString()
+    // {{{ __toString()
 
     /**
      * String conversation
@@ -314,7 +314,7 @@ class MDB_Common extends PEAR
      * @return string
      * @access public
      */
-    function toString()
+    function __toString()
     {
         $info = get_class($this);
         $info .= ': (phptype = ' . $this->phptype . ', dbsyntax = ' . $this->dbsyntax . ')';
