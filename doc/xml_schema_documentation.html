@@ -144,7 +144,7 @@
 <p>Only some <i>DBMS</i> support default values for large object fields. For this reason it is not allowed to specify default values on the definition of this type of field.</p>
 <p><b>Default:</b> none</p>
 <p><li><tt>notnull</tt></li></p>
-<p>Boolean flag property that specifies whether the table field should be created with the constraint <tt>NOT NULL</tt>.  As it suggests, this implies that it is not allowed to set this field value with <tt>NULL</tt>.  The parser does not allow that an index is declared on a field that is not declared with the <tt>nontull</tt> flag property.</p>
+<p>Boolean flag property that specifies whether the table field should be created with the constraint <tt>NOT NULL</tt>.  As it suggests, this implies that it is not allowed to set this field value with <tt>NULL</tt>.  The parser does not allow that an index is declared on a field that is not declared with the <tt>notnull</tt> flag property.</p>
 <p><b>Default:</b> <tt>0</tt></p>
 <p><li><tt>unsigned</tt></li></p>
 <p>Boolean flag property that specifies whether an integer field should be declared as unsigned integer.  Note that some <i>DBMS</i> do not support unsigned integer fields.  In such case the <i>DBMS</i> driver will ignore this property but it issues a warning.</p>
