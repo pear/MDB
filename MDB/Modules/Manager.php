@@ -215,14 +215,36 @@ class MDB_manager extends PEAR
      * @param string $table_name  name of the table to be created
      * @param array  $table       multi dimensional array that containts the
      *                            structure and optional data of the table
+     * @param boolean $overwrite  determine if the table/index should be
+                                  overwritten if it allready exists
      * @return mixed DB_OK on success, or a MDB error object
      * @access private
      */
-    function _createTable($table_name, $table)
+    function _createTable($table_name, $table, $overwrite = FALSE)
     {
+        $this->expectError(DB_ERROR_ALREADY_EXISTS);
         $result = $this->database->createTable($table_name, $table['FIELDS']);
+        $this->popExpect(DB_ERROR_ALREADY_EXISTS);
         if (MDB::isError($result)) {
-            return $result;
+            if($result->getCode() === DB_ERROR_ALREADY_EXISTS) {
+                $this->warnings[] = 'Table allready exists: '.$table_name;
+                if ($overwrite) {
+                    $this->database->debug('Overwritting Table');
+                    $result = $this->database->dropTable($table_name);
+                    if (MDB::isError($result)) {
+                        return $result;
+                    }
+                    $result = $this->database->createTable($table_name, $table['FIELDS']);
+                    if (MDB::isError($result)) {
+                        return $result;
+                    }
+                } else {
+                    $result = DB_OK;
+                }
+            } else {
+                $this->database->debug('Create table error: '.$table_name);
+                return $result;
+            }
         }
         if (isset($table['initialization']) && is_array($table['initialization'])) {
             foreach($table['initialization'] as $instruction) {
@@ -334,9 +356,29 @@ class MDB_manager extends PEAR
                     'indexes are not supported', 'MDB_Error', TRUE);
             }
             foreach($table['INDEXES'] as $index_name => $index) {
+                $this->expectError(DB_ERROR_ALREADY_EXISTS);
                 $result = $this->database->createIndex($table_name, $index_name, $index);
+                $this->popExpect(DB_ERROR_ALREADY_EXISTS);
                 if (MDB::isError($result)) {
-                    break;
+                    if($result->getCode() === DB_ERROR_ALREADY_EXISTS) {
+                        $this->warnings[] = 'Index allready exists: '.$index_name;
+                        if ($overwrite) {
+                            $this->database->debug('Overwritting Index');
+                            $result = $this->database->dropIndex($index_name);
+                            if (MDB::isError($result)) {
+                                break;
+                            }
+                            $result = $this->database->createIndex($table_name, $index_name, $index);
+                            if (MDB::isError($result)) {
+                                break;
+                            }
+                        } else {
+                            $result = DB_OK;
+                        }
+                    } else {
+                        $this->database->debug('Create index error: '.$table_name);
+                        break;
+                    }
                 }
             }
         }
@@ -377,10 +419,12 @@ class MDB_manager extends PEAR
      * @param array  $sequence       multi dimensional array that containts the
      *                               structure and optional data of the table
      * @param string $created_on_table
+     * @param boolean $overwrite    determine if the sequence should be overwritten
+                                    if it allready exists
      * @return mixed DB_OK on success, or a MDB error object
      * @access private
      */
-    function _createSequence($sequence_name, $sequence, $created_on_table)
+    function _createSequence($sequence_name, $sequence, $created_on_table, $overwrite = FALSE)
     {
         if (!$this->database->support('Sequences')) {
             return PEAR::raiseError(NULL, DB_ERROR_UNSUPPORTED, NULL, NULL,
@@ -406,7 +450,31 @@ class MDB_manager extends PEAR
         } else {
             $start = 1;
         }
-        return $this->database->createSequence($sequence_name, $start);
+
+        $this->expectError(DB_ERROR_ALREADY_EXISTS);
+        $result = $this->database->createSequence($sequence_name, $start);
+        $this->popExpect(DB_ERROR_ALREADY_EXISTS);
+        if (MDB::isError($result)) {
+            if($result->getCode() === DB_ERROR_ALREADY_EXISTS) {
+                $this->warnings[] = 'Sequence allready exists: '.$sequence_name;
+                if ($overwrite) {
+                    $this->database->debug('Overwritting Sequence');
+                    $result = $this->database->dropSequence($sequence_name);
+                    if (MDB::isError($result)) {
+                        return $result;
+                    }
+                    $result = $this->database->createSequence($sequence_name, $start);
+                    if (MDB::isError($result)) {
+                        return $result;
+                    }
+                } else {
+                    return DB_OK;
+                }
+            } else {
+                $this->database->debug('Create sequence error: '.$sequence_name);
+                return $result;
+            }
+        }
     }
 
     // }}}
@@ -455,12 +523,32 @@ class MDB_manager extends PEAR
                 'no valid database name specified', 'MDB_Error', TRUE);
         }
         $create = (isset($this->database_definition['create']) && $this->database_definition['create']);
+        $overwrite = (isset($this->database_definition['overwrite']) && $this->database_definition['overwrite']);
         if ($create) {
             $this->database->debug('Create database: '.$this->database_definition['name']);
+            $this->expectError(DB_ERROR_ALREADY_EXISTS);
             $result = $this->database->createDatabase($this->database_definition['name']);
+            $this->popExpect(DB_ERROR_ALREADY_EXISTS);
             if (MDB::isError($result)) {
-                $this->database->debug('Create database error ');
-                return $result;
+                if($result->getCode() === DB_ERROR_ALREADY_EXISTS) {
+                    $this->warnings[] = 'Database allready exists: '.$this->database_definition['name'];
+                    if ($overwrite) {
+                        $this->database->debug('Overwritting Database');
+                        $result = $this->database->dropDatabase($this->database_definition['name']);
+                        if (MDB::isError($result)) {
+                            return $result;
+                        }
+                        $result = $this->database->createDatabase($this->database_definition['name']);
+                        if (MDB::isError($result)) {
+                            return $result;
+                        }
+                    } else {
+                        $result = DB_OK;
+                    }
+                } else {
+                    $this->database->debug('Create database error ');
+                    return $result;
+                }
             }
         }
         $previous_database_name = $this->database->setDatabase($this->database_definition['name']);
@@ -474,7 +562,7 @@ class MDB_manager extends PEAR
             && is_array($this->database_definition['TABLES']))
         {
             foreach($this->database_definition['TABLES'] as $table_name => $table) {
-                $result = $this->_createTable($table_name, $table);
+                $result = $this->_createTable($table_name, $table, $overwrite);
                 if (MDB::isError($result)) {
                     break;
                 }
@@ -486,7 +574,7 @@ class MDB_manager extends PEAR
             && is_array($this->database_definition['SEQUENCES'])) 
         {
             foreach($this->database_definition['SEQUENCES'] as $sequence_name => $sequence) {
-                $result = $this->_createSequence($sequence_name, $sequence, 0);
+                $result = $this->_createSequence($sequence_name, $sequence, 0, $overwrite);
 
                 if (MDB::isError($result)) {
                     break;
@@ -1218,8 +1306,10 @@ class MDB_manager extends PEAR
         $sequence_definition = $this->database_definition['SEQUENCES'][$sequence_name];
         $buffer = "$eol <sequence>$eol  <name>$sequence_name</name>$eol";
         if($dump == MDB_MANAGER_DUMP_ALL || $dump == MDB_MANAGER_DUMP_CONTENT) {
-            $start = $sequence_definition['start'];
-            $buffer .= "  <start>$start</start>$eol";
+            if(isset($sequence_definition['start'])) {
+                $start = $sequence_definition['start'];
+                $buffer .= "  <start>$start</start>$eol";
+            }
         }
         if (isset($sequence_definition['on'])) {
             $buffer .= "  <on>$eol   <table>".$sequence_definition['on']['table']."</table>$eol   <field>".$sequence_definition['on']['field']."</field>$eol  </on>$eol";
@@ -1795,21 +1885,20 @@ class MDB_manager extends PEAR
                 } else {
                     fwrite($fp, $buffer);
                 }
-            }
-
-            if (isset($sequences[$table_name])) {
-                for($sequence = 0, $j = count($sequences[$table_name]);
-                    $sequence < $j;
-                    $sequence++)
-                {
-                    $result = $this->_dumpSequence($sequences[$table_name][$sequence], $eol, $dump);
-                    if (MDB::isError($result)) {
-                        return $result;
-                    }
-                    if ($output) {
-                        $output($result);
-                    } else {
-                        fwrite($fp, $result);
+                if (isset($sequences[$table_name])) {
+                    for($sequence = 0, $j = count($sequences[$table_name]);
+                        $sequence < $j;
+                        $sequence++)
+                    {
+                        $result = $this->_dumpSequence($sequences[$table_name][$sequence], $eol, $dump);
+                        if (MDB::isError($result)) {
+                            return $result;
+                        }
+                        if ($output) {
+                            $output($result);
+                        } else {
+                            fwrite($fp, $result);
+                        }
                     }
                 }
             }
