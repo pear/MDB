@@ -2848,7 +2848,8 @@ class MDB_Common extends PEAR
      *
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
-     *       of the field being declared as array indexes. Currently, the types
+     *       of the field being declared as array indexes. Id
+     ently, the types
      *       of supported field properties are as follows:
      *
      *       unsigned
@@ -3648,7 +3649,7 @@ class MDB_Common extends PEAR
 
     /**
      * Execute the specified query, fetch the value from the first column of
-     * the first row of the result set into a given variable and then frees
+     * the first row of the result set and then frees
      * the result set.
      *
      * @param string $query the SELECT query statement to be executed.
@@ -3675,8 +3676,8 @@ class MDB_Common extends PEAR
     // {{{ queryRow()
 
     /**
-     * Execute the specified query, fetch the value from the first
-     * row of the result set into a given variable and then frees
+     * Execute the specified query, fetch the values from the first
+     * row of the result set into an array and then frees
      * the result set.
      *
      * @param string $query the SELECT query statement to be executed.
@@ -3702,8 +3703,7 @@ class MDB_Common extends PEAR
 
     /**
      * Execute the specified query, fetch the value from the first column of
-     * the first row of the result set into a given variable and then frees
-     * the result set.
+     * each row of the result set into an array and then frees the result set.
      *
      * @param string $query the SELECT query statement to be executed.
      * @param string $type optional argument that specifies the expected
@@ -3731,7 +3731,7 @@ class MDB_Common extends PEAR
 
     /**
      * Execute the specified query, fetch all the rows of the result set into
-     * a given variable and then frees the result set.
+     * a two dimensional array and then frees the result set.
      *
      * @param string $query the SELECT query statement to be executed.
      * @param array $types optional array argument that specifies a list of
