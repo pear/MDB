@@ -50,7 +50,9 @@
 *
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
-*/
+ */
+
+require_once 'PEAR.php';
 
 if(!defined('MDB_LOB_INCLUDED'))
 {
@@ -148,7 +150,7 @@ class MDB_lob_input_file extends MDB_lob
         else
         {
             if(isset($arguments['FileName'])) {
-                if((!$this->file = fopen($arguments['FileName'], 'r'))) {
+                if((!$this->file = fopen($arguments['FileName'], 'rb'))) {
                 return PEAR::raiseError(NULL, DB_ERROR_NOT_FOUND, NULL, NULL,
                     'could not open specified input file ("'.$arguments['FileName'].'")',
                     'MDB_Error', TRUE);
@@ -214,7 +216,7 @@ class MDB_lob_output_file extends MDB_lob
             $this->file = $arguments['File'];
         } else {
             if(isset($arguments['FileName'])) {
-                if((!$this->file = fopen($arguments['FileName'],'w'))) {
+                if((!$this->file = fopen($arguments['FileName'],'wb'))) {
                     return PEAR::raiseError(NULL, DB_ERROR_NOT_FOUND, NULL, NULL,
                         'could not open specified output file ("'.$arguments['FileName'].'")',
                         'MDB_Error', TRUE);
@@ -287,9 +289,13 @@ class MDB_lob_output_file extends MDB_lob
     function readLob(&$data, $length) {
         $buffer_length = ($length == 0 ? $this->buffer_length : $length);
         for($written = 0;
-        !$this->database->endOfLob($this->input_lob) && $written<$buffer_length;
-        $written += $read) {
-            if(MDB::isError($result = $this->database->readLob($this->input_lob, $buffer, $buffer_length))) {
+            !$this->database->endOfLob($this->input_lob)
+            && $written < $buffer_length;
+            $written += $read)
+        {
+            if(MDB::isError($result = $this->database->
+                readLob($this->input_lob, $buffer, $buffer_length)))
+            {
                 return $result;
             }
             $read = strlen($buffer);
@@ -302,5 +308,6 @@ class MDB_lob_output_file extends MDB_lob
         return($written);
     }
 };
+
 }
 ?>
