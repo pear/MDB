@@ -99,7 +99,7 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
   </maintainers>
   <release>
     <version>1.1.4-RC1</version>
-    <state>RC</state>
+    <state>devel</state>
     <date>2003-10-16</date>
     <notes>
       - added MDB::isConnection()
