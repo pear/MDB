@@ -8,7 +8,7 @@
 
 $lobs = array();
 
-class MDB_lob
+class MDB_lob extends PEAR
 {
     var $error = "";
     var $database;
