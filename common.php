@@ -41,7 +41,7 @@ $registered_transactions_shutdown = 0;
 * this function closes all open transactions
 * registerTransactionShutdown() registers this method to be executed at shutdown
 *
-* @access privat
+* @access private
 */
 function shutdownTransactions()
 {
@@ -60,8 +60,10 @@ function shutdownTransactions()
 /**
  * default debug output handler
  *
- * @param integer    $database    key in the $databases array that references to the proper db object
- * @param string    $message    message htat should be appended to the debug variable
+ * @param integer $database key in the $databases array that references to the
+ *                          proper db object
+ * @param string  $message  message htat should be appended to the debug
+ *                          variable
  *
  * @return string the corresponding error message, of FALSE
  * if the error code was unknown
@@ -166,8 +168,8 @@ class MDB_common extends PEAR
      * the DB implementation's constructor fills in the $errorcode_map
      * property.
      *
-     * @param mixed $nativecode the native error code, as returned by the backend
-     * database extension (string or integer)
+     * @param mixed $nativecode the native error code, as returned by the
+     *                          backend database extension (string or integer)
      *
      * @return int a portable DB error code, or FALSE if this DB
      * implementation has no mapping for the given error code.
@@ -296,7 +298,8 @@ class MDB_common extends PEAR
     /**
      * set a debug handler (deprecated)
      * 
-     * @param string $capture    name of the function that should be used in debug()
+     * @param string $capture name of the function that should be used in
+     *                        debug()
      *
      * @access public
      * @see debug()
@@ -349,10 +352,11 @@ class MDB_common extends PEAR
     /**
      * set an error (deprecated)
      * 
-     * @param string $scope        Scope of the error message (usually the method tht caused the error)
-     * @param string $message    Message with information for the user.
+     * @param string $scope   Scope of the error message
+     *                        (usually the method tht caused the error)
+     * @param string $message Message with information for the user.
      *
-     * @access privat
+     * @access private
      *
      * @return boolean FALSE
      */
@@ -377,25 +381,29 @@ class MDB_common extends PEAR
     /**
      * Specify a function that is called when an error occurs.
      * 
-     * @param string $function    Name of the function that will be called on error.
-     *                             If an empty string is specified, no handler function is called on error.
+     * @param string $function  Name of the function that will be called on
+     *                          error. If an empty string is specified, no
+     *                          handler function is called on error.
      *
-     *                             The error handler function receives two arguments.
-     *                             The first argument a reference to the driver class object that triggered the error.
-     *                             The second argument is a reference to an associative array that provides details
-     *                             about the error that occured. These details provide more information than it is
-     *                             returned by the MetabaseError function.
+     *                          The error handler function receives two
+     *                          arguments. The first argument a reference to
+     *                          the driver class object that triggered the
+     *                          error.
+     *
+     *                          The second argument is a reference to an
+     *                          associative array that provides details about
+     *                          the error that occured. These details provide
+     *                          more information than it is returned by the
+     *                          MetabaseError function.
      *                                
-     *                            Here follows the list of currently supported error detail entries:
+     * These are the currently supported error detail entries:
      *
-     *                            Scope
-     *
-     *                                String that indicates the scope of the driver object class within which the
-     *                                error occured.
+     *            Scope
+     *             String that indicates the scope of the driver object class
+     *             within which the error occured.
      *                            
-     *                            Message
-     *
-     *                                Error message as is returned by the MetabaseError function.
+     *            Message
+     *             Error message as is returned by the MetabaseError function.
      * 
      * @access public
      *
@@ -417,7 +425,7 @@ class MDB_common extends PEAR
      *
      * @param string $text the input string to quote
      * 
-     * @access privat
+     * @access private
      *
      */
     function quote(&$text)
@@ -434,12 +442,15 @@ class MDB_common extends PEAR
     /**
      * loads an extension
      * 
-     * @param string $scope                information about what method is being loaded, that is used for error messages
-     * @param string $extension            name of the extension that should be loaded (only used for error messages)
-     * @param string $included_constant name of the constant that should be defined when the extension has been loaded
-     * @param string $include            name of the script that includes the extension
+     * @param string $scope information about what method is being loaded,
+     *                      that is used for error messages
+     * @param string $extension name of the extension that should be loaded
+     *                      (only used for error messages)
+     * @param string $included_constant name of the constant that should be
+     *                      defined when the extension has been loaded
+     * @param string $include name of the script that includes the extension
      * 
-     * @access privat
+     * @access private
      *
      */
     function loadExtension($scope, $extension, $included_constant, $include)
@@ -482,9 +493,10 @@ class MDB_common extends PEAR
     /**
      * loads the Manager extension
      * 
-     * @param string $scope    information about what method is being loaded, that is used for error messages
+     * @param string $scope information about what method is being loaded,
+     *                      that is used for error messages
      * 
-     * @access privat
+     * @access private
      *
      */
     function loadManager($scope)
@@ -520,7 +532,7 @@ class MDB_common extends PEAR
      * 
      * @param string $auto_commit
      *
-     * @access privat
+     * @access private
      *
      * @return DB_OK
      */ 
@@ -541,14 +553,16 @@ class MDB_common extends PEAR
     // {{{ autoCommit()
 
     /**
-     * Define whether database changes done on the database be automatically committed.
-     * This function may also implicitly start or end a transaction.
+     * Define whether database changes done on the database be automatically
+     * committed. This function may also implicitly start or end a transaction.
      * 
-     * @param boolean $auto_commit    flag that indicates whether the database changes should
-     *                                 be committed right after executing every query statement.
-     *                                 If this argument is 0 a transaction implicitly started.
-     *                                 Otherwise, if a transaction is in progress it is ended by
-     *                                 committing any database changes that were pending.
+     * @param boolean $auto_commit flag that indicates whether the database
+     *                             changes should be committed right after
+     *                             executing every query statement. If this
+     *                             argument is 0 a transaction implicitly
+     *                             started. Otherwise, if a transaction is in
+     *                             progress it is ended by committing any
+     *                             database changes that were pending.
      * 
      * @access public
      *
@@ -564,10 +578,10 @@ class MDB_common extends PEAR
     // {{{ commit()
 
     /**
-     * Commit the database changes done during a transaction that is in progress.
-     * This function may only be called when auto-committing is disabled, otherwise
-     * it will fail. Therefore, a new transaction is implicitly started after
-     * committing the pending changes.
+     * Commit the database changes done during a transaction that is in
+     * progress. This function may only be called when auto-committing is
+     * disabled, otherwise it will fail. Therefore, a new transaction is
+     * implicitly started after committing the pending changes.
      * 
      * @access public
      * 
@@ -583,10 +597,10 @@ class MDB_common extends PEAR
     // {{{ rollback()
 
     /**
-     * Cancel any database changes done during a transaction that is in progress.
-     * This function may only be called when auto-committing is disabled, otherwise
-     * it will fail. Therefore, a new transaction is implicitly started after
-     * canceling the pending changes.
+     * Cancel any database changes done during a transaction that is in
+     * progress. This function may only be called when auto-committing is
+     * disabled, otherwise it will fail. Therefore, a new transaction is
+     * implicitly started after canceling the pending changes.
      * 
      * @access public
      * 
@@ -608,7 +622,8 @@ class MDB_common extends PEAR
      *
      * @access public
      *
-     * @return mixed TRUE on success, FALSE if not connected and error object on error
+     * @return mixed TRUE on success, FALSE if not connected and error
+     *               object on error
      */
     function disconnect()
     {
@@ -626,7 +641,7 @@ class MDB_common extends PEAR
     /**
      * all the RDBMS specific things needed close a DB connection
      * 
-     * @access privat
+     * @access private
      *
      */
     function close()
@@ -702,11 +717,14 @@ class MDB_common extends PEAR
     /**
      * create a new table
      * 
-     * @param string $name     Name of the database that should be created
-     * @param array $fields Associative array that contains the definition of each field of the new table
-     *                        The indexes of the array entries are the names of the fields of the table an
-     *                        the array entry values are associative arrays like those that are meant to be
-     *                         passed with the field definitions to get[Type]Declaration() functions.
+     * @param string $name  Name of the database that should be created
+     * @param array $fields Associative array that contains the definition of
+     *                      each field of the new table. The indexes of the
+     *                      array entries are the names of the fields of the
+     *                      table an the array entry values are associative
+     *                      arrays like those that are meant to be passed with
+     *                      the field definitions to get[Type]Declaration()
+     *                      functions.
      *
      *                        Example
      *                        array(
@@ -726,7 +744,7 @@ class MDB_common extends PEAR
      *                                "length"=>12
      *                            )
      *                        );
-       * 
+     * 
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
@@ -767,98 +785,97 @@ class MDB_common extends PEAR
     /**
      * alter an existing table
      * 
-     * @param string $name         name of the table that is intended to be changed.
-     * @param array $changes     associative array that contains the details of each type
-     *                             of change that is intended to be performed. The types of
-     *                             changes that are currently supported are defined as follows:
+     * @param string $name   name of the table that is intended to be changed.
+     *
+     * @param array $changes associative array that contains the details of
+     *  each type of change that is intended to be performed. The types of
+     *  changes that are currently supported are defined as follows:
      * 
-     *                             name
+     * name
+     *  New name for the table.
      *
-     *                                New name for the table.
+     * AddedFields
+     *  Associative array with the names of fields to be added as indexes of
+     *  the array. The value of each entry of the array should be set to
+     *  another associative array with the properties of the fields to be
+     *  added. The properties of the fields should be the same as defined by
+     *  the Metabase parser.
      *
-     *                            AddedFields
+     *  Additionally, there should be an entry named Declaration that is
+     *  expected to contain the portion of the field declaration already in
+     *  DBMS specific SQL code as it is used in the CREATE TABLE statement.
      *
-     *                                Associative array with the names of fields to be added as
-     *                                 indexes of the array. The value of each entry of the array
-     *                                 should be set to another associative array with the properties
-     *                                 of the fields to be added. The properties of the fields should
-     *                                 be the same as defined by the Metabase parser.
+     * RemovedFields
+     *  Associative array with the names of fields to be removed as indexes of
+     *  the array. Currently the values assigned to each entry are ignored. An
+     *  empty array should be used for future compatibility.
      *
-     *                                Additionally, there should be an entry named Declaration that
-     *                                 is expected to contain the portion of the field declaration already
-     *                                 in DBMS specific SQL code as it is used in the CREATE TABLE statement.
+     * RenamedFields
+     *  Associative array with the names of fields to be renamed as indexes of
+     *  the array. The value of each entry of the array should be set to another
+     *  associative array with the entry named name with the new field name and
+     *  the entry named Declaration that is expected to contain the portion of
+     *  the field declaration already in DBMS specific SQL code as it is used
+     *  in the CREATE TABLE statement.
      *
-     *                            RemovedFields
+     * ChangedFields
+     *  Associative array with the names of the fields to be changed as indexes
+     *  of the array. Keep in mind that if it is intended to change either the
+     *  name of a field and any other properties, the ChangedFields array
+     *  entries should have the new names of the fields as array indexes.
      *
-     *                                Associative array with the names of fields to be removed as indexes
-     *                                 of the array. Currently the values assigned to each entry are ignored.
-     *                                 An empty array should be used for future compatibility.
+     *  The value of each entry of the array should be set to another
+     *  associative array with the properties of the fields to that are meant
+     *  to be changed as array entries. These entries should be assigned to the
+     *  new values of the respective properties. The properties of the fields
+     *  should be the* same as defined by the Metabase parser.
      *
-     *                            RenamedFields
+     *  If the default property is meant to be added, removed or changed, there
+     *  should also be an entry with index ChangedDefault assigned to 1.
+     *  Similarly, if the notnull constraint is to be added or removed, there
+     *  should also be an entry with index ChangedNotNull assigned to 1.
      *
-     *                                Associative array with the names of fields to be renamed as indexes
-     *                                 of the array. The value of each entry of the array should be set to
-     *                                 another associative array with the entry named name with the new
-     *                                 field name and the entry named Declaration that is expected to contain
-     *                                 the portion of the field declaration already in DBMS specific SQL code
-     *                                 as it is used in the CREATE TABLE statement.
+     *  Additionally, there should be an entry named Declaration that is
+     *  expected to contain the portion of the field changed declaration
+     *  already in DBMS specific SQL code as it is used in the CREATE TABLE
+     *  statement.
      *
-     *                            ChangedFields
+     * Example
+     *  array(
+     *      "name" => "userlist",
+     *      "AddedFields" => array(
+     *          "quota" => array(
+     *              "type" => "integer",
+     *              "unsigned" => 1,
+     *              "Declaration" => "quota INT"
+     *              )
+     *          ),
+     *      "RemovedFields" => array(
+     *          "file_limit" => array(),
+     *          "time_limit" => array()
+     *          ),
+     *      "ChangedFields" => array(
+     *          "gender" => array(
+     *              "default" => "M",
+     *              "ChangeDefault" => 1,
+     *              "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *              )
+     *          ),
+     *      "RenamedFields" => array(
+     *          "sex" => array(
+     *              "name" => "gender",
+     *              "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *          )
+     *      )
+     *  ) 
      *
-     *                                Associative array with the names of the fields to be changed as indexes
-     *                                 of the array. Keep in mind that if it is intended to change either the
-     *                                 name of a field and any other properties, the ChangedFields array entries
-     *                                 should have the new names of the fields as array indexes.
-     *
-     *                                The value of each entry of the array should be set to another associative
-     *                                 array with the properties of the fields to that are meant to be changed as
-     *                                 array entries. These entries should be assigned to the new values of the
-     *                                 respective properties. The properties of the fields should be the same
-     *                                 as defined by the Metabase parser.
-     *
-     *                                If the default property is meant to be added, removed or changed, there
-     *                                 should also be an entry with index ChangedDefault assigned to 1. Similarly,
-     *                                 if the notnull constraint is to be added or removed, there should also be
-     *                                 an entry with index ChangedNotNull assigned to 1.
-     *
-     *                                Additionally, there should be an entry named Declaration that is expected
-     *                                 to contain the portion of the field changed declaration already in DBMS
-     *                                 specific SQL code as it is used in the CREATE TABLE statement.
-     *                            Example
-     *                                array(
-     *                                    "name" => "userlist",
-     *                                    "AddedFields" => array(
-     *                                        "quota" => array(
-     *                                            "type" => "integer",
-     *                                            "unsigned" => 1
-     *                                            "Declaration" => "quota INT"
-     *                                        )
-     *                                    ),
-     *                                    "RemovedFields" => array(
-     *                                        "file_limit" => array(),
-     *                                        "time_limit" => array()
-     *                                        ),
-     *                                    "ChangedFields" => array(
-     *                                        "gender" => array(
-     *                                            "default" => "M",
-     *                                            "ChangeDefault" => 1,
-     *                                            "Declaration" => "gender CHAR(1) DEFAULT 'M'"
-     *                                        )
-     *                                    ),
-     *                                    "RenamedFields" => array(
-     *                                        "sex" => array(
-     *                                            "name" => "gender",
-     *                                            "Declaration" => "gender CHAR(1) DEFAULT 'M'"
-     *                                        )
-     *                                    )
-     *                                )
-     * 
-     * @param boolean $check     indicates whether the function should just check if the DBMS driver
-     *                             can perform the requested table alterations if the value is true or
-     *                             actually perform them otherwise.
+     * @param boolean $check indicates whether the function should just check
+     *                       if the DBMS driver can perform the requested table
+     *                       alterations if the value is true or actually
+     *                       perform them otherwise.
      * @access public
      *
-      * @return mixed DB_OK on success, a DB error on failure
+     * @return mixed DB_OK on success, a DB error on failure
      */ 
     function alterTable($name, &$changes, $check)
     {
@@ -875,7 +892,8 @@ class MDB_common extends PEAR
     /**
      * list all databases
      * 
-     * @param array $dbs reference to an empty array into which the list is stored
+     * @param array $dbs reference to an empty array into which the list is
+     *                   stored
      * 
      * @access public
      *
@@ -896,7 +914,8 @@ class MDB_common extends PEAR
     /**
      * list all users
      * 
-     * @param array $users reference to an empty array into which the list is stored
+     * @param array $users reference to an empty array into which the list is
+     *                     stored
      * 
      * @access public
      *
@@ -917,7 +936,8 @@ class MDB_common extends PEAR
     /**
      * list all viewes in the current database
      * 
-     * @param array $views reference to an empty array into which the list is stored
+     * @param array $views reference to an empty array into which the list is
+     *                     stored
      * 
      * @access public
      *
@@ -938,7 +958,8 @@ class MDB_common extends PEAR
     /**
      * list all functions in the current database
      * 
-     * @param array $functions reference to an empty array into which the list is stored
+     * @param array $functions reference to an empty array into which the list
+     *                         is stored
      * 
      * @access public
      *
@@ -959,7 +980,8 @@ class MDB_common extends PEAR
     /**
      * list all tables in the current database
      * 
-     * @param array $tables reference to an empty array into which the list is stored
+     * @param array $tables reference to an empty array into which the list is
+     *                      stored
      * 
      * @access public
      *
@@ -981,7 +1003,8 @@ class MDB_common extends PEAR
      * list all fields in a tables in the current database
      * 
      * @param string $table name of table that should be used in method
-     * @param array $fields reference to an empty array into which the list is stored
+     * @param array $fields reference to an empty array into which the list is
+     *                      stored
      * 
      * @access public
      *
@@ -1002,10 +1025,11 @@ class MDB_common extends PEAR
     /**
      * get the stucture of a field into an array
      * 
-     * @param string    $table         name of table that should be used in method
-     * @param string    $fields     name of field that should be used in method
-     * @param array        $definition reference to an empty array into which the structure of the field should be stored
-      * 
+     * @param string  $table   name of table that should be used in method
+     * @param string  $fields  name of field that should be used in method
+     * @param array   $definition reference to an empty array into which the
+     *                            structure of the field should be stored
+     *
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
@@ -1025,33 +1049,38 @@ class MDB_common extends PEAR
     /**
      * get the stucture of a field into an array
      * 
-     * @param string    $table         name of the table on which the index is to be created
-     * @param string    $name         name of the index to be created
-     * @param array     $definition        associative array that defines properties of the index to be created.
-     *                                 Currently, only one property named FIELDS is supported. This property
-     *                                 is also an associative with the names of the index fields as array
-     *                                 indexes. Each entry of this array is set to another type of associative
-     *                                 array that specifies properties of the index that are specific to
-     *                                 each field.
+     * @param string $table      name of the table on which the index is to be
+     *                           created
+     * @param string $name       name of the index to be created
+     * @param array  $definition associative array that defines properties of
+     *                           the index to be created. Currently, only one
+     *                           property named FIELDS is supported. This
+     *                           property is also an associative with the names
+     *                           of the index fields as array indexes. Each
+     *                           entry of this array is set to another type of
+     *                           associative array that specifies properties of
+     *                           the index that are specific to each field.
      *
-     *                                Currently, only the sorting property is supported. It should be used
-     *                                 to define the sorting direction of the index. It may be set to either
-     *                                 ascending or descending.
+     *                           Currently, only the sorting property is
+     *                           supported. It should be used to define the
+     *                           sorting direction of the index. It may be set
+     *                           to either ascending or descending.
      *
-     *                                Not all DBMS support index sorting direction configuration. The DBMS
-     *                                 drivers of those that do not support it ignore this property. Use the
-     *                                 function support() to determine whether the DBMS driver can manage indexes.
-
-     *                                 Example
-     *                                    array(
-     *                                        "FIELDS"=>array(
-     *                                            "user_name"=>array(
-     *                                                "sorting"=>"ascending"
-     *                                            ),
-     *                                            "last_login"=>array()
-     *                                        )
-     *                                    )
-       * 
+     *                           Not all DBMS support index sorting direction
+     *                           configuration. The DBMS drivers of those that
+     *                           do not support it ignore this property. Use
+     *                           the function support() to determine whether
+     *                           the DBMS driver can manage indexes.
+     *                         Example
+     *                            array(
+     *                                "FIELDS"=>array(
+     *                                    "user_name"=>array(
+     *                                        "sorting"=>"ascending"
+     *                                    ),
+     *                                    "last_login"=>array()
+     *                                )
+     *                            )
+     * 
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
@@ -1071,8 +1100,8 @@ class MDB_common extends PEAR
     /**
      * drop existing index
      * 
-     * @param string    $table         name of table that should be used in method
-     * @param string    $name         name of the index to be dropped
+     * @param string  $table name of table that should be used in method
+     * @param string  $name  name of the index to be dropped
       * 
      * @access public
      *
@@ -1093,9 +1122,9 @@ class MDB_common extends PEAR
     /**
      * create sequence
      * 
-     * @param string    $name         name of the sequence to be created
-     * @param string    $start         start value of the sequence; default is 1
-      * 
+     * @param string  $name  name of the sequence to be created
+     * @param string  $start start value of the sequence; default is 1
+     * 
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
@@ -1115,8 +1144,8 @@ class MDB_common extends PEAR
     /**
      * drop existing sequence
      * 
-     * @param string    $name         name of the sequence to be dropped
-      * 
+     * @param string  $name name of the sequence to be dropped
+     * 
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
@@ -1136,7 +1165,8 @@ class MDB_common extends PEAR
     /**
      * list all tables in the current database
      * 
-     * @param array $sequences reference to an empty array into which the list is stored
+     * @param array $sequences reference to an empty array into which the list
+     *                         is stored
      * 
      * @access public
      *
@@ -1478,7 +1508,7 @@ class MDB_common extends PEAR
      * 
      * @param int $prepared_query argument is a handle that was returned by the function prepareQuery()
      *  
-     * @access privat
+     * @access private
      *
      */
     function validatePreparedQuery($prepared_query)
@@ -1526,7 +1556,7 @@ class MDB_common extends PEAR
      * @param string $query query to be executed
      * @param array    $types array that contains the types of the columns in the result set
      *  
-     * @access privat
+     * @access private
      *
      * @return mixed a result handle or DB_OK on success, a DB error on failure
      */ 
@@ -2530,7 +2560,7 @@ class MDB_common extends PEAR
     *
     * @return object a DB error on failure
     *
-    * @access privat
+    * @access private
     */
     function baseConvertResult(&$value, $type)
     {
@@ -3178,7 +3208,7 @@ class MDB_common extends PEAR
      * @param string    $value             
      * @param string    $success         
      * 
-     * @access privat
+     * @access private
      */
     function freeCLOBValue($prepared_query, $clob, &$value, $success)
     {
@@ -3213,7 +3243,7 @@ class MDB_common extends PEAR
      * @param string    $value             
      * @param string    $success         
      * 
-     * @access privat
+     * @access private
      */
     function freeBLOBValue($prepared_query, $blob, &$value, $success)
     {
@@ -3420,7 +3450,7 @@ class MDB_common extends PEAR
      * @param array        $array     reference to an array where data from the row is stored
      * @param int        $rownum the row number to fetch
      * 
-     * @access privat
+     * @access private
      *
      * @return mixed DB_OK on success, a DB error on failure
      */ 
