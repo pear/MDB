@@ -32,18 +32,18 @@
     // run the query and get a result handler
     $result = $db->Query($query);
     // lets just get row:0 column:0 and free the result
-    $db->FetchResultField($result, $field);
+    $db->FetchField($result, $field);
     echo "<br>field:<br>".$field."<br>";
     // run the query and get a result handler
     $result = $db->Query($query);
     // lets just get row:0 and free the result
-    $db->FetchResultRow($result, $array);
+    $db->FetchRow($result, $array);
     echo "<br>row:<br>";
     echo Var_Dump::display($array)."<br>";
     // run the query and get a result handler
     $result = $db->Query($query);
     // lets just get column:0 and free the result
-    $db->FetchResultColumn($result, $array);
+    $db->FetchColumn($result, $array);
     echo "<br>column:<br>";
     echo Var_Dump::display($array)."<br>";
     // run the query and get a result handler
@@ -52,7 +52,7 @@
     echo Var_Dump::display($db->tableInfo($result))."<br>";
     // lets just get everything and free the result
     $result = $db->Query($query);
-    $db->FetchResultAll($result, &$array);
+    $db->FetchAll($result, &$array);
     echo "<br>all:<br>";
     echo Var_Dump::display($array)."<br>";
     // save some time with this function
@@ -64,7 +64,7 @@
     unset($result);
     $result = $db->limitQuery($query, 1, 1);
     // lets just get everything but with an associative array and free the result
-    $db->FetchResultAll($result, $array, DB_FETCHMODE_ASSOC);
+    $db->FetchAll($result, $array, DB_FETCHMODE_ASSOC);
     echo "<br>associative array with offset 1 and count 1:<br>";
     echo Var_Dump::display($array)."<br>";
     // lets create a sequence

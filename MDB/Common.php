@@ -186,34 +186,34 @@ class MDB_common extends PEAR
         }
         switch($field["type"]) {
             case "integer":
-                $query = $this->getIntegerFieldTypeDeclaration($field_name, $field);
+                $query = $this->getIntegerDeclaration($field_name, $field);
                 break;
             case "text":
-                $query = $this->getTextFieldTypeDeclaration($field_name, $field);
+                $query = $this->getTextDeclaration($field_name, $field);
                 break;
             case "clob":
-                $query = $this->getCLOBFieldTypeDeclaration($field_name, $field);
+                $query = $this->getCLOBDeclaration($field_name, $field);
                 break;
             case "blob":
-                $query = $this->getBLOBFieldTypeDeclaration($field_name, $field);
+                $query = $this->getBLOBDeclaration($field_name, $field);
                 break;
             case "boolean":
-                $query = $this->getBooleanFieldTypeDeclaration($field_name, $field);
+                $query = $this->getBooleanDeclaration($field_name, $field);
                 break;
             case "date":
-                $query = $this->getDateFieldTypeDeclaration($field_name, $field);
+                $query = $this->getDateDeclaration($field_name, $field);
                 break;
             case "timestamp":
-                $query = $this->getTimestampFieldTypeDeclaration($field_name, $field);
+                $query = $this->getTimestampDeclaration($field_name, $field);
                 break;
             case "time":
-                $query = $this->getTimeFieldTypeDeclaration($field_name, $field);
+                $query = $this->getTimeDeclaration($field_name, $field);
                 break;
             case "float":
-                $query = $this->getFloatFieldTypeDeclaration($field_name, $field);
+                $query = $this->getFloatDeclaration($field_name, $field);
                 break;
             case "decimal":
-                $query = $this->getDecimalFieldTypeDeclaration($field_name, $field);
+                $query = $this->getDecimalDeclaration($field_name, $field);
                 break;
             default:
                 //return($this->setError("Get field", "type \"".$field["type"]."\" is not yet supported"));
@@ -680,7 +680,7 @@ class MDB_common extends PEAR
         return(-1);
     }
 
-    function fetchResult($result, $row, $field)
+    function fetch($result, $row, $field)
     {
         $this->warning = "fetch result method not implemented";
         return("");
@@ -713,7 +713,7 @@ class MDB_common extends PEAR
             return($this->setError("Fetch LOB result", "it was not specified a valid lob"));
         }
         if (!isset($this->lobs[$lob]["Value"])) {
-            $this->lobs[$lob]["Value"] = $this->fetchResult($this->lobs[$lob]["Result"], $this->lobs[$lob]["Row"], $this->lobs[$lob]["Field"]);
+            $this->lobs[$lob]["Value"] = $this->fetch($this->lobs[$lob]["Result"], $this->lobs[$lob]["Row"], $this->lobs[$lob]["Field"]);
         }
         return(1);
     }
@@ -756,7 +756,7 @@ class MDB_common extends PEAR
 
     function resultIsNull($result, $row, $field)
     {
-        $value = $this->fetchResult($result, $row, $field);
+        $value = $this->fetch($result, $row, $field);
         return(!isset($value));
     }
 
@@ -849,7 +849,7 @@ class MDB_common extends PEAR
         return($last_function);
     }
 
-    function getIntegerFieldTypeDeclaration($name, &$field)
+    function getIntegerDeclaration($name, &$field)
     {
         if (isset($field["unsigned"])) {
             $this->warning = "unsigned integer field \"$name\" is being declared as signed integer";
@@ -857,49 +857,49 @@ class MDB_common extends PEAR
         return("$name INT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getTextFieldTypeDeclaration($name, &$field)
+    function getTextDeclaration($name, &$field)
     {
-        return((isset($field["length"]) ? "$name CHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->GetTextFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return((isset($field["length"]) ? "$name CHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->getTextFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getCLOBFieldTypeDeclaration($name, &$field)
+    function getCLOBDeclaration($name, &$field)
     {
-        return((isset($field["length"]) ? "$name CHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->GetTextFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return((isset($field["length"]) ? "$name CHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->getTextFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getBLOBFieldTypeDeclaration($name, &$field)
+    function getBLOBDeclaration($name, &$field)
     {
-        return((isset($field["length"]) ? "$name CHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->GetTextFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return((isset($field["length"]) ? "$name CHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->getTextFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getBooleanFieldTypeDeclaration($name, &$field)
+    function getBooleanDeclaration($name, &$field)
     {
-        return("$name CHAR (1)".(isset($field["default"]) ? " DEFAULT ".$this->GetBooleanFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return("$name CHAR (1)".(isset($field["default"]) ? " DEFAULT ".$this->getBooleanFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getDateFieldTypeDeclaration($name, &$field)
+    function getDateDeclaration($name, &$field)
     {
-        return("$name CHAR (".strlen("YYYY-MM-DD").")".(isset($field["default"]) ? " DEFAULT ".$this->GetDateFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return("$name CHAR (".strlen("YYYY-MM-DD").")".(isset($field["default"]) ? " DEFAULT ".$this->getDateFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getTimestampFieldTypeDeclaration($name, &$field)
+    function getTimestampDeclaration($name, &$field)
     {
-        return("$name CHAR (".strlen("YYYY-MM-DD HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->GetTimestampFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return("$name CHAR (".strlen("YYYY-MM-DD HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimestampFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getTimeFieldTypeDeclaration($name, &$field)
+    function getTimeDeclaration($name, &$field)
     {
-        return("$name CHAR (".strlen("HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->GetTimeFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return("$name CHAR (".strlen("HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimeFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getFloatFieldTypeDeclaration($name, &$field)
+    function getFloatDeclaration($name, &$field)
     {
-        return("$name TEXT ".(isset($field["default"]) ? " DEFAULT ".$this->GetFloatFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return("$name TEXT ".(isset($field["default"]) ? " DEFAULT ".$this->getFloatFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getDecimalFieldTypeDeclaration($name, &$field)
+    function getDecimalDeclaration($name, &$field)
     {
-        return("$name TEXT ".(isset($field["default"]) ? " DEFAULT ".$this->GetDecimalFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return("$name TEXT ".(isset($field["default"]) ? " DEFAULT ".$this->getDecimalFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
     function getIntegerFieldValue($value)
@@ -1134,14 +1134,14 @@ class MDB_common extends PEAR
         return(1);
     }
 
-    function baseFetchResultArray($result, &$array, $row)
+    function baseFetchArray($result, &$array, $row)
     {
         if (($columns = $this->numCols($result)) == -1) {
             return null;
         }
         for($array = array(), $column = 0; $column<$columns; $column++) {
             if (!$this->resultIsNull($result, $row, $column)) {
-                $array[$column] = $this->fetchResult($result, $row, $column);
+                $array[$column] = $this->fetch($result, $row, $column);
             }
         }
         if ($this->convertResultRow($result, $array)) {
@@ -1156,12 +1156,12 @@ class MDB_common extends PEAR
     // added $fetchmode
     function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $row = null)
     {
-        return ($this->baseFetchResultArray($result, &$array, $row));
+        return ($this->baseFetchArray($result, &$array, $row));
     }
     
     // $fetchmode added
     // new uses fetchInto
-    function fetchResultField($result, &$value, $fetchmode = DB_FETCHMODE_DEFAULT)
+    function fetchField($result, &$value, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         if (!$result) {
             return ($this->setError("Fetch field", "it was not specified a valid result set"));
@@ -1182,7 +1182,7 @@ class MDB_common extends PEAR
     }
 
     // $fetchmode added
-    function fetchResultRow($result, &$row, $fetchmode = DB_FETCHMODE_DEFAULT)
+    function fetchRow($result, &$row, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         if (!$result) {
             return ($this->setError("Fetch field", "it was not specified a valid result set"));
@@ -1198,7 +1198,7 @@ class MDB_common extends PEAR
 
     // $fetchmode added
     // new uses fetchInto
-    function fetchResultColumn($result, &$column, $fetchmode = DB_FETCHMODE_DEFAULT)
+    function fetchColumn($result, &$column, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         if (!$result) {
             return ($this->setError("Fetch field", "it was not specified a valid result set"));
@@ -1218,12 +1218,12 @@ class MDB_common extends PEAR
     }
 
     // $fetchmode, $rekey, $force_array, $group added
-    // this is basically a slightly modified version of fetchResultAll()
+    // this is basically a slightly modified version of fetchAll()
     // the only difference is that the first dimension in the 2 dimensional result set is pop-off each row
     // this is especially interesting if you need to fetch a large result set and
     // then jump around in the result set based on some primary key
     // if the same key is pop-off for multiple rows then the second overwrites the first
-    function fetchResultAll($result, &$all, $fetchmode = DB_FETCHMODE_DEFAULT, $rekey = false, $force_array = false, $group = false)
+    function fetchAll($result, &$all, $fetchmode = DB_FETCHMODE_DEFAULT, $rekey = false, $force_array = false, $group = false)
     {
         if (!$result) {
             return ($this->setError("Fetch field","it was not specified a valid result set"));
@@ -1274,7 +1274,7 @@ class MDB_common extends PEAR
                 return (0);
             }
         }
-        return ($this->fetchResultField($result, $field));
+        return ($this->fetchField($result, $field));
     }
 
     function queryRow($query, &$row, $types = "")
@@ -1288,7 +1288,7 @@ class MDB_common extends PEAR
                 return (0);
             }
         }
-        return ($this->fetchResultRow($result, $row));
+        return ($this->fetchRow($result, $row));
     }
 
     function queryColumn($query, &$column, $type = "text")
@@ -1303,7 +1303,7 @@ class MDB_common extends PEAR
                 return (0);
             }
         }
-        return ($this->fetchResultColumn($result, $column));
+        return ($this->fetchColumn($result, $column));
     }
 
     function queryAll($query, &$all, $types = "")
@@ -1317,7 +1317,7 @@ class MDB_common extends PEAR
                 return (0);
             }
         }
-        return ($this->fetchResultAll($result, $all));
+        return ($this->fetchAll($result, $all));
     }
 
     // ********************
@@ -1433,7 +1433,7 @@ class MDB_common extends PEAR
             return $result;
         }
 
-        $err = $this->fetchResultField($result, &$value,DB_FETCHMODE_ORDERED);
+        $err = $this->fetchField($result, &$value,DB_FETCHMODE_ORDERED);
         if ($err !== DB_OK) {
             return $err;
         }
@@ -1463,7 +1463,7 @@ class MDB_common extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
-        $err = $this->fetchResultRow($result, &$row, $fetchmode);
+        $err = $this->fetchRow($result, &$row, $fetchmode);
         
         if ($err !== DB_OK) {
             return $err;
@@ -1495,7 +1495,7 @@ class MDB_common extends PEAR
             return $result;
         }
         
-        $err = $this->fetchResultColumn($result, &$col, $fetchmode);
+        $err = $this->fetchColumn($result, &$col, $fetchmode);
         
         if ($err !== DB_OK) {
             return $err;
@@ -1528,7 +1528,7 @@ class MDB_common extends PEAR
             return $result;
         }
 
-        $err = $this->fetchResultAll($result, &$all, $fetchmode, true, $force_array, $group);
+        $err = $this->fetchAll($result, &$all, $fetchmode, true, $force_array, $group);
         if ($err !== DB_OK) {
             return $err;
         }        
