@@ -230,7 +230,7 @@ class MDB
      */
     function &factory($type)
     {
-        $type        = $dsninfo['phptype'];
+        $type       = $dsninfo['phptype'];
         $class_name = "MDB_$type";
         
         @include_once "MDB/${type}.php";
@@ -318,10 +318,9 @@ class MDB
     // {{{ loadFile()
     
     /**
-     * load a file containing the class source (like 'MDB_Date' or 'MDB_Manager')
+     * load a file (like 'Date.php' or 'Manager.php')
      *
-     * @return $file    the short name of the class (like 'Date' or 'Manager')
-     *                  without the 'MDB_' prefix
+     * @return $file    name of the file to be included from the MDB dir
      * @access public
      */
     function loadFile($file)
