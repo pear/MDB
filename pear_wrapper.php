@@ -152,6 +152,9 @@ class DB_result
         if(MDB::isError($arr)) {
             return $arr;
         }
+        if($arr === NULL) {
+            return $arr;
+        }
         return (DB_OK);
     }
 
