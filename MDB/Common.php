@@ -129,7 +129,7 @@ class MDB_Common extends PEAR
     var $supported = array();
 
     /**
-     * $options["optimize"] -> string 'performance' or 'portability'
+     * $options["result_buffering"] -> boolean should results be buffered or not?
      * $options['persistent'] -> boolean persistent connection?
      * $options['debug'] -> integer numeric debug level
      * $options['debug_handler'] -> string function/meothd that captures debug messages
@@ -144,7 +144,7 @@ class MDB_Common extends PEAR
      * @access private
      */
     var $options = array(
-            'optimize' => 'portability',
+            'result_buffering' => false,
             'persistent' => false,
             'debug' => 0,
             'debug_handler' => 'MDB_defaultDebugOutput',
