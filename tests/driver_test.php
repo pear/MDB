@@ -22,6 +22,7 @@
  * database setup arguments.
  *
  */
+echo "\n";
 
     require("metabase_wrapper.php");
     require("parser.php");
@@ -64,7 +65,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
         "name"=>"driver_test"
     );
 
-    if(file_exists("driver_test_config.php"))
+    if (file_exists("driver_test_config.php"))
         include("driver_test_config.php");
 
     $eol=(IsSet($driver_arguments["LogLineBreak"]) ? $driver_arguments["LogLineBreak"] : "\n");
@@ -85,13 +86,13 @@ Function InsertTestValues($database,$prepared_query,&$data)
         "lobfiles"=>1,
         "lobnulls"=>1
     );
-    if($argc<=1)
+    if ($argc<=1)
         $tests=$default_tests;
     else
     {
         for($tests=array(),$argument=1;$argument<$argc;$argument++)
         {
-            if(!IsSet($default_tests[$argv[$argument]]))
+            if (!IsSet($default_tests[$argv[$argument]]))
             {
                 echo "Usage: ",$argv[0];
                 for(Reset($default_tests);Key($default_tests);Next($default_tests))
@@ -108,28 +109,28 @@ Function InsertTestValues($database,$prepared_query,&$data)
     $manager=new MDB_manager;
     $success=$manager->UpdateDatabase($input_file,$input_file.".before",$driver_arguments,$database_variables);
     $debug_output="";
-    if(count($manager->warnings)>0)
+    if (count($manager->warnings)>0)
         $debug_output.="WARNING:$eol".implode($manager->warnings,"!$eol").$eol;
-    if($manager->database
+    if ($manager->database
     && IsSet($driver_arguments["CaptureDebug"]))
         $debug_output.=MetabaseDebugOutput($manager->database);
     $passed=$failed=0;
-    if($success)
+    if ($success)
     {
-        if(!strcmp($error=MetabaseSetupDatabase($driver_arguments,$database),""))
+        if (!strcmp($error=MetabaseSetupDatabase($driver_arguments,$database),""))
         {
-            if(IsSet($driver_arguments["CaptureDebug"]))
+            if (IsSet($driver_arguments["CaptureDebug"]))
                 MetabaseCaptureDebugOutput($database,1);
             MetabaseSetDatabase($database,$database_variables["name"]);
 
-            if(IsSet($tests["storage"])
+            if (IsSet($tests["storage"])
             && $success)
             {
                 $test="storage";
                 echo "Testing typed field storage and retrieval ... ";
                 flush();
                 $pass=1;
-                if(!MetabaseQuery($database,"DELETE FROM users"))
+                if (!MetabaseQuery($database,"DELETE FROM users"))
                     $success=0;
                 else
                 {
@@ -144,20 +145,20 @@ Function InsertTestValues($database,$prepared_query,&$data)
                     $data["access_date"]=MetabaseToday();
                     $data["access_time"]=MetabaseTime();
                     $data["approved"]=MetabaseNow();
-                    if(($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved) VALUES (?,?,?,?,?,?,?,?,?)")))
+                    if (($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved) VALUES (?,?,?,?,?,?,?,?,?)")))
                     {
-                        if(!InsertTestValues($database,$prepared_query,$data))
+                        if (!InsertTestValues($database,$prepared_query,$data))
                         {
                             $success=0;
                         }
                         MetabaseFreePreparedQuery($database,$prepared_query);
-                        if($success)
+                        if ($success)
                         {
-                            if(!($result=MetabaseQuery($database,"SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users")))
+                            if (!($result=MetabaseQuery($database,"SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users")))
                                 $success=0;
                             else
                             {
-                                if(VerifyFetchedValues($database,$result,0,$data,$value,$field))
+                                if (VerifyFetchedValues($database,$result,0,$data,$value,$field))
                                 {
                                     $pass=0;
                                     echo "FAILED!$eol";
@@ -166,7 +167,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 }
                                 else
                                 {
-                                    if(!MetabaseEndOfResult($database,$result))
+                                    if (!MetabaseEndOfResult($database,$result))
                                     {
                                         $pass=0;
                                         echo "FAILED!$eol";
@@ -177,7 +178,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 MetabaseFreeResult($database,$result);
                             }
                         }
-                        if($success
+                        if ($success
                         && $pass)
                         {
                             $passed++;
@@ -189,18 +190,18 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 }
             }
 
-            if(IsSet($tests["bulkfetch"])
+            if (IsSet($tests["bulkfetch"])
             && $success)
             {
                 $test="bulkfetch";
                 echo "Testing query result data bulk fetching... ";
                 flush();
                 $pass=1;
-                if(!MetabaseQuery($database,"DELETE FROM users"))
+                if (!MetabaseQuery($database,"DELETE FROM users"))
                     $success=0;
                 else
                 {
-                    if(($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved) VALUES (?,?,?,?,?,?,?,?,?)")))
+                    if (($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved) VALUES (?,?,?,?,?,?,?,?,?)")))
                     {
                         $data=array();
                         for($total_rows=5,$row=0;$row<$total_rows;$row++)
@@ -214,7 +215,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             $data[$row]["access_date"]=MetabaseToday();
                             $data[$row]["access_time"]=MetabaseTime();
                             $data[$row]["approved"]=MetabaseNow();
-                            if(!InsertTestValues($database,$prepared_query,$data[$row]))
+                            if (!InsertTestValues($database,$prepared_query,$data[$row]))
                             {
                                 $success=0;
                                 break;
@@ -232,7 +233,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             "time",
                             "timestamp"
                         );
-                        if($success)
+                        if ($success)
                         {
                             for($row=0;$row<$total_rows;$row++)
                             {
@@ -240,9 +241,9 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 {
                                     $field=Key($data[$row]);
                                     $type=$types[$column];
-                                    if(!($success=MetabaseQueryField($database,"SELECT $field FROM users WHERE user_id=$row",$value,$type)))
+                                    if (!($success=MetabaseQueryField($database,"SELECT $field FROM users WHERE user_id=$row",$value,$type)))
                                         break 2;
-                                    if(strcmp(strval($data[$row][$field]),strval($value)))
+                                    if (strcmp(strval($data[$row][$field]),strval($value)))
                                     {
                                         $pass=0;
                                         echo "FAILED!$eol";
@@ -253,23 +254,23 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 }
                             }
                         }
-                        if($success
+                        if ($success
                         && $pass)
                         {
                             for($fields="",Reset($data[0]),$column=0;$column<count($data[0]);Next($data[0]),$column++)
                             {
-                                if($column>0)
+                                if ($column>0)
                                     $fields.=",";
                                 $fields.=Key($data[0]);
                             }
                             for($row=0;$row<$total_rows;$row++)
                             {
-                                if(!($success=MetabaseQueryRow($database,"SELECT $fields FROM users WHERE user_id=$row",$value,$types)))
+                                if (!($success=MetabaseQueryRow($database,"SELECT $fields FROM users WHERE user_id=$row",$value,$types)))
                                     break;
                                 for(Reset($data[$row]),$column=0;$column<count($data[$row]);Next($data[$row]),$column++)
                                 {
                                     $field=Key($data[$row]);
-                                    if(strcmp(strval($data[$row][$field]),strval($value[$column])))
+                                    if (strcmp(strval($data[$row][$field]),strval($value[$column])))
                                     {
                                         $pass=0;
                                         echo "FAILED!$eol";
@@ -280,18 +281,18 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 }
                             }
                         }
-                        if($success
+                        if ($success
                         && $pass)
                         {
                             for(Reset($data[0]),$column=0;$column<count($data[0]);Next($data[0]),$column++)
                             {
                                 $field=Key($data[0]);
                                 $type=$types[$column];
-                                if(!($success=MetabaseQueryColumn($database,"SELECT $field,user_id FROM users ORDER BY 2",$value,$type)))
+                                if (!($success=MetabaseQueryColumn($database,"SELECT $field,user_id FROM users ORDER BY 2",$value,$type)))
                                     break;
                                 for($row=0;$row<$total_rows;$row++)
                                 {
-                                    if(strcmp(strval($data[$row][$field]),strval($value[$row])))
+                                    if (strcmp(strval($data[$row][$field]),strval($value[$row])))
                                     {
                                         $pass=0;
                                         echo "FAILED!$eol";
@@ -302,23 +303,23 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 }
                             }
                         }
-                        if($success
+                        if ($success
                         && $pass)
                         {
                             for($fields="",Reset($data[0]),$column=0;$column<count($data[0]);Next($data[0]),$column++)
                             {
-                                if($column>0)
+                                if ($column>0)
                                     $fields.=",";
                                 $fields.=Key($data[0]);
                             }
-                            if(($success=MetabaseQueryAll($database,"SELECT $fields FROM users ORDER BY user_id",$value,$types)))
+                            if (($success=MetabaseQueryAll($database,"SELECT $fields FROM users ORDER BY user_id",$value,$types)))
                             {
                                 for($row=0;$row<$total_rows;$row++)
                                 {
                                     for(Reset($data[$row]),$column=0;$column<count($data[$row]);Next($data[$row]),$column++)
                                     {
                                         $field=Key($data[$row]);
-                                        if(strcmp(strval($data[$row][$field]),strval($value[$row][$column])))
+                                        if (strcmp(strval($data[$row][$field]),strval($value[$row][$column])))
                                         {
                                             $pass=0;
                                             echo "FAILED!$eol";
@@ -330,7 +331,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 }
                             }
                         }
-                        if($success
+                        if ($success
                         && $pass)
                         {
                             $passed++;
@@ -342,22 +343,22 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 }
             }
 
-            if(IsSet($tests["preparedqueries"])
+            if (IsSet($tests["preparedqueries"])
             && $success)
             {
                 $test="preparedqueries";
                 echo "Testing prepared queries ... ";
                 flush();
                 $pass=1;
-                if(!MetabaseQuery($database,"DELETE FROM users"))
+                if (!MetabaseQuery($database,"DELETE FROM users"))
                     $success=0;
                 else
                 {
                     $question_value=MetabaseGetTextFieldValue($database,"Does this work?");
-                    if(($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,user_id) VALUES (?,$question_value,1)")))
+                    if (($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,user_id) VALUES (?,$question_value,1)")))
                     {
                         MetabaseQuerySetText($database,$prepared_query,1,"Sure!");
-                        if(!MetabaseExecuteQuery($database,$prepared_query))
+                        if (!MetabaseExecuteQuery($database,$prepared_query))
                         {
                             $sucess=$pass=0;
                             echo "FAILED!$eol";
@@ -376,10 +377,10 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         flush();
                     }
                     $question_value=MetabaseGetTextFieldValue($database,"Wouldn't it be great if this worked too?");
-                    if(($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,user_id) VALUES (?,$question_value,2)")))
+                    if (($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,user_id) VALUES (?,$question_value,2)")))
                     {
                         MetabaseQuerySetText($database,$prepared_query,1,"Sure!");
-                        if(!MetabaseExecuteQuery($database,$prepared_query))
+                        if (!MetabaseExecuteQuery($database,$prepared_query))
                         {
                             $sucess=$pass=0;
                             echo "FAILED!$eol";
@@ -393,7 +394,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         echo "FAILED!$eol";
                         echo "Test $test: could not execute prepared query with a text value with a quote character before a question mark. Error: ".MetabaseError($database).$eol;
                     }
-                    if($success
+                    if ($success
                     && $pass)
                     {
                         $passed++;
@@ -404,14 +405,14 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 }
             }
 
-            if(IsSet($tests["metadata"])
+            if (IsSet($tests["metadata"])
             && $success)
             {
                 $test="metadata";
                 echo "Testing retrieval of result metadata... ";
                 flush();
                 $pass=1;
-                if(!MetabaseQuery($database,"DELETE FROM users"))
+                if (!MetabaseQuery($database,"DELETE FROM users"))
                     $success=0;
                 else
                 {
@@ -426,16 +427,16 @@ Function InsertTestValues($database,$prepared_query,&$data)
                     $data["access_date"]=MetabaseToday();
                     $data["access_time"]=MetabaseTime();
                     $data["approved"]=MetabaseNow();
-                    if(($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved) VALUES (?,?,?,?,?,?,?,?,?)")))
+                    if (($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved) VALUES (?,?,?,?,?,?,?,?,?)")))
                     {
-                        if(!InsertTestValues($database,$prepared_query,$data))
+                        if (!InsertTestValues($database,$prepared_query,$data))
                         {
                             $success=0;
                         }
                         MetabaseFreePreparedQuery($database,$prepared_query);
-                        if($success)
+                        if ($success)
                         {
-                            if(!($result=MetabaseQuery($database,"SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users")))
+                            if (!($result=MetabaseQuery($database,"SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users")))
                                 $success=0;
                             else
                             {
@@ -450,15 +451,15 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                     "access_time",
                                     "approved"
                                 );
-                                if(($columns=MetabaseNumberOfColumns($database,$result))==count($fields))
+                                if (($columns=MetabaseNumberOfColumns($database,$result))==count($fields))
                                 {
-                                    if(($success=MetabaseGetColumnNames($database,$result,$column_names)))
+                                    if (($success=MetabaseGetColumnNames($database,$result,$column_names)))
                                     {
-                                        if($columns==count($column_names))
+                                        if ($columns==count($column_names))
                                         {
                                             for($column=0;$column<$columns;$column++)
                                             {
-                                                if($column_names[$fields[$column]]!=$column)
+                                                if ($column_names[$fields[$column]]!=$column)
                                                 {
                                                     $pass=0;
                                                     echo "FAILED!$eol";
@@ -478,7 +479,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 }
                                 else
                                 {
-                                    if($columns==-1)
+                                    if ($columns==-1)
                                         $success=0;
                                     else
                                     {
@@ -491,7 +492,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 MetabaseFreeResult($database,$result);
                             }
                         }
-                        if($success
+                        if ($success
                         && $pass)
                         {
                             $passed++;
@@ -503,7 +504,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 }
             }
 
-            if(IsSet($tests["nulls"])
+            if (IsSet($tests["nulls"])
             && $success)
             {
                 $test="nulls";
@@ -519,17 +520,17 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 for($test_value=0;$success && $test_value<=count($test_values);$test_value++)
                 {
                     $is_null=($test_value==count($test_values));
-                    if($is_null)
+                    if ($is_null)
                         $value="NULL";
                     else
                         $value=MetabaseGetTextFieldValue($database,$test_values[$test_value]);
-                    if(MetabaseQuery($database,"DELETE FROM users")
+                    if (MetabaseQuery($database,"DELETE FROM users")
                     && MetabaseQuery($database,"INSERT INTO users (user_name,user_password,user_id) VALUES ($value,$value,0)")
                     && ($result=MetabaseQuery($database,"SELECT user_name,user_password FROM users")))
                     {
-                        if(MetabaseEndOfResult($database,$result))
+                        if (MetabaseEndOfResult($database,$result))
                         {
-                            if($pass)
+                            if ($pass)
                             {
                                 $pass=0;
                                 $failed++;
@@ -539,39 +540,39 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         }
                         else
                         {
-                            if(MetabaseResultIsNull($database,$result,0,0)!=$is_null)
+                            if (MetabaseResultIsNull($database,$result,0,0)!=$is_null)
                             {
-                                if($pass)
+                                if ($pass)
                                 {
                                     $pass=0;
                                     $failed++;
                                     echo "FAILED!$eol";
                                 }
-                                if($is_null)
+                                if ($is_null)
                                     echo "Test $test: a query result column is not NULL unlike what was expected$eol";
                                 else
                                     echo "Test $test: a query result column is NULL although it was expected to be \"".$test_values[$test_value]."\"$eol";
                             }
                             else
                             {
-                                if(MetabaseResultIsNull($database,$result,0,1)!=$is_null)
+                                if (MetabaseResultIsNull($database,$result,0,1)!=$is_null)
                                 {
-                                    if($pass)
+                                    if ($pass)
                                     {
                                         $pass=0;
                                         $failed++;
                                         echo "FAILED!$eol";
                                     }
-                                    if($is_null)
+                                    if ($is_null)
                                         echo "Test $test: a query result column is not NULL unlike what was expected$eol";
                                     else
                                         echo "Test $test: a query result column is NULL although it was expected to be \"".$test_values[$test_value]."\"$eol";
                                 }
                                 else
                                 {
-                                    if(!MetabaseEndOfResult($database,$result))
+                                    if (!MetabaseEndOfResult($database,$result))
                                     {
-                                        if($pass)
+                                        if ($pass)
                                         {
                                             $pass=0;
                                             $failed++;
@@ -590,7 +591,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         break;
                     }
                 }
-                if($success
+                if ($success
                 && $pass)
                 {
                     $passed++;
@@ -598,7 +599,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 }
             }
 
-            if(IsSet($tests["escapesequences"])
+            if (IsSet($tests["escapesequences"])
             && $success)
             {
                 $test="escapesequences";
@@ -620,13 +621,13 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 for($string=0;$string<count($test_strings);$string++)
                 {
                     $value=MetabaseGetTextFieldValue($database,$test_strings[$string]);
-                    if(!MetabaseQuery($database,"DELETE FROM users")
+                    if (!MetabaseQuery($database,"DELETE FROM users")
                     || !MetabaseQuery($database,"INSERT INTO users (user_name,user_password,user_id) VALUES ($value,$value,0)")
                     || !($result=MetabaseQuery($database,"SELECT user_name,user_password FROM users")))
                         $success=0;
                     else
                     {
-                        if(MetabaseEndOfResult($database,$result))
+                        if (MetabaseEndOfResult($database,$result))
                         {
                             $pass=0;
                             echo "FAILED!$eol";
@@ -636,7 +637,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         else
                         {
                             $field="user_name";
-                            if(strcmp($value=MetabaseFetchResult($database,$result,0,$field),$test_strings[$string]))
+                            if (strcmp($value=MetabaseFetchResult($database,$result,0,$field),$test_strings[$string]))
                             {
                                 $pass=0;
                                 echo "FAILED!$eol";
@@ -646,7 +647,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             else
                             {
                                 $field="user_password";
-                                if(strcmp($value=MetabaseFetchResult($database,$result,0,$field),$test_strings[$string]))
+                                if (strcmp($value=MetabaseFetchResult($database,$result,0,$field),$test_strings[$string]))
                                 {
                                     $pass=0;
                                     echo "FAILED!$eol";
@@ -655,7 +656,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 }
                                 else
                                 {
-                                    if(!MetabaseEndOfResult($database,$result))
+                                    if (!MetabaseEndOfResult($database,$result))
                                     {
                                         $pass=0;
                                         echo "FAILED!$eol";
@@ -667,11 +668,11 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         }
                         MetabaseFreeResult($database,$result);
                     }
-                    if(!$success
+                    if (!$success
                     || !$pass)
                         break;
                 }
-                if($success
+                if ($success
                 && $pass)
                 {
                     $passed++;
@@ -679,20 +680,20 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 }
             }
 
-            if(IsSet($tests["ranges"])
+            if (IsSet($tests["ranges"])
             && $success)
             {
-                if(MetabaseSupport($database,"SelectRowRanges"))
+                if (MetabaseSupport($database,"SelectRowRanges"))
                 {
                     $test="ranges";
                     echo "Testing paged queries... ";
                     flush();
                     $pass=1;
-                    if(!MetabaseQuery($database,"DELETE FROM users"))
+                    if (!MetabaseQuery($database,"DELETE FROM users"))
                         $success=0;
                     else
                     {
-                        if(($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved) VALUES (?,?,?,?,?,?,?,?,?)")))
+                        if (($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved) VALUES (?,?,?,?,?,?,?,?,?)")))
                         {
                             $data=array();
                             for($total_rows=5,$row=0;$row<$total_rows;$row++)
@@ -706,19 +707,19 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 $data[$row]["access_date"]=MetabaseToday();
                                 $data[$row]["access_time"]=MetabaseTime();
                                 $data[$row]["approved"]=MetabaseNow();
-                                if(!InsertTestValues($database,$prepared_query,$data[$row]))
+                                if (!InsertTestValues($database,$prepared_query,$data[$row]))
                                 {
                                     $success=0;
                                     break;
                                 }
                             }
                             MetabaseFreePreparedQuery($database,$prepared_query);
-                            if($success)
+                            if ($success)
                             {
                                 for($rows=2,$start_row=0;$pass && $start_row<$total_rows;$start_row+=$rows)
                                 {
                                     MetabaseSetSelectedRowRange($database,$start_row,$rows);
-                                    if(!($result=MetabaseQuery($database,"SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users ORDER BY user_id")))
+                                    if (!($result=MetabaseQuery($database,"SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users ORDER BY user_id")))
                                     {
                                         $success=0;
                                         break;
@@ -727,7 +728,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                     {
                                         for($row=0;$row<$rows && $row+$start_row<$total_rows;$row++)
                                         {
-                                            if(VerifyFetchedValues($database,$result,$row,$data[$row+$start_row],$value,$field))
+                                            if (VerifyFetchedValues($database,$result,$row,$data[$row+$start_row],$value,$field))
                                             {
                                                 $pass=0;
                                                 echo "FAILED!$eol";
@@ -736,9 +737,9 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                                 break;
                                             }
                                         }
-                                        if($pass)
+                                        if ($pass)
                                         {
-                                            if(!MetabaseEndOfResult($database,$result))
+                                            if (!MetabaseEndOfResult($database,$result))
                                             {
                                                 $pass=0;
                                                 echo "FAILED!$eol";
@@ -750,19 +751,19 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                     }
                                 }
                             }
-                            if($success)
+                            if ($success)
                             {
                                 for($rows=2,$start_row=0;$pass && $start_row<$total_rows;$start_row+=$rows)
                                 {
                                     MetabaseSetSelectedRowRange($database,$start_row,$rows);
-                                    if(!($result=MetabaseQuery($database,"SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users ORDER BY user_id")))
+                                    if (!($result=MetabaseQuery($database,"SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users ORDER BY user_id")))
                                     {
                                         $success=0;
                                         break;
                                     }
                                     else
                                     {
-                                        if(($result_rows=MetabaseNumberOfRows($database,$result))>$rows)
+                                        if (($result_rows=MetabaseNumberOfRows($database,$result))>$rows)
                                         {
                                             $pass=0;
                                             echo "FAILED!$eol";
@@ -773,7 +774,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                         {
                                             for($row=0;$row<$result_rows;$row++)
                                             {
-                                                if(MetabaseEndOfResult($database,$result))
+                                                if (MetabaseEndOfResult($database,$result))
                                                 {
                                                     $pass=0;
                                                     echo "FAILED!$eol";
@@ -781,7 +782,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                                     echo "Test $test: the query result seem to have reached the end of result at row $row that is before $result_rows as expected$eol";
                                                     break;
                                                 }
-                                                if(VerifyFetchedValues($database,$result,$row,$data[$row+$start_row],$value,$field))
+                                                if (VerifyFetchedValues($database,$result,$row,$data[$row+$start_row],$value,$field))
                                                 {
                                                     $pass=0;
                                                     echo "FAILED!$eol";
@@ -791,9 +792,9 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                                 }
                                             }
                                         }
-                                        if($pass)
+                                        if ($pass)
                                         {
-                                            if(!MetabaseEndOfResult($database,$result))
+                                            if (!MetabaseEndOfResult($database,$result))
                                             {
                                                 $pass=0;
                                                 echo "FAILED!$eol";
@@ -805,7 +806,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                     }
                                 }
                             }
-                            if($success
+                            if ($success
                             && $pass)
                             {
                                 $passed++;
@@ -820,10 +821,10 @@ Function InsertTestValues($database,$prepared_query,&$data)
                     echo "Selecting rows ranges is not supported.$eol";
             }
 
-            if(IsSet($tests["sequences"])
+            if (IsSet($tests["sequences"])
             && $success)
             {
-                if(MetabaseSupport($database,"Sequences"))
+                if (MetabaseSupport($database,"Sequences"))
                 {
                     $test="sequences";
                     echo "Testing sequences... ";
@@ -833,13 +834,13 @@ Function InsertTestValues($database,$prepared_query,&$data)
                     {
                         $sequence_name="test_sequence_$start_value";
                         MetabaseDropSequence($database,$sequence_name);
-                        if(($success=MetabaseCreateSequence($database,$sequence_name,$start_value)))
+                        if (($success=MetabaseCreateSequence($database,$sequence_name,$start_value)))
                         {
                             for($sequence_value=$start_value;$sequence_value<$start_value+4;$sequence_value++)
                             {
-                                if(!($success=MetabaseGetSequenceNextValue($database,$sequence_name,$value)))
+                                if (!($success=MetabaseGetSequenceNextValue($database,$sequence_name,$value)))
                                     break;
-                                if($value!=$sequence_value)
+                                if ($value!=$sequence_value)
                                 {
                                     $pass=0;
                                     echo "FAILED!$eol";
@@ -848,18 +849,18 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                     break;
                                 }
                             }
-                            if(!$success)
+                            if (!$success)
                                 $error=MetabaseError($database);
-                            if(!MetabaseDropSequence($database,$sequence_name))
+                            if (!MetabaseDropSequence($database,$sequence_name))
                             {
-                                if(!$success)
+                                if (!$success)
                                     $error.=" - ";
                                 $error.=MetabaseError($database);
                                 $success=0;
                             }
                         }
                     }
-                    if($success
+                    if ($success
                     && $pass)
                     {
                         $passed++;
@@ -870,16 +871,16 @@ Function InsertTestValues($database,$prepared_query,&$data)
                     echo "Sequences are not supported.$eol";
             }
 
-            if(IsSet($tests["replace"])
+            if (IsSet($tests["replace"])
             && $success)
             {
-                if(MetabaseSupport($database,"Replace"))
+                if (MetabaseSupport($database,"Replace"))
                 {
                     $test="sequences";
                     echo "Testing the replace query... ";
                     flush();
                     $pass=1;
-                    if(!MetabaseQuery($database,"DELETE FROM users"))
+                    if (!MetabaseQuery($database,"DELETE FROM users"))
                         $success=0;
                     else
                     {
@@ -934,11 +935,11 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             )
                         );
                         $support_affected_rows=MetabaseSupport($database,"AffectedRows");
-                        if(($success=MetabaseReplace($database,"users",$fields))
+                        if (($success=MetabaseReplace($database,"users",$fields))
                         && (!$support_affected_rows
                         || ($success=MetabaseAffectedRows($database,$affected_rows))))
                         {
-                            if($support_affected_rows
+                            if ($support_affected_rows
                             && $affected_rows!=1)
                             {
                                 $pass=0;
@@ -948,11 +949,11 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             }
                             else
                             {
-                                if(!($result=MetabaseQuery($database,"SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users")))
+                                if (!($result=MetabaseQuery($database,"SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users")))
                                     $success=0;
                                 else
                                 {
-                                    if(VerifyFetchedValues($database,$result,0,$data,$value,$field))
+                                    if (VerifyFetchedValues($database,$result,0,$data,$value,$field))
                                     {
                                         $pass=0;
                                         echo "FAILED!$eol";
@@ -970,11 +971,11 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                         $fields["access_date"]["Value"]=$data["access_date"]=MetabaseToday();
                                         $fields["access_time"]["Value"]=$data["access_time"]=MetabaseTime();
                                         $fields["approved"]["Value"]=$data["approved"]=MetabaseNow();
-                                        if(($success=MetabaseReplace($database,"users",$fields))
+                                        if (($success=MetabaseReplace($database,"users",$fields))
                                         && (!$support_affected_rows
                                         || ($success=MetabaseAffectedRows($database,$affected_rows))))
                                         {
-                                            if(!$support_affected_rows
+                                            if (!$support_affected_rows
                                             && $affected_rows!=2)
                                             {
                                                 $pass=0;
@@ -982,11 +983,11 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                                 $failed++;
                                                 echo "Test $test: replacing a row in an table with a single row returned $affected_rows unlike 2 as expected$eol";
                                             }
-                                            if(!($result=MetabaseQuery($database,"SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users")))
+                                            if (!($result=MetabaseQuery($database,"SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users")))
                                                 $success=0;
                                             else
                                             {
-                                                if(VerifyFetchedValues($database,$result,0,$data,$value,$field))
+                                                if (VerifyFetchedValues($database,$result,0,$data,$value,$field))
                                                 {
                                                     $pass=0;
                                                     echo "FAILED!$eol";
@@ -995,7 +996,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                                 }
                                                 else
                                                 {
-                                                    if(!MetabaseEndOfResult($database,$result))
+                                                    if (!MetabaseEndOfResult($database,$result))
                                                     {
                                                         $pass=0;
                                                         echo "FAILED!$eol";
@@ -1011,7 +1012,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             }
                         }
                     }
-                    if($success
+                    if ($success
                     && $pass)
                     {
                         $passed++;
@@ -1022,20 +1023,20 @@ Function InsertTestValues($database,$prepared_query,&$data)
                     echo "Replace query is not supported.$eol";
             }
 
-            if(IsSet($tests["affectedrows"])
+            if (IsSet($tests["affectedrows"])
             && $success)
             {
-                if(MetabaseSupport($database,"AffectedRows"))
+                if (MetabaseSupport($database,"AffectedRows"))
                 {
                     $test="affectedrows";
                     echo "Testing query affected rows... ";
                     flush();
                     $pass=1;
-                    if(!MetabaseQuery($database,"DELETE FROM users"))
+                    if (!MetabaseQuery($database,"DELETE FROM users"))
                         $success=0;
                     else
                     {
-                        if(($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved) VALUES (?,?,?,?,?,?,?,?,?)")))
+                        if (($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved) VALUES (?,?,?,?,?,?,?,?,?)")))
                         {
                             $data=array();
                             $inserted_rows=7;
@@ -1050,13 +1051,13 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 $data["access_date"]=MetabaseToday();
                                 $data["access_time"]=MetabaseTime();
                                 $data["approved"]=MetabaseNow();
-                                if(!InsertTestValues($database,$prepared_query,$data)
+                                if (!InsertTestValues($database,$prepared_query,$data)
                                 || !MetabaseAffectedRows($database,$affected_rows))
                                 {
                                     $success=0;
                                     break;
                                 }
-                                if($affected_rows!=1)
+                                if ($affected_rows!=1)
                                 {
                                     $pass=0;
                                     echo "FAILED!$eol";
@@ -1069,7 +1070,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         }
                         else
                             $success=0;
-                        if($success
+                        if ($success
                         && $pass
                         && ($prepared_query=MetabasePrepareQuery($database,"UPDATE users SET user_password=? WHERE user_id<?")))
                         {
@@ -1077,13 +1078,13 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             {
                                 MetabaseQuerySetText($database,$prepared_query,1,"another_password_$row");
                                 MetabaseQuerySetInteger($database,$prepared_query,2,$row);
-                                if(!MetabaseExecuteQuery($database,$prepared_query)
+                                if (!MetabaseExecuteQuery($database,$prepared_query)
                                 || !MetabaseAffectedRows($database,$affected_rows))
                                 {
                                     $success=0;
                                     break;
                                 }
-                                if($affected_rows!=$row)
+                                if ($affected_rows!=$row)
                                 {
                                     $pass=0;
                                     echo "FAILED!$eol";
@@ -1096,20 +1097,20 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         }
                         else
                             $success=0;
-                        if($success
+                        if ($success
                         && $pass
                         && ($prepared_query=MetabasePrepareQuery($database,"DELETE FROM users WHERE user_id>=?")))
                         {
                             for($row=$inserted_rows;$inserted_rows;$inserted_rows=$row)
                             {
                                 MetabaseQuerySetInteger($database,$prepared_query,1,$row=intval($inserted_rows/2));
-                                if(!MetabaseExecuteQuery($database,$prepared_query)
+                                if (!MetabaseExecuteQuery($database,$prepared_query)
                                 || !MetabaseAffectedRows($database,$affected_rows))
                                 {
                                     $success=0;
                                     break;
                                 }
-                                if($affected_rows!=$inserted_rows-$row)
+                                if ($affected_rows!=$inserted_rows-$row)
                                 {
                                     $pass=0;
                                     echo "FAILED!$eol";
@@ -1122,7 +1123,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         }
                         else
                             $success=0;
-                        if($success
+                        if ($success
                         && $pass)
                         {
                             $passed++;
@@ -1134,21 +1135,21 @@ Function InsertTestValues($database,$prepared_query,&$data)
                     echo "Query AffectedRows fetching is not supported.$eol";
             }
 
-            if(IsSet($tests["transactions"])
+            if (IsSet($tests["transactions"])
             && $success)
             {
-                if(MetabaseSupport($database,"Transactions"))
+                if (MetabaseSupport($database,"Transactions"))
                 {
                     $test="transactions";
                     echo "Testing transactions... ";
                     flush();
                     $pass=1;
-                    if(!MetabaseQuery($database,"DELETE FROM users")
+                    if (!MetabaseQuery($database,"DELETE FROM users")
                     || !MetabaseAutoCommitTransactions($database,0))
                         $success=0;
                     else
                     {
-                        if(($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved) VALUES (?,?,?,?,?,?,?,?,?)")))
+                        if (($prepared_query=MetabasePrepareQuery($database,"INSERT INTO users (user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved) VALUES (?,?,?,?,?,?,?,?,?)")))
                         {
                             $data=array();
                             $row=0;
@@ -1161,7 +1162,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             $data["access_date"]=MetabaseToday();
                             $data["access_time"]=MetabaseTime();
                             $data["approved"]=MetabaseNow();
-                            if(!InsertTestValues($database,$prepared_query,$data)
+                            if (!InsertTestValues($database,$prepared_query,$data)
                             || !MetabaseRollbackTransaction($database)
                             || !($result=MetabaseQuery($database,"SELECT * FROM users")))
                             {
@@ -1169,7 +1170,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             }
                             else
                             {
-                                if(!MetabaseEndOfResult($database,$result))
+                                if (!MetabaseEndOfResult($database,$result))
                                 {
                                     $pass=0;
                                     echo "FAILED!$eol";
@@ -1178,16 +1179,16 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 }
                                 MetabaseFreeResult($database,$result);
                             }
-                            if($success
+                            if ($success
                             && $pass)
                             {
-                                if(!InsertTestValues($database,$prepared_query,$data)
+                                if (!InsertTestValues($database,$prepared_query,$data)
                                 || !MetabaseCommitTransaction($database)
                                 || !($result=MetabaseQuery($database,"SELECT * FROM users")))
                                     $success=0;
                                 else
                                 {
-                                    if(MetabaseEndOfResult($database,$result))
+                                    if (MetabaseEndOfResult($database,$result))
                                     {
                                         $pass=0;
                                         echo "FAILED!$eol";
@@ -1197,32 +1198,32 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                     MetabaseFreeResult($database,$result);
                                 }
                             }
-                            if($success
+                            if ($success
                             && $pass)
                             {
-                                if(!($result=MetabaseQuery($database,"DELETE FROM users")))
+                                if (!($result=MetabaseQuery($database,"DELETE FROM users")))
                                     $success=0;
                             }
-                            if(!$success)
+                            if (!$success)
                             {
                                 $error=MetabaseError($database);
                                 MetabaseRollbackTransaction($database);
                             }
-                            if(!MetabaseAutoCommitTransactions($database,1))
+                            if (!MetabaseAutoCommitTransactions($database,1))
                             {
-                                if(strcmp($error,""))
+                                if (strcmp($error,""))
                                     $error.=" and then could not end the transactions";
                                 $success=0;
                             }
                             MetabaseFreePreparedQuery($database,$prepared_query);
-                            if($success
+                            if ($success
                             && $pass)
                             {
-                                if(!($result=MetabaseQuery($database,"SELECT * FROM users")))
+                                if (!($result=MetabaseQuery($database,"SELECT * FROM users")))
                                     $success=0;
                                 else
                                 {
-                                    if(!MetabaseEndOfResult($database,$result))
+                                    if (!MetabaseEndOfResult($database,$result))
                                     {
                                         $pass=0;
                                         echo "FAILED!$eol";
@@ -1235,7 +1236,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         }
                         else
                             $success=0;
-                        if($success
+                        if ($success
                         && $pass)
                         {
                             $passed++;
@@ -1248,20 +1249,20 @@ Function InsertTestValues($database,$prepared_query,&$data)
             }
 
             $support_lobs=MetabaseSupport($database,"LOBs");
-            if((IsSet($tests["lobstorage"])
+            if ((IsSet($tests["lobstorage"])
             || IsSet($tests["lobfiles"])
             || IsSet($tests["lobnulls"]))
             && $success)
             {
-                if($support_lobs)
+                if ($support_lobs)
                 {
                     $input_file="lob_test.schema";
-                    if(!($success=$manager->UpdateDatabase($input_file,$input_file.".before",$driver_arguments,$database_variables)))
+                    if (!($success=$manager->UpdateDatabase($input_file,$input_file.".before",$driver_arguments,$database_variables)))
                         $error=$manager->error;
                     $debug_output="";
-                    if(count($manager->warnings)>0)
+                    if (count($manager->warnings)>0)
                         $debug_output.="WARNING:$eol".implode($manager->warnings,"!$eol").$eol;
-                    if($manager->database
+                    if ($manager->database
                     && IsSet($driver_arguments["CaptureDebug"]))
                         $debug_output.=MetabaseDebugOutput($manager->database);
                 }
@@ -1269,7 +1270,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                     echo "LOBs are not supported.$eol";
             }
 
-            if($support_lobs
+            if ($support_lobs
             && IsSet($tests["lobstorage"])
             && $success)
             {
@@ -1277,11 +1278,11 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 echo "Testing lob storage... ";
                 flush();
                 $pass=1;
-                if(!MetabaseQuery($database,"DELETE FROM files"))
+                if (!MetabaseQuery($database,"DELETE FROM files"))
                     $success=0;
                 else
                 {
-                    if(($prepared_query=MetabasePrepareQuery($database,"INSERT INTO files (document,picture) VALUES (?,?)")))
+                    if (($prepared_query=MetabasePrepareQuery($database,"INSERT INTO files (document,picture) VALUES (?,?)")))
                     {
                         $character_lob=array(
                             "Database"=>$database,
@@ -1297,9 +1298,9 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         );
                         for($code=0;$code<=255;$code++)
                             $binary_lob["Data"].=chr($code);
-                        if(($success=MetabaseCreateLOB($character_lob,$clob)))
+                        if (($success=MetabaseCreateLOB($character_lob,$clob)))
                         {
-                            if(($success=MetabaseCreateLOB($binary_lob,$blob)))
+                            if (($success=MetabaseCreateLOB($binary_lob,$blob)))
                             {
                                 MetabaseQuerySetCLOB($database,$prepared_query,1,$clob,"document");
                                 MetabaseQuerySetBLOB($database,$prepared_query,2,$blob,"picture");
@@ -1313,12 +1314,12 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         else
                             $error=$character_lob["Error"];
                         MetabaseFreePreparedQuery($database,$prepared_query);
-                        if(!$success
+                        if (!$success
                         || !($result=MetabaseQuery($database,"SELECT document,picture FROM files")))
                             $success=0;
                         else
                         {
-                            if(MetabaseEndOfResult($database,$result))
+                            if (MetabaseEndOfResult($database,$result))
                             {
                                 $pass=0;
                                 echo "FAILED!$eol";
@@ -1328,11 +1329,11 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             else
                             {
                                 $clob=MetabaseFetchCLOBResult($database,$result,0,"document");
-                                if($clob)
+                                if ($clob)
                                 {
                                     for($value="";!MetabaseEndOfLOB($clob);)
                                     {
-                                        if(MetabaseReadLOB($clob,$data,8000)<0)
+                                        if (MetabaseReadLOB($clob,$data,8000)<0)
                                         {
                                             $error=MetabaseLOBError($clob);
                                             $success=0;
@@ -1341,9 +1342,9 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                         $value.=$data;
                                     }
                                     MetabaseDestroyLOB($clob);
-                                    if($success)
+                                    if ($success)
                                     {
-                                        if(strcmp($value,$character_lob["Data"]))
+                                        if (strcmp($value,$character_lob["Data"]))
                                         {
                                             $pass=0;
                                             echo "FAILED!$eol";
@@ -1353,11 +1354,11 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                         else
                                         {
                                             $blob=MetabaseFetchBLOBResult($database,$result,0,"picture");
-                                            if($blob)
+                                            if ($blob)
                                             {
                                                 for($value="";!MetabaseEndOfLOB($blob);)
                                                 {
-                                                    if(MetabaseReadLOB($blob,$data,8000)<0)
+                                                    if (MetabaseReadLOB($blob,$data,8000)<0)
                                                     {
                                                         $error=MetabaseLOBError($blob);
                                                         $success=0;
@@ -1366,9 +1367,9 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                                     $value.=$data;
                                                 }
                                                 MetabaseDestroyLOB($blob);
-                                                if($success)
+                                                if ($success)
                                                 {
-                                                    if(strcmp($value,$binary_lob["Data"]))
+                                                    if (strcmp($value,$binary_lob["Data"]))
                                                     {
                                                         $pass=0;
                                                         echo "FAILED!$eol";
@@ -1391,7 +1392,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                     else
                         $success=0;
                 }
-                if($success
+                if ($success
                 && $pass)
                 {
                     $passed++;
@@ -1399,7 +1400,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 }
             }
 
-            if($support_lobs
+            if ($support_lobs
             && IsSet($tests["lobfiles"])
             && $success)
             {
@@ -1407,14 +1408,14 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 echo "Testing lob storage from and to files... ";
                 flush();
                 $pass=1;
-                if(!MetabaseQuery($database,"DELETE FROM files"))
+                if (!MetabaseQuery($database,"DELETE FROM files"))
                     $success=0;
                 else
                 {
-                    if(($prepared_query=MetabasePrepareQuery($database,"INSERT INTO files (document,picture) VALUES (?,?)")))
+                    if (($prepared_query=MetabasePrepareQuery($database,"INSERT INTO files (document,picture) VALUES (?,?)")))
                     {
                         $character_data_file="character_data";
-                        if(($file=fopen($character_data_file,"w")))
+                        if (($file=fopen($character_data_file,"w")))
                         {
                             for($character_data="",$code=32;$code<=127;$code++)
                                 $character_data.=chr($code);
@@ -1426,10 +1427,10 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             );
                             $success=(fwrite($file,$character_data,strlen($character_data))==strlen($character_data));
                             fclose($file);
-                            if($success)
+                            if ($success)
                             {
                                 $binary_data_file="binary_data";
-                                if(($file=fopen($binary_data_file,"w")))
+                                if (($file=fopen($binary_data_file,"w")))
                                 {
                                     for($binary_data="",$code=0;$code<=255;$code++)
                                         $binary_data.=chr($code);
@@ -1448,11 +1449,11 @@ Function InsertTestValues($database,$prepared_query,&$data)
                         }
                         else
                             $sucess=0;
-                        if($success)
+                        if ($success)
                         {
-                            if(($success=MetabaseCreateLOB($character_lob,$clob)))
+                            if (($success=MetabaseCreateLOB($character_lob,$clob)))
                             {
-                                if(($success=MetabaseCreateLOB($binary_lob,$blob)))
+                                if (($success=MetabaseCreateLOB($binary_lob,$blob)))
                                 {
                                     MetabaseQuerySetCLOB($database,$prepared_query,1,$clob,"document");
                                     MetabaseQuerySetBLOB($database,$prepared_query,2,$blob,"picture");
@@ -1466,12 +1467,12 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             else
                                 $error=$character_lob["Error"];
                             MetabaseFreePreparedQuery($database,$prepared_query);
-                            if(!$success
+                            if (!$success
                             || !($result=MetabaseQuery($database,"SELECT document,picture FROM files")))
                                 $success=0;
                             else
                             {
-                                if(MetabaseEndOfResult($database,$result))
+                                if (MetabaseEndOfResult($database,$result))
                                 {
                                     $pass=0;
                                     echo "FAILED!$eol";
@@ -1490,19 +1491,19 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                         "Error"=>"",
                                         "FileName"=>$character_data_file
                                     );
-                                    if(($success=MetabaseCreateLOB($character_lob,$clob)))
+                                    if (($success=MetabaseCreateLOB($character_lob,$clob)))
                                     {
-                                        if(MetabaseReadLOB($clob,$data,0)<0)
+                                        if (MetabaseReadLOB($clob,$data,0)<0)
                                         {
                                             $error=MetabaseLOBError($clob);
                                             $success=0;
                                         }
                                         MetabaseDestroyLOB($clob);
-                                        if($success)
+                                        if ($success)
                                         {
-                                            if(($file=fopen($character_data_file,"r")))
+                                            if (($file=fopen($character_data_file,"r")))
                                             {
-                                                if(GetType($value=fread($file,filesize($character_data_file)))!="string")
+                                                if (GetType($value=fread($file,filesize($character_data_file)))!="string")
                                                 {
                                                     $success=0;
                                                     $error="could not read from the character lob data file";
@@ -1515,9 +1516,9 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                                 $error="could not reopen the character lob data file";
                                             }
                                         }
-                                        if($success)
+                                        if ($success)
                                         {
-                                            if(strcmp($value,$character_data))
+                                            if (strcmp($value,$character_data))
                                             {
                                                 $pass=0;
                                                 echo "FAILED!$eol";
@@ -1536,19 +1537,19 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                                     "Error"=>"",
                                                     "FileName"=>$binary_data_file
                                                 );
-                                                if(($success=MetabaseCreateLOB($binary_lob,$blob)))
+                                                if (($success=MetabaseCreateLOB($binary_lob,$blob)))
                                                 {
-                                                    if(MetabaseReadLOB($blob,$data,0)<0)
+                                                    if (MetabaseReadLOB($blob,$data,0)<0)
                                                     {
                                                         $error=MetabaseLOBError($clob);
                                                         $success=0;
                                                     }
                                                     MetabaseDestroyLOB($blob);
-                                                    if($success)
+                                                    if ($success)
                                                     {
-                                                        if(($file=fopen($binary_data_file,"r")))
+                                                        if (($file=fopen($binary_data_file,"r")))
                                                         {
-                                                            if(GetType($value=fread($file,filesize($binary_data_file)))!="string")
+                                                            if (GetType($value=fread($file,filesize($binary_data_file)))!="string")
                                                             {
                                                                 $success=0;
                                                                 $error="could not read from the binary lob data file";
@@ -1561,9 +1562,9 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                                             $error="could not reopen the binary lob data file";
                                                         }
                                                     }
-                                                    if($success)
+                                                    if ($success)
                                                     {
-                                                        if(strcmp($value,$binary_data))
+                                                        if (strcmp($value,$binary_data))
                                                         {
                                                             $pass=0;
                                                             echo "FAILED!$eol";
@@ -1587,7 +1588,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             $success=0;
                     }
                 }
-                if($success
+                if ($success
                 && $pass)
                 {
                     $passed++;
@@ -1595,7 +1596,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 }
             }
 
-            if($support_lobs
+            if ($support_lobs
             && IsSet($tests["lobnulls"])
             && $success)
             {
@@ -1603,22 +1604,22 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 echo "Testing lob nulls... ";
                 flush();
                 $pass=1;
-                if(!MetabaseQuery($database,"DELETE FROM files"))
+                if (!MetabaseQuery($database,"DELETE FROM files"))
                     $success=0;
                 else
                 {
-                    if(($prepared_query=MetabasePrepareQuery($database,"INSERT INTO files (document,picture) VALUES (?,?)")))
+                    if (($prepared_query=MetabasePrepareQuery($database,"INSERT INTO files (document,picture) VALUES (?,?)")))
                     {
                         MetabaseQuerySetNULL($database,$prepared_query,1,"clob");
                         MetabaseQuerySetNULL($database,$prepared_query,2,"blob");
                         $success=MetabaseExecuteQuery($database,$prepared_query);
                         MetabaseFreePreparedQuery($database,$prepared_query);
-                        if(!$success
+                        if (!$success
                         || !($result=MetabaseQuery($database,"SELECT document,picture FROM files")))
                             $success=0;
                         else
                         {
-                            if(MetabaseEndOfResult($database,$result))
+                            if (MetabaseEndOfResult($database,$result))
                             {
                                 $pass=0;
                                 echo "FAILED!$eol";
@@ -1627,7 +1628,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             }
                             else
                             {
-                                if(!MetabaseResultIsNull($database,$result,0,$field="document")
+                                if (!MetabaseResultIsNull($database,$result,0,$field="document")
                                 || !MetabaseResultIsNull($database,$result,0,$field="picture"))
                                 {
                                     $pass=0;
@@ -1642,7 +1643,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                     else
                         $success=0;
                 }
-                if($success
+                if ($success
                 && $pass)
                 {
                     $passed++;
@@ -1650,23 +1651,23 @@ Function InsertTestValues($database,$prepared_query,&$data)
                 }
             }
 
-            if(!$success
+            if (!$success
             && !strcmp($error,""))
                 $error=MetabaseError($database);
-            if(IsSet($driver_arguments["CaptureDebug"]))
+            if (IsSet($driver_arguments["CaptureDebug"]))
                 $debug_output.=MetabaseDebugOutput($database);
             MetabaseCloseSetup($database);
         }
     }
     else
         $error=$manager->error;
-    if(strcmp($error,""))
+    if (strcmp($error,""))
         echo "Error: $error$eol";
     else
     {
         echo ($failed==0 ? "Passed all the $passed tests that were performed!$eol" : ($passed==1 ? "Passed one test" : "$passed tests passed").", ".($failed==1 ? "Failed one test" : "$failed tests failed")."!$eol");
     }
-    if(IsSet($driver_arguments["CaptureDebug"]))
+    if (IsSet($driver_arguments["CaptureDebug"]))
         echo $debug_output;
     echo "Exiting.$eol"; flush();
 ?>
