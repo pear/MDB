@@ -1,21 +1,4 @@
 <?php
-/* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +----------------------------------------------------------------------+
-// | PHP Version 4                                                        |
-// +----------------------------------------------------------------------+
-// | Copyright (c) 1997-2002 The PHP Group                                |
-// +----------------------------------------------------------------------+
-// | This source file is subject to version 2.02 of the PHP license,      |
-// | that is bundled with this package in the file LICENSE, and is        |
-// | available at through the world-wide-web at                           |
-// | http://www.php.net/license/2_02.txt.                                 |
-// | If you did not receive a copy of the PHP license and are unable to   |
-// | obtain it through the world-wide-web, please send a note to          |
-// | license@php.net so we can mail you a copy immediately.               |
-// +----------------------------------------------------------------------+
-// | Author: Lukas Smith <smith@dybnet.de>                                |
-// +----------------------------------------------------------------------+
-//
 // $Id$
 //
 // MDB test script.
@@ -34,9 +17,9 @@
     $host = 'localhost';
     $db_name = 'metapear_test_db';
     if(isset($_GET["db_type"])) {
-    $db_type = $_GET["db_type"];
+        $db_type = $_GET["db_type"];
     } else {
-    $db_type = "mysql";
+        $db_type = "mysql";
     }
     echo $db_type."<br>";
 
@@ -128,9 +111,7 @@
             echo "<br>could not create sequence again<br>";
     }
     echo "<br>get the next id:<br>";
-    echo $db->nextId("real_funky_id");
-    echo "<br>affected rows:<br>";
-    echo $db->affectedRows()."<br>";
+    echo $db->nextId("real_funky_id")."<br>";
     // lets try an prepare execute combo
     $alldata = array(
                      array(1, 'one', 'un'),
@@ -154,6 +135,8 @@
     $prepared_query = $db->prepareQuery("INSERT INTO numbers VALUES(?,?,?)");
     echo "running executeMultiple<br>";
     echo Var_Dump::display($db->executeMultiple($prepared_query, NULL, $alldata))."<br>";
+    echo "<br>affected rows:<br>";
+    echo $db->affectedRows()."<br>";
     $array = array(4);
     echo "<br>see getOne in action:<br>";
     echo Var_Dump::display($db->getOne("SELECT trans_en FROM numbers WHERE number = ?",'text',$array))."<br>";
