@@ -117,6 +117,7 @@ Other Included Files
   xml_schema.xsl (XSL to render xml schema files to HTML)
   xml_schema_documentation.html (This document describe the format of
                                  the xml schema files)
+  tutorial.html (A tutorial on how to use MDB's features)
   Readme.txt (you are reading it currently)
 
 ** Documentation:
@@ -198,10 +199,13 @@ new driver.
 - Finish reverse engineering parts of the pgsql driver (pgc)
 - Add testing suite (pgc)
   (currently there is only the test suite provided by Metabase)
-- Add missing features to the manager needed for the MDB_frontend project
-    - Add ability to snyc two databases (structure and/or content)
-    - Add ability to dump just one table
-    - Improve reservse engineering of existing DB's to xml schema files
+- Restructure the manager
+    Seperate xml reverse engineering from the other methods
+    Add missing features to the manager needed for the MDB_frontend project
+      - Add ability to snyc two databases (structure and/or content)
+      - Add ability to dump just one table
+      - Improve reservse engineering of existing DB's to xml schema files
+- Extend the bulk fetching methods to be able to handle LOB's
 
 1.1 Release (Fall 2002)
 - Write Docbook documentation
