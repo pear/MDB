@@ -63,6 +63,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $this->database = $database;
         $this->db =& MDB::connect($dsn, $options);
         $this->db->setDatabase($this->database);
+        
         $this->fields = array('user_name',
                         'user_password',
                         'subscribed',
@@ -73,7 +74,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
                         'access_time',
                         'approved'
                         );
-
+        
         $this->types = array('text',
                        'text',
                        'boolean',
