@@ -65,7 +65,7 @@ define('MDB_TYPE_BLOB'      , 9);
 $registered_transactions_shutdown = 0;
 
 // }}}
-// {{{ _shutdownTransactions()
+// {{{ _MDB_shutdownTransactions()
 
 /**
  * this function closes all open transactions _registerTransactionShutdown()
@@ -73,7 +73,7 @@ $registered_transactions_shutdown = 0;
  *
  * @access private
  */
-function _shutdownTransactions()
+function _MDB_shutdownTransactions()
 {
     global $databases;
 
@@ -661,7 +661,7 @@ class MDB_common extends PEAR
         global $registered_transactions_shutdown;
 
         if (($this->in_transaction = !$auto_commit) && !$registered_transactions_shutdown) {
-            register_shutdown_function('_shutdownTransactions');
+            register_shutdown_function('_MDB_shutdownTransactions');
             $registered_transactions_shutdown = 1;
         }
         return (MDB_OK);
