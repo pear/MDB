@@ -286,9 +286,9 @@ class MDB_mysql extends MDB_common
 
     function freeResult($result)
     {
-        unset($this->highest_fetched_row[$result]);
-        unset($this->columns[$result]);
-        unset($this->result_types[$result]);
+        if(isset($this->highest_fetched_row[$result])) {unset($this->highest_fetched_row[$result]);}
+        if(isset($this->columns[$result])) {unset($this->columns[$result]);}
+        if(isset($this->result_types[$result])) {unset($this->result_types[$result]);}
         return (mysql_free_result($result));
     }
 
