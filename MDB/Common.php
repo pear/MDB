@@ -3706,7 +3706,7 @@ class MDB_Common extends PEAR
         $row = $this->fetchInto($result, $fetchmode);
         if (is_array($row)) {
             if (array_key_exists($colnum, $row)) {
-                return($this->raiseError(MDB2_ERROR_TRUNCATED));
+                return($this->raiseError(MDB_ERROR_TRUNCATED));
             }
             do {
                 $column[] = $row[$colnum];
