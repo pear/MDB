@@ -177,6 +177,16 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         $this->db->popErrorHandling();
         $this->assertEquals(false, MDB::isError($data), "Error messages for a query affect result reading of other queries");
     }
+
+    /**
+     * http://pear.php.net/bugs/bug.php?id=681
+     */
+    function testBug681() {
+        $result = $this->db->query('SELECT * FROM users WHERE 1=0');
+
+        $numrows = $this->db->numRows($result);
+        $this->assertEquals(0, $numrows, "Numrows is not returning 0 for empty result sets");
+    }
 }
 
 ?>
