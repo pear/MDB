@@ -148,7 +148,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     $prepared_query = $db->prepareQuery('INSERT INTO numbers VALUES(?,?,?)');
     foreach ($alldata as $row) {
             echo('running execute<br>');
-            $db->execute($prepared_query, null, $row);
+            $db->execute($prepared_query, null, $row, array('integer', 'text', 'text'));
     }
     // lets try an prepare execute combo
     $alldata = array(
@@ -159,7 +159,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     );
     $prepared_query = $db->prepareQuery('INSERT INTO numbers VALUES(?,?,?)');
     echo('running executeMultiple<br>');
-    echo(Var_Dump::display($db->executeMultiple($prepared_query, null, $alldata)).'<br>');
+    echo(Var_Dump::display($db->executeMultiple($prepared_query, null, $alldata, array('integer', 'text', 'text'))).'<br>');
     $array = array(4);
     echo('<br>see getOne in action:<br>');
     echo(Var_Dump::display($db->extended->getOne($db, 'SELECT trans_en FROM numbers WHERE number = ?','text',$array)).'<br>');
