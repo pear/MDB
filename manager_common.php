@@ -44,12 +44,17 @@
 //
 // $Id$
 //
-// MDB proxy class for RDBMS management methods.
-//
 
-if(!defined("MDB_MANAGER_DATABASE_INCLUDED"))
+/**
+* Base class for the management extensions that is extended by each DB driver
+*
+* @package MDB
+* @author  Lukas Smith <smith@dybnet.de>
+*/
+
+if(!defined('MDB_MANAGER_DATABASE_INCLUDED'))
 {
-    define("MDB_MANAGER_DATABASE_INCLUDED",1);
+    define('MDB_MANAGER_DATABASE_INCLUDED',1);
 
 
 class MDB_manager_common extends PEAR
@@ -57,7 +62,6 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ getFieldDeclaration()
-
     /**
      * get declaration of a field
      * 
@@ -80,49 +84,48 @@ class MDB_manager_common extends PEAR
      */
     function getFieldDeclaration(&$db, $field_name, &$field)
     {
-        if (!strcmp($field_name, "")) {
-            return $db->raiseError(DB_ERROR_NOSUCHFIELD, "", "", "Get field: it was not specified a valid field name (\"$field_name\")");
+        if (!strcmp($field_name, '')) {
+            return $db->raiseError(DB_ERROR_NOSUCHFIELD, '', '', "Get field: it was not specified a valid field name (\"$field_name\")");
         }
-        switch($field["type"]) {
-            case "integer":
+        switch($field['type']) {
+            case 'integer':
                 return $db->getIntegerDeclaration($field_name, $field);
                 break;
-            case "text":
+            case 'text':
                 return $db->getTextDeclaration($field_name, $field);
                 break;
-            case "clob":
+            case 'clob':
                 return $db->getClobDeclaration($field_name, $field);
                 break;
-            case "blob":
+            case 'blob':
                 return $db->getBlobDeclaration($field_name, $field);
                 break;
-            case "boolean":
+            case 'boolean':
                 return $db->getBooleanDeclaration($field_name, $field);
                 break;
-            case "date":
+            case 'date':
                 return $db->getDateDeclaration($field_name, $field);
                 break;
-            case "timestamp":
+            case 'timestamp':
                 return $db->getTimestampDeclaration($field_name, $field);
                 break;
-            case "time":
+            case 'time':
                 return $db->getTimeDeclaration($field_name, $field);
                 break;
-            case "float":
+            case 'float':
                 return $db->getFloatDeclaration($field_name, $field);
                 break;
-            case "decimal":
+            case 'decimal':
                 return $db->getDecimalDeclaration($field_name, $field);
                 break;
             default:
-                return $db->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Get field: type \"".$field["type"]."\" is not yet supported");
+                return $db->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Get field: type "'.$field['type'].'" is not yet supported');
                 break;
         }
     }
 
     // }}}
     // {{{ getFieldDeclarationList()
-
     /**
      * get declaration of a number of field in bulk
      * 
@@ -169,7 +172,6 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ _isSequenceName()
-
     /**
      * list all tables in the current database
      * 
@@ -192,7 +194,6 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ createDatabase()
-
     /**
      * create a new database
      * 
@@ -205,12 +206,11 @@ class MDB_manager_common extends PEAR
      */
     function createDatabase(&$db, $database)
     {
-        return $db->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Create database: database creation is not supported");
+        return $db->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Create database: database creation is not supported');
     }
 
     // }}}
     // {{{ dropDatabase()
-
     /**
      * drop an existing database
      * 
@@ -223,12 +223,11 @@ class MDB_manager_common extends PEAR
      */ 
     function dropDatabase(&$db, $database)
     {
-        return $db->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Drop database: database dropping is not supported");
+        return $db->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Drop database: database dropping is not supported');
     }
 
     // }}}
     // {{{ createTable()
-
     /**
      * create a new table
      * 
@@ -242,19 +241,19 @@ class MDB_manager_common extends PEAR
      *                        Example
      *                        array(
      *                        
-     *                            "id" => array(
-     *                                "type" => "integer",
-     *                                "unsigned" => 1
-     *                                "notnull" => 1
-     *                                "default" => 0
+     *                            'id' => array(
+     *                                'type' => 'integer',
+     *                                'unsigned' => 1
+     *                                'notnull' => 1
+     *                                'default' => 0
      *                            ),
-     *                            "name" => array(
-     *                                "type"=>"text",
-     *                                "length"=>12
+     *                            'name' => array(
+     *                                'type' => 'text',
+     *                                'length' => 12
      *                            ),
-     *                            "password"=>array(
-     *                                "type"=>"text",
-     *                                "length"=>12
+     *                            'password' => array(
+     *                                'type' => 'text',
+     *                                'length' => 12
      *                            )
      *                        );
        * 
@@ -264,22 +263,21 @@ class MDB_manager_common extends PEAR
      */ 
     function createTable(&$db, $name, &$fields)
     {
-        if (!isset($name) || !strcmp($name, "")) {
-            return $db->raiseError(DB_ERROR_CANNOT_CREATE, "", "", "no valid table name specified");
+        if (!isset($name) || !strcmp($name, '')) {
+            return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'no valid table name specified');
         }
         if (count($fields) == 0) {
-            return $db->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'no fields specified for table "'.$name.'"');
+            return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "'.$name.'"');
         }
-        $query_fields = "";
+        $query_fields = '';
         if (!$this->getFieldDeclarationList($db, $fields, $query_fields)) {
-            return $db->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'unkown error');
+            return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'unkown error');
         }
         return ($db->query("CREATE TABLE $name ($query_fields)"));
     }
 
     // }}}
     // {{{ dropTable()
-
     /**
      * drop an existing table
      * 
@@ -297,7 +295,6 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ alterTable()
-
     /**
      * alter an existing table
      * 
@@ -361,29 +358,29 @@ class MDB_manager_common extends PEAR
      *                                 specific SQL code as it is used in the CREATE TABLE statement.
      *                            Example
      *                                array(
-     *                                    "name" => "userlist",
-     *                                    "AddedFields" => array(
-     *                                        "quota" => array(
-     *                                            "type" => "integer",
-     *                                            "unsigned" => 1
-     *                                            "Declaration" => "quota INT"
+     *                                    'name' => 'userlist',
+     *                                    'AddedFields' => array(
+     *                                        'quota' => array(
+     *                                            'type' => 'integer',
+     *                                            'unsigned' => 1
+     *                                            'Declaration' => 'quota INT'
      *                                        )
      *                                    ),
-     *                                    "RemovedFields" => array(
-     *                                        "file_limit" => array(),
-     *                                        "time_limit" => array()
+     *                                    'RemovedFields' => array(
+     *                                        'file_limit' => array(),
+     *                                        'time_limit' => array()
      *                                        ),
-     *                                    "ChangedFields" => array(
-     *                                        "gender" => array(
-     *                                            "default" => "M",
-     *                                            "ChangeDefault" => 1,
-     *                                            "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *                                    'ChangedFields' => array(
+     *                                        'gender' => array(
+     *                                            'default' => 'M',
+     *                                            'ChangeDefault' => 1,
+     *                                            'Declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                        )
      *                                    ),
-     *                                    "RenamedFields" => array(
-     *                                        "sex" => array(
-     *                                            "name" => "gender",
-     *                                            "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *                                    'RenamedFields' => array(
+     *                                        'sex' => array(
+     *                                            'name' => 'gender',
+     *                                            'Declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                        )
      *                                    )
      *                                )
@@ -397,13 +394,12 @@ class MDB_manager_common extends PEAR
      */ 
     function alterTable(&$db, $name, &$changes, $check)
     {
-        return $db->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
-            "Alter table: database table alterations are not supported");
+        return $db->raiseError(DB_ERROR_UNSUPPORTED, '', '', 
+            'Alter table: database table alterations are not supported');
     }
 
     // }}}
     // {{{ listDatabases()
-
     /**
      * list all databases
      * 
@@ -415,13 +411,12 @@ class MDB_manager_common extends PEAR
      */ 
     function listDatabases(&$db)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'List Databses: list databases is not supported');
     }
 
     // }}}
     // {{{ listUsers()
-
     /**
      * list all users
      * 
@@ -433,13 +428,12 @@ class MDB_manager_common extends PEAR
      */ 
     function listUsers(&$db)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'List User: list user is not supported');
     }
 
     // }}}
     // {{{ listViews()
-
     /**
      * list all views in the current database
      * 
@@ -451,13 +445,12 @@ class MDB_manager_common extends PEAR
      */ 
     function listViews(&$db)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'List View: list view is not supported');
     }
 
     // }}}
     // {{{ listFunctions()
-
     /**
      * list all functions in the current database
      * 
@@ -469,13 +462,12 @@ class MDB_manager_common extends PEAR
      */ 
     function listFunctions(&$db)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'List Function: list function is not supported');
     }
 
     // }}}
     // {{{ listTables()
-
     /**
      * list all tables in the current database
      * 
@@ -487,13 +479,12 @@ class MDB_manager_common extends PEAR
      */ 
     function listTables(&$db)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'List tables: list tables is not supported');
     }
 
     // }}}
     // {{{ listTableFields()
-
     /**
      * list all fields in a tables in the current database
      * 
@@ -506,13 +497,12 @@ class MDB_manager_common extends PEAR
      */ 
     function listTableFields(&$db, $table)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'List table fields: list table fields is not supported');
     }
 
     // }}}
     // {{{ getTableFieldDefinition()
-
     /**
      * get the stucture of a field into an array
      * 
@@ -526,13 +516,12 @@ class MDB_manager_common extends PEAR
      */ 
     function getTableFieldDefinition(&$db, $table, $field)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'Get table field definition: table field definition is not supported');
     }
 
     // }}}
     // {{{ createIndex()
-
     /**
      * get the stucture of a field into an array
      * 
@@ -556,11 +545,11 @@ class MDB_manager_common extends PEAR
 
      *                                 Example
      *                                    array(
-     *                                        "FIELDS"=>array(
-     *                                            "user_name"=>array(
-     *                                                "sorting"=>"ascending"
+     *                                        'FIELDS' => array(
+     *                                            'user_name' => array(
+     *                                                'sorting' => 'ascending'
      *                                            ),
-     *                                            "last_login"=>array()
+     *                                            'last_login' => array()
      *                                        )
      *                                    )
        * 
@@ -570,35 +559,34 @@ class MDB_manager_common extends PEAR
      */
     function createIndex(&$db, $table, $name, $definition)
     {
-        $query = "CREATE";
-        if (isset($definition["unique"])) {
-            $query .= " UNIQUE";
+        $query = 'CREATE';
+        if (isset($definition['unique'])) {
+            $query .= ' UNIQUE';
         }
         $query .= " INDEX $name ON $table (";
-        for($field = 0,reset($definition["FIELDS"]); $field<count($definition["FIELDS"]); $field++,next($definition["FIELDS"])) {
+        for($field = 0,reset($definition['FIELDS']); $field<count($definition['FIELDS']); $field++,next($definition['FIELDS'])) {
             if ($field>0) {
-                $query.= ", ";
+                $query.= ', ';
             }
-            $field_name = Key($definition["FIELDS"]);
+            $field_name = Key($definition['FIELDS']);
             $query.= $field_name;
-            if ($db->support("IndexSorting") && isset($definition["FIELDS"][$field_name]["sorting"])) {
-                switch($definition["FIELDS"][$field_name]["sorting"]) {
-                    case "ascending":
-                        $query.= " ASC";
+            if ($db->support('IndexSorting') && isset($definition['FIELDS'][$field_name]['sorting'])) {
+                switch($definition['FIELDS'][$field_name]['sorting']) {
+                    case 'ascending':
+                        $query.= ' ASC';
                         break;
-                    case "descending":
-                        $query.= " DESC";
+                    case 'descending':
+                        $query.= ' DESC';
                         break;
                 }
             }
         }
-        $query.= ")";
+        $query.= ')';
         return ($db->query($query));
     }
 
     // }}}
     // {{{ dropIndex()
-
     /**
      * drop existing index
      * 
@@ -617,7 +605,6 @@ class MDB_manager_common extends PEAR
 
     // }}}
     // {{{ listTableIndexes()
-
     /**
      * list all indexes in a table
      * 
@@ -630,13 +617,12 @@ class MDB_manager_common extends PEAR
      */ 
     function listTableIndexes(&$db, $table)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'List table indexes: List Indexes is not supported');
     }
 
     // }}}
     // {{{ getTableIndexDefinition()
-
     /**
      * get the stucture of an index into an array
      * 
@@ -650,13 +636,12 @@ class MDB_manager_common extends PEAR
      */ 
     function getTableIndexDefinition(&$db, $table, $index)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'get table index definition: getting index definition is not supported');
     }
 
     // }}}
     // {{{ createSequence()
-
     /**
      * create sequence
      * 
@@ -670,13 +655,12 @@ class MDB_manager_common extends PEAR
      */ 
     function createSequence(&$db, $name, $start)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'Create Sequence: sequence creation not supported');
     }
 
     // }}}
     // {{{ dropSequence()
-
     /**
      * drop existing sequence
      * 
@@ -689,13 +673,12 @@ class MDB_manager_common extends PEAR
      */ 
     function dropSequence(&$db, $name)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'Drop Sequence: sequence dropping not supported');
     }
 
     // }}}
     // {{{ listSequences()
-
     /**
      * list all sequences in the current database
      * 
@@ -707,13 +690,12 @@ class MDB_manager_common extends PEAR
      */ 
     function listSequences(&$db)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'List sequences: List sequences is not supported');
     }
 
     // }}}
     // {{{ getSequenceDefinition()
-
     /**
      * get the stucture of a sequence into an array
      * 
@@ -726,7 +708,7 @@ class MDB_manager_common extends PEAR
      */ 
     function getSequenceDefinition(&$db, $sequence)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
             'get squence definition: getting sequence definition is not supported');
     }
 }

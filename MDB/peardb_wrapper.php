@@ -44,10 +44,15 @@
 //
 // $Id$
 //
-// PEAR DB Wrapper for MDB.
-//
 
-require_once (dirname(__FILE__)."/MDB.php");
+/**
+* Wrapper that makes MDB behave like PEAR DB
+*
+* @package MDB
+* @author  Lukas Smith <smith@dybnet.de>
+*/
+
+require_once (dirname(__FILE__).'/MDB.php');
 
 class DB
 {
@@ -59,7 +64,7 @@ class DB
     function &connect($dsn, $options = FALSE)
     {
         if (!is_array($options) && $options) {
-            $options["persistent"] = TRUE;
+            $options['persistent'] = TRUE;
         }
         $db = MDB::connect($dsn, $options);
         if(PEAR::isError($db))
@@ -199,11 +204,11 @@ class DB_row
 class MDB_PEAR_PROXY
 {
     var $MDB_object;
-    
+
     function MDB_PEAR_PROXY($MDB_object)
     {
         $this->MDB_object = $MDB_object;
-        $this->MDB_object->sequence_prefix = "_seq_";;
+        $this->MDB_object->sequence_prefix = '_seq_';
     }
 
     function connect($dsninfo, $persistent = FALSE)
