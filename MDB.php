@@ -86,7 +86,7 @@ define('MDB_ERROR_CANNOT_REPLACE',     -28);
 define('MDB_ERROR_CANNOT_ALTER',       -29);
 define('MDB_ERROR_MANAGER',            -30);
 define('MDB_ERROR_MANAGER_PARSE',      -31);
-define('MDB_ERROR_LOADMODULE',      -32);
+define('MDB_ERROR_LOADMODULE',         -32);
 
 /**
  * WARNING: not implemented
@@ -271,11 +271,7 @@ class MDB
      */
     function &connect($dsn, $options = FALSE)
     {
-        if (is_array($dsn)) {
-            $dsninfo = $dsn;
-        } else {
-            $dsninfo = MDB::parseDSN($dsn);
-        }
+        $dsninfo = MDB::parseDSN($dsn);
         if(isset($dsninfo['phptype'])) {
             $type          = $dsninfo['phptype'];
             $class_name    = 'MDB_'.$type;
