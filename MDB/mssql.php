@@ -101,34 +101,12 @@ class MDB_mssql extends MDB_Common
         $this->supported['Replace'] = 0;
         $this->supported['SubSelects'] = 1;
 
-        
-/*        $this->decimal_factor = pow(10.0, $this->decimal_places);
-        
-        $this->options['DefaultTableType'] = FALSE;
-        $this->options['fixed_float'] = FALSE;
-        
-        $this->errorcode_map = array(
-            1004 => MDB_ERROR_CANNOT_CREATE,
-            1005 => MDB_ERROR_CANNOT_CREATE,
-            1006 => MDB_ERROR_CANNOT_CREATE,
-            1007 => MDB_ERROR_ALREADY_EXISTS,
-            1008 => MDB_ERROR_CANNOT_DROP,
-            1046 => MDB_ERROR_NODBSELECTED,
-            1050 => MDB_ERROR_ALREADY_EXISTS,
-            1051 => MDB_ERROR_NOSUCHTABLE,
-            1054 => MDB_ERROR_NOSUCHFIELD,
-            1062 => MDB_ERROR_ALREADY_EXISTS,
-            1064 => MDB_ERROR_SYNTAX,
-            1100 => MDB_ERROR_NOT_LOCKED,
-            1136 => MDB_ERROR_VALUE_COUNT_ON_ROW,
-            1146 => MDB_ERROR_NOSUCHTABLE,
-            1048 => MDB_ERROR_CONSTRAINT,
-        );
-*/
+        // XXX Add here error codes ie: 'S100E' => DB_ERROR_SYNTAX
+        $this->errorcode_map = array();
     }
 
     // }}}
-    // {{{ errorNative()
+    // {{{ errorCode()
 
     /**
      * Get the native error code of the last error (if any) that
@@ -138,9 +116,16 @@ class MDB_mssql extends MDB_Common
      *
      * @return int native MSSQL error code
      */
-    function errorNative()
+    function errorCode()
     {
-        return mssql_errno($this->connection);
+        $this->pushErrorHandling(PEAR_ERROR_RETURN);
+        $error_code = $this->queryOne('select @@ERROR as ErrorCode');
+        $this->popErrorHandling();
+        // XXX Debug
+        if (!isset($this->errorcode_map[$error_code])) {
+            return MDB_ERROR;
+        }
+        return $error_code;
     }
 
     // }}}
@@ -156,12 +141,15 @@ class MDB_mssql extends MDB_Common
      * @access public
      * @see PEAR_Error
      */
-    function mssqlRaiseError($errno = NULL)
+    function mssqlRaiseError($code = NULL)
     {
-        if ($errno == NULL) {
-            $errno = $this->errorCode(mssql_errno($this->connection));
+        if ($code !== NULL) {
+            $code = $this->errorCode();
+            if (DB::isError($code)) {
+                return $this->raiseError($code);
+            }
         }
-        return($this->raiseError($errno, NULL, NULL, NULL, @mssql_error($this->connection)));
+        return $this->raiseError($code, NULL, NULL, NULL, mssql_get_last_message());
     }
 
     // }}}
