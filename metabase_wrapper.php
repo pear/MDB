@@ -193,7 +193,7 @@ function metabaseAffectedRows($database, &$affected_rows)
     global $databases;
     
     $affected_rows  =  $databases[$database]->affectedRows();
-    if (DB::isError($affected_rows)) {
+    if (MDB::isError($affected_rows)) {
         return($databases[$database]->setError("Affected rows",
             "there was no previous valid query to determine the number of affected rows")
         );
@@ -386,15 +386,31 @@ function metabaseSetErrorHandler($database, $function)
 function metabaseCreateDatabase($database, $name)
 {
     global $databases;
-
-    return($databases[$database]->createDatabase($name));
+    $result  =  $databases[$database]->createDatabase($name);
+    if (MDB::isError($result)) {
+        switch ($result->getCode()) {
+			default:
+				$this->setError("Create database", $result->getMessage());
+				break;
+		}
+    } else {
+        return(1);
+    }
 }
 
 function metabaseDropDatabase($database, $name)
 {
     global $databases;
-
-    return($databases[$database]->dropDatabase($name));
+    $result  =  $databases[$database]->dropDatabase($name);
+    if (MDB::isError($result)) {
+        switch ($result->getCode()) {
+			default:
+				$this->setError("Drop database", $result->getMessage());
+				break;
+		}
+    } else {
+        return(1);
+    }
 }
 
 function metabaseSetDatabase($database, $name)
@@ -556,7 +572,7 @@ function metabaseCreateSequence($database, $name, $start)
     global $databases;
 
     $value = $databases[$database]->createSequence($name, $start);
-    if (DB::isError($value)) {
+    if (MDB::isError($value)) {
         return($databases[$database]->setError("Create sequence","sequence creation is not supported"));
     } else {
         return(1);
@@ -568,7 +584,7 @@ function metabaseDropSequence($database, $name)
     global $databases;
 
     $value = $databases[$database]->dropSequence($name);
-    if (DB::isError($value)) {
+    if (MDB::isError($value)) {
         return($databases[$database]->setError("Drop sequence","sequence dropping is not supported"));
     } else {
         return(1);
@@ -580,7 +596,7 @@ function metabaseGetSequenceNextValue($database, $name, &$value)
     global $databases;
 
     $value = $databases[$database]->nextId($name,false);
-    if (DB::isError($value)) {
+    if (MDB::isError($value)) {
         return($databases[$database]->setError("Get sequence next value","getting sequence next value is not supported"));
     } else {
         return(1);
@@ -592,7 +608,7 @@ function metabaseGetSequenceCurrentValue($database, $name, &$value)
     global $databases;
 
     $value = $databases[$database]->currId($name);
-    if (DB::isError($value)) {
+    if (MDB::isError($value)) {
         return($databases[$database]->setError("Get sequence current value","getting sequence current value is not supported"));
     } else {
         return(1);

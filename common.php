@@ -109,7 +109,7 @@ class MDB_common extends PEAR
         && $this->autoCommitTransactions(1)) {
             $this->in_transaction = 0;
         }
-        $this->Close();
+        $this->close();
     }
 
     function debug($message)
@@ -158,7 +158,7 @@ class MDB_common extends PEAR
     {
         $this->last_error=$message;
         $this->debug($scope.": ".$message);
-        if(strcmp($function=$this->error_handler,"")) {
+        if (strcmp($function=$this->error_handler,"")) {
             $error=array(
                 "Scope"=>$scope,
                 "Message"=>$message
@@ -170,18 +170,19 @@ class MDB_common extends PEAR
     
     function createDatabase($database)
     {
-        return($this->setError("Create database", "database creation is not supported"));
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Create database: database creation is not supported");
     }
 
     function dropDatabase($database)
     {
-        return($this->setError("Drop database", "database dropping is not supported"));
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Drop database: database dropping is not supported");
     }
 
     function getField(&$field, $field_name, &$query)
     {
         if (!strcmp($field_name, "")) {
-            return($this->setError("Get field", "it was not specified a valid field name (\"$field_name\")"));
+            //return($this->setError("Get field", "it was not specified a valid field name (\"$field_name\")"));
+			return $this->raiseError(DB_ERROR_NOSUCHFIELD, "", "", "Get field: it was not specified a valid field name (\"$field_name\")");
         }
         switch($field["type"]) {
             case "integer":
@@ -215,7 +216,8 @@ class MDB_common extends PEAR
                 $query = $this->getDecimalFieldTypeDeclaration($field_name, $field);
                 break;
             default:
-                return($this->setError("Get field", "type \"".$field["type"]."\" is not yet supported"));
+                //return($this->setError("Get field", "type \"".$field["type"]."\" is not yet supported"));
+				return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Get field: type \"".$field["type"]."\" is not yet supported");
                 break;
         }
         return(1);
@@ -999,10 +1001,7 @@ class MDB_common extends PEAR
     
     // renamed for PEAR
     // used to be: getSequencenextValue
-    // added $on_demand
-    // on_demand was default true for PEAR but was unavailable in Metabase
-    // so this needs to be handled
-    function nextId($name, $on_demand = true)
+    function nextId($name)
     {
          return $this->raiseError(DB_ERROR_NOT_CAPABLE);
     }
@@ -1228,7 +1227,7 @@ class MDB_common extends PEAR
     // fetchResultAll old: 0.002920
     function fetchResultAll($result, &$all, $fetchmode = DB_FETCHMODE_DEFAULT, $rekey = false, $force_array = false, $group = false)
     {
-        if(!$result) {
+        if (!$result) {
             return ($this->setError("Fetch field","it was not specified a valid result set"));
         }
         $cols = $this->numCols($result);
@@ -1369,7 +1368,7 @@ class MDB_common extends PEAR
 
     function errorMessage($dbcode)
     {
-        return DB::errorMessage($this->errorcode_map[$dbcode]);
+        return MDB::errorMessage($this->errorcode_map[$dbcode]);
     }
     
     function &raiseError($code = DB_ERROR, $mode = null, $options = null,
@@ -1389,7 +1388,7 @@ class MDB_common extends PEAR
         }
 
         return PEAR::raiseError(null, $code, $mode, $options, $userinfo,
-                                  'DB_Error', true);
+                                  'MDB_Error', true);
     }
     
     function prepare($query)
@@ -1408,7 +1407,7 @@ class MDB_common extends PEAR
     {
         for($i = 0; $i < sizeof( $data ); $i++) {
             $result = $this->execute($prepared_query, $data[$i]);
-            //if (DB::isError($res)) {
+            //if (MDB::isError($res)) {
             if (!$result) {
                 return $result;
             }
@@ -1421,7 +1420,7 @@ class MDB_common extends PEAR
         settype($params, "array");
         if (sizeof($params) > 0) {
             $prepared_query = $this->prepare($query);
-            if (DB::isError($prepared_query)) {
+            if (MDB::isError($prepared_query)) {
                 return $prepared_query;
             }
             $this->querySetArray($prepared_query, $params);
@@ -1430,7 +1429,7 @@ class MDB_common extends PEAR
             $result = $this->query($query);
         }
 
-        if (DB::isError($result)) {
+        if (MDB::isError($result)) {
             return $result;
         }
 
@@ -1452,7 +1451,7 @@ class MDB_common extends PEAR
         settype($params, 'array');
         if (sizeof($params) > 0) {
             $prepared_query = $this->prepare($query);
-            if (DB::isError($prepared_query)) {
+            if (MDB::isError($prepared_query)) {
                 return $prepared_query;
             }
             $this->querySetArray($prepared_query, $params);
@@ -1461,7 +1460,7 @@ class MDB_common extends PEAR
             $result = $this->query($query);
         }
 
-        if (DB::isError($result)) {
+        if (MDB::isError($result)) {
             return $result;
         }
         $err = $this->fetchResultRow($result, &$row, $fetchmode);
@@ -1483,7 +1482,7 @@ class MDB_common extends PEAR
         if (sizeof($params) > 0) {
             $prepared_query = $this->prepare($query);
 
-            if (DB::isError($prepared_query)) {
+            if (MDB::isError($prepared_query)) {
                 return $prepared_query;
             }
             $this->querySetArray($prepared_query, $params);
@@ -1492,7 +1491,7 @@ class MDB_common extends PEAR
             $result = $this->query($query);
         }
 
-        if (DB::isError($result)) {
+        if (MDB::isError($result)) {
             return $result;
         }
         
@@ -1516,7 +1515,7 @@ class MDB_common extends PEAR
         if (sizeof($params) > 0) {
             $prepared_query = $this->prepare($query);
 
-            if (DB::isError($prepared_query)) {
+            if (MDB::isError($prepared_query)) {
                 return $prepared_query;
             }
             $this->querySetArray($prepared_query, $params);
@@ -1525,7 +1524,7 @@ class MDB_common extends PEAR
             $result = $this->query($query);
         }
 
-        if (DB::isError($result)) {
+        if (MDB::isError($result)) {
             return $result;
         }
 
