@@ -162,6 +162,7 @@
     $array = $db->fetchAll($result);
     echo '<br>all with subselect:<br>';
     echo Var_Dump::display($array).'<br>';
+    echo '<br>drop index (will fail if the index was never created):<br>';
     echo Var_Dump::display($db->dropIndex('test', 'test_id_index')).'<br>';
     $index_def = array(
         'FIELDS' => array(
@@ -170,6 +171,7 @@
             )
         )
     );
+    echo '<br>create index:<br>';
     echo Var_Dump::display($db->createIndex('test', 'test_id_index', $index_def)).'<br>';
     if($db_type == 'mysql') {
         $manager->captureDebugOutput(TRUE);
