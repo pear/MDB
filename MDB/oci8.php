@@ -1527,9 +1527,9 @@ class MDB_oci8 extends MDB_Common {
             $this->current_row[$result_value]++)
         {
             if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-                $moredata = @OCIFetchInto($result, $this->results[$result_value][$this->current_row[$result_value]+1], OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS);
+                $moredata = @OCIFetchInto($result, $this->results[$result_value][$this->current_row[$result_value]+1], OCI_ASSOC+OCI_RETURN_NULLS);
             } else {
-                $moredata = @OCIFetchInto($result, $this->results[$result_value][$this->current_row[$result_value]+1], OCI_RETURN_NULLS+OCI_RETURN_LOBS);
+                $moredata = @OCIFetchInto($result, $this->results[$result_value][$this->current_row[$result_value]+1], OCI_RETURN_NULLS);
             }
             if(!$moredata) {
                 if($this->options['autofree']) {
@@ -1630,9 +1630,9 @@ class MDB_oci8 extends MDB_Common {
             if (!@OCIExecute($stmt, OCI_DEFAULT)) {
                 return($this->oci8RaiseError($stmt));
             } while (@OCIFetch($stmt)) {
-                $res[$count]['table'] = $result;
-                $res[$count]['name'] = @OCIResult($stmt, 1);
-                $res[$count]['type'] = @OCIResult($stmt, 2);
+                $res[$count]['table'] = strtolower($result);
+                $res[$count]['name'] = strtolower(@OCIResult($stmt, 1));
+                $res[$count]['type'] = strtolower(@OCIResult($stmt, 2));
                 $res[$count]['len'] = @OCIResult($stmt, 3);
                 $res[$count]['format'] = @OCIResult($stmt, 4);
                 $res[$count]['nullable'] = (@OCIResult($stmt, 5) == 'Y') ? TRUE : FALSE;
@@ -1651,8 +1651,8 @@ class MDB_oci8 extends MDB_Common {
             #if ($result === $this->last_stmt) {
                 $count = @OCINumCols($result);
                 for ($i = 0; $i < $count; $i++) {
-                    $res[$i]['name'] = @OCIColumnName($result, $i + 1);
-                    $res[$i]['type'] = @OCIColumnType($result, $i + 1);
+                    $res[$i]['name'] = strtolower(@OCIColumnName($result, $i + 1));
+                    $res[$i]['type'] = strtolower(@OCIColumnType($result, $i + 1));
                     $res[$i]['len'] = @OCIColumnSize($result, $i + 1);
 
                     $q_fields = "select table_name, data_precision, nullable, data_default from user_tab_columns where column_name='".$res[$i]['name']."'";
@@ -1663,7 +1663,7 @@ class MDB_oci8 extends MDB_Common {
                         return($this->oci8RaiseError($stmt));
                     }
                     @OCIFetch($stmt);
-                    $res[$i]['table'] = @OCIResult($stmt, 1);
+                    $res[$i]['table'] = strtolower(@OCIResult($stmt, 1));
                     $res[$i]['format'] = @OCIResult($stmt, 2);
                     $res[$i]['nullable'] = (@OCIResult($stmt, 3) == 'Y') ? TRUE : FALSE;
                     $res[$i]['default'] = @OCIResult($stmt, 4);
