@@ -91,6 +91,59 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
     }
 
     // }}}
+    // {{{ getTypeDeclaration()
+
+    /**
+     * Obtain DBMS specific SQL code portion needed to declare an text type
+     * field to be used in statements like CREATE TABLE.
+     *
+     * @param string $field  associative array with the name of the properties
+     *      of the field being declared as array indexes. Currently, the types
+     *      of supported field properties are as follows:
+     *
+     *      length
+     *          Integer value that determines the maximum length of the text
+     *          field. If this argument is missing the field should be
+     *          declared to have the longest length allowed by the DBMS.
+     *
+     *      default
+     *          Text value to be used as default for this field.
+     *
+     *      notnull
+     *          Boolean flag that indicates whether this field is constrained
+     *          to not be set to null.
+     * @return string  DBMS specific SQL code portion that should be used to
+     *      declare the specified field.
+     * @access public
+     */
+    function getTypeDeclaration($field)
+    {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        switch($field['type'])
+        {
+            case 'text':
+                $length = (isset($field['length']) ? $field['length'] : (!MDB::isError($db->getOption('default_text_field_length')) ? $db->getOptions('default_text_field_length') : 4000));
+                return 'VARCHAR ('.$length.')';
+            case 'clob':
+                return 'CLOB';
+            case 'blob':
+                return 'BLOB';
+            case 'integer':
+                return 'INT';
+            case 'boolean':
+                return 'CHAR (1)';
+            case 'date':
+            case 'time':
+            case 'timestamp':
+                return 'DATE';
+            case 'float':
+                return 'NUMBER';
+            case 'decimal':
+                return 'NUMBER(*,'.$db->decimal_places.')';
+        }
+    }
+
+    // }}}
     // {{{ getIntegerDeclaration()
 
     /**
@@ -126,7 +179,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
         $default = isset($field['default']) ? ' DEFAULT '.
             $this->getIntegerValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' INT'.$default.$notnull;
+        return $name.' '.$this->getTypeDeclaration($field).$default.$notnull;
     }
 
     // }}}
@@ -159,7 +212,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
     function getTextDeclaration($name, $field)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $type = 'VARCHAR ('.(isset($field['length']) ? $field['length'] : (isset($db->options['default_text_field_length']) ? $db->options['default_text_field_length'] : 4000)).')';
+        $type = $this->getTypeDeclaration($field);
         $default = isset($field['default']) ? ' DEFAULT TIME'.
             $this->getTextValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
@@ -194,7 +247,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' CLOB'.$notnull;
+        return $name.' '.$this->getTypeDeclaration($field).$notnull;
     }
 
     // }}}
@@ -225,7 +278,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' BLOB'.$notnull;
+        return $name.' '.$this->getTypeDeclaration($field).$notnull;
     }
 
     // }}}
@@ -256,7 +309,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
         $default = isset($field['default']) ? ' DEFAULT '.
             $this->getDateValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' DATE'.$default.$notnull;
+        return $name.' '.$this->getTypeDeclaration($field).$default.$notnull;
     }
 
     // }}}
@@ -287,7 +340,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
         $default = isset($field['default']) ? ' DEFAULT '.
             $this->getTimstampValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' DATE'.$default.$notnull;    }
+        return $name.' '.$this->getTypeDeclaration($field).$default.$notnull;    }
 
     // }}}
     // {{{ getTimeDeclaration()
@@ -317,7 +370,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
         $default = isset($field['default']) ? ' DEFAULT '.
             $db->geTimeValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' DATE'.$default.$notnull;
+        return $name.' '.$this->getTypeDeclaration($field).$default.$notnull;
     }
 
     // }}}
@@ -349,7 +402,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
         $default = isset($field['default']) ? ' DEFAULT '.
             $this->getFloatValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' NUMBER'.$default.$notnull;
+        return $name.' '.$this->getTypeDeclaration($field).$default.$notnull;
     }
 
     // }}}
@@ -380,7 +433,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
         $default = isset($field['default']) ? ' DEFAULT '.
             $this->getDecimalValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' NUMBER(*,'.$db->decimal_places.')'.$default.$notnull;
+        return $name.' '.$this->getTypeDeclaration($field).$default.$notnull;
     }
 
     // }}}
