@@ -39,947 +39,441 @@
 // | WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE          |
 // | POSSIBILITY OF SUCH DAMAGE.                                          |
 // +----------------------------------------------------------------------+
-// | Author: Manuel Lemos <mlemos@acm.org>                                |
+// | Author: Christian Dickmann <dickmann@php.net>                        |
 // +----------------------------------------------------------------------+
 //
 // $Id$
 //
 
-require_once 'PEAR.php';
+require_once "XML/Parser.php";
 
 /**
 * Parses an XML schema file
 *
 * @package MDB
-* @author  Manuel Lemos <mlemos@acm.org>
+* @author  Christian Dickmann <dickmann@php.net>
 */
-
-/*
- * Parser error numbers:
- *
- * 1 - Could not parse data
- * 2 - Could not read from input stream
- * 3 - Metabase format syntax error
- * 4 - Variable not defined
- *
- */
-
-class MDB_parser extends PEAR
-{
-    /* PUBLIC DATA */
-    var $stream_buffer_size = 4096;
-    var $error_number = 0;
-    var $error = '';
-    var $error_line, $error_column, $error_byte_index;
+class MDB_Parser extends XML_Parser {
+    var $database_definition = array();
+    var $elements = array();
+    var $element = '';
+    var $count = 0;
+    var $table = array();
+    var $table_name = '';
+    var $field = array();
+    var $field_name = '';
+    var $init = array();
+    var $init_name = '';
+    var $init_value = '';
+    var $index = array();
+    var $index_name = '';
+    var $var_mode = FALSE;
     var $variables = array();
-    var $fail_on_invalid_names = 1;
+    var $seq = array();
+    var $seq_name = '';
+    var $error = NULL;
 
-    /* PRIVATE DATA */
-    var $invalid_names = array(
-        'user' => array(),
-        'is' => array(),
-        'file' => array(
-            'oci' => array(),
-            'oracle' => array()
-        ),
-        'notify' => array(
-            'pgsql' => array()
-        ),
-        'restrict' => array(
-            'mysql' => array()
-        ),
-        'password' => array(
-            'ibase' => array()
-        )
-    );
-    var $xml_parser = 0;
-    var $database_properties = array(
-        'name' => 1,
-        'create' => 1,
-        'overwrite' => 1,
-        'table' => 0,
-        'sequence' => 0
-    );
-    var $table_properties = array(
-        'name' => 1,
-        'was' => 1,
-        'declaration' => 0,
-        'initialization' => 0
-    );
-    var $field_properties = array(
-        'name' => 1,
-        'was' => 1,
-        'type' => 1,
-        'default' => 1,
-        'notnull' => 1,
-        'unsigned' => 1,
-        'length' => 1
-    );
-    var $index_properties = array(
-        'name' => 1,
-        'was' => 1,
-        'unique' => 1,
-        'field' => 0
-    );
-    var $index_field_properties = array(
-        'name' => 1,
-        'sorting' => 1
-    );
-    var $sequence_properties = array(
-        'name' => 1,
-        'was' => 1,
-        'start' => 1,
-        'on' => 0
-    );
-    var $sequence_on_properties = array(
-        'table' => 1,
-        'field' => 1
-    );
-    var $insert_properties = array(
-        'field' => 0
-    );
-    var $insert_field_properties = array(
-        'name' => 1,
-        'value' => 1
-    );
-
-    /* PRIVATE METHODS */
-
-    function setError($error, $error_number, $line, $column, $byte_index)
+    function MDB_Parser($variables) 
     {
-        $this->error_number = $error_number;
-        $this->error = $error;
-        $this->error_line = $line;
-        $this->error_column = $column;
-        $this->error_byte_index = $byte_index;
-        $this->xml_parser = 0;
+        $this->XML_Parser();
+        $this->variables =  $variables;
     }
 
-    function setParserError($path, $error)
-    {
-        $this->setError($error, 3, $this->xml_parser->positions[$path]['Line'],
-            $this->xml_parser->positions[$path]['Column'],
-            $this->xml_parser->positions[$path]['Byte']
-        );
-        return($error);
+    function startHandler($xp, $element, $attribs) 
+    {   
+        if (strtolower($element) == 'variable') {
+            $this->var_mode = TRUE;
+            return;
+        };
+        
+        $this->elements[$this->count++] = strtolower($element);
+        $this->element = implode('-', $this->elements);
+        
+        switch($this->element) {
+        case 'database-table-initialization-insert':
+            $this->init = array('type' => 'insert');
+            break;
+        case 'database-table-initialization-insert-field':
+            $this->init_name = '';
+            $this->init_value = '';
+            break;
+        case 'database-table':
+            $this->table_name = '';
+            $this->table = array();
+            break;
+        case 'database-table-declaration-field':
+            $this->field_name = '';
+            $this->field = array();
+            break;
+        case 'database-table-declaration-index':
+            $this->index_name = '';
+            $this->index = array();
+            break;
+        case 'database-sequence':
+            $this->seq_name = '';
+            $this->seq = array();
+            break;
+        case 'database-table-declaration-index-field':
+            $this->field_name = '';
+            $this->field = array();
+            break;
+        };
     }
 
-    function checkWhiteSpace($data, $path)
+    function endHandler($xp, $element)
     {
-        $line = $this->xml_parser->positions[$path]['Line'];
-        $column = $this->xml_parser->positions[$path]['Column'];
-        $byte_index = $this->xml_parser->positions[$path]['Byte'];
-        for($previous_return = 0, $position = 0;
-            $position < strlen($data);
-            $position++)
-        {
-            switch($data[$position]) {
-                case ' ':
-                case "\t":
-                    $column++;
-                    $byte_index++;
-                    $previous_return = 0;
-                    break;
-                case "\n":
-                    if (!$previous_return)
-                        $line++;
-                    $column = 1;
-                    $byte_index++;
-                    $previous_return = 0;
-                    break;
-                case "\r":
-                    $line++;
-                    $column = 1;
-                    $byte_index++;
-                    $previous_return = 1;
-                    break;
-                default:
-                    $this->setError('data is not white space', 3,
-                        $line, $column, $byte_index
-                    );
-                    return(0);
-            }
-        }
-        return(1);
-    }
-
-    function getTagData($path, &$value, $error)
-    {
-        $elements = $this->xml_parser->structure[$path]['Elements'];
-        for($value = '', $element = 0;
-            $element < $elements;
-            $element++)
-        {
-            $element_path = "$path,$element";
-            $data = $this->xml_parser->structure[$element_path];
-            if (gettype($data) == 'array') {
-                switch($data['Tag']) {
-                    case 'variable':
-                        if (!$this->getTagData($element_path, $variable, $error)) {
-                            return(0);
+        if (strtolower($element) == 'variable') {
+            $this->var_mode = FALSE;
+            return;
+        };
+        
+        switch($this->element) {
+        /* Initialization */
+        case 'database-table-initialization-insert-field':
+            if (!$this->init_name || !$this->init_value) {
+                $this->raiseError($xp, 'not properly');
+            };
+            if (isset($this->init['FIELDS'][$this->init_name])) {
+                $this->raiseError($xp, 'field "'.$this->init_name.'" already filled');
+            };
+            if (!isset($this->table['FIELDS'][$this->init_name])) {
+                $this->raiseError($xp, 'unkown field "'.$this->init_name.'"');
+            };
+            if (!$this->validateFieldValue($this->init_name, $this->init_value)) {
+                $this->raiseError($xp, 'field "'.$this->init_name.'" has wrong value');
+            };
+            $this->init['FIELDS'][$this->init_name] = $this->init_value;
+            break;
+        case 'database-table-initialization-insert':
+            $this->table['initialization'][] = $this->init;
+            break;
+            
+        /* Table definition */
+        case 'database-table':
+            if (!isset($this->table['was'])) {
+                $this->table['was'] = $this->table_name;
+            };
+            if (!$this->table_name) {
+                $this->raiseError($xp, 'tables need names');
+            };
+            if (isset($this->database_definition['TABLES'][$this->table_name])) {
+                $this->raiseError($xp, 'table "'.$this->table_name.'" already exists');
+            };
+            if (!isset($this->table['FIELDS'])) {
+                $this->raiseError($xp, 'tables need one or more fields');
+            };
+            if (isset($this->table['INDEXES'])) {
+                foreach($this->table['INDEXES'] as $index_name => $index) {
+                    foreach($index['FIELDS'] as $field_name => $field) {
+                        if (!isset($this->table['FIELDS'][$field_name])) {
+                            $this->raiseError($xp, 'index field "'.$field_name.'" does not exist');
                         }
-                        if (!isset($this->variables[$variable]))
-                        {
-                            $this->setError("it was specified a variable (\"$variable\") that was not defined",
-                                4, $this->xml_parser->positions[$element_path]['Line'],
-                                $this->xml_parser->positions[$element_path]['Column'],
-                                $this->xml_parser->positions[$element_path]['Byte']
-                            );
-                            return(0);
-                        }
-                        $value .= $this->variables[$variable];
-                        break;
-                    default:
-                        $this->setParserError($element_path, $error);
-                        return(0);
+                    }
                 }
-            } else {
-                $value .= $data;
-            }
-        }
-        return(1);
-    }
-
-    function validateFieldValue(&$field, &$value, $value_type, $path)
-    {
-        switch($field['type'])
-        {
+            };
+            $this->database_definition['TABLES'][$this->table_name] = $this->table;
+            break;
+            
+        /* Field declaration */
+        case 'database-table-declaration-field':
+            if (!$this->field_name || !isset($this->field['type'])) {
+                $this->raiseError($xp, 'field "'.$this->field_name.'" was not properly specified');
+            };
+            if (isset($this->table['FIELDS'][$this->field_name])) {
+                $this->raiseError($xp, 'field "'.$this->field_name.'" already exists');
+            };
+            /* Type check */
+            switch($this->field['type']) {
+            case 'integer':
+                if (isset($this->field['unsigned']) 
+                    && $this->field['unsigned'] !== '1' && $this->field['unsigned'] !== '0') 
+                {
+                    $this->raiseError($xp, 'unsigned has to be 1 or 0');
+                };
+                break;
             case 'text':
             case 'clob':
-                if (isset($field['length'])
-                    && strlen($value)>$field['length'])
-                {
-                    $this->setParserError($path,
-                        "it was specified a text field $value_type value that is longer than the specified length value"
-                    );
-                    return(0);
-                }
-                break;
             case 'blob':
-                if (!eregi("^([0-9a-f]{2})*\$", $value))     {
-                    var_dump($value);
-                    $this->setParserError($path,
-                        "it was specified an invalid hexadecimal binary field $value_type value"
-                    );
-                    return(0);
-                }
-                $value = pack('H*', $value);
-                if (isset($field['length'])
-                    && strlen($value)>$field['length'])
-                {
-                    $this->setParserError($path,
-                        "it was specified a text field $value_type value that is longer than the specified length value"
-                    );
-                    return(0);
-                }
-                break;
-            case 'integer':
-                if (strcmp(strval($value = intval($value)), $value))    {
-                    $this->setParserError($path,
-                        "field $value_type is not a valid integer value"
-                    );
-                    return(0);
-                }
-                $value = intval($value);
-                if (isset($field['unsigned'])
-                    && $value < 0)
-                {
-                    $this->setParserError($path,
-                        "field $value_type is not a valid unsigned integer value"
-                    );
-                    return(0);
-                }
+                if (isset($this->field['length']) && ((int)$this->field['length']) <= 0) {
+                    $this->raiseError($xp, 'length has to be an integer greater 0');
+                };
                 break;
             case 'boolean':
-                switch($value) {
-                    case '0':
-                    case '1':
-                        $value = intval($value);
-                        break;
-                    default:
-                        $this->setParserError($path,
-                            "field $value_type is not a valid boolean value"
-                        );
-                        return(0);
-                }
-                break;
             case 'date':
-                if (!ereg("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})$", $value))
-                {
-                    $this->setParserError($path,
-                        'field value is not a valid date value'
-                    );
-                    return(0);
-                }
-                break;
             case 'timestamp':
-                if (!ereg("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})$", $value)) {
-                    $this->setParserError($path, 'field value is not a valid timestamp value');
-                    return(0);
-                }
-                break;
             case 'time':
-                if (!ereg("^([0-9]{2}):([0-9]{2}):([0-9]{2})$", $value)) {
-                    $this->setParserError($path, 'field value is not a valid time value');
-                    return(0);
-                }
-                break;
             case 'float':
             case 'decimal':
-                if (strcmp(strval($value = doubleval($value)), $value)) {
-                    $this->setParserError($path, "field $value_type is not a valid float value");
-                    return(0);
-                }
                 break;
-        }
-        return(1);
-    }
-
-    function parseProperties($path, &$properties, $property_type, &$tags, &$values)
-    {
-        $tags = $values = array();
-        $property_elements = $this->xml_parser->structure[$path]['Elements'];
-        for($property_element = 0;
-            $property_element < $property_elements;
-            $property_element++)
-        {
-            $property_element_path = "$path,$property_element";
-            $data = $this->xml_parser->structure[$property_element_path];
-            if (gettype($data) == 'array') {
-                if (isset($properties[$data['Tag']])) {
-                    if ($properties[$data['Tag']]) {
-                        if (isset($tags[$data['Tag']])) {
-                            $this->setParserError($property_element_path,
-                                "$property_type property ".$data['Tag'].' is defined more than once'
-                            );
-                            return(0);
-                        }
-                        $tags[$data['Tag']] = $property_element_path;
-                        if (!$this->getTagData($property_element_path,
-                            $values[$data['Tag']],
-                            "Could not parse $property_type ".$data['Tag'].' property')
-                        ) {
-                            return(0);
-                        }
-                    } else {
-                        $tags[$data['Tag']][] = $property_element_path;
-                    }
-                } else {
-                    $this->setParserError($property_element_path,
-                        "it was not specified a valid $property_type property (".$data['Tag'].')'
-                    );
-                    return(0);
-                }
-            } else {
-                if (!$this->CheckWhiteSpace($data, $property_element_path)) {
-                    return(0);
-                }
-            }
-        }
-        return(1);
-    }
-
-    /* PUBLIC METHODS */
-
-    function parse($data, $end_of_data)
-    {
-        if (strcmp($this->error, '')) {
-            return($this->error);
-        }
-        if (gettype($this->xml_parser) != 'object')
-        {
-            $this->xml_parser = new xml_parser_class;
-            $this->xml_parser->store_positions = 1;
-            $this->xml_parser->simplified_xml = 1;
-            $this->database = array(
-                'name' => '',
-                'create' => 0,
-                'overwrite' => 0,
-                'TABLES' => array()
-            );
-        }
-        if (!strcmp($this->error = $this->xml_parser->parse($data, $end_of_data), '')) {
-            if ($end_of_data) {
-                if (strcmp($this->xml_parser->structure['0']['Tag'], 'database')) {
-                    return($this->setParserError('0',
-                        'it was not defined a valid database definition')
-                    );
-                }
-                $this->database = array();
-                if (!$this->parseProperties('0', $this->database_properties,
-                    'database', $database_tags, $database_values)
-                ) {
-                    return($this->error);
-                }
-                if (!isset($database_tags['name'])) {
-                    return($this->SetParserError('0',
-                        'it was not defined the database name property')
-                    );
-                }
-                if (!strcmp($database_values['name'], '')) {
-                    return($this->setParserError($database_tags['name'],
-                        'It was not defined a valid database name')
-                    );
-                }
-                if ($this->fail_on_invalid_names
-                    && isset($this->invalid_names[$database_values['name']]))
+            default: 
+                $this->raiseError($xp, 'no valid field type ("'.$this->field['type'].'") specified');
+            };
+            if (!isset($this->field['was'])) {
+                $this->field['was'] = $this->field_name;
+            };
+            if (isset($this->field['notnull']) && !$this->is_boolean($this->field['notnull'])) {
+                $this->raiseError($xp, 'field  "notnull" has to be 1 or 0');
+            };
+            if (isset($this->field['unsigned']) && !$this->is_boolean($this->field['unsigned'])) {
+                $this->raiseError($xp, 'field  "notnull" has to be 1 or 0');
+            };
+            $this->table['FIELDS'][$this->field_name] = $this->field;
+            if (isset($this->field['default'])) {
+                if (!$this->validateFieldValue($this->field_name, $this->field['default'])) {
+                    $this->raiseError($xp, 'default value of "'.$this->field_name.'" is of wrong type');
+                };
+            };
+            break;
+            
+        /* Index declaration */
+        case 'database-table-declaration-index':
+            if (!$this->index_name) {
+                $this->raiseError($xp, 'an index needs a name');
+            };
+            if (isset($this->table['INDEXES'][$this->index_name])) {
+                $this->raiseError($xp, 'index "'.$this->index_name.'" already exists');
+            };
+            if (isset($this->index['unique']) && !$this->is_boolean($this->index['unique'])) {
+                $this->raiseError($xp, 'field  "unique" has to be 1 or 0');
+            };
+            if (!isset($this->index['was'])) {
+                $this->index['was'] = $this->index_name;
+            };
+            $this->table['INDEXES'][$this->index_name] = $this->index;
+            break;
+        case 'database-table-declaration-index-field':
+            if (!$this->field_name) {
+                $this->raiseError($xp, 'the index-field-name is required');
+            };
+            if (isset($this->field['sorting']) 
+                && $this->field['sorting'] !== 'ascending' && $this->field['sorting'] !== 'descending') {
+                $this->raiseError($xp, 'sorting type unknown');
+            };
+            $this->index['FIELDS'][$this->field_name] = $this->field;
+            break;
+            
+        /* Sequence declaration */
+        case 'database-sequence':
+            if (!$this->seq_name) {
+                $this->raiseError($xp, 'a sequence has to have a name');
+            };
+            if (isset($this->database_definition['SEQUENCES'][$this->seq_name])) {
+                $this->raiseError($xp, 'sequence "'.$this->seq_name.'" already exists');
+            };
+            if (!isset($this->seq['was'])) {
+                $this->seq['was'] = $this->seq_name;
+            };
+            if (isset($this->seq['on'])) {
+                if ((!isset($this->seq['on']['table']) || !$this->seq['on']['table'])
+                    || (!isset($this->seq['on']['field']) || !$this->seq['on']['field'])) 
                 {
-                    return($this->setParserError($database_tags['name'],
-                        'It was defined a potentially invalid database name')
-                    );
-                }
-                $this->database['name'] = $database_values['name'];
-                if (isset($database_tags['create'])) {
-                    switch($database_values['create']) {
-                        case '0':
-                        case '1':
-                            $this->database['create'] = $database_values['create'];
-                            break;
-                        default:
-                            $this->setParserError($database_tags['create'],
-                                'it was not defined a valid database create boolean flag value'
-                            );
-                            break;
-                    }
-                }
-                if (isset($database_tags['overwrite'])) {
-                    switch($database_values['overwrite']) {
-                        case '0':
-                        case '1':
-                            $this->database['overwrite'] = $database_values['overwrite'];
-                            break;
-                        default:
-                            $this->setParserError($database_tags['overwrite'],
-                                'it was not defined a valid overwrite boolean flag value'
-                            );
-                            break;
-                    }
-                }
-                if (!isset($database_tags['table'])
-                    || ($tables = count($database_tags['table'])) == 0)
-                {
-                    return($this->setParserError('0', 'it were not specified any database tables'));
-                }
-
-                for($table = 0; $table < $tables; $table++)    {
-                    $table_definition = array('FIELDS' => array());
-                    if (!$this->parseProperties($database_tags['table'][$table],
-                        $this->table_properties, 'table', $table_tags, $table_values)
-                    ) {
-                        return($this->error);
-                    }
-                    if (!isset($table_tags['name'])) {
-                        return($this->setParserError($database_tags['table'][$table],
-                            'it was not defined the table name property')
-                        );
-                    }
-                    if (!strcmp($table_values['name'], '')) {
-                        return($this->setParserError($table_tags['name'],
-                            'It was not defined a valid table name property')
-                        );
-                    }
-                    if ($this->fail_on_invalid_names
-                        && isset($this->invalid_names[$table_values['name']])) {
-                        return($this->setParserError($table_tags['name'],
-                            'It was defined a potentially invalid table name property')
-                        );
-                    }
-                    if (isset($this->database['TABLES'][$table_values['name']])) {
-                        return($this->setParserError($table_tags['name'], 'TABLE is already defined'));
-                    }
-                    if (isset($table_tags['was'])) {
-                        if (!strcmp($table_definition['was'] = $table_values['was'], '')) {
-                            return($this->setParserError($table_tags['was'],
-                                'It was not defined a valid table was property')
-                            );
-                        }
-                    } else {
-                        $table_definition['was'] = $table_values['name'];
-                    }
-                    if (!isset($table_tags['declaration'])) {
-                        return($this->setParserError($database_tags['table'][$table],
-                            'it was not defined the table declaration section')
-                        );
-                    }
-                    if (count($table_tags['declaration'])>1) {
-                        return($this->setParserError($table_tags['declaration'][1],
-                            'it was defined the table declaration section more than once')
-                        );
-                    }
-                    $declaration_tags = $declaration_definition = array();
-                    $declaration_elements = $this->xml_parser->structure[$table_tags['declaration'][0]]['Elements'];
-                    for($declaration_element = 0;
-                        $declaration_element < $declaration_elements;
-                        $declaration_element++)
-                    {
-                        $declaration_element_path = $table_tags['declaration'][0].",$declaration_element";
-                        $data = $this->xml_parser->structure[$declaration_element_path];
-                        if (gettype($data) == 'array') {
-                            switch($data['Tag']) {
-                                case 'field':
-                                    $declaration_definition = array();
-                                    if (!$this->parseProperties($declaration_element_path,
-                                        $this->field_properties, 'field',
-                                        $field_tags, $field_values)
-                                    ) {
-                                        return($this->error);
-                                    }
-                                    if (!isset($field_tags[$property = 'name'])
-                                        || !isset($field_tags[$property = 'type']))
-                                    {
-                                        return($this->setParserError($declaration_element_path,
-                                            "it was not defined the field $property property")
-                                        );
-                                    }
-                                    if (!strcmp($field_values['name'], '')) {
-                                        return($this->setParserError($field_tags['name'],
-                                            'It was not defined a valid field name property')
-                                        );
-                                    }
-                                    if ($this->fail_on_invalid_names
-                                        && isset($this->invalid_names[$field_values['name']]))
-                                    {
-                                        return($this->setParserError($field_tags['name'],
-                                            'It was defined a potentially invalid field name property')
-                                        );
-                                    }
-                                    if (isset($table_definition['FIELDS'][$field_values['name']])) {
-                                        return($this->setParserError($field_tags['name'],
-                                            'field is already defined')
-                                        );
-                                    }
-                                    if (isset($field_tags['was'])) {
-                                        if (!strcmp($field_values['was'], '')) {
-                                            return($this->setParserError($field_tags['was'],
-                                                'It was not defined a valid field was property')
-                                            );
-                                        }
-                                        $declaration_definition['was'] = $field_values['was'];
-                                    } else {
-                                        $declaration_definition['was'] = $field_values['name'];
-                                    }
-                                    switch($declaration_definition['type'] = $field_values['type']) {
-                                        case 'integer':
-                                            if (isset($field_tags['unsigned'])) {
-                                                switch($field_values['unsigned']) {
-                                                    case '1':
-                                                        $declaration_definition['unsigned'] = 1;
-                                                    case '0':
-                                                        break;
-                                                    default:
-                                                        return($this->setParserError($field_tags['unsigned'],
-                                                            'It was not defined a valid unsigned integer boolean value')
-                                                        );
-                                                }
-                                            }
-                                            break;
-                                        case 'text':
-                                        case 'clob':
-                                        case 'blob':
-                                            if (isset($field_tags['length'])) {
-                                                $length = intval($field_values['length']);
-                                                if (strcmp(strval($length), $field_values['length'])
-                                                    || $length <= 0)
-                                                {
-                                                    return($this->setParserError($field_tags['length'],
-                                                        'It was not specified a valid text field length value')
-                                                );
-                                                }
-                                                $declaration_definition['length'] = $length;
-                                            }
-                                            break;
-                                        case 'boolean':
-                                        case 'date':
-                                        case 'timestamp':
-                                        case 'time':
-                                        case 'float':
-                                        case 'decimal':
-                                            break;
-                                        default:
-                                            return($this->setParserError($field_tags['type'],
-                                                'It was not defined a valid field type property')
-                                            );
-                                    }
-                                    if (isset($field_tags['notnull'])) {
-                                        switch($field_values['notnull']) {
-                                            case '1':
-                                                $declaration_definition['notnull'] = 1;
-                                            case '0':
-                                                break;
-                                            default:
-                                                return($this->setParserError($field_tags['notnull'],
-                                                    'It was not defined a valid notnull boolean value')
-                                                );
-                                        }
-                                    }
-                                    if (isset($field_tags['default'])) {
-                                        switch($declaration_definition['type']) {
-                                            case 'clob':
-                                            case 'blob':
-                                                return($this->setParserError($field_tags['default'],
-                                                    'It was specified a default value for a large object field')
-                                                );
-                                        }
-                                        $value = $field_values['default'];
-                                        if (!$this->ValidateFieldValue($declaration_definition,
-                                            $value, 'default', $field_tags['default'])
-                                        ) {
-                                            return($this->error);
-                                        }
-                                        $declaration_definition['default'] = $value;
-                                    } else {
-                                        if (isset($declaration_definition['notnull'])) {
-                                            switch($declaration_definition['type']) {
-                                                case 'clob':
-                                                case 'blob':
-                                                    break;
-                                                default:
-                                                    return($this->setParserError($field_tags['notnull'],
-                                                        'It was not defined a default value for a notnull field')
-                                                    );
-                                            }
-                                        }
-                                    }
-                                    $table_definition['FIELDS'][$field_values['name']] = $declaration_definition;
-                                    break;
-                                case 'index':
-                                    $declaration_definition = array('FIELDS' => array());
-                                    if (!$this->parseProperties($declaration_element_path,
-                                        $this->index_properties, 'index', $index_tags, $index_values)
-                                    ) {
-                                        return($this->error);
-                                    }
-                                    if (!isset($index_tags['name'])) {
-                                        return($this->setParserError($declaration_element_path,
-                                            'it was not defined the index name property')
-                                        );
-                                    }
-                                    if (!strcmp($index_values['name'], '')) {
-                                        return($this->setParserError($index_tags['name'],
-                                            'It was not defined a valid index name property')
-                                        );
-                                    }
-                                    if ($this->fail_on_invalid_names
-                                        && isset($this->invalid_names[$index_values['name']]))
-                                    {
-                                        return($this->setParserError($index_tags['name'],
-                                            'It was defined a potentially invalid index name property')
-                                        );
-                                    }
-                                    if (isset($table_definition['INDEXES'][$index_values['name']])) {
-                                        return($this->setParserError($index_tags['name'],
-                                            'index is already defined')
-                                        );
-                                    }
-                                    if (isset($index_tags['was'])) {
-                                        if (!strcmp($index_values['was'], '')) {
-                                            return($this->setParserError($index_tags['was'],
-                                                'It was not defined a valid index was property')
-                                            );
-                                        }
-                                        $declaration_definition['was'] = $index_values['was'];
-                                    } else {
-                                        $declaration_definition['was'] = $index_values['name'];
-                                    }
-                                    if (isset($index_tags['unique'])) {
-                                        switch($index_values['unique']) {
-                                            case '1':
-                                                $declaration_definition['unique'] = 1;
-                                            case '0':
-                                                break;
-                                            default:
-                                                return($this->setParserError($index_tags['unique'],
-                                                    'It was not defined a valid unique boolean value')
-                                                );
-                                        }
-                                    }
-                                    if (isset($index_tags['field'])) {
-                                        $fields = count($index_tags['field']);
-                                        for($field = 0; $field < $fields; $field++) {
-                                            $index_declaration_definition = array();
-                                            if (!$this->parseProperties($index_tags['field'][$field],
-                                                $this->index_field_properties, 'index field',
-                                                $index_field_tags, $index_field_values)
-                                            ) {
-                                                return($this->error);
-                                            }
-                                            if (!isset($index_field_tags['name'])) {
-                                                return($this->setParserError($index_tags['field'][$field],
-                                                    'It was not defined the index field name property')
-                                                );
-                                            }
-                                            if (!strcmp($index_field_values['name'], '')) {
-                                                return($this->setParserError($index_field_tags['name'],
-                                                    'It was not defined a valid index field name property')
-                                                );
-                                            }
-                                            if (isset($declaration_definition['FIELDS'][$index_field_values['name']])) {
-                                                return($this->setParserError($index_tags['field'][$field],
-                                                    'Field was already declared for this index')
-                                                );
-                                            }
-                                            if (!isset($table_definition['FIELDS'][$index_field_values['name']])) {
-                                                return($this->setParserError($index_field_tags['name'],
-                                                    'It was declared index field not defined for this table')
-                                                );
-                                            }
-                                            switch($table_definition['FIELDS'][$index_field_values['name']]['type']) {
-                                                case 'clob':
-                                                case 'blob':
-                                                    return($this->setParserError($index_field_tags['name'],
-                                                        'Index field of a large object types are not supported')
-                                                    );
-                                            }
-                                            if (!isset($table_definition['FIELDS'][$index_field_values['name']]['notnull'])) {
-                                                return($this->setParserError($index_tags['field'][$field],
-                                                    'It was declared a index field without defined as notnull')
-                                                );
-                                            }
-                                            if (isset($index_field_tags['sorting'])) {
-                                                switch($index_field_values['sorting']) {
-                                                    case 'ascending':
-                                                    case 'descending':
-                                                        $index_declaration_definition['sorting'] = $index_field_values['sorting'];
-                                                        break;
-                                                    default:
-                                                        return($this->setParserError($index_field_tags['sorting'],
-                                                            'it was not defined a valid index field sorting type')
-                                                        );
-                                                }
-                                            }
-                                            $declaration_definition['FIELDS'][$index_field_values['name']] = $index_declaration_definition;
-                                        }
-                                    }
-                                    if (count($declaration_definition['FIELDS']) == 0) {
-                                        return($this->setParserError($declaration_element_path,
-                                            'index declaration has not specified any fields'));
-                                    }
-                                    $table_definition['INDEXES'][$index_values['name']] = $declaration_definition;
-                                    break;
-                                default:
-                                    return($this->setParserError($declaration_element_path,
-                                        'it was not specified a valid table declaration property ('.$data['Tag'].')')
-                                    );
-                            }
-                        }else {
-                            if (!$this->checkWhiteSpace($data, $declaration_element_path)) {
-                                return($this->error);
-                            }
-                        }
-                    }
-                    if (count($table_definition['FIELDS']) == 0) {
-                        return($this->setParserError($database_tags['table'][$table],
-                            'it were not specified any table fields')
-                        );
-                    }
-                    if (isset($table_tags['initialization'])) {
-                        if (count($table_tags['initialization']) > 1) {
-                            return($this->setParserError($table_tags['initialization'][1],
-                                'it was defined the table initialization section more than once')
-                            );
-                        }
-                        $initialization = array();
-                        $instruction_elements = $this->xml_parser->structure[$table_tags['initialization'][0]]['Elements'];
-                        for($instruction_element = 0;
-                            $instruction_element < $instruction_elements;
-                            $instruction_element++)
-                        {
-                            $instruction_element_path = $table_tags['initialization'][0].",$instruction_element";
-                            $data = $this->xml_parser->structure[$instruction_element_path];
-                            if (gettype($data) == 'array') {
-                                switch($data['Tag']) {
-                                    case 'insert':
-                                        $instruction_definition = array('type' => 'insert', 'FIELDS' => array());
-                                        if (!$this->parseProperties($instruction_element_path, $this->insert_properties,
-                                            'insert', $insert_tags, $insert_values)
-                                        ) {
-                                            return($this->error);
-                                        }
-                                        if (($fields = count($insert_tags['field'])) == 0) {
-                                            return($this->setParserError($instruction_element_path,
-                                                'it were not specified any insert fields'));
-                                        }
-                                        for($field = 0; $field < $fields; $field++) {
-                                            if (!$this->parseProperties($insert_tags['field'][$field],
-                                                $this->insert_field_properties, 'insert field',
-                                                $insert_field_tags, $insert_field_values)
-                                            ) {
-                                                return($this->error);
-                                            }
-                                            if (!isset($insert_field_tags[$property = 'name'])
-                                                || !isset($insert_field_tags[$property = 'value'])) {
-                                                return($this->setParserError($insert_tags['field'][$field],
-                                                    "it was not defined the insert field $property property")
-                                                );
-                                            }
-                                            $name = $insert_field_values['name'];
-                                            if (isset($instruction_definition['FIELDS'][$name])) {
-                                                return($this->setParserError($insert_field_tags['name'],
-                                                    'insert field is already defined')
-                                                );
-                                            }
-                                            if (!isset($table_definition['FIELDS'][$name])) {
-                                                return($this->setParserError($insert_field_tags['name'],
-                                                    'it was specified a insert field that was not declared')
-                                                );
-                                            }
-                                            $value = $insert_field_values['value'];
-                                            if (!$this->ValidateFieldValue($table_definition['FIELDS'][$name],
-                                                $value, 'value', $insert_field_tags['value'])
-                                            ) {
-                                                return($this->error);
-                                            }
-                                            $instruction_definition['FIELDS'][$name] = $value;
-                                        }
-                                        if (($fields = count($table_definition['FIELDS'])) != count($instruction_definition['FIELDS'])) {
-                                            for(reset($table_definition['FIELDS']), $field = 0;
-                                                $field<$fields;
-                                                $field++,next($table_definition['FIELDS']))
-                                            {
-                                                $name = key($table_definition['FIELDS']);
-                                                if (!isset($instruction_definition['FIELDS'][$name])
-                                                    && isset($table_definition['FIELDS'][$name]['notnull']))
-                                                {
-                                                    return($this->setParserError($instruction_element_path,
-                                                        "It was not specified a field ($name) that may not be inserted as NULL")
-                                                    );
-                                                }
-                                            }
-                                        }
-                                        break;
-                                    default:
-                                        return($this->setParserError($instruction_element_path,
-                                            $data['Tag'].' is not table initialization instruction')
-                                        );
-                                }
-                                $initialization[] = $instruction_definition;
-                            } else {
-                                if (!$this->CheckWhiteSpace($data, $instruction_element_path)) {
-                                    return(0);
-                                }
-                            }
-                        }
-                        $table_definition['initialization'] = $initialization;
-                    }
-                    $this->database['TABLES'][$table_values['name']] = $table_definition;
-                }
-                if (isset($database_tags['sequence'])) {
-                    $sequences = count($database_tags['sequence']);
-                    for($sequence = 0; $sequence<$sequences; $sequence++) {
-                        $sequence_definition = array();
-                        if (!$this->parseProperties($database_tags['sequence'][$sequence],
-                            $this->sequence_properties, 'sequence',
-                            $sequence_tags, $sequence_values)
-                        ) {
-                            return($this->error);
-                        }
-                        if (!isset($sequence_tags['name'])) {
-                            return($this->setParserError($database_tags['sequence'][$sequence],
-                                'it was not defined the sequence name property')
-                            );
-                        }
-                        if (!strcmp($sequence_values['name'], '')) {
-                            return($this->setParserError($sequence_tags['name'],
-                                'It was not defined a valid sequence name property')
-                            );
-                        }
-                        if ($this->fail_on_invalid_names
-                            && isset($this->invalid_names[$sequence_values['name']]))
-                        {
-                            return($this->setParserError($sequence_tags['name'],
-                                'It was defined a potentially invalid sequence name property')
-                            );
-                        }
-                        if (isset($this->database['SEQUENCES'][$sequence_values['name']])) {
-                            return($this->setParserError($sequence_tags['name'],
-                                'sequence is already defined')
-                            );
-                        }
-                        if (isset($sequence_tags['was'])) {
-                            if (!strcmp($sequence_definition['was'] = $sequence_values['was'], '')) {
-                                return($this->setParserError($sequence_tags['was'],
-                                    'It was not defined a valid sequence was property')
-                                );
-                            }
-                        } else {
-                            $sequence_definition['was'] = $sequence_values['name'];
-                        }
-                        if (isset($sequence_tags['start'])) {
-                            $start = $sequence_values['start'];
-                            if (strcmp(strval(intval($start)), $start)) {
-                                return($this->setParserError($sequence_tags['start'],
-                                    'it was not specified a valid sequence start value')
-                                );
-                            }
-                            $sequence_definition['start'] = $start;
-                        } if (isset($sequence_tags['on'])) {
-                            if (count($sequence_tags['on']) > 1) {
-                                return($this->setParserError($sequence_tags['on'][1],
-                                    'it was defined the sequence on section more than once')
-                                );
-                            }
-                            $sequence_on_definition = array();
-                            if (!$this->parseProperties($sequence_tags['on'][0], $this->sequence_on_properties,
-                                'sequence on', $sequence_on_tags, $sequence_on_values)
-                            ) {
-                                return($this->error);
-                            }
-                            if (!isset($sequence_on_tags[$property = 'table'])
-                                || !isset($sequence_on_tags[$property = 'field']))
-                            {
-                                return($this->setParserError($sequence_tags['on'][0],
-                                    "it was not defined the on sequence $property property")
-                                );
-                            }
-                            $table = $sequence_on_values['table'];
-                            if (!isset($this->database['TABLES'][$table])) {
-                                return($this->setParserError($sequence_on_tags['table'],
-                                    'it was not specified a sequence valid on table')
-                                );
-                            }
-                            $field = $sequence_on_values['field'];
-                            if (!isset($this->database['TABLES'][$table]['FIELDS'][$field])
-                                || strcmp($this->database['TABLES'][$table]['FIELDS'][$field]['type'], 'integer'))
-                            {
-                                return($this->setParserError($sequence_on_tags['table'],
-                                    'it was not specified a sequence valid on table integer field')
-                                );
-                            }
-                            $sequence_definition['on'] = array(
-                                'table' => $table,
-                                'field' => $field
-                            );
-                        } else {
-                            $sequence_definition['start'] = 1;
-                        }
-                        $this->database['SEQUENCES'][$sequence_values['name']] = $sequence_definition;
-                    }
-                }
-            }
-        } else {
-            $this->setError($this->error, 1, $this->xml_parser->error_line,
-                $this->xml_parser->error_column, $this->xml_parser->error_byte_index
-            );
+                    $this->raiseError($xp, 'sequence "'.$this->seq_name.'" was not properly defined');
+                };
+            };
+            $this->database_definition['SEQUENCES'][$this->seq_name] = $this->seq;
+            break;
+            
+        /* End of File */
+        case 'database':
+            if (isset($this->database_definition['create']) 
+                && !$this->is_boolean($this->database_definition['create']))
+            {
+                $this->raiseError($xp, 'field  "create" has to be 1 or 0');
+            };
+            if (isset($this->database_definition['override']) 
+                && !$this->is_boolean($this->database_definition['override']))
+            {
+                $this->raiseError($xp, 'field  "override" has to be 1 or 0');
+            };
+            if (!isset($this->database_definition['name']) || !$this->database_definition['name']) {
+                $this->raiseError($xp, 'database needs a name');
+            };
+            if (PEAR::isError($this->error)) {
+                $this->database_definition = $this->error;
+            };
+            break;
         }
-        return($this->error);
+        
+        unset($this->elements[--$this->count]);
+        $this->element = implode('-', $this->elements);
     }
 
-    function parseStream($stream)
+    function validateFieldValue($field_name, &$field_value)
     {
-        if (strcmp($this->error, '')) {
-            return($this->error);
-        }
-        do {
-            if (!($data = fread($stream, $this->stream_buffer_size))) {
-                $this->setError('Could not read from input stream', 2, 0, 0, 0);
-                break;
+        $field_def = $this->table['FIELDS'][$field_name];
+        switch($field_def['type']) {
+        case 'text':
+        case 'clob':
+            if (isset($field_def['length']) && strlen($field_value) > $field_def['length']) {
+                return $this->raiseError($xp, 'fault');
+            };
+            break;
+        case 'blob':
+            if (!eregi("^([0-9a-f]{2})*\$", $field_value)) {
+                return $this->raiseError($xp, 'fault');
             }
-            if (strcmp($error = $this->Parse($data,feof($stream)), '')) {
-                break;
+            $field_value = pack('H*', $field_value);
+            if (isset($field_def['length']) && strlen($field_value) > $field_def['length']) {
+                return $this->raiseError($xp, 'fault');
+            };
+            break;
+        case 'integer':
+            if ($field_value != ((int)$field_value)) {
+                return $this->raiseError($xp, 'fault');
+            };
+            $field_value = (int) $field_value;
+            if (isset($field_def['unsigned']) && $field_def['unsigned'] && $field_value < 0) {
+                return $this->raiseError($xp, 'fault');
+            };
+            break;
+        case 'boolean':
+            if ($field_value !== '0' && $field_value !== '1') {
+                return $this->raiseError($xp, 'fault');
             }
+            $field_value = (int) $field_value;
+            break;
+        case 'date':
+            if (!ereg("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})$", $field_value)) {
+                return $this->raiseError($xp, 'fault');
+            }
+            break;
+        case 'timestamp':
+            if (!ereg("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})$", $field_value)) {
+                return $this->raiseError($xp, 'fault');
+            }
+            break;
+        case 'time':
+            if (!reg("^([0-9]{2}):([0-9]{2}):([0-9]{2})$", $field_value)) {
+                return $this->raiseError($xp, 'fault');
+            }
+            break;
+        case 'float':
+        case 'double':
+            if ($field_value != (double) $field_value) {
+                return $this->raiseError($xp, 'fault');
+            };
+            $field_value = (double) $field_value;
+            break;
         }
-        while(!feof($stream));
-        return($this->error);
+        return TRUE;
+    }
+
+    function raiseError($xp, $msg)
+    {
+        if ($this->error !== NULL) {
+            return FALSE;
+        };
+        $error = "Parser error: \"".$msg."\"\n";
+        $byte = xml_get_current_byte_index($xp);
+        $line = xml_get_current_line_number($xp);
+        $column = xml_get_current_column_number($xp);
+        $error .= "Byte: $byte; Line: $line; Col: $column\n";
+        
+        $this->error = PEAR::raiseError($error);
+        return FALSE;
+    }
+
+    function is_boolean($value)
+    {
+        if ($value !== '1' && $value !== '0') {
+            return FALSE;
+        };
+        return TRUE;
+    }
+
+    function cdataHandler($xp, $data)
+    {
+        if ($this->var_mode == TRUE) {
+            if (!isset($this->variables[$data])) {
+                $this->raiseError($xp, 'variable "'.$data.'" not found');
+            };
+            $data = $this->variables[$data];
+        };
+        
+        switch($this->element) {
+        /* Initialization */
+        case 'database-table-initialization-insert-field-name':
+            $this->init_name .= $data;
+            break;
+        case 'database-table-initialization-insert-field-value':
+            $this->init_value .= $data;
+            break;
+            
+        /* Database */
+        case 'database-name': 
+            $this->database_definition['name'] = $data;
+            break;
+        case 'database-create':
+            $this->database_definition['create'] = $data;
+            break;
+        case 'database-override':
+            $this->database_definition['override'] = $data;
+            break;
+        case 'database-table-name':
+            $this->table_name = $data;
+            break;
+        case 'database-table-was':
+            $this->table['was'] = $data;
+            break;
+            
+        /* Field declaration */
+        case 'database-table-declaration-field-name':
+            $this->field_name = $data;
+            break;
+        case 'database-table-declaration-field-type':
+            $this->field['type'] = $data;
+            break;
+        case 'database-table-declaration-field-was':
+            $this->field['was'] = $data;
+            break;
+        case 'database-table-declaration-field-notnull':
+            $this->field['notnull'] = $data;
+            break;
+        case 'database-table-declaration-field-unsigned':
+            $this->field['unsigned'] = $data;
+            break;
+        case 'database-table-declaration-field-default':
+            $this->field['default'] = $data;
+            break;
+        case 'database-table-declaration-field-length':
+            $this->field['length'] = $data;
+            break;
+            
+        /* Index declaration */
+        case 'database-table-declaration-index-name':
+            $this->index_name = $data;
+            break;
+        case 'database-table-declaration-index-unique':
+            $this->index['unique'] = $data;
+            break;
+        case 'database-table-declaration-index-was':
+            $this->index['was'] = $data;
+            break;
+        case 'database-table-declaration-index-field-name':
+            $this->field_name = $data;
+            break;
+        case 'database-table-declaration-index-field-sorting':
+            $this->field['sorting'] = $data;
+            break;
+            
+        /* Sequence declaration */
+        case 'database-sequence-name':
+            $this->seq_name = $data;
+            break;
+        case 'database-sequence-was':
+            $this->seq['was'] = $data;
+            break;
+        case 'database-sequence-start':
+            $this->seq['start'] = $data;
+            break;
+        case 'database-sequence-on-table':
+            $this->seq['on']['table'] = $data;
+            break;
+        case 'database-sequence-on-field':
+            $this->seq['on']['field'] = $data;
+            break;
+        };
     }
 };
+
 ?>
