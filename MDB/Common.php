@@ -3523,7 +3523,7 @@ class MDB_Common extends PEAR
     function fetchOne($result)
     {
         $res = $this->fetchInto($result, MDB_FETCHMODE_ORDERED);
-        if (!$this->options['autofree'] && $res != NULL) {
+        if (!$this->options['autofree'] || $res != NULL) {
             $this->freeResult($result);
         }
         if (MDB::isError($res)) {
@@ -3547,7 +3547,7 @@ class MDB_Common extends PEAR
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = 0)
     {
         $res = $this->fetchInto($result, $fetchmode, $rownum);
-        if (!$this->options['autofree'] && $res != NULL) {
+        if (!$this->options['autofree'] || $res != NULL) {
             $this->freeResult($result);
         }
         return($res);
@@ -3571,7 +3571,7 @@ class MDB_Common extends PEAR
         while (is_array($res = $this->fetchInto($result, $fetchmode))) {
             $column[] = $res[$colnum];
         }
-        if (!$this->options['autofree'] && $res != NULL) {
+        if (!$this->options['autofree']) {
             $this->freeResult($result);
         }
         if (MDB::isError($res)) {
@@ -3611,7 +3611,7 @@ class MDB_Common extends PEAR
                 return($this->raiseError(MDB_ERROR_TRUNCATED));
             }
         }
-        $all = array(); 
+        $all = array();
         while (is_array($res = $this->fetchInto($result, $fetchmode))) {
             if ($rekey) {
                 if ($fetchmode & MDB_FETCHMODE_ASSOC) {
@@ -3639,7 +3639,7 @@ class MDB_Common extends PEAR
                 }
             }
         }
-        if (!$this->options['autofree'] && $res != NULL) {
+        if (!$this->options['autofree']) {
             $this->freeResult($result);
         }
         if (MDB::isError($res)) {
