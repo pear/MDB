@@ -109,13 +109,15 @@ class MDB_ibase extends MDB_common
         $this->supported['CurrId'] = 1;
         $this->supported['SelectRowRanges'] = 0;
         $this->supported['LOBs'] = 1;
-        $this->supported['Replace'] = 1;
+        $this->supported['Replace'] = 0;   // TEMPORARY SECURITY MEASURE...
         $this->supported['SubSelects'] = 1;
 
         $this->decimal_factor = pow(10.0, $this->decimal_places);
 
         $this->options['DatabasePath'] = '';
         $this->options['DatabaseExtension'] = '.gdb';
+        $this->options['DBAUser'] = FALSE;
+        $this->options['DBAPassword'] = FALSE;
 
         $this->errorcode_map = array(
             -104 => MDB_ERROR_SYNTAX,
@@ -760,7 +762,7 @@ class MDB_ibase extends MDB_common
             return($column);
         }
         if (MDB::isError($err = $this->fetchRow($result, $row))) {
-            echo '<br><font color="blue">fetch fetchRow() error ('.$err->getUserInfo().')</font>';
+            //echo '<br><font color="blue">fetch fetchRow() error ('.$err->getUserInfo().')</font>';
             return($err);
         }
 
