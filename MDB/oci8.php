@@ -520,6 +520,7 @@ class MDB_oci8 extends MDB_Common {
     function query($query, $types = NULL)
     {
         $this->debug("Query: $query");
+        $this->last_query = $query;
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;
         $this->first_selected_row = $this->selected_row_limit = 0;
