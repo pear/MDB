@@ -73,10 +73,30 @@ class MDB_Parser extends XML_Parser {
     var $seq_name = '';
     var $error = NULL;
 
-    function MDB_Parser($variables) 
+    var $invalid_names = array(
+        'user' => array(),
+        'is' => array(),
+        'file' => array(
+            'oci' => array(),
+            'oracle' => array()
+        ),
+        'notify' => array(
+            'pgsql' => array()
+        ),
+        'restrict' => array(
+            'mysql' => array()
+        ),
+        'password' => array(
+            'ibase' => array()
+        )
+    );
+    var $fail_on_invalid_names = 1;
+
+    function MDB_Parser($variables, $fail_on_invalid_names = 1) 
     {
         $this->XML_Parser();
         $this->variables =  $variables;
+        $this->fail_on_invalid_names = $fail_on_invalid_names;
     }
 
     function startHandler($xp, $element, $attribs) 
@@ -181,6 +201,10 @@ class MDB_Parser extends XML_Parser {
             };
             if (isset($this->table['FIELDS'][$this->field_name])) {
                 $this->raiseError($xp, 'field "'.$this->field_name.'" already exists');
+            };
+            /* Invalidname check */
+            if ($this->fail_on_invalid_names && isset($this->invalid_names[$this->field_name])) {
+                $this->raiseError($xp, 'fieldname "'.$this->field_name.'" not allowed');
             };
             /* Type check */
             switch($this->field['type']) {
@@ -288,7 +312,17 @@ class MDB_Parser extends XML_Parser {
             if (!isset($this->database_definition['name']) || !$this->database_definition['name']) {
                 $this->raiseError($xp, 'database needs a name');
             };
-            if (PEAR::isError($this->error)) {
+            if (isset($this->database_definition['SEQUENCES'])) {
+                foreach($this->database_definition['SEQUENCES'] as $seq_name => $seq) {
+                    if (isset($seq['on']) 
+                        && !isset($this->database_definition['TABLES'][$seq['on']['table']]['FIELDS'][$seq['on']['field']]))
+                    {
+                        $this->raiseError($xp, 'sequence "'.$seq_name.'" was assigned on unexisting field/table');
+                    };
+                };
+            };
+                        
+            if (MDB::isError($this->error)) {
                 $this->database_definition = $this->error;
             };
             break;
@@ -300,6 +334,9 @@ class MDB_Parser extends XML_Parser {
 
     function validateFieldValue($field_name, &$field_value)
     {
+        if (!isset($this->table['FIELDS'][$field_name])) {
+            return;
+        };
         $field_def = $this->table['FIELDS'][$field_name];
         switch($field_def['type']) {
         case 'text':
@@ -368,8 +405,8 @@ class MDB_Parser extends XML_Parser {
         $line = xml_get_current_line_number($xp);
         $column = xml_get_current_column_number($xp);
         $error .= "Byte: $byte; Line: $line; Col: $column\n";
-        
-        $this->error = PEAR::raiseError($error);
+        $this->error = PEAR::raiseError(null, DB_ERROR_MANAGER_PARSE,  null, null,
+            $error, 'MDB_Error', TRUE);
         return FALSE;
     }
 
@@ -386,6 +423,7 @@ class MDB_Parser extends XML_Parser {
         if ($this->var_mode == TRUE) {
             if (!isset($this->variables[$data])) {
                 $this->raiseError($xp, 'variable "'.$data.'" not found');
+                return;
             };
             $data = $this->variables[$data];
         };

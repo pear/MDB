@@ -1432,13 +1432,13 @@ class MDB_manager extends PEAR
      */
     function _parseDatabaseDefinitionFile($input_file, $variables, $fail_on_invalid_names = 1)
     {
-        $parser =& new MDB_Parser($variables);
+        $parser =& new MDB_Parser($variables, $fail_on_invalid_names);
         $res    =  $parser->setInputFile($input_file);
-        if (PEAR::isError($res)) {
+        if (MDB::isError($res)) {
             return $res;
         };
         $res = $parser->parse();
-        if (PEAR::isError($res)) {
+        if (MDB::isError($res)) {
             return $res;
         };
         
