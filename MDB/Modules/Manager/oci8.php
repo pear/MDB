@@ -308,7 +308,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
                         $change .= ' '.$db->getTypeDeclaration($fields[$current_name]['Definition']);
                     }
                     if ($change_default) {
-                        $change .= ' DEFAULT '.(isset($fields[$current_name]['Definition']['default']) ? $db->getFieldValue($fields[$current_name]['Definition']['type'], $fields[$current_name]['Definition']['default']) : 'NULL');
+                        $change .= ' DEFAULT '.(isset($fields[$current_name]['Definition']['default']) ? $db->getValue($fields[$current_name]['Definition']['type'], $fields[$current_name]['Definition']['default']) : 'NULL');
                     }
                     if (isset($fields[$current_name]['ChangedNotNull'])) {
                         $change .= (isset($fields[$current_name]['notnull']) ? ' NOT' : '').' NULL';

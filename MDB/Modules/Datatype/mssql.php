@@ -159,7 +159,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getTextDeclaration(&$db, $name, $field)
     {
-        return (isset($field["length"]) ? "$name VARCHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->GetTextFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return (isset($field["length"]) ? "$name VARCHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->getTextValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
 
     // }}}

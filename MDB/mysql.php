@@ -450,7 +450,7 @@ class MDB_mysql extends MDB_Common
                 $this->affected_rows = mysql_affected_rows($this->connection);
                 return MDB_OK;
             } else {
-                $this->results[$result]['highest_fetched_row'] = -1;
+                $this->results[intval($result)]['highest_fetched_row'] = -1;
                 if ($types != null) {
                     if (!is_array($types)) {
                         $types = array($types);
@@ -495,7 +495,7 @@ class MDB_mysql extends MDB_Common
         }
         if ($quote) {
             for($i = 0, $j = count($col); $i < $j; ++$i) {
-                $col[$i] = $this->getTextValue($col[$i]);
+                $col[$i] = $this->getValue('text', $col[$i]);
             }
         }
         return implode(', ', $col);
@@ -587,28 +587,28 @@ class MDB_mysql extends MDB_Common
                 if (isset($fields[$name]['Type'])) {
                     switch ($fields[$name]['Type']) {
                         case 'text':
-                            $value = $this->getTextValue($fields[$name]['Value']);
+                            $value = $this->getValue('text', $fields[$name]['Value']);
                             break;
                         case 'boolean':
-                            $value = $this->getBooleanValue($fields[$name]['Value']);
+                            $value = $this->getValue('boolean', $fields[$name]['Value']);
                             break;
                         case 'integer':
-                            $value = $this->getIntegerValue($fields[$name]['Value']);
+                            $value = $this->getValue('integer', $fields[$name]['Value']);
                             break;
                         case 'decimal':
-                            $value = $this->getDecimalValue($fields[$name]['Value']);
+                            $value = $this->getValue('decimal', $fields[$name]['Value']);
                             break;
                         case 'float':
-                            $value = $this->getFloatValue($fields[$name]['Value']);
+                            $value = $this->getValue('float', $fields[$name]['Value']);
                             break;
                         case 'date':
-                            $value = $this->getDateValue($fields[$name]['Value']);
+                            $value = $this->getValue('date', $fields[$name]['Value']);
                             break;
                         case 'time':
-                            $value = $this->getTimeValue($fields[$name]['Value']);
+                            $value = $this->getValue('time', $fields[$name]['Value']);
                             break;
                         case 'timestamp':
-                            $value = $this->getTimestampValue($fields[$name]['Value']);
+                            $value = $this->getValue('timestamp', $fields[$name]['Value']);
                             break;
                         default:
                             return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, null, null,
@@ -656,18 +656,18 @@ class MDB_mysql extends MDB_Common
     function getColumnNames($result)
     {
         $result_value = intval($result);
-        if (!isset($this->highest_fetched_row[$result_value])) {
+        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'Get column names: it was specified an inexisting result set');
         }
-        if (!isset($this->columns[$result_value])) {
-            $this->columns[$result_value] = array();
+        if (!isset($this->results[$result_value]['columns'])) {
+            $this->results[$result_value]['columns'] = array();
             $columns = mysql_num_fields($result);
             for($column = 0; $column < $columns; $column++) {
-                $this->columns[$result_value][strtolower(mysql_field_name($result, $column))] = $column;
+                $this->results[$result_value]['columns'][strtolower(mysql_field_name($result, $column))] = $column;
             }
         }
-        return $this->columns[$result_value];
+        return $this->results[$result_value]['columns'];
     }
 
     // }}}
@@ -683,7 +683,7 @@ class MDB_mysql extends MDB_Common
      */
     function numCols($result)
     {
-        if (!isset($this->highest_fetched_row[intval($result)])) {
+        if (!isset($this->results[intval($result)]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'numCols: it was specified an inexisting result set');
         }
@@ -702,11 +702,12 @@ class MDB_mysql extends MDB_Common
     */
     function endOfResult($result)
     {
-        if (!isset($this->results[$result]['highest_fetched_row'])) {
+        $result_value = intval($result);
+        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'End of result: attempted to check the end of an unknown result');
         }
-        return $this->results[$result]['highest_fetched_row'] >= $this->numRows($result)-1;
+        return $this->results[$result_value]['highest_fetched_row'] >= $this->numRows($result)-1;
     }
 
     // }}}
@@ -736,10 +737,16 @@ class MDB_mysql extends MDB_Common
      */
     function freeResult($result)
     {
-        if (isset($this->results[$result])) {
-            unset($this->results[$result]);
+        $result_value = intval($result);
+        if (isset($this->results[$result_value])) {
+            unset($this->results[$result_value]);
         }
-        return mysql_free_result($result);
+        if (is_resource($result)) {
+            return @mysql_free_result($result);
+        }
+
+        return $this->raiseError(MDB_ERROR, null, null,
+            'Free result: attemped to free an unknown query result');
     }
 
     // }}}
@@ -801,13 +808,14 @@ class MDB_mysql extends MDB_Common
      */
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
+        $result_value = intval($result);
         if ($rownum == null) {
-            ++$this->results[$result]['highest_fetched_row'];
+            ++$this->results[$result_value]['highest_fetched_row'];
         } else {
             if (!@mysql_data_seek($result, $rownum)) {
                 return null;
             }
-            $this->results[$result]['highest_fetched_row'] = max($this->results[$result]['highest_fetched_row'], $rownum);
+            $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
@@ -827,7 +835,7 @@ class MDB_mysql extends MDB_Common
             }
             return $this->mysqlRaiseError($errno);
         }
-        if (isset($this->results[$result]['types'])) {
+        if (isset($this->results[$result_value]['types'])) {
             $array = $this->datatype->convertResultRow($this, $result, $array);
         }
         return $array;

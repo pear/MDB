@@ -952,28 +952,28 @@ class MDB_Common extends PEAR
                 if (isset($fields[$name]['Type'])) {
                     switch ($fields[$name]['Type']) {
                         case 'text':
-                            $value = $this->getTextValue($fields[$name]['Value']);
+                            $value = $this->getValue('text', $fields[$name]['Value']);
                             break;
                         case 'boolean':
-                            $value = $this->getBooleanValue($fields[$name]['Value']);
+                            $value = $this->getValue('boolean', $fields[$name]['Value']);
                             break;
                         case 'integer':
-                            $value = $this->getIntegerValue($fields[$name]['Value']);
+                            $value = $this->getValue('integer', $fields[$name]['Value']);
                             break;
                         case 'decimal':
-                            $value = $this->getDecimalValue($fields[$name]['Value']);
+                            $value = $this->getValue('decimal', $fields[$name]['Value']);
                             break;
                         case 'float':
-                            $value = $this->getFloatValue($fields[$name]['Value']);
+                            $value = $this->getValue('float', $fields[$name]['Value']);
                             break;
                         case 'date':
-                            $value = $this->getDateValue($fields[$name]['Value']);
+                            $value = $this->getValue('date', $fields[$name]['Value']);
                             break;
                         case 'time':
-                            $value = $this->getTimeValue($fields[$name]['Value']);
+                            $value = $this->getValue('time', $fields[$name]['Value']);
                             break;
                         case 'timestamp':
-                            $value = $this->getTimestampValue($fields[$name]['Value']);
+                            $value = $this->getValue('timestamp', $fields[$name]['Value']);
                             break;
                         default:
                             return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, null, null,
@@ -1735,7 +1735,7 @@ class MDB_Common extends PEAR
                     return null;
                 }
             }
-            if (isset()) {
+            if (isset($column_names)) {
                 $array[$column_names[$column]] = $result;
             } else {
                 $array[$column] = $result;

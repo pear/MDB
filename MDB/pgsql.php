@@ -483,7 +483,7 @@ class MDB_pgsql extends MDB_Common
             $this->affected_rows = @pg_cmdtuples($result);
             return MDB_OK;
         } elseif  (preg_match('/^\s*\(?\s*SELECT\s+/si', $query) && !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query)) {
-            $this->results[$result]['highest_fetched_row'] = -1;
+            $this->results[intval($result)]['highest_fetched_row'] = -1;
             if ($types != null) {
                 if (!is_array($types)) {
                     $types = array($types);
@@ -519,17 +519,18 @@ class MDB_pgsql extends MDB_Common
      */
     function getColumnNames($result)
     {
-        if (!isset($this->results[$result]['highest_fetched_row'])) {
+        $result_value = intval($result);
+        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR, null, null, 'Get Column Names: specified an nonexistant result set');
         }
-        if (!isset($this->results[$result]['columns'])) {
-            $this->results[$result]['columns'] = array();
+        if (!isset($this->results[$result_value]['columns'])) {
+            $this->results[$result_value]['columns'] = array();
             $columns = pg_numfields($result);
             for($column = 0; $column < $columns; $column++) {
-                $this->results[$result]['columns'][strtolower(pg_fieldname($result, $column))] = $column;
+                $this->results[$result_value]['columns'][strtolower(pg_fieldname($result, $column))] = $column;
             }
         }
-        return $this->results[$result]['columns'];
+        return $this->results[$result_value]['columns'];
     }
 
     // }}}
@@ -545,7 +546,7 @@ class MDB_pgsql extends MDB_Common
      */
     function numCols($result)
     {
-        if (!isset($this->results[$result]['highest_fetched_row'])) {
+        if (!isset($this->results[intval($result)]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR, null, null, 'numCols: specified an nonexistant result set');
         }
         return pg_numfields($result);
@@ -563,10 +564,12 @@ class MDB_pgsql extends MDB_Common
     */
     function endOfResult($result)
     {
-        if (!isset($this->results[$result]['highest_fetched_row'])) {
-            return $this->RaiseError(MDB_ERROR, null, null, 'End of result attempted to check the end of an unknown result');
+        $result_value = intval($result);
+        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+            return $this->RaiseError(MDB_ERROR, null, null,
+                'End of result attempted to check the end of an unknown result');
         }
-        return $this->results[$result]['highest_fetched_row'] >= $this->numRows($result) - 1;
+        return $this->results[$result_value]['highest_fetched_row'] >= $this->numRows($result) - 1;
     }
 
     // }}}
@@ -584,7 +587,8 @@ class MDB_pgsql extends MDB_Common
      */
     function resultIsNull($result, $row, $field)
     {
-        $this->results[$result]['highest_fetched_row'] = max($this->results[$result]['highest_fetched_row'], $row);
+        $result_value = intval($result);
+        $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $row);
         return @pg_FieldIsNull($result, $row, $field);
     }
 
@@ -615,16 +619,16 @@ class MDB_pgsql extends MDB_Common
      */
     function freeResult($result)
     {
-        if (isset($this->results[$result]['highest_fetched_row'])) {
-            unset($this->results[$result]['highest_fetched_row']);
+        $result_value = intval($result);
+        if (isset($this->results[$result_value])) {
+            unset($this->results[$result_value]);
         }
-        if (isset($this->results[$result]['columns'])) {
-            unset($this->results[$result]['columns']);
+        if (is_resource($result)) {
+            return @pg_free_result($result);
         }
-        if (isset($this->results[$result]['types'])) {
-            unset($this->results[$result]['types']);
-        }
-        return pg_freeresult($result);
+
+        return $this->raiseError(MDB_ERROR, null, null,
+            'Free result: attemped to free an unknown query result');
     }
 
     // }}}
@@ -704,11 +708,12 @@ class MDB_pgsql extends MDB_Common
      */
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
+        $result_value = intval($result);
         if ($rownum == null) {
-            ++$this->results[$result]['highest_fetched_row'];
-            $rownum = $this->results[$result]['highest_fetched_row'];
+            ++$this->results[$result_value]['highest_fetched_row'];
+            $rownum = $this->results[$result_value]['highest_fetched_row'];
         } else {
-            $this->results[$result]['highest_fetched_row'] = max($this->results[$result]['highest_fetched_row'], $rownum);
+            $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
         }
         if ($rownum + 1 > $this->numRows($result)) {
             return null;
@@ -731,7 +736,7 @@ class MDB_pgsql extends MDB_Common
             }
             return $this->pgsqlRaiseError($errno);
         }
-        if (isset($this->results[$result]['types'])) {
+        if (isset($this->results[$result_value]['types'])) {
             $array = $this->datatype->convertResultRow($this, $result, $array);
         }
         return $array;

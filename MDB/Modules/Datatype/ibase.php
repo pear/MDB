@@ -112,7 +112,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     function getTextDeclaration(&$db, $name, $field)
     {
         return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($field['default']) : '')
+               .(isset($field['default']) ? ' DEFAULT '.$this->getValue('text', $field['default']) : '')
                .(IsSet($field['notnull']) ? ' NOT NULL' : '');
     }
 

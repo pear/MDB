@@ -417,7 +417,7 @@ class MDB_mssql extends MDB_Common
                     $this->affected_rows = mssql_affected_rows($this->connection);
                     return MDB_OK;
                 } else {
-                    $this->results[$result]['highest_fetched_row'] = -1;
+                    $this->results[intval($result)]['highest_fetched_row'] = -1;
                     if ($types != null) {
                         if (!is_array($types)) {
                             $types = array($types);
@@ -457,18 +457,18 @@ class MDB_mssql extends MDB_Common
     function getColumnNames($result)
     {
         $result_value = intval($result);
-        if (!isset($this->highest_fetched_row[$result_value])) {
+        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'Get column names: it was specified an inexisting result set');
         }
-        if (!isset($this->columns[$result_value])) {
-            $this->columns[$result_value] = array();
+        if (!isset($this->results[$result_value]['columns'])) {
+            $this->results[$result_value]['columns'] = array();
             $columns = mssql_num_fields($result);
             for($column = 0; $column < $columns; $column++) {
-                $this->columns[$result_value][strtolower(mssql_field_name($result, $column))] = $column;
+                $this->results[$result_value]['columns'][strtolower(mssql_field_name($result, $column))] = $column;
             }
         }
-        return $this->columns[$result_value];
+        return $this->results[$result_value]['columns'];
     }
 
     // }}}
@@ -484,7 +484,7 @@ class MDB_mssql extends MDB_Common
      */
     function numCols($result)
     {
-        if (!isset($this->highest_fetched_row[intval($result)])) {
+        if (!isset($this->results[intval($result)]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'numCols: it was specified an inexisting result set');
         }
@@ -503,11 +503,12 @@ class MDB_mssql extends MDB_Common
     */
     function endOfResult($result)
     {
-        if (!isset($this->results[$result]['highest_fetched_row'])) {
+        $result_value = intval($result);
+        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'End of result: attempted to check the end of an unknown result');
         }
-        return $this->results[$result]['highest_fetched_row'] >= $this->numRows($result)-1;
+        return $this->results[$result_value]['highest_fetched_row'] >= $this->numRows($result)-1;
     }
 
     // }}}
@@ -522,7 +523,8 @@ class MDB_mssql extends MDB_Common
     */
     function numRows($result)
     {
-        return isset($this->ranges[$result]) ? count($this->ranges[$result]) : mssql_num_rows($result);
+        $result_value = intval($result);
+        return isset($this->results[$result_value]['ranges']) ? count($this->results[$result_value]['ranges']) : mssql_num_rows($result);
     }
 
     // }}}
@@ -537,16 +539,16 @@ class MDB_mssql extends MDB_Common
      */
     function freeResult($result)
     {
-        if (isset($this->fetched_row[$result])) {
-            unset($this->fetched_row[$result]);
+        $result_value = intval($result);
+        if (isset($this->results[$result_value])) {
+            unset($this->results[$result_value]);
         }
-        if (isset($this->ranges[$result])) {
-            unset($this->ranges[$result]);
+        if (is_resource($result)) {
+            return @mssql_free_result($result);
         }
-        if (isset($this->results[$result])) {
-            unset($this->results[$result]);
-        }
-        return mssql_free_result($result);
+
+        return $this->raiseError(MDB_ERROR, null, null,
+            'Free result: attemped to free an unknown query result');
     }
 
     // }}}
@@ -627,13 +629,14 @@ class MDB_mssql extends MDB_Common
      */
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
+        $result_value = intval($result);
         if ($rownum == null) {
-            ++$this->results[$result]['highest_fetched_row'];
+            ++$this->results[$result_value]['highest_fetched_row'];
         } else {
             if (!@mssql_data_seek($result, $rownum)) {
                 return null;
             }
-            $this->results[$result]['highest_fetched_row'] = max($this->results[$result]['highest_fetched_row'], $rownum);
+            $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
@@ -653,7 +656,7 @@ class MDB_mssql extends MDB_Common
             }
             return $this->mssqlRaiseError($errno);
         }
-        if (isset($this->results[$result]['types'])) {
+        if (isset($this->results[$result_value]['types'])) {
             $array = $this->datatype->convertResultRow($this, $result, $array);
         }
         return $array;

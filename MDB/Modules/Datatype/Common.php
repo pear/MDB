@@ -321,7 +321,8 @@ class MDB_Datatype_Common
      */
     function setResultTypes(&$db, $result, $types)
     {
-        if (isset($db->results[$result]['types'])) {
+        $result_value = intval($result);
+        if (isset($db->results[$result_value]['types'])) {
             return $db->raiseError(MDB_ERROR_INVALID, null, null,
                 'Set result types: attempted to redefine the types of the columns of a result set');
         }
@@ -350,10 +351,10 @@ class MDB_Datatype_Common
                 return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                     'Set result types: ' . $types[$column] . ' is not a supported column type');
             }
-            $db->results[$result]['types'][$column] = $valid_types[$types[$column]];
+            $db->results[$result_value]['types'][$column] = $valid_types[$types[$column]];
         }
         while ($column < $columns) {
-            $db->results[$result]['types'][$column] = MDB_TYPE_TEXT;
+            $db->results[$result_value]['types'][$column] = MDB_TYPE_TEXT;
             $column++;
         }
         return MDB_OK;
@@ -436,16 +437,17 @@ class MDB_Datatype_Common
      */
     function convertResultRow(&$db, $result, $row)
     {
-        if (isset($db->results[$result]['types'])) {
+        $result_value = intval($result);
+        if (isset($db->results[$result_value]['types'])) {
             $current_column = -1;
             foreach($row as $key => $column) {
                 ++$current_column;
-                if (!isset($db->results[$result]['types'][$current_column])
+                if (!isset($db->results[$result_value]['types'][$current_column])
                    ||!isset($column)
                 ) {
                     continue;
                 }
-                switch ($type = $db->results[$result]['types'][$current_column]) {
+                switch ($type = $db->results[$result_value]['types'][$current_column]) {
                     case MDB_TYPE_TEXT:
                     case MDB_TYPE_BLOB:
                     case MDB_TYPE_CLOB:
