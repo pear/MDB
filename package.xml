@@ -89,21 +89,27 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.1.2</version>
-    <state>stable</state>
-    <date>2003-03-21</date>
+    <version>1.1.2-RC1</version>
+    <state>devel</state>
+    <date>2003-04-08</date>
     <notes>
 - This is mainly a bug fix release
 - 3 new driver were added
     Oracle (still Beta)
     Frontbase (still Alpha)
     Querysim
-- All get*Value() methods will convert a php NULL into an SQL NULL
+- All get*Value() methods (excet get*lobValue() for now) will convert a php NULL into an SQL NULL
+  (resulting in API changes in the NULL handling of the get*Value() and replace() methods)
 - REPLACE emulation now works more similar to how MySQLs REPLACE works
+- Moved code from the Common constructor into MDB::connect()
+- Moved code from the Driver constructor into the drivers connect method
+- PostGreSQL reverse engineering partly implemented
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
       <file role="doc">README</file>
+      <file role="doc">MAINTAINERS</file>
+      <file role="doc">TODO</file>
       <dir name="MDB">
         <file role="php">Common.php</file>
         <file role="php">querysim.php</file>
