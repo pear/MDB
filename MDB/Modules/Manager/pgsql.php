@@ -595,8 +595,24 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     {
         $row = $db->queryAll("select * from pg_index, pg_class 
                                 where (pg_class.relname='$index_name') 
-                                and (pg_class.oid=pg_index.indexrelid)");
+                                and (pg_class.oid=pg_index.indexrelid)", NULL, MDB_FETCHMODE_ASSOC);
+        if ($row[0]['relname'] != $index_name) {
+            return($db->raiseError(MDB_ERROR_MANAGER, '', '', 'Get table index definition: it was not specified an existing table index'));
+        }
+
         $columns = $this->listTableFields($db, $table);
+
+        $definition = array();
+        if ($row[0]['indisunique'] == 't') {
+            $definition[$index_name]['unique'] = 1;
+        }
+
+        $index_column_numbers = explode(' ', $row[0]['indkey']);
+
+        foreach ($index_column_numbers as $number) {
+            $definition['FIELDS'][$columns[($number - 1)]] = array('sorting' => 'ascending');
+        }
+        return $definition;
     }
 
 
