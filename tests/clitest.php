@@ -91,10 +91,12 @@ if ($argc > 1) {
         if (count($intersect) > 0) {
             $testmethods[$testcase] = array_flip($intersect);
         }
-    }    
+    }
 }
 
-if (!is_array($testmethods)) {
+$database = 'driver_test';
+
+if (!isset($testmethods) || !is_array($testmethods)) {
     foreach ($testcases as $testcase) {
         $testmethods[$testcase] = array_flip(getTests($testcase));
     }
@@ -104,7 +106,7 @@ foreach ($dbarray as $db) {
     $dsn = $db['dsn'];
     $options = $db['options'];
 
-    $display_dsn = $dsn['phptype'] . "://" . $dsn['username'] . ":" . $dsn['password'] . "@" . $dsn['hostspec'] . "/" . $dsn['database'];
+    $display_dsn = $dsn['phptype'] . "://" . $dsn['username'] . ":" . $dsn['password'] . "@" . $dsn['hostspec'] . "/" . $database;
     echo "=== Start test of $display_dsn ===\n";
 
     $suite = new PHPUnit_TestSuite();
