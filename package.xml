@@ -90,51 +90,55 @@ Minor bugfixes and API changes
 </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
-      <file role="doc">Readme.txt</file>
+      <file role="doc">README</file>
       <dir name="MDB">
         <file role="php">Common.php</file>
         <file role="php">mysql.php</file>
         <file role="php">pgsql.php</file>
-        <dir name="Manager">
-          <file role="php">Common.php</file>
-          <file role="php">mysql.php</file>
-          <file role="php">pgsql.php</file>
-        </dir>
-        <file role="php">LOB.php</file>
         <file role="php">Date.php</file>
         <file role="php">Manager.php</file>
         <file role="php">Parser.php</file>
         <file role="php">metabase_wrapper.php</file>
         <file role="php">peardb_wrapper.php</file>
         <file role="php">reverse_engineer_xml_schema.php</file>
+        <dir name="Modules">
+          <dir name="Manager">
+            <file role="php">Common.php</file>
+            <file role="php">mysql.php</file>
+            <file role="php">pgsql.php</file>
+          </dir>
+          <file role="php">LOB.php</file>
+        </dir>
       </dir>
       <dir name="doc">
-        <file role="doc">datatypes.html</file>
-        <file role="doc">driver_skeleton.php</file>
-        <file role="doc">manager_driver_skeleton.php</file>
-        <file role="doc">metapear_test_db.schema</file>
         <file role="doc">tutorial.html</file>
+        <file role="doc">datatypes.html</file>
         <file role="doc">xml_schema_documentation.html</file>
         <file role="doc">xml_schema.xsl</file>
+        <file role="doc">skeleton.php</file>
+        <file role="doc">Modules_Manager_skeleton.php</file>
+      </dir>
+      <dir name="examples">
+        <file role="doc">MDB_test.php</file>
+        <file role="doc">MDB_pear_wrapper_test.php</file>
+        <file role="doc">metapear_test_db.schema</file>
       </dir>
       <dir name="tests">
-        <file role="test">driver_test_config.php</file>
-        <file role="test">driver_test.php</file>
         <file role="test">driver_test.schema</file>
         <file role="test">lob_test.schema</file>
         <file role="test">MDB_api_testcase.php</file>
         <file role="test">MDB_manager_testcase.php</file>
         <file role="test">MDB_usage_testcase.php</file>
-        <file role="test">MDB_test.php</file>
-        <file role="test">MDB_pear_wrapper_test.php</file>
         <file role="test">README</file>
         <file role="test">setup_test.php</file>
         <file role="test">test.php</file>
         <file role="test">test.schema</file>
         <file role="test">test_setup.php.dist</file>
-	<dir name="templates">
-	  <file role="test">results.tpl</file>
-	</dir>
+        <file role="test">driver_test_config.php</file>
+        <file role="test">driver_test.php</file>
+        <dir name="templates">
+          <file role="test">results.tpl</file>
+        </dir>
       </dir>
     </filelist>
     <deps>
