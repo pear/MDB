@@ -23,12 +23,10 @@
     }
     echo $db_type.'<br>';
 
-
     // Data Source Name: This is the universal connection string
     $dsn['username'] = $user;
     $dsn['password'] = $pass;
     $dsn['hostspec'] = $host;
-    $dsn['database'] = $db_name;
     $dsn['phptype'] = $db_type;
     // MDB::connect will return a Pear DB object on success
     // or a Pear DB Error object on error
@@ -44,18 +42,17 @@
         die ($db->getMessage());
     }
 
-    if($db_type == 'mysql') {
-        $manager = new MDB_manager;
-        $input_file = 'metapear_test_db.schema';
-        // you can either pass a dsn string, a dsn array or an exisiting db connection
-        $manager->connect($db);
-        // lets create the database using 'metapear_test_db.schema'
-        // if you have allready run this script you should have 'metapear_test_db.schema.before'
-        // in that case MDB will just compare the two schemas and make any necessary modifications to the existing DB
-        echo Var_Dump::display($manager->updateDatabase($input_file, $input_file.'.before')).'<br>';
-        echo 'updating database from xml schema file<br>';
-    }
+    $manager = new MDB_manager;
+    $input_file = 'metapear_test_db.schema';
+    // you can either pass a dsn string, a dsn array or an exisiting db connection
+    $manager->connect($db);
+    // lets create the database using 'metapear_test_db.schema'
+    // if you have allready run this script you should have 'metapear_test_db.schema.before'
+    // in that case MDB will just compare the two schemas and make any necessary modifications to the existing DB
+    echo Var_Dump::display($manager->updateDatabase($input_file, $input_file.'.before')).'<br>';
+    echo 'updating database from xml schema file<br>';
 
+    $db->setDatabase('metapear_test_db');
     // happy query
     $query ='SELECT * FROM test';
     echo 'query for the following examples:'.$query.'<br>';
