@@ -96,8 +96,8 @@ class MDB_oci8 extends MDB_Common {
         $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 1;
         
-        $this->options['DBAUser'] = NULL;
-        $this->options['DBAPassword'] = NULL;
+        $this->options['DBAUser'] = FALSE;
+        $this->options['DBAPassword'] = FALSE;
         
         $this->errorcode_map = array(
             900 => MDB_ERROR_SYNTAX,

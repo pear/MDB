@@ -105,6 +105,9 @@ class MDB_xxx extends MDB_Common
         // most of the following codes needs to be taken from the corresponding Metabase driver setup() methods
         
         // the error code maps from corresponding PEAR DB driver constructor
+
+        // also please remember to "register" all driver specific options here like so
+        // $this->options['option_name'] = 'non NULL default value';
     }
 
     // }}}
