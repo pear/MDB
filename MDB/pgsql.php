@@ -1369,7 +1369,7 @@ class MDB_pgsql extends MDB_common
         // if $result is a string, then we want information about a
         // table without a resultset
         if (is_string($result)) {
-            $id = pg_exec($this->connection, "SELECT * FROM $result");
+            $id = pg_exec($this->connection, "SELECT * FROM $result LIMIT 0");
             if (empty($id)) {
                 return($this->pgsqlRaiseError());
             }
