@@ -78,7 +78,7 @@ function _shutdownTransactions()
     global $databases;
 
     foreach($databases as $database) {
-        if ($database->in_transaction && !MDB::is_Error($database->rollback())) {
+        if ($database->in_transaction && !MDB::isError($database->rollback())) {
             $database->autoCommit(TRUE);
         }
     }
