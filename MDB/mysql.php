@@ -1368,13 +1368,15 @@ class MDB_mysql extends MDB_Common
             $array = @mysql_fetch_row($result);
         }
         if (!$array) {
-            $errno = @mysql_errno($this->connection);
-            if (!$errno) {
+            // See: http://bugs.php.net/bug.php?id=22328
+            // for why we can't check errors on fetching
+#            $errno = @mysql_errno($this->connection);
+#            if (!$errno) {
                 if($this->options['autofree']) {
                     $this->freeResult($result);
                 }
                 return(NULL);
-            }
+#            }
             return($this->mysqlRaiseError($errno));
         }
         if (isset($this->result_types[$result])) {
