@@ -106,8 +106,8 @@ class MDB_ibase extends MDB_Common
 
         $this->decimal_factor = pow(10.0, $this->decimal_places);
 
-        $this->options['DatabasePath'] = '';
-        $this->options['DatabaseExtension'] = '.gdb';
+        $this->options['database_path'] = '';
+        $this->options['database_extension'] = '.gdb';
         $this->options['DBAUser'] = false;
         $this->options['DBAPassword'] = false;
 
@@ -332,17 +332,13 @@ class MDB_ibase extends MDB_Common
 
     function getDatabaseFile($database_name)
     {
-        if (isset($this->options['DatabasePath'])) {
-            $this->database_path = $this->options['DatabasePath'];
+        if (isset($this->options['database_path'])) {
+            $this->database_path = $this->options['database_path'];
         }
-        if (isset($this->options['DatabaseExtension'])) {
-            $this->database_extension = $this->options['DatabaseExtension'];
+        if (isset($this->options['database_extension'])) {
+            $this->database_extension = $this->options['database_extension'];
         }
-        //$this->database_path = (isset($this->options['DatabasePath']) ? $this->options['DatabasePath'] : '');
-        //$this->database_extension = (isset($this->options['DatabaseExtension']) ? $this->options['DatabaseExtension'] : '.gdb');
 
-        //$database_path = (isset($this->options['DatabasePath']) ? $this->options['DatabasePath'] : '');
-        //$database_extension = (isset($this->options['DatabaseExtension']) ? $this->options['DatabaseExtension'] : '.gdb');
         return $this->database_path.$database_name.$this->database_extension;
     }
 
@@ -470,7 +466,7 @@ class MDB_ibase extends MDB_Common
      * @return mixed result identifier if query executed, else MDB_error
      * @access private
      **/
-    function _doQuery($query, $first=0, $limit=0, $prepared_query=0)  // function _doQuery($query)
+    function _doQuery($query, $first = 0, $limit = 0, $prepared_query = 0)
     {
         $connection = ($this->auto_commit ? $this->connection : $this->transaction_id);
         if ($prepared_query
@@ -514,18 +510,19 @@ class MDB_ibase extends MDB_Common
             $result = @ibase_query($connection, $query);
         }
         if ($result) {
-            if (($select=(substr(strtolower(ltrim($query)), 0, strlen("select")) == 'select'))) {
+            if (MDB::isManip($query)) {
+                $this->affected_rows = -1;
+            } else {
                 $result_value = intval($result);
                 $this->results[$result_value]['current_row'] = -1;
-                if ($limit>0) {
+                if ($limit > 0) {
                     $this->results[$result_value]['limit'] = array($first, $limit, 0);
                 }
                 $this->results[$result_value]['highest_fetched_row'] = -1;
-            } else {
-                $this->affected_rows = -1;
             }
         } else {
-            return $this->raiseError(MDB_ERROR, null, null, '_doQuery: Could not execute query ("'.$query.'"): ' . ibase_errmsg());
+            return $this->raiseError(MDB_ERROR, null, null,
+                '_doQuery: Could not execute query ("'.$query.'"): ' . ibase_errmsg());
         }
         return $result;
     }
@@ -552,7 +549,6 @@ class MDB_ibase extends MDB_Common
         if (MDB::isError($connected)) {
             return $connected;
         }
-        //return $this->_doQuery($query, $first, $limit, 0);
 
         if (!MDB::isError($result = $this->_doQuery($query, $first, $limit, 0))) {
             if ($types != null) {
@@ -1195,7 +1191,7 @@ class MDB_ibase extends MDB_Common
     {
         $field_name = @ibase_field_info($resource, $num_field);
         $field_name = @$field_name['name'];
-        $sql = 'SELECT  R.RDB$CONSTRAINT_TYPE CTYPE'
+        $sql = 'SELECT R.RDB$CONSTRAINT_TYPE CTYPE'
                .' FROM  RDB$INDEX_SEGMENTS I'
                .' JOIN  RDB$RELATION_CONSTRAINTS R ON I.RDB$INDEX_NAME=R.RDB$INDEX_NAME'
                .' WHERE I.RDB$FIELD_NAME=\''.$field_name.'\''

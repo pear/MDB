@@ -401,7 +401,7 @@ class MDB_mssql extends MDB_Common
             }
             if ($limit > 0) {
                 if ($ismanip) {
-                    eregi_replace('SELECT', "SELECT TOP $limit", $query);
+                    preg_replace("/^SELECT/", "SELECT TOP $limit", $query);
                 }
             }
             if ( $last_connection != $this->connection

@@ -449,10 +449,7 @@ class MDB_pgsql extends MDB_Common
             return $connected;
         }
         
-        if (!$ismanip && $limit > 0 &&
-            substr(strtolower(ltrim($query)),
-            0, 6) == 'select')
-        {
+        if (!$ismanip && $limit > 0) {
              if ($this->auto_commit && MDB::isError($this->_doQuery('BEGIN'))) {
                  return $this->raiseError(MDB_ERROR);
              }

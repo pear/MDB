@@ -400,7 +400,7 @@ class MDB_fbsql extends MDB_Common
         }
         if ($limit > 0) {
             if (!$ismanip) {
-                eregi_replace('SELECT', "SELECT TOP($first,$limit)", $query);
+                preg_replace("/^SELECT/", "SELECT TOP($first,$limit)", $query);
             }
         }
 
