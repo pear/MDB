@@ -282,14 +282,14 @@ class MDB
                 'MDB_Error', TRUE));
         }
         
-        if (is_array($options)
+        if(is_array($options)
             && isset($options['debug'])
             && $options['debug'] >= 2
         ) {
             // expose php errors with sufficient debug level
-            include_once($include);
-        } else {
             @include_once($include);
+        } else {
+            include_once($include);
         }
         
         if(!class_exists($class_name)) {
@@ -298,12 +298,23 @@ class MDB
                 'MDB_Error', TRUE));
         }
         
-        @$db =& new $class_name($dsninfo, $options);
-        
+        @$db =& new $class_name();
+        if(isset($dsninfo['hostspec'])) {
+            $db->host = $dsninfo['hostspec'];
+        }
+        if(isset($dsninfo['port'])) {
+            $db->port = $dsninfo['port'];
+        }
+        if(isset($dsninfo['username'])) {
+            $db->user = $dsninfo['username'];
+        }
+        if(isset($dsninfo['password'])) {
+            $db->password = $dsninfo['password'];
+        }
         if(is_array($options)) {
             foreach($options as $option => $value) {
                 $test = $db->setOption($option, $value);
-                if (MDB::isError($test)) {
+                if(MDB::isError($test)) {
                     return $test;
                 }
             }

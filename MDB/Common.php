@@ -155,7 +155,7 @@ class MDB_Common extends PEAR
     /**
      * Constructor
      */
-    function MDB_Common($dsninfo = NULL, $options = NULL)
+    function MDB_Common()
     {
         global $_MDB_databases;
         $database = count($_MDB_databases) + 1;
@@ -166,19 +166,6 @@ class MDB_Common extends PEAR
         $this->supported = array();
         $this->errorcode_map = array();
         $this->fetchmode = MDB_FETCHMODE_ORDERED;
-
-        if (isset($dsninfo['hostspec'])) {
-            $this->host = $dsninfo['hostspec'];
-        }
-        if (isset($dsninfo['port'])) {
-            $this->port = $dsninfo['port'];
-        }
-        if (isset($dsninfo['username'])) {
-            $this->user = $dsninfo['username'];
-        }
-        if (isset($dsninfo['password'])) {
-            $this->password = $dsninfo['password'];
-        }
     }
 
     // }}}
@@ -340,11 +327,8 @@ class MDB_Common extends PEAR
      */
     function setOption($option, $value)
     {
-        if (isset($this->options[$option])) {
-            $this->options[$option] = $value;
-            return(MDB_OK);
-        }
-        return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, "unknown option $option"));
+        $this->options[$option] = $value;
+        return(MDB_OK);
     }
 
     // }}}
