@@ -128,6 +128,7 @@
         - all parameters are now lowercased with underscores as separators
         - all drivers now support all of the dsn options that PEAR DB supports
         - several methods have been removed because they offered redundant functionality
+        - changed prepare API type is now passed to prepare and not to setParam*()
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>

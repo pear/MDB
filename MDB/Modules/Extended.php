@@ -412,19 +412,16 @@ class MDB_Extended
      *        the result set
      * @param array $params numeric array containing the data to insert into
      *        the query
-     * @param array $param_types array that contains the types of the values
-     *        defined in $params
      * @param mixed $result_mode boolean or string which specifies which class to use
      * @return mixed MDB_OK or a new result handle or a MDB_Error when fail
      * @access public
      * @see prepare()
      */
-    function &executeParams($prepared_query, $types = null, $params = false,
-        $param_types = null, $result_mode = false)
+    function &executeParams($prepared_query, $types = null, $params = false, $result_mode = false)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
 
-        $db->setParamArray($prepared_query, $params, $param_types);
+        $db->setParamArray($prepared_query, $params);
 
         $result =& $db->execute($prepared_query, $types, $result_mode);
         return $result;
@@ -446,17 +443,15 @@ class MDB_Extended
      *        the result set
      * @param array $params numeric array containing the
      *        data to insert into the query
-     * @param array $param_types array that contains the types of the values
-     *        defined in $params
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access public
      * @see prepare(), executeParams()
      */
-    function executeMultiple($prepared_query, $types = null, $params, $param_types = null)
+    function executeMultiple($prepared_query, $types = null, $params)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         for ($i = 0, $j = count($params); $i < $j; $i++) {
-            $result = $this->executeParams($prepared_query, $types, $params[$i], $param_types, false);
+            $result = $this->executeParams($prepared_query, $types, $params[$i], false);
             if (MDB::isError($result)) {
                 return $result;
             }
@@ -472,17 +467,20 @@ class MDB_Extended
      *
      * @param string $table name of the table
      * @param array $table_fields ordered array containing the fields names
+     * @param array $types array that contains the types of the columns in
+     *        the result set
      * @param int $mode type of query to make (MDB_AUTOQUERY_INSERT or MDB_AUTOQUERY_UPDATE)
      * @param string $where in case of update queries, this string will be put after the sql WHERE statement
      * @return resource handle for the query
      * @see buildManipSQL
      * @access public
      */
-    function autoPrepare($table, $table_fields, $mode = MDB_AUTOQUERY_INSERT, $where = false)
+    function autoPrepare($table, $table_fields, $types = null,
+        $mode = MDB_AUTOQUERY_INSERT, $where = false)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $query = $this->buildManipSQL($table, $table_fields, $mode, $where);
-        return $db->prepare($query);
+        return $db->prepare($query, $types);
     }
 
     // {{{
@@ -505,12 +503,12 @@ class MDB_Extended
      * @see autoPrepare
      * @access public
     */
-    function &autoExecute($table, $fields_values,
-        $types = null, $param_types = null, $mode = MDB_AUTOQUERY_INSERT, $where = false, $result_mode = false)
+    function &autoExecute($table, $fields_values, $types = null, $param_types = null,
+        $mode = MDB_AUTOQUERY_INSERT, $where = false, $result_mode = false)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $prepared_query = $this->autoPrepare($table, array_keys($fields_values), $mode, $where);
-        $result =& $this->executeParams($prepared_query, $types, array_values($fields_values), $param_types, $result_mode);
+        $prepared_query = $this->autoPrepare($table, array_keys($fields_values), $types, $mode, $where);
+        $result =& $this->executeParams($prepared_query, array_values($fields_values), $param_types, $result_mode);
         $db->freePrepared($prepared_query);
         return $result;
     }
