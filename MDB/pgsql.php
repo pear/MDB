@@ -91,6 +91,10 @@ class MDB_driver_pgsql extends MDB_common {
         $this->supported["Replace"] = 1;
         $this->supported["SubSelects"] = 1;
 
+        $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
+
+        $this->errorcode_map = array();
+
         if (function_exists("pg_cmdTuples")) {
             $connection = $this->_doConnect("template1", 0);
             if (!MDB::isError($connection)) {
@@ -112,10 +116,6 @@ class MDB_driver_pgsql extends MDB_common {
                 return ($err);
             }
         }
-
-        $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
-
-        $this->errorcode_map = array();
     }
 
     // }}}
@@ -372,7 +372,7 @@ class MDB_driver_pgsql extends MDB_common {
 
         if (!$ismanip && $limit > 0 &&
             substr(strtolower(ltrim($query)), 0, 6) == "select")
-		{
+        {
             if ($this->auto_commit && MDB::isError($this->_doQuery("BEGIN"))) {
                 return $this->raiseError(DB_ERROR);
             }
@@ -1036,7 +1036,7 @@ class MDB_driver_pgsql extends MDB_common {
      */
     function getDecimalValue($value)
     {
-        return (!strcmp($value, "NULL") ? "NULL" : strval(round($value * $this->decimal_factor)));
+        return (!strcmp($value,"NULL") ? "NULL" : strval(round($value*$this->decimal_factor)));
     }
 
     // }}}
@@ -1110,7 +1110,7 @@ class MDB_driver_pgsql extends MDB_common {
             case MDB_TYPE_BOOLEAN:
                 return (strcmp($value, "Y") ? 0 : 1);
             case MDB_TYPE_DECIMAL:
-				return (sprintf("%.".$this->options['decimal_places']."f",doubleval($value)/$this->decimal_factor));
+                return (sprintf("%.".$this->options['decimal_places']."f",doubleval($value)/$this->decimal_factor));
             case MDB_TYPE_FLOAT:
                 return doubleval($value);
             case MDB_TYPE_DATE:
