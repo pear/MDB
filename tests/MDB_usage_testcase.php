@@ -874,16 +874,20 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                               'Error' => '',
                               'Data' => ''
                               );
-        for ($code = 32; $code <= 127; $code++) {
-            $character_lob['Data'] .= chr($code);
+        for ($i = 0; $i < 100; $i++) {
+            for ($code = 32; $code <= 127; $code++) {
+                $character_lob['Data'] .= chr($code);
+            }
         }
         $binary_lob = array(
                             'Database' => $this->db,
                             'Error' => '',
                             'Data' => ''
                             );
-        for ($code = 0; $code <= 255; $code++) {
-            $binary_lob['Data'] .= chr($code);
+        for ($i = 0; $i < 100; $i++) {
+            for ($code = 0; $code <= 255; $code++) {
+                $binary_lob['Data'] .= chr($code);
+            }
         }
 
         $clob = $this->db->createLob($character_lob);
@@ -958,8 +962,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $character_data_file = 'character_data';
         if (($file = fopen($character_data_file, 'w'))) {
-            for ($character_data = '', $code = 32; $code <= 127; $code++) {
-                $character_data .= chr($code);
+            $character_data = '';
+            for ($i = 0; $i < 100; $i++) {
+                for ($code = 32; $code <= 127; $code++) {
+                    $character_data .= chr($code);
+                }
             }
             $character_lob = array(
                                    'Type' => 'inputfile',
@@ -973,8 +980,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $binary_data_file = 'binary_data';
         if (($file = fopen($binary_data_file, 'wb'))) {
-            for($binary_data = '', $code = 0; $code <= 255; $code++) {
+            $binary_data = '';
+            for ($i = 0; $i < 100; $i++) {
+                for ($code = 0; $code <= 255; $code++) {
                     $binary_data .= chr($code);
+                }
             }
             $binary_lob = array(
                                 'Type' => 'inputfile',
