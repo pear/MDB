@@ -1104,24 +1104,6 @@ class MDB_pgsql extends MDB_Common
     }
 
     // }}}
-    // {{{ freeClobValue()
-
-    /**
-     * free a character large object
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param string    $clob
-     * @return MDB_OK
-     * @access public
-     */
-    function freeClobValue($prepared_query, $clob, &$value, $success)
-    {
-#        if (!MDB::isError($success)) {
-#            pg_lounlink($this->connection,intval($value));
-#        }
-    }
-
-    // }}}
     // {{{ getBlobValue()
 
     /**
@@ -1138,24 +1120,6 @@ class MDB_pgsql extends MDB_Common
     function getBlobValue($prepared_query, $parameter, $blob)
     {
         return($this->_getLobValue($prepared_query, $parameter, $blob));
-    }
-
-    // }}}
-    // {{{ freeBlobValue()
-
-    /**
-     * free a binary large object
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param string    $blob
-     * @return MDB_OK
-     * @access public
-     */
-    function freeBlobValue($prepared_query, $blob, &$value, $success)
-    {
-#        if (!MDB::isError($success)) {
-#            pg_lounlink($this->connection,intval($value));
-#        }
     }
 
     // }}}
