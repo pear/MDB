@@ -162,6 +162,13 @@ define('DB_TABLEINFO_ORDER',      1);
 define('DB_TABLEINFO_ORDERTABLE', 2);
 define('DB_TABLEINFO_FULL',       3);
 
+/*
+ * Used by autoPrepare()
+ */
+define('DB_AUTOQUERY_INSERT', 1);
+define('DB_AUTOQUERY_UPDATE', 2);
+
+
 /**
  * The main "MDB" class is simply a container class with some static
  * methods for creating DB objects as well as some utility functions
@@ -207,8 +214,8 @@ class MDB
         $classname = "DB_${type}";
 
         if (!class_exists($classname)) {
-            return PEAR::raiseError(null, DB_ERROR_NOT_FOUND,
-                                    null, null, null, 'DB_Error', true);
+            return PEAR::raiseError(NULL, DB_ERROR_NOT_FOUND,
+                                    NULL, NULL, NULL, 'DB_Error', TRUE);
         }
 
         @$db =& new $classname;
@@ -234,7 +241,7 @@ class MDB
      *
      * @see     MDB::parseDSN
      */
-    function &connect($dsn, $options = false)
+    function &connect($dsn, $options = FALSE)
     {
         if (is_array($dsn)) {
             $dsninfo = $dsn;
@@ -289,18 +296,18 @@ class MDB
                     || !strcmp($include = $options["includepath"],""))
                 {
                     if (isset($options["includepath"])) {
-                        return PEAR::raiseError(null, DB_ERROR_INVALID_DSN,
-                            null, null, 'no valid DBMS driver include path specified', 'MDB_Error', true);
+                        return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
+                            NULL, NULL, 'no valid DBMS driver include path specified', 'MDB_Error', TRUE);
                     } else {
-                        return PEAR::raiseError(null, DB_ERROR_INVALID_DSN,
-                            null, null, 'no existing DBMS driver specified', 'MDB_Error', true);
+                        return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
+                            NULL, NULL, 'no existing DBMS driver specified', 'MDB_Error', TRUE);
                     }
                 }
                 if (!isset($options["classname"])
                     || !strcmp($class_name = $options["classname"],""))
                 {
-                    return PEAR::raiseError(null, DB_ERROR_INVALID_DSN,
-                        null, null, 'no existing DBMS driver specified', 'MDB_Error', true);
+                    return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
+                        NULL, NULL, 'no existing DBMS driver specified', 'MDB_Error', TRUE);
                 }
         }
         $include_path = (isset($options["includepath"]) ? $options["includepath"] : dirname(__FILE__));
@@ -322,18 +329,18 @@ class MDB
                     if ($directory) {
                         closedir($directory);
                     }
-                    return PEAR::raiseError(null, DB_ERROR_INVALID_DSN,
-                        null, null, 'no existing DBMS driver specified', 'MDB_Error', true);
+                    return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
+                        NULL, NULL, 'no existing DBMS driver specified', 'MDB_Error', TRUE);
                 } else {
-                    return PEAR::raiseError(null, DB_ERROR_INVALID_DSN,
-                        null, null, 'no valid DBMS driver include path specified', 'MDB_Error', true);
+                    return PEAR::raiseError(NULL, DB_ERROR_INVALID_DSN,
+                        NULL, NULL, 'no valid DBMS driver include path specified', 'MDB_Error', TRUE);
                 }
             }
             include($include_path.$separator.$include);
         }
         if (!class_exists($class_name)) {
-            return PEAR::raiseError(null, DB_ERROR_NOT_FOUND,
-                null, null, null, 'MDB_Error', true);
+            return PEAR::raiseError(NULL, DB_ERROR_NOT_FOUND,
+                NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
         $db = new $class_name;
         $db->include_path = $include_path;
@@ -418,9 +425,9 @@ class MDB
         $manips = 'INSERT|UPDATE|DELETE|'.'REPLACE|CREATE|DROP|'.
                   'ALTER|GRANT|REVOKE|'.'LOCK|UNLOCK';
         if (preg_match('/^\s*"?('.$manips.')\s+/i', $query)) {
-            return true;
+            return TRUE;
         }
-        return false;
+        return FALSE;
     }
 
     /**
@@ -536,19 +543,19 @@ class MDB
         }
 
         $parsed = array(
-            'phptype'  => false,
-            'dbsyntax' => false,
-            'username' => false,
-            'password' => false,
-            'protocol' => false,
-            'hostspec' => false,
-            'port'     => false,
-            'socket'   => false,
-            'database' => false
+            'phptype'  => FALSE,
+            'dbsyntax' => FALSE,
+            'username' => FALSE,
+            'password' => FALSE,
+            'protocol' => FALSE,
+            'hostspec' => FALSE,
+            'port'     => FALSE,
+            'socket'   => FALSE,
+            'database' => FALSE
         );
 
         // Find phptype and dbsyntax
-        if (($pos = strpos($dsn, '://')) !== false) {
+        if (($pos = strpos($dsn, '://')) !== FALSE) {
             $str = substr($dsn, 0, $pos);
             $dsn = substr($dsn, $pos + 3);
         } else {
@@ -572,10 +579,10 @@ class MDB
 
         // Get (if found): username and password
         // $dsn => username:password@protocol+hostspec/database
-        if (($at = strrpos($dsn,'@')) !== false) {
+        if (($at = strrpos($dsn,'@')) !== FALSE) {
             $str = substr($dsn, 0, $at);
             $dsn = substr($dsn, $at + 1);
-            if (($pos = strpos($str, ':')) !== false) {
+            if (($pos = strpos($str, ':')) !== FALSE) {
                 $parsed['username'] = urldecode(substr($str, 0, $pos));
                 $parsed['password'] = urldecode(substr($str, $pos + 1));
             } else {
@@ -588,19 +595,19 @@ class MDB
         // $dsn => proto(proto_opts)/database
         if (preg_match('|^(.+?)\((.*?)\)/?(.*?)$|', $dsn, $match)) {
             $proto       = $match[1];
-            $proto_opts  = (!empty($match[2])) ? $match[2] : false;
+            $proto_opts  = (!empty($match[2])) ? $match[2] : FALSE;
             $dsn         = $match[3];
 
         // $dsn => protocol+hostspec/database (old format)
         } else {
-            if (strpos($dsn, '+') !== false) {
+            if (strpos($dsn, '+') !== FALSE) {
                 list($proto, $dsn) = explode('+', $dsn, 2);
             }
-            if (strpos($dsn, '/') !== false) {
+            if (strpos($dsn, '/') !== FALSE) {
                 list($proto_opts, $dsn) = explode('/', $dsn, 2);
             } else {
                 $proto_opts = $dsn;
-                $dsn = null;
+                $dsn = NULL;
             }
         }
 
@@ -608,7 +615,7 @@ class MDB
         $parsed['protocol'] = (!empty($proto)) ? $proto : 'tcp';
         $proto_opts = urldecode($proto_opts);
         if ($parsed['protocol'] == 'tcp') {
-            if (strpos($proto_opts, ':') !== false) {
+            if (strpos($proto_opts, ':') !== FALSE) {
                 list($parsed['hostspec'], $parsed['port']) = explode(':', $proto_opts);
             } else {
                 $parsed['hostspec'] = $proto_opts;
@@ -621,13 +628,13 @@ class MDB
         // $dsn => database
         if (!empty($dsn)) {
             // /database
-            if (($pos = strpos($dsn, '?')) === false) {
+            if (($pos = strpos($dsn, '?')) === FALSE) {
                 $parsed['database'] = $dsn;
             // /database?param1=value1&param2=value2
             } else {
                 $parsed['database'] = substr($dsn, 0, $pos);
                 $dsn = substr($dsn, $pos + 1);
-                if (strpos($dsn, '&') !== false) {
+                if (strpos($dsn, '&') !== FALSE) {
                     $opts = explode('&', $dsn);
                 } else { // database?param1=value1
                     $opts = array($dsn);
@@ -684,7 +691,7 @@ class MDB_Error extends PEAR_Error
      */
 
     function MDB_Error($code = MDB_ERROR, $mode = PEAR_ERROR_RETURN,
-              $level = E_USER_NOTICE, $debuginfo = null)
+              $level = E_USER_NOTICE, $debuginfo = NULL)
     {
         if (is_int($code)) {
             $this->PEAR_Error('DB Error: ' . MDB::errorMessage($code), $code, $mode, $level, $debuginfo);
@@ -713,7 +720,7 @@ class MDB_Warning extends PEAR_Error
      *
      */
     function MDB_Warning($code = MDB_WARNING, $mode = PEAR_ERROR_RETURN,
-            $level = E_USER_NOTICE, $debuginfo = null)
+            $level = E_USER_NOTICE, $debuginfo = NULL)
     {
         if (is_int($code)) {
             $this->PEAR_Error('DB Warning: ' . MDB::errorMessage($code), $code, $mode, $level, $debuginfo);
