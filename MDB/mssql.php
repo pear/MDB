@@ -122,7 +122,7 @@ class MDB_mssql extends MDB_Common
     {
        $res = mssql_query('select @@ERROR as ErrorCode', $this->connection);
        if (!$res) {
-           return DB_ERROR;
+           return MDB_ERROR;
        }
        $row = mssql_fetch_row($res);
        return $row[0];
@@ -149,7 +149,7 @@ class MDB_mssql extends MDB_Common
             if (isset($this->errorcode_map[$native_code])) {
                 $code = $this->errorcode_map[$native_code];
             } else {
-                $code = DB_ERROR;
+                $code = MDB_ERROR;
             }
         }
         return $this->raiseError($code, null, null, null, $native_code . ' - ' . $native_msg);
@@ -1211,14 +1211,10 @@ class MDB_mssql extends MDB_Common
             $array = @mssql_fetch_row($result);
         }
         if (!$array) {
-            $errno = @mssql_errno($this->connection);
-            if (!$errno) {
-                if($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
-                return(NULL);
+            if($this->options['autofree']) {
+                $this->freeResult($result);
             }
-            return($this->mssqlRaiseError($errno));
+            return(NULL);
         }
         if (isset($this->result_types[$result])) {
             $array = $this->convertResultRow($result, $array);
