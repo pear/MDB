@@ -30,7 +30,7 @@ $dbarray[] = array(
         'hostspec' => 'hostname',
     ),
     'options' => array(
-        'UseTransactions' => TRUE
+        'use_transactions' => TRUE
     )
 );
 
