@@ -132,7 +132,7 @@ define('MDB_BINMODE_RETURN',   2);
 define('MDB_BINMODE_CONVERT',  3);
 
 /**
- * This is a special constant that tells DB the user hasn't specified
+ * This is a special constant that tells MDB the user hasn't specified
  * any particular get mode, so the default should be used.
  */
 
@@ -414,7 +414,7 @@ class MDB
      */
     function loadModule($module)
     {
-        @include_once 'MDB/Modules'.$file.'.php';
+        @include_once 'MDB/Modules/'.$module.'.php';
     }
     
     // }}}
