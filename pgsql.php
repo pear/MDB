@@ -874,18 +874,22 @@ class MDB_pgsql extends MDB_common
      *
      * @return int DB_OK on success, a DB error code on failure
      */
-    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $row = NULL)
+    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        $row = ($row !== null) ? $row : max($this->highest_fetched_row[$result], 0);
-        if ($row >= $this->numRows($result)) {
-            //            return $this->raiseError(DB_ERROR, '', '', 'pgsql fetch: Tried to access beyond end of record set');
+        if($rownum == NULL) {
+            ++$this->highest_fetched_row[$result];
+            $rownum = $this->highest_fetched_row[$result];
+        } else {
+            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
+        }
+        if ($rownum + 1 > $this->numRows($result)) {
             return NULL;
         }
-        $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
+        $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
         if ($fetchmode & DB_FETCHMODE_ASSOC) {
-            $array = @pg_fetch_array($result, $row, PGSQL_ASSOC);
+            $array = @pg_fetch_array($result, $rownum, PGSQL_ASSOC);
         } else {
-            $array = @pg_fetch_row($result, $row);
+            $array = @pg_fetch_row($result, $rownum);
         }
         if (!$array) {
             $err = pg_errormessage($this->connection);
