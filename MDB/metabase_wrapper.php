@@ -1252,7 +1252,7 @@ function MetabaseDebug($database, $message)
 
 function MetabaseShutdownTransactions()
 {
-    shutdownTransactions();
+    _shutdownTransactions();
 }
 
 function MetabaseDefaultDebugOutput($database, $message)
@@ -1397,12 +1397,12 @@ class Metabase_manager_class
 
     function CloseSetup()
     {
-        return($this->MDB_manager_object->close());
+        return($this->MDB_manager_object->_close());
     }
 
     function GetField(&$field, $field_name, $declaration, &$query)
     {
-        $query = $this->MDB_manager_object->getField($field, $field_name, $declaration);
+        $query = $this->MDB_manager_object->getFieldDeclaration($field, $field_name, $declaration);
         return $query;
     }
 
