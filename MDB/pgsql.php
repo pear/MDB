@@ -749,7 +749,7 @@ class MDB_pgsql extends MDB_Common
     {
         switch ($type) {
             case MDB_TYPE_BOOLEAN:
-                return(strcmp($value, 't') ? FALSE : TRUE);
+                return(strcmp($value, 'Y') ? FALSE : TRUE);
             case MDB_TYPE_DECIMAL:
                 return(sprintf('%.'.$this->decimal_places.'f',doubleval($value)/$this->decimal_factor));
             case MDB_TYPE_FLOAT:
@@ -1208,7 +1208,7 @@ class MDB_pgsql extends MDB_Common
                 $repeat = 1;
                 $result = $this->createSequence($seq_name);
                 if (MDB::isError($result)) {
-                    return($this->raiseError($result));
+                    return($this->pgsqlRaiseError($result));
                 }
             } else {
                 $repeat = 0;
