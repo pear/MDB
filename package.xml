@@ -3,6 +3,97 @@
 <package version="1.0">
   <name>MDB</name>
   <summary>database abstraction layer</summary>
+  <release>
+    <version>1.2</version>
+    <state>stable</state>
+    <date>2004-01-11</date>
+    <notes>
+      the last release should have been 1.2 so I am making this rather minor
+      update the 1.2 release
+      MDB:
+      - fixed issue in MDB::singleton() when using array dsn's
+      MDB_Common:
+      - fixed typo in fetchCol (bug #523)
+      MDB_mssql:
+      - fixed parse error
+      test suite:
+      - fixed typo in the output of console test results
+    </notes>
+    <filelist>
+      <file role="php" baseinstalldir="/">MDB.php</file>
+      <file role="doc">README</file>
+      <file role="doc">MAINTAINERS</file>
+      <file role="doc">TODO</file>
+      <dir name="MDB">
+        <file role="php">Common.php</file>
+        <file role="php">querysim.php</file>
+        <file role="php">mssql.php</file>
+        <file role="php">ibase.php</file>
+        <file role="php">oci8.php</file>
+        <file role="php">fbsql.php</file>
+        <file role="php">mysql.php</file>
+        <file role="php">pgsql.php</file>
+        <file role="php">Date.php</file>
+        <file role="php">Manager.php</file>
+        <file role="php">Parser.php</file>
+        <file role="php">metabase_wrapper.php</file>
+        <file role="php">peardb_wrapper.php</file>
+        <file role="php">reverse_engineer_xml_schema.php</file>
+        <dir name="Modules">
+          <file role="php">LOB.php</file>
+          <dir name="Manager">
+            <file role="php">Common.php</file>
+            <file role="php">mssql.php</file>
+            <file role="php">ibase.php</file>
+            <file role="php">oci8.php</file>
+            <file role="php">fbsql.php</file>
+            <file role="php">mysql.php</file>
+            <file role="php">pgsql.php</file>
+          </dir>
+        </dir>
+      </dir>
+      <dir name="doc">
+        <file role="doc">tutorial.html</file>
+        <file role="doc">datatypes.html</file>
+        <file role="doc">xml_schema_documentation.html</file>
+        <file role="doc">xml_schema.xsl</file>
+        <file role="doc">skeleton.php</file>
+        <file role="doc">Modules_Manager_skeleton.php</file>
+      </dir>
+      <dir name="tests">
+        <file role="test">README</file>
+        <file role="test">test.php</file>
+        <file role="test">clitest.php</file>
+        <file role="test">testchoose.php</file>
+        <file role="test">MDB_api_testcase.php</file>
+        <file role="test">MDB_manager_testcase.php</file>
+        <file role="test">MDB_usage_testcase.php</file>
+        <file role="test">MDB_bugs_testcase.php</file>
+        <file role="test">HTML_TestListener.php</file>
+        <file role="test">Console_TestListener.php</file>
+        <file role="test">tests.css</file>
+        <file role="test">testUtils.php</file>
+        <file role="test">test_setup.php.dist</file>
+        <file role="test">test.schema</file>
+        <file role="test">MDB_test.php</file>
+        <file role="test">MDB_pear_wrapper_test.php</file>
+        <file role="test">metapear_test_db.schema</file>
+        <file role="test">driver_test_config.php</file>
+        <file role="test">driver_test.php</file>
+        <file role="test">setup_test.php</file>
+        <file role="test">driver_test.schema</file>
+        <file role="test">lob_test.schema</file>
+        <dir name="templates">
+          <file role="test">results.tpl</file>
+        </dir>
+      </dir>
+    </filelist>
+    <deps>
+        <dep type="php" rel="ge" version="4.1.0" />
+        <dep type="pkg" rel="ge" version="1.0b1">PEAR</dep>
+        <dep type="pkg" rel="has">XML_Parser</dep>
+    </deps>
+  </release>
   <description>
     PEAR MDB is a merge of the PEAR DB and Metabase php database abstraction layers.
 
@@ -94,95 +185,6 @@
       <email>l.alberton@quipo.it</email>
     </maintainer>
   </maintainers>
-  <release>
-    <version>1.2</version>
-    <state>stable</state>
-    <date>2004-01-05</date>
-    <notes>
-      the last release should have been 1.2 so I am making this rather minor
-      update the 1.2 release
-      MDB:
-      - fixed issue in MDB::singleton() when using array dsn's
-      MDB_Common:
-      - fixed typo in fetchCol (bug #523)
-      test suite:
-      - fixed typo in the output of console test results
-    </notes>
-    <filelist>
-      <file role="php" baseinstalldir="/">MDB.php</file>
-      <file role="doc">README</file>
-      <file role="doc">MAINTAINERS</file>
-      <file role="doc">TODO</file>
-      <dir name="MDB">
-        <file role="php">Common.php</file>
-        <file role="php">querysim.php</file>
-        <file role="php">mssql.php</file>
-        <file role="php">ibase.php</file>
-        <file role="php">oci8.php</file>
-        <file role="php">fbsql.php</file>
-        <file role="php">mysql.php</file>
-        <file role="php">pgsql.php</file>
-        <file role="php">Date.php</file>
-        <file role="php">Manager.php</file>
-        <file role="php">Parser.php</file>
-        <file role="php">metabase_wrapper.php</file>
-        <file role="php">peardb_wrapper.php</file>
-        <file role="php">reverse_engineer_xml_schema.php</file>
-        <dir name="Modules">
-          <file role="php">LOB.php</file>
-          <dir name="Manager">
-            <file role="php">Common.php</file>
-            <file role="php">mssql.php</file>
-            <file role="php">ibase.php</file>
-            <file role="php">oci8.php</file>
-            <file role="php">fbsql.php</file>
-            <file role="php">mysql.php</file>
-            <file role="php">pgsql.php</file>
-          </dir>
-        </dir>
-      </dir>
-      <dir name="doc">
-        <file role="doc">tutorial.html</file>
-        <file role="doc">datatypes.html</file>
-        <file role="doc">xml_schema_documentation.html</file>
-        <file role="doc">xml_schema.xsl</file>
-        <file role="doc">skeleton.php</file>
-        <file role="doc">Modules_Manager_skeleton.php</file>
-      </dir>
-      <dir name="tests">
-        <file role="test">README</file>
-        <file role="test">test.php</file>
-        <file role="test">clitest.php</file>
-        <file role="test">testchoose.php</file>
-        <file role="test">MDB_api_testcase.php</file>
-        <file role="test">MDB_manager_testcase.php</file>
-        <file role="test">MDB_usage_testcase.php</file>
-        <file role="test">MDB_bugs_testcase.php</file>
-        <file role="test">HTML_TestListener.php</file>
-        <file role="test">Console_TestListener.php</file>
-        <file role="test">tests.css</file>
-        <file role="test">testUtils.php</file>
-        <file role="test">test_setup.php.dist</file>
-        <file role="test">test.schema</file>
-        <file role="test">MDB_test.php</file>
-        <file role="test">MDB_pear_wrapper_test.php</file>
-        <file role="test">metapear_test_db.schema</file>
-        <file role="test">driver_test_config.php</file>
-        <file role="test">driver_test.php</file>
-        <file role="test">setup_test.php</file>
-        <file role="test">driver_test.schema</file>
-        <file role="test">lob_test.schema</file>
-        <dir name="templates">
-          <file role="test">results.tpl</file>
-        </dir>
-      </dir>
-    </filelist>
-    <deps>
-        <dep type="php" rel="ge" version="4.1.0" />
-        <dep type="pkg" rel="ge" version="1.0b1">PEAR</dep>
-        <dep type="pkg" rel="has">XML_Parser</dep>
-    </deps>
-  </release>
   <changelog>
     <release>
       <version>1.1.4</version>
