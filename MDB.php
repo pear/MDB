@@ -170,6 +170,13 @@ define('MDB_TABLEINFO_ORDERTABLE', 2);
 define('MDB_TABLEINFO_FULL',       3);
 
 /**
+ * These are global variables that are used to track the various class instances
+ */
+
+$GLOBALS['_MDB_LOBs'] = array();
+$GLOBALS['_MDB_databses'] = array();
+
+/**
  * The main 'MDB' class is simply a container class with some static
  * methods for creating DB objects as well as some utility functions
  * common to all parts of DB.
@@ -231,11 +238,11 @@ class MDB
         }
         $include_lob = $db->getOption('include_lob');
         if (!MDB::isError($include_lob) && $include_lob) {
-            $db->loadLob('load at start');
+            $db->loadLOB();
         }
         $include_manager = $db->getOption('include_manager');
         if (!MDB::isError($include_manager) && $include_manager) {
-            $db->loadManager('load at start');
+            $db->loadManager();
         }
         $debug = $db->getOption('debug');
         if (!MDB::isError($debug) && $debug) {
@@ -372,7 +379,6 @@ class MDB
      */
     function &singleton($dsn = null, $options = false)
     {
-        global $_MDB_databases;
         if ($dsn) {
             $dsninfo = MDB::parseDSN($dsn);
             $dsninfo = array_merge(
@@ -383,21 +389,21 @@ class MDB
                     'hostspec' => null,
                     'database' => null)
                 , $dsninfo);
-            for ($i=1, $j=count($_MDB_databases)+1; $i<$j; ++$i) {
-                $tmp_dsn = $_MDB_databases[$i]->getDSN('array');
+            for ($i=1, $j=count($GLOBALS['_MDB_databases'])+1; $i<$j; ++$i) {
+                $tmp_dsn = $GLOBALS['_MDB_databases'][$i]->getDSN('array');
                 if ($dsninfo['phptype'] == $tmp_dsn['phptype']
                     && $dsninfo['username'] == $tmp_dsn['username']
                     && $dsninfo['password'] == $tmp_dsn['password']
                     && $dsninfo['hostspec'] == $tmp_dsn['hostspec']
                     && $dsninfo['database'] == $tmp_dsn['database'])
                 {
-                    MDB::setOptions($_MDB_databases[$i], $options);
-                    return $_MDB_databases[$i];
+                    MDB::setOptions($GLOBALS['_MDB_databases'][$i], $options);
+                    return $GLOBALS['_MDB_databases'][$i];
                 }
             }
         } else {
-            if (isset($_MDB_databases[0])) {
-                return $_MDB_databases[0];
+            if (isset($GLOBALS['_MDB_databases'][0])) {
+                return $GLOBALS['_MDB_databases'][0];
             }
         }
         return MDB::connect($dsn, $options);
