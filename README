@@ -10,11 +10,11 @@ You can get info on these at:
 At these URLs you will also find the licensing information on these two
 projects along with the credits.
 
-If you have any questions or suggestions you can contact me (Lukas
-Smith) at this email address:
-  smith@dybnet.de
+If you have any questions or suggestions you can contact me (Lukas Smith)
+at this email address:
+  smith@backendmedia.com
 Co-Author is Christopher Linn:
-  clinn@dybnet.de
+  clinn@backendmedia.com
 
 Or even better post a message to these 3 mailinglists (please include
 all of these because there are people on each of these mailinglists that
@@ -64,7 +64,7 @@ I would first recommend taking a look at MDB_test.php.
 This should give you a general feel of how to interact with MDB.
 
 After that you may want to take a look at the rather large API
-at www.dybnet.de/MDB/docs. There you will also find a document
+at www.backendmedia.com/MDB/docs. There you will also find a document
 describing the xml schema format and a little tutorial (it was
 just recently ported from Metabase, so it may contain errors).
 
@@ -75,10 +75,16 @@ The current release can be found at the PEAR webpage:
 
 ----------------------------------- WARNING -----------------------------------
 MDB is still undergoing active development and therefore its API might
-change slightly until 1.1. It is unlikely that BC specific code will be
-written to maintain BC for only release prior to 1.1. The largest changes
-are likely to happen in manager.php and the get*Definition() methods in the
-manager_*.php.
+change slightly until drivers for Oracle and Sybase/MS-SQL have been added. But
+since MDB is heavily based on PEAR DB and Metabase who both have drivers for
+these RDBMS this is probably fairly unlikely to happen or have large effects.
+It is unlikely that BC specific code will be written to maintain BC for only
+release prior to this version.
+
+Furthermore the manager might see some drastic changes in the future which would
+affect the manager.php and the get*Definition() methods in the manager_*.php.
+However this will most likely be extending the functionality and not changing
+existing functionality.
 ----------------------------------- WARNING -----------------------------------
 
 Currently there is a MySQL and a PostGreSQL driver available.
@@ -138,7 +144,7 @@ Other Included Files
 
 ** Documentation:
 
-PHPDoc generated documentation can be found at: http://www.dybnet.de/MDB/docs/
+PHPDoc generated documentation can be found at: http://www.backendmedia.com/MDB/docs/
 
 The entire "public" API and most of the "private" methods (except for some of
 the lob classes) have been documented with PHPDoc comments. Most of the API
@@ -212,12 +218,7 @@ suite (see the "testing" section above)
 
 ** Roadmap:
 
-1.0.x (as needed)
-- Finish PHPDoc comments (lsmith)
-- Add support for more RDBMS (you)
-- Finish reverse engineering parts of the pgsql driver (pgc)
-- Add testing suite (pgc)
-  (currently there is only the test suite provided by Metabase)
+Sometime
 - Restructure the manager
     - Change dumpDatabase to not have the intention levels of to be dumped tags
       hardcoded in the method.
@@ -227,15 +228,10 @@ suite (see the "testing" section above)
         - Add ability to dump just one table
         - Improve reservse engineering of existing DB's to xml schema files
 - Extend the bulk fetching methods to be able to handle LOB's
-
-1.1 Release (Fall 2002)
 - Write Docbook documentation
 - Add support for more RDBMS (you)
-- Complete testing suite (pgc)
 - Store the contents of LOB fields into seperate files when dumping
 - Fix directory structure to better match other similar PEAR packages
-
-Sometime
 - Interactive Application for Schema Reverse Engineering to better handle
   ambiguities that cannot be resolved automatically
   (moved to seperate project MDB_frontend)
@@ -281,6 +277,6 @@ making MDB use PEAR Error and working on the XML schema manager.
 Finally Peter Bowyer for starting the discussion that made people pick
 up this project again after the first versions of what was then called
 "metapear" have been ideling without much feedback. I guess I should
-also thank DybNet (my company :-)  ) for providing the necessary means
+also thank BackendMedia (my company :-)  ) for providing the necessary means
 to develop this on company time (actually for the most part my entire
 life is company time ... so it goes)
