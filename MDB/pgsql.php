@@ -101,7 +101,7 @@ class MDB_pgsql extends MDB_Common
         $this->supported['LOBs'] = 1;
         $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 1;
-        
+
         $this->decimal_factor = pow(10.0, $this->decimal_places);
     }
 
@@ -130,6 +130,9 @@ class MDB_pgsql extends MDB_Common
                 '/pg_atoi: error in .*: can\'t parse /' => MDB_ERROR_INVALID_NUMBER,
                 '/ttribute [\"\'].*[\"\'] not found$|[Rr]elation [\"\'].*[\"\'] does not have attribute [\"\'].*[\"\']/' => MDB_ERROR_NOSUCHFIELD,
                 '/parser: parse error at or near \"/'   => MDB_ERROR_SYNTAX,
+                '/syntax error at/'                     => MDB_ERROR_SYNTAX,
+                '/violates not-null constraint/'        => MDB_ERROR_CONSTRAINT_NOT_NULL,
+                '/violates [\w ]+ constraint/'          => MDB_ERROR_CONSTRAINT,
                 '/referential integrity violation/'     => MDB_ERROR_CONSTRAINT
             );
         }
@@ -356,7 +359,7 @@ class MDB_pgsql extends MDB_Common
             return($connection);
         }
         $this->connection = $connection;
-        
+
         if (!$this->auto_commit && MDB::isError($trans_result = $this->_doQuery('BEGIN'))) {
             pg_Close($this->connection);
             $this->connection = 0;
@@ -387,7 +390,7 @@ class MDB_pgsql extends MDB_Common
             @pg_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
-            
+
             unset($GLOBALS['_MDB_databases'][$this->database]);
             return(MDB_OK);
         }
@@ -460,7 +463,7 @@ class MDB_pgsql extends MDB_Common
         if (MDB::isError($connected)) {
             return($connected);
         }
-        
+
         if (!$ismanip && $limit > 0) {
              if ($this->auto_commit && MDB::isError($this->_doQuery('BEGIN'))) {
                  return($this->raiseError(MDB_ERROR));
@@ -1313,7 +1316,7 @@ class MDB_pgsql extends MDB_Common
         $count = 0;
         $id = 0;
         $res = array();
-        
+
         /**
          * depending on $mode, metadata returns the following values:
          *
@@ -1350,7 +1353,7 @@ class MDB_pgsql extends MDB_Common
          *       MDB_TABLEINFO_ORDERTABLE with MDB_TABLEINFO_ORDER |
          *       MDB_TABLEINFO_ORDERTABLE * or with MDB_TABLEINFO_FULL
          **/
-        
+
         // if $result is a string, then we want information about a
         // table without a resultset
         if (is_string($result)) {
@@ -1364,9 +1367,9 @@ class MDB_pgsql extends MDB_Common
                 return($this->pgsqlRaiseError());
             }
         }
-        
+
         $count = @pg_numfields($id);
-        
+
         // made this IF due to performance (one if is faster than $count if's)
         if (empty($mode)) {
             for ($i = 0; $i < $count; $i++) {
@@ -1378,7 +1381,7 @@ class MDB_pgsql extends MDB_Common
             }
         } else { // full
             $res['num_fields'] = $count;
-            
+
             for ($i = 0; $i < $count; $i++) {
                 $res[$i]['table'] = (is_string($result)) ? $result : '';
                 $res[$i]['name'] = @pg_fieldname ($id, $i);
@@ -1393,7 +1396,7 @@ class MDB_pgsql extends MDB_Common
                 }
             }
         }
-        
+
         // free the result only if we were called on a table
         if (is_string($result) && is_resource($id)) {
             @pg_freeresult($id);
@@ -1416,7 +1419,7 @@ class MDB_pgsql extends MDB_Common
     function _pgFieldFlags($resource, $num_field, $table_name)
     {
         $field_name = @pg_fieldname($resource, $num_field);
-        
+
         $result = pg_exec($this->connection, "SELECT f.attnotnull, f.atthasdef
             FROM pg_attribute f, pg_class tab, pg_type typ
             WHERE tab.relname = typ.typname
@@ -1426,7 +1429,7 @@ class MDB_pgsql extends MDB_Common
         if (@pg_numrows($result) > 0) {
             $row = @pg_fetch_row($result, 0);
             $flags = ($row[0] == 't') ? 'not_null ' : '';
-            
+
             if ($row[1] == 't') {
                 $result = @pg_exec($this->connection, "SELECT a.adsrc
                     FROM pg_attribute f, pg_class tab, pg_type typ, pg_attrdef a
@@ -1435,7 +1438,7 @@ class MDB_pgsql extends MDB_Common
                     AND tab.relname = '$table_name'");
                 $row = @pg_fetch_row($result, 0);
                 $num = str_replace('\'', '', $row[0]);
-                
+
                 $flags .= "default_$num ";
             }
         }
@@ -1447,11 +1450,11 @@ class MDB_pgsql extends MDB_Common
             AND f.attname = '$field_name'
             AND tab.relname = '$table_name'");
         $count = @pg_numrows($result);
-        
+
         for ($i = 0; $i < $count ; $i++) {
             $row = @pg_fetch_row($result, $i);
             $keys = explode(' ', $row[2]);
-            
+
             if (in_array($num_field + 1, $keys)) {
                 $flags .= ($row[0] == 't') ? 'unique ' : '';
                 $flags .= ($row[1] == 't') ? 'primary ' : '';
@@ -1459,7 +1462,7 @@ class MDB_pgsql extends MDB_Common
                     $flags .= 'multiple_key ';
             }
         }
-        
+
         return trim($flags);
     }
 }
