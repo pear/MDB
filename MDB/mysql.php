@@ -1260,7 +1260,7 @@ class MDB_mysql extends MDB_common
      */
     function nextId($seq_name, &$value, $ondemand = FALSE)
     {
-		$sequence_name = $this->getSequenceName($seq_name);
+        $sequence_name = $this->getSequenceName($seq_name);
         $res = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
         if ($ondemand && DB::isError($result) &&
             $result->getCode() == DB_ERROR_NOSUCHTABLE)
