@@ -228,7 +228,8 @@ class MDB_common extends PEAR {
     var $first_selected_row = 0;
     var $selected_row_limit = 0;
     var $last_query = '';
-    var $options = array('persistent' => FALSE,
+    var $options = array(
+            'persistent' => FALSE,
             'debug' => 0,
             'seqname_format' => '%s_seq',
             'autofree' => FALSE,
@@ -462,7 +463,7 @@ class MDB_common extends PEAR {
             $this->options[$option] = $value;
             return DB_OK;
         }
-        return $this->raiseError("unknown option $option");
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', "unknown option $option");
     }
 
     // }}}
@@ -480,7 +481,7 @@ class MDB_common extends PEAR {
         if (isset($this->options[$option])) {
             return $this->options[$option];
         }
-        return $this->raiseError("unknown option $option");
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', "unknown option $option");
     }
 
     // }}}
@@ -2473,17 +2474,18 @@ class MDB_common extends PEAR {
             return $this->raiseError(DB_ERROR_SYNTAX, '', '',
                 'Set result types: it were specified more result types (' . count($types) . ') than result columns (' . $columns . ')');
         }
-        $valid_types = array('text' => MDB_TYPE_TEXT,
-            'boolean' => MDB_TYPE_BOOLEAN,
-            'integer' => MDB_TYPE_INTEGER,
-            'decimal' => MDB_TYPE_DECIMAL,
-            'float' => MDB_TYPE_FLOAT,
-            'date' => MDB_TYPE_DATE,
-            'time' => MDB_TYPE_TIME,
+        $valid_types = array(
+            'text'      => MDB_TYPE_TEXT,
+            'boolean'   => MDB_TYPE_BOOLEAN,
+            'integer'   => MDB_TYPE_INTEGER,
+            'decimal'   => MDB_TYPE_DECIMAL,
+            'float'     => MDB_TYPE_FLOAT,
+            'date'      => MDB_TYPE_DATE,
+            'time'      => MDB_TYPE_TIME,
             'timestamp' => MDB_TYPE_TIMESTAMP,
-            'clob' => MDB_TYPE_CLOB,
-            'blob' => MDB_TYPE_BLOB
-            );
+            'clob'      => MDB_TYPE_CLOB,
+            'blob'      => MDB_TYPE_BLOB
+        );
         for($column = 0; $column < count($types); $column++) {
             if (!isset($valid_types[$types[$column]])) {
                 return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
@@ -3926,15 +3928,24 @@ class MDB_common extends PEAR {
      *       conversions may be performed. The default list of datatypes is
      *       empty, meaning that no conversion is performed.
      * @param int $fetchmode how the array data should be indexed
+     * @param boolean $rekey if set to TRUE, the $all will have the first
+     *       column as its first dimension
+     * @param boolean $force_array used only when the query returns exactly
+     *       two columns. If TRUE, the values of the returned array will be
+     *       one-element arrays instead of scalars.
+     * @param boolean $group if TRUE, the values of the returned array is
+     *       wrapped in another array.  If the same key value (in the first
+     *       column) repeats itself, the values will be appended to this array
+     *       instead of overwriting the existing values.
      * @return mixed data array on success, a DB error on failure
      * @access public
      */
-    function queryAll($query, $types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT)
+    function queryAll($query, $types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT, $rekey = FALSE, $force_array = FALSE, $group = FALSE))
     {
         if (MDB::isError($result = $this->query($query, $types))) {
             return $result;
         }
-        return ($this->fetchAll($result, $fetchmode));
+        return ($this->fetchAll($result, $fetchmode, $rekey, $force_array, $group));
     }
 
     // }}}
