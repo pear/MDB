@@ -171,7 +171,11 @@ class DB
 
     function assertExtension($name)
     {
-        return MDB::assertExtension($name);
+        if (!extension_loaded($name)) {
+            $dlext = OS_WINDOWS ? '.dll' : '.so';
+            @dl($name . $dlext);
+        }
+        return extension_loaded($name);
     }
 }
 

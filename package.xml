@@ -119,6 +119,7 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
     </filelist>
     <deps>
         <dep type="php" rel="ge" version="4.0.4pl1" />
+        <dep type="pkg" rel="has" version="0.91-dev">PEAR</dep>
         <dep type="pkg" rel="has">XML_Parser</dep>
     </deps>
   </release>
