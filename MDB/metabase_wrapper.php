@@ -1355,7 +1355,7 @@ function MetabaseLOBError($lob)
     return $lob_error;
 }
 
-class Metabase_manager_class
+class metabase_manager_class
 {
     var $MDB_manager_object;
 
@@ -1369,7 +1369,7 @@ class Metabase_manager_class
         'TABLES' => array()
     );
 
-    function Metabase_manager_class()
+    function metabase_manager_class()
     {
         $this->MDB_manager_object = new MDB_manager;
         $this->MDB_manager_object->fail_on_invalid_names = &$this->fail_on_invalid_names;
