@@ -400,26 +400,9 @@ class MDB
         if (isset($dsninfo["password"])) {
             $db->password = $dsninfo["password"];
         }
-        if (isset($options["persistent"])) {
-            $db->persistent = $options["persistent"];
+        if (is_array($options)) {
+            $db->options = array_merge($db->options, $options);
         }
-        if (isset($options["debug"])) {
-            $db->debug = $options["debug"];
-        }
-        if (isset($options["autofree"])) {
-            $db->autofree = $options["autofree"];
-        }
-        $db->decimal_places = (isset($options["decimalplaces"]) ?
-                                     $options["decimalplaces"] : 2);
-        $db->lob_buffer_length = (isset($options["LOBbufferlength"]) ?
-                                        $options["LOBbufferlength"] : 8000);
-        if (isset($options["loglinebreak"])) {
-            $db->log_line_break = $options["loglinebreak"];
-        }
-        if (isset($options["options"])) {
-            $db->options = $options["options"];
-        }
-
         if(isset($dsninfo["database"])) {
             $db->setDatabase($dsninfo["database"]);
             $err = $db->connect();
@@ -751,36 +734,6 @@ class MDB_Error extends PEAR_Error
         } else {
             $this->PEAR_Error("DB Error: $code", DB_ERROR, $mode, $level,
                               $debuginfo);
-        }
-    }
-}
-
-/**
- * MDB_Warning implements a class for reporting portable database
- * warning messages.
- *
- * @package MDB
- * @author  Stig Bakken <ssb@fast.no>
- */
-class MDB_Warning extends PEAR_Error
-{
-    /**
-     * DB_Warning constructor.
-     *
-     * @param mixed   $code      DB error code, or string with error message.
-     * @param integer $mode      what "error mode" to operate in
-     * @param integer $level     what error level to use for
-     *                           $mode == PEAR_ERROR_TRIGGER
-     * @param mmixed  $debuginfo additional debug info, such as the last query
-     *
-     */
-    function MDB_Warning($code = MDB_WARNING, $mode = PEAR_ERROR_RETURN,
-            $level = E_USER_NOTICE, $debuginfo = NULL)
-    {
-        if (is_int($code)) {
-            $this->PEAR_Error('DB Warning: ' . MDB::errorMessage($code), $code, $mode, $level, $debuginfo);
-        } else {
-            $this->PEAR_Error("DB Warning: $code", 0, $mode, $level, $debuginfo);
         }
     }
 }
