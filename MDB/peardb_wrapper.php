@@ -59,7 +59,7 @@ class DB
     function &connect($dsn, $options = FALSE)
     {
         if (!is_array($options) && $options) {
-            $$options["persistent"] = TRUE;
+            $options["persistent"] = TRUE;
         }
         $db = MDB::connect($dsn, $options);
         if(PEAR::isError($db))
@@ -115,19 +115,6 @@ class DB_Error extends PEAR_Error
             $this->PEAR_Error('DB Error: ' . DB::errorMessage($code), $code, $mode, $level, $debuginfo);
         } else {
             $this->PEAR_Error("DB Error: $code", DB_ERROR, $mode, $level, $debuginfo);
-        }
-    }
-}
-
-class DB_Warning extends PEAR_Error
-{
-    function DB_Warning($code = DB_WARNING, $mode = PEAR_ERROR_RETURN,
-            $level = E_USER_NOTICE, $debuginfo = NULL)
-    {
-        if (is_int($code)) {
-            $this->PEAR_Error('DB Warning: ' . DB::errorMessage($code), $code, $mode, $level, $debuginfo);
-        } else {
-            $this->PEAR_Error("DB Warning: $code", 0, $mode, $level, $debuginfo);
         }
     }
 }
@@ -394,7 +381,11 @@ class MDB_PEAR_PROXY
 
     function nextId($seq_name, $ondemand = TRUE)
     {
-        return $this->MDB_object->nextId($seq_name, $ondemand);
+        $return = $this->MDB_object->nextId($seq_name, $value, $ondemand);
+        if(MDB::isError($return)) {
+            return $return;
+        }
+        return $value;
     }
 
     function createSequence($seq_name)
