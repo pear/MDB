@@ -439,9 +439,8 @@ class MDB
      */
     function isError($value)
     {
-        return(is_object($value)
-            && (strtolower(get_class($value)) == 'mdb_error'
-                || strtolower(is_subclass_of($value, 'mdb_error')))
+        return (is_object($value)
+            && (is_a($value, 'mdb_error') || is_a($value, 'MDB_Error'))
         );
     }
     
