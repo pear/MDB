@@ -49,7 +49,7 @@ define("DB_ERROR_CANNOT_REPLACE",     -26);
  * MDB::isWarning().
  */
 
-define('MDB_Warning',           -1000);
+define('DB_WARNING',           -1000);
 define('DB_WARNING_READ_ONLY',  -1001);
 
 /*
@@ -279,19 +279,16 @@ class MDB
                         null, null, 'no existing DBMS driver specified', 'MDB_Error', true);
                 }
         }
-        if (!strcmp($included,"")
-            || !defined($included))
+        if (!strcmp($included,"") || !defined($included))
         {
-            $include_path=(isset($options["includepath"]) ? $options["includepath"] : "");
-            if ($include_path!=""
-                && $include_path[strlen($include_path)-1]!="/")
-            {
+            $include_path = (isset($options["includepath"]) ? $options["includepath"] : dirname(__FILE__));
+            if ($include_path != "" && $include_path[strlen($include_path)-1] != "/") {
                 $include="/".$include;
             }
             if (!file_exists($include_path.$include)) {
                 $directory = 0;
                 if (!strcmp($include_path,"")
-                    || ($directory=@opendir($include_path)))
+                    || ($directory = @opendir($include_path)))
                 {
                     if ($directory) {
                         closedir($directory);
@@ -372,8 +369,8 @@ class MDB
     function isError($value)
     {
         return (is_object($value) &&
-                (get_class($value) == 'MDB_Error' ||
-                 is_subclass_of($value, 'MDB_Error')));
+                (get_class($value) == 'mdb_error' ||
+                 is_subclass_of($value, 'mdb_error')));
     }
 
     /**
@@ -411,8 +408,8 @@ class MDB
     function isWarning($value)
     {
         return (is_object($value) &&
-                (get_class($value) == "db_warning" ||
-                 is_subclass_of($value, "db_warning")));
+                (get_class($value) == "mdb_warning" ||
+                 is_subclass_of($value, "mdb_warning")));
     }
 
     /**
