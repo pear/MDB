@@ -70,8 +70,10 @@ class MDB_fbsql extends MDB_Common
     var $connected_port;
     var $opened_persistent = '';
 
-    var $escape_quotes = "\\";
+    var $escape_quotes = "'";
     var $decimal_factor = 1.0;
+    
+    var $max_text_length = 32768;
 
     var $highest_fetched_row = array();
     var $columns = array();
@@ -96,7 +98,7 @@ class MDB_fbsql extends MDB_Common
         $this->supported['CurrId'] = 1;
         $this->supported['SelectRowRanges'] = 1;
         $this->supported['LOBs'] = 1;
-        $this->supported['Replace'] = 0;
+        $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 1;
         
         $this->decimal_factor = pow(10.0, $this->decimal_places);
@@ -271,7 +273,7 @@ class MDB_fbsql extends MDB_Common
      **/
     function connect()
     {
-        $port = (isset($this->port) ? $this->port : '');
+        $port = (isset($this->port) ? $this->port : 0);
         if($this->connection != 0) {
             if (!strcmp($this->connected_host, $this->host)
                 && !strcmp($this->connected_user, $this->user)
@@ -300,7 +302,7 @@ class MDB_fbsql extends MDB_Common
 
         @ini_set('track_errors', TRUE);
         $this->connection = @$function(
-            $this->host.(!strcmp($port,'') ? '' : ':'.$port),
+            $port > 0 ? $port : $this->host,
             $this->user, $this->password);
         @ini_restore('track_errors');
         if ($this->connection <= 0) {
@@ -309,7 +311,7 @@ class MDB_fbsql extends MDB_Common
         }
 
         if (isset($this->supported['Transactions']) && !$this->auto_commit) {
-            if (!fbsql_query('SET AUTOCOMMIT FALSE', $this->connection)) {
+            if (!fbsql_query('SET AUTOCOMMIT FALSE;', $this->connection)) {
                 fbsql_close($this->connection);
                 $this->connection = 0;
                 $this->affected_rows = -1;
@@ -321,6 +323,7 @@ class MDB_fbsql extends MDB_Common
         $this->connected_user = $this->user;
         $this->connected_password = $this->password;
         $this->connected_port = $port;
+        $this->selected_database = $this->database_name;
         $this->opened_persistent = $this->options['persistent'];
         return(MDB_OK);
     }
@@ -381,7 +384,7 @@ class MDB_fbsql extends MDB_Common
         }
         if($limit > 0) {
             if (!$ismanip) {
-                eregi_replace('SELECT', "SELECT TOP($first,$limit)", $query);
+                $query = str_replace('SELECT', "SELECT TOP($first,$limit)", $query);
             }
         }
 
@@ -504,6 +507,14 @@ class MDB_fbsql extends MDB_Common
     function fetch($result, $row, $field)
     {
         $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
+        if (is_string($field)) {
+        	if (intval($field) != $field) {
+	        	$field = strtoupper($field);
+        	}
+        	else {
+        		$field = intval($field);
+        	}
+        }
         $res = @fbsql_result($result, $row, $field);
         if ($res === FALSE && $res != NULL) {
             return($this->fbsqlRaiseError($errno));
@@ -561,7 +572,7 @@ class MDB_fbsql extends MDB_Common
     {
         switch($type) {
             case MDB_TYPE_BOOLEAN:
-                return(strcmp($value, 'Y') ? 0 : 1);
+                return(strncmp($value, 'T', 1) ? 0 : 1);
             case MDB_TYPE_DECIMAL:
                 return(sprintf('%.'.$this->decimal_places.'f', doubleval($value)/$this->decimal_factor));
             case MDB_TYPE_FLOAT:
@@ -569,7 +580,12 @@ class MDB_fbsql extends MDB_Common
             case MDB_TYPE_DATE:
                 return($value);
             case MDB_TYPE_TIME:
-                return($value);
+            	if ($value[0] == '+') {
+            	    return (substr($value, 1));
+            	}
+            	else {
+                	return($value);
+                }
             case MDB_TYPE_TIMESTAMP:
                 return($value);
             default:
@@ -647,11 +663,43 @@ class MDB_fbsql extends MDB_Common
      */
     function getIntegerDeclaration($name, $field)
     {
-        return("$name INT".
-                (isset($field['unsigned']) ? ' UNSIGNED' : '').
-                (isset($field['default']) ? ' DEFAULT '.$field['default'] : '').
-                (isset($field['notnull']) ? ' NOT NULL' : '')
-               );
+        if (isset($field['unsigned'])) {
+            $this->warnings[] = "unsigned integer field \"$name\" is being
+                declared as signed integer";
+        }
+        return("$name INT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+    }
+
+    // }}}
+    // {{{ getTextDeclaration()
+
+    /**
+     * Obtain DBMS specific SQL code portion needed to declare an text type
+     * field to be used in statements like CREATE TABLE.
+     *
+     * @param string $name name the field to be declared.
+     * @param string $field associative array with the name of the properties
+     *       of the field being declared as array indexes. Currently, the types
+     *       of supported field properties are as follows:
+     *
+     *       length
+     *           Integer value that determines the maximum length of the text
+     *           field. If this argument is missing the field should be
+     *           declared to have the longest length allowed by the DBMS.
+     *
+     *       default
+     *           Text value to be used as default for this field.
+     *
+     *       notnull
+     *           Boolean flag that indicates whether this field is constrained
+     *           to not be set to NULL.
+     * @return string DBMS specific SQL code portion that should be used to
+     *       declare the specified field.
+     * @access public
+     */
+    function getTextDeclaration($name, $field)
+    {
+        return((isset($field["length"]) ? "$name VARCHAR (".$field["length"].")" : "$name VARCHAR($this->max_text_length)").(isset($field["default"]) ? " DEFAULT ".$this->GetTextValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
     // }}}
@@ -682,13 +730,7 @@ class MDB_fbsql extends MDB_Common
      */
     function getClobDeclaration($name, $field)
     {
-        if (isset($field['length'])) {
-            $length = $field['length'];
-            $type = "VARCHAR($length)";
-        } else {
-            $type = 'VARCHAR(32768)';
-        }
-        return("$name $type".
+        return("$name CLOB".
                  (isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
@@ -720,15 +762,35 @@ class MDB_fbsql extends MDB_Common
      */
     function getBlobDeclaration($name, $field)
     {
-        if (isset($field['length'])) {
-            $length = $field['length'];
-            $type = "BLOB($length)";
-        }
-        else {
-            $type = 'BLOB(32768)';
-        }
-        return("$name $type".
+        return("$name BLOB".
                 (isset($field['notnull']) ? ' NOT NULL' : ''));
+    }
+
+    // }}}
+    // {{{ getBooleanDeclaration()
+
+    /**
+     * Obtain DBMS specific SQL code portion needed to declare a boolean type
+     * field to be used in statements like CREATE TABLE.
+     *
+     * @param string $name name the field to be declared.
+     * @param string $field associative array with the name of the properties
+     *       of the field being declared as array indexes. Currently, the types
+     *       of supported field properties are as follows:
+     *
+     *       default
+     *           Boolean value to be used as default for this field.
+     *
+     *       notnullL
+     *           Boolean flag that indicates whether this field is constrained
+     *           to not be set to NULL.
+     * @return string DBMS specific SQL code portion that should be used to
+     *       declare the specified field.
+     * @access public
+     */
+    function getBooleanDeclaration($name, $field)
+    {
+        return("$name BOOLEAN" . (isset($field['default']) ? ' DEFAULT ' . $this->getBooleanValue($field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -788,7 +850,7 @@ class MDB_fbsql extends MDB_Common
      */
     function getTimestampDeclaration($name, $field)
     {
-        return("$name DATETIME".
+        return("$name TIMESTAMP".
                 (isset($field['default']) ? " DEFAULT TIMESTAMP'".$field['default']."'" : '').
                 (isset($field['notnull']) ? ' NOT NULL' : '')
                );
@@ -859,9 +921,9 @@ class MDB_fbsql extends MDB_Common
                 $this->connect();
             }
         }
-        return("$name DOUBLE".
-                ($this->fixed_float ?
-                 '('.($this->fixed_float + 2).','.$this->fixed_float.')' : '').
+        return("$name FLOAT".
+//                ($this->fixed_float ?
+//                 '('.($this->fixed_float + 2).','.$this->fixed_float.')' : '').
                 (isset($field['default']) ?
                  ' DEFAULT '.$this->getFloatValue($field['default']) : '').
                 (isset($field['notnull']) ? ' NOT NULL' : '')
@@ -990,6 +1052,74 @@ class MDB_fbsql extends MDB_Common
     }
 
     // }}}
+    // {{{ getBooleanValue()
+
+    /**
+     * Convert a text value into a DBMS specific format that is suitable to
+     * compose query statements.
+     *
+     * @param string $value text string value that is intended to be converted.
+     * @return string text string that represents the given argument value in
+     *       a DBMS specific format.
+     * @access public
+     */
+    function getBooleanValue($value)
+    {
+        return(($value === NULL) ? 'NULL' : ($value ? "True" : "False"));
+    }
+
+    // }}}
+    // {{{ getDateValue()
+
+    /**
+     * Convert a text value into a DBMS specific format that is suitable to
+     * compose query statements.
+     * 
+     * @param string $value text string value that is intended to be converted.
+     * @return string text string that represents the given argument value in
+     *        a DBMS specific format.
+     * @access public 
+     */
+    function getDateValue($value)
+    {
+        return(($value === NULL) ? 'NULL' : "DATE'$value'");
+    }
+
+    // }}}
+    // {{{ getTimestampValue()
+
+    /**
+     * Convert a text value into a DBMS specific format that is suitable to
+     * compose query statements.
+     * 
+     * @param string $value text string value that is intended to be converted.
+     * @return string text string that represents the given argument value in
+     *        a DBMS specific format.
+     * @access public 
+     */
+    function getTimestampValue($value)
+    {
+        return(($value === NULL) ? 'NULL' : "TIMESTAMP'$value'");
+    }
+
+    // }}}
+    // {{{ getTimeValue()
+
+    /**
+     * Convert a text value into a DBMS specific format that is suitable to
+     *        compose query statements.
+     * 
+     * @param string $value text string value that is intended to be converted.
+     * @return string text string that represents the given argument value in
+     *        a DBMS specific format.
+     * @access public 
+     */
+    function getTimeValue($value)
+    {
+        return(($value === NULL) ? 'NULL' : "TIME'$value'");
+    }
+
+    // }}}
     // {{{ getFloatValue()
 
     /**
@@ -1041,7 +1171,7 @@ class MDB_fbsql extends MDB_Common
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
-        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
+        $result = $this->query("INSERT INTO $sequence_name (dummy) VALUES (1)");
         $this->popExpect();
         if ($ondemand && MDB::isError($result) &&
             $result->getCode() == MDB_ERROR_NOSUCHTABLE)
