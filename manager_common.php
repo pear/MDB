@@ -116,6 +116,30 @@ class MDB_manager_database_class extends PEAR
             "Alter table: database table alterations are not supported");
     }
 
+    function listDatabases(&$db, &$dbs)
+    {
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+            'List Databses: list databases is not supported');
+    }
+
+    function listUsers(&$db, &$users)
+    {
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+            'List User: list user is not supported');
+    }
+
+    function listViews(&$db, &$views)
+    {
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+            'List View: list view is not supported');
+    }
+
+    function listFunctions(&$db, &$functions)
+    {
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+            'List Function: list function is not supported');
+    }
+    
     function listTables(&$db, &$tables)
     {
         return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
