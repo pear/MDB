@@ -45,7 +45,6 @@
 
 require_once '../manager.php';
 require_once '../date.php';
-require_once 'PHPUnit/PHPUnit.php';
 
 class MDB_Usage_TestCase extends PHPUnit_TestCase {
     //contains the dsn of the database we are testing
@@ -89,7 +88,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     }
 
     function tearDown() {
-        //$this->clearTables();
+        $this->clearTables();
         unset($this->dsn);
         if (!MDB::isError($this->db)) {
             $this->db->disconnect();
@@ -908,6 +907,126 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->db->freeResult($result);
     }
+
+    /**
+     * Test for lob storage from and to files
+     */
+    function testLobFiles() {
+        if (!$this->supported('LOBs')) {
+            return;
+        }
+
+        $prepared_query = $this->db->prepareQuery("INSERT INTO files (document,picture) VALUES (?,?)");
+        
+        $character_data_file = "character_data";
+        if (($file = fopen($character_data_file, "w"))) {
+            for ($character_data = "", $code = 32; $code <= 127; $code++) {
+                $character_data .= chr($code);
+            }
+            $character_lob = array(
+                                   "Type" => "inputfile",
+                                   "Database" => $this->db,
+                                   "Error" => "",
+                                   "FileName" => $character_data_file
+                                   );
+            $this->assertTrue((fwrite($file, $character_data, strlen($character_data)) == strlen($character_data)), 'Error creating clob file to read from');
+            fclose($file);
+        }
+        
+        $binary_data_file="binary_data";
+        if (($file = fopen($binary_data_file, "wb"))) {
+            for($binary_data = "", $code = 0; $code <= 255; $code++) {
+                    $binary_data .= chr($code);
+            }
+            $binary_lob = array(
+                                "Type" => "inputfile",
+                                "Database" => $this->db,
+                                "Error" => "",
+                                "FileName" => $binary_data_file
+                                );
+            $this->assertTrue((fwrite($file, $binary_data, strlen($binary_data)) == strlen($binary_data)), 'Error creating blob file to read from');
+            fclose($file);
+        }
+
+        $clob = $this->db->createLob($character_lob);
+        $this->assertTrue(!MDB::isError($clob), 'Error creating clob');
+
+        $blob = $this->db->createLob($binary_lob);
+        $this->assertTrue(!MDB::isError($blob), 'Error creating blob');
+
+        $this->db->setParamCLOB($prepared_query, 1, $clob, 'document');
+        $this->db->setParamBLOB($prepared_query, 2, $blob, 'picture');
+
+        $result = $this->db->executeQuery($prepared_query);
+        $this->assertTrue(!MDB::isError($result), 'Error executing prepared query - inserting LOB from files');
+
+        $this->db->destroyLOB($blob);
+        $this->db->destroyLOB($clob);
+
+        $this->db->freePreparedQuery($prepared_query);
+
+        $result = $this->db->query('SELECT document, picture FROM files');
+        if (MDB::isError($result)) {
+            $this->assertTrue(FALSE, 'Error selecting from files' . $result->getMessage());
+        }
+
+        $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result too soon.');
+
+        $character_lob = array(
+                             "Type" => "outputfile",
+                             "Database" => $this->db,
+                             "Result" => $result,
+                             "Row" => 0,
+                             "Field" => "document",
+                             "Binary" => 0,
+                             "Error" => "",
+                             "FileName" => $character_data_file
+                             );
+
+        $clob = $this->db->createLOB($character_lob);
+
+        if (!MDB::isError($clob)) {
+            $this->assertTrue(($this->db->readLOB($clob, $data, 0) >= 0), 'Error reading CLOB ');
+            $this->db->destroyLOB($clob);
+
+            $this->assertTrue(($file = fopen($character_data_file, "r")), "Error opening character data file: $character_data_file");
+            $this->assertEquals(getType($value = fread($file, filesize($character_data_file))), 'string', "Could not read from character LOB file: $character_data_file");
+            fclose($file);
+
+            $this->assertEquals($value, $character_data, "retrieved character LOB value (\"" . $value . "\") is different from what was stored (\"" . $character_data . "\")");
+        } else {
+            $this->assertTrue(FALSE, 'Error creating character LOB in a file');
+        }
+
+        $binary_lob = array(
+                            "Type" => "outputfile",
+                            "Database" => $this->db,
+                            "Result" => $result,
+                            "Row" => 0,
+                            "Field" => "picture",
+                            "Binary" => 1,
+                            "Error" => "",
+                            "FileName" => $binary_data_file
+                            );
+
+        $blob = $this->db->createLOB($binary_lob);
+
+        if (!MDB::isError($blob)) {
+            $this->assertTrue(($this->db->readLOB($blob, $data, 0) >= 0), 'Error reading BLOB ');
+            $this->db->destroyLOB($blob);
+
+            $this->assertTrue(($file = fopen($binary_data_file, "rb")), "Error opening binary data file: $binary_data_file");
+            $this->assertEquals(getType($value = fread($file, filesize($binary_data_file))), 'string', "Could not read from binary LOB file: $binary_data_file");
+            fclose($file);
+
+            $this->assertEquals($value, $binary_data, "retrieved binary LOB value (\"" . $value . "\") is different from what was stored (\"" . $binary_data . "\")");
+        } else {
+            $this->assertTrue(FALSE, 'Error creating binary LOB in a file');
+        }
+
+        $this->db->freeResult($result);
+    }
+
 
 }
 
