@@ -130,6 +130,7 @@ class MDB_Common extends PEAR
     * $options["includelob"] -> boolean
     * $options["includemanager"] -> boolean
     * $options["UseTransactions"] -> boolean
+    * $options["optimize"] -> string 'performance' or 'portability'
     * @var array
     * @access private
     */
@@ -143,6 +144,7 @@ class MDB_Common extends PEAR
             'includelob' => FALSE,
             'includemanager' => FALSE,
             'UseTransactions' => FALSE,
+            'optimize' => 'performance',
         );
 
     /**
@@ -3598,32 +3600,50 @@ class MDB_Common extends PEAR
             ++$this->highest_fetched_row[$result];
             $rownum = $this->highest_fetched_row[$result];
         } else {
-            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
+            $this->highest_fetched_row[$result] =
+                max($this->highest_fetched_row[$result], $row);
+        }
+        if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
+            $fetchmode = $this->fetchmode;
         }
         $columns = $this->numCols($result);
         if (MDB::isError($columns)) {
             return($columns);
         }
+        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+            $column_names = $this->getColumnNames($result);
+        }
         for($column = 0; $column < $columns; $column++) {
             if (!$this->resultIsNull($result, $rownum, $column)) {
-                $result = $this->fetch($result, $rownum, $column);
-                if (MDB::isError($result)) {
-                    if ($result->getMessage() == '') {
+                $value = $this->fetch($result, $rownum, $column);
+                if ($value === FALSE) {
+                    if ($this->options['autofree']) {
+                        $this->freeResult($result);
+                    }
+                    return(NULL);
+                } elseif (MDB::isError($value)) {
+                    if ($value->getMessage() == '') {
                         if ($this->options['autofree']) {
                             $this->freeResult($result);
                         }
                         return(NULL);
                     } else {
-                        return($result);
+                        return($value);
                     }
                 }
             }
-            $array[$column] = $result;
+            $row[$column] = $value;
+        }
+        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+            $row = array_combine($column_names, $row);
+            if (is_array($row) && $this->options['optimize'] == 'portability') {
+                $row = array_change_key_case($row, CASE_LOWER);
+            }
         }
         if (isset($this->result_types[$result])) {
-            $array = $this->convertResultRow($result, $array);
+            $row = $this->convertResultRow($result, $row);
         }
-        return($array);
+        return($row);
     }
 
     // }}}
