@@ -58,8 +58,10 @@ require_once 'MDB/Common.php';
 class MDB_fbsql extends MDB_Common
 {
     // {{{ properties
-    var $escape_quotes = "\\";
+    var $escape_quotes = "'";
     var $decimal_factor = 1.0;
+
+    var $max_text_length = 32768;
 
     // }}}
     // {{{ constructor
@@ -178,14 +180,11 @@ class MDB_fbsql extends MDB_Common
                     return $result;
                 }
                 $result = $this->query('SET COMMIT TRUE');
-                if (MDB::isError($result)) {
-                    return $result;
-                }
             } else {
                 $result = $this->query('SET COMMIT FALSE');
-                if (MDB::isError($result)) {
-                    return $result;
-                }
+            }
+            if (MDB::isError($result)) {
+                return $result;
             }
         }
         $this->auto_commit = $auto_commit;
@@ -301,7 +300,7 @@ class MDB_fbsql extends MDB_Common
         $this->opened_persistent = $this->getoption('persistent');
 
         if (isset($this->supported['transactions']) && !$this->auto_commit) {
-            if (!fbsql_query('SET AUTOCOMMIT FALSE', $this->connection)) {
+            if (!fbsql_query('SET AUTOCOMMIT FALSE;', $this->connection)) {
                 fbsql_close($this->connection);
                 $this->connection = 0;
                 $this->affected_rows = -1;
@@ -369,7 +368,7 @@ class MDB_fbsql extends MDB_Common
         }
         if ($limit > 0) {
             if (!$ismanip) {
-                preg_replace("/^SELECT/", "SELECT TOP($first,$limit)", $query);
+                $query = str_replace('SELECT', "SELECT TOP($first,$limit)", $query);
             }
         }
 
@@ -555,7 +554,7 @@ class MDB_fbsql extends MDB_Common
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
-        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
+        $result = $this->query("INSERT INTO $sequence_name (dummy) VALUES (1)");
         $this->popExpect();
         if (MDB::isError($result)) {
             if ($ondemand && $result->getCode() == MDB_ERROR_NOSUCHTABLE) {
@@ -625,6 +624,15 @@ class MDB_fbsql extends MDB_Common
         if (!isset($this->results[$result_value])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'fetch: it was specified an inexisting result set');
+        }
+        if (is_string($field)) {
+            if (intval($field) != $field) {
+                $field = strtoupper($field);
+            }
+            else
+            {
+                $field = intval($field);
+            }
         }
         $value = @fbsql_result($result, $rownum, $field);
         if ($value === false && $value != null) {

@@ -111,7 +111,12 @@ class MDB_mssql extends MDB_Common
            return MDB_ERROR;
        }
        $row = mssql_fetch_row($res);
-       return $row[0];
+       if ($row[0] > 0) {
+           return $row[0];
+       }
+       else {
+           return null;
+       }
     }
 
     // }}}
@@ -396,8 +401,9 @@ class MDB_mssql extends MDB_Common
                 return $result;
             }
             if ($limit > 0) {
-                if ($ismanip) {
-                    preg_replace("/^SELECT/", "SELECT TOP $limit", $query);
+                $fetch = $first + $limit;
+                if (!$ismanip) {
+                    $query = str_replace('SELECT', "SELECT TOP $fetch", $query);
                 }
             }
             if ($this->database_name
@@ -414,7 +420,11 @@ class MDB_mssql extends MDB_Common
                     $this->affected_rows = mssql_rows_affected($this->connection);
                     return MDB_OK;
                 } else {
-                    $this->results[intval($result)]['highest_fetched_row'] = -1;
+                    $result_value = intval($result);
+                    if($first > 0 || $limit > 0) {
+                        $this->results[$result_value]['limits'] = array($first, $limit);
+                    }
+                    $this->results[$result_value]['highest_fetched_row'] = -1;
                     if ($types != null) {
                         if (!is_array($types)) {
                             $types = array($types);
@@ -538,7 +548,12 @@ class MDB_mssql extends MDB_Common
                 return $this->raiseError(MDB_ERROR, null, null,
                     'numRows: attempted to check the end of an unknown result');
             }
-            return mssql_num_rows($result);
+            $rows = mssql_num_rows($result);
+            if (isset($this->limits[$result])) {
+                $rows -= $this->limits[$result][0];
+                if ($rows < 0) $rows = 0;
+            }
+            return $rows;
         }
         return $this->raiseError(MDB_ERROR, null, null,
             'numRows: nut supported if option "result_buffering" is not enabled');
@@ -603,10 +618,13 @@ class MDB_mssql extends MDB_Common
             return $result;
         }
         $result = $this->query("SELECT @@IDENTITY FROM $sequence_name", 'integer', false);
+        if (MDB::isError($result)) {
+            return $result;
+        }
         $value = $this->fetch($result);
         $this->freeResult($result);
-        $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
-        if (MDB::isError($res)) {
+        $result = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
+        if (MDB::isError($result)) {
             $this->warnings[] = 'nextID: could not delete previous sequence table values';
         }
         return $value;
@@ -660,6 +678,9 @@ class MDB_mssql extends MDB_Common
         }
         $this->results[$result_value]['highest_fetched_row'] =
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
+        if (isset($this->results[$result_value]['limits'])) {
+             $rownum += $this->results[$result_value]['limits'][0];
+        }
         if (isset($this->results[$result_value]['types'][$field])) {
             $type = $this->results[$result_value]['types'][$field];
             $value = $this->datatype->convertResult($value, $type);
@@ -689,7 +710,10 @@ class MDB_mssql extends MDB_Common
         if (is_null($rownum)) {
             ++$this->results[$result_value]['highest_fetched_row'];
         } else {
-            if (!@mssql_data_seek($result, $rownum)) {
+            if (isset($this->results[$result_value]['limits'])) {
+                $row = $rownum + $this->results[$result_value]['limits'][0];
+            }
+            if (!@mssql_data_seek($result, $row)) {
                 return null;
             }
             $this->results[$result_value]['highest_fetched_row'] =

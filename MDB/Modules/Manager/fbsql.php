@@ -106,10 +106,13 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         if (MDB::isError($result = $db->connect())) {
             return $result;
         }
+        if (!fbsql_stop_db($name, $db->connection)) {
+            return($db->fbsqlRaiseError());
+        }
         if (!fbsql_drop_db($name, $db->connection)) {
             return $db->fbsqlRaiseError();
         }
-        return MDB_OK;
+        return $db->disconnect();
     }
 
     // }}}
@@ -163,6 +166,22 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         $query = "CREATE TABLE $name ($query_fields)";
 
         return $db->query($query);
+    }
+
+    // }}}
+    // {{{ dropTable()
+
+    /**
+     * drop an existing table
+     *
+     * @param object    $dbs        database object that is extended by this class
+     * @param string $name name of the table that should be dropped
+     * @return mixed MDB_OK on success, a MDB error on failure
+     * @access public
+     */
+    function dropTable(&$db, $name)
+    {
+        return($db->query("DROP TABLE $name CASCADE"));
     }
 
     // }}}
@@ -494,7 +513,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     function createIndex($table, $name, $definition)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $query = "ALTER TABLE $table ADD ".(isset($definition['unique']) ? 'UNIQUE' : 'INDEX')." $name (";
+        $query = "CREATE ".(isset($definition['unique']) ? 'UNIQUE INDEX' : 'INDEX')." $name on $table (";
         for ($field = 0, reset($definition['fields']);
             $field < count($definition['fields']);
             $field++, next($definition['fields']))
@@ -573,7 +592,8 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $sequence_name = $db->getSequenceName($seq_name);
         $res = $db->query("CREATE TABLE $sequence_name
-            (sequence INTEGER UNSIGNED NOT NULL AUTO_INCREMENT, PRIMARY KEY(sequence))");
+            (sequence INTEGER DEFAULT UNIQUE, dummy int, PRIMARY KEY(sequence))");
+        $res = $db->query("set unique = 1 for $sequence_name");
         if (MDB::isError($res)) {
             return $res;
         }
@@ -610,7 +630,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $sequence_name = $db->getSequenceName($seq_name);
-        return $db->query("DROP TABLE $sequence_name");
+        return $db->query("DROP TABLE $sequence_name CASCADE");
     }
 
     // }}}
