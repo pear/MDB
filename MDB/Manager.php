@@ -822,10 +822,14 @@ class MDB_Manager extends PEAR
                                         return $query;
                                     }
                                     $this->_addDefinitionChange($changes, 'TABLES', $was_table_name,
-                                        array('RenamedFields' => array($was_field_name => array(
-                                            'name' => $field_name,
-                                            'Declaration' => $query
-                                        )))
+                                        array(
+                                            'RenamedFields' => array(
+                                                $was_field_name => array(
+                                                    'name' => $field_name,
+                                                    'Declaration' => $query
+                                                )
+                                            )
+                                        )
                                     );
                                     $this->database->debug("Renamed field '$was_field_name' to '$field_name' in table '$table_name'");
                                 }
@@ -843,7 +847,7 @@ class MDB_Manager extends PEAR
                                             $unsigned = isset($fields[$field_name]['unsigned']);
                                             if (strcmp($previous_unsigned, $unsigned)) {
                                                 $change['unsigned'] = $unsigned;
-                                                $this->database->debug("Changed field '$field_name' type from '".($previous_unsigned ? 'unsigned ' : '').$previous_fields[$was_field_name]['type']."' to '".($unsigned ? 'unsigned ' : '').$fields[$field_name]['type']."' in table '$table_name'");
+                                                $this->database->debug("Changed field '$field_name' type from '".($previous_unsigned ? 'unsigned ' : '').$previous_fields[$was_field_name]['type']."' to '".($unsigned ? 'unsigned ' : '').$field['type']."' in table '$table_name'");
                                             }
                                             break;
                                         case 'text':
@@ -853,7 +857,7 @@ class MDB_Manager extends PEAR
                                             $length = (isset($field['length']) ? $field['length'] : 0);
                                             if (strcmp($previous_length, $length)) {
                                                 $change['length'] = $length;
-                                                $this->database->debug("Changed field '$field_name' length from '".$previous_fields[$was_field_name]['type'].($previous_length == 0 ? ' no length' : "($previous_length)")."' to '".$fields[$field_name]['type'].($length == 0 ? ' no length' : "($length)")."' in table '$table_name'");
+                                                $this->database->debug("Changed field '$field_name' length from '".$previous_fields[$was_field_name]['type'].($previous_length == 0 ? ' no length' : "($previous_length)")."' to '".$field['type'].($length == 0 ? ' no length' : "($length)")."' in table '$table_name'");
                                             }
                                             break;
                                         case 'date':
