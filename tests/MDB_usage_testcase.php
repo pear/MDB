@@ -123,7 +123,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
     function supported($feature) {
         if (!$this->db->support($feature)) {
-            $this->assertTrue(FALSE, 'This database does not support'.$feature);
+            $this->assertTrue(FALSE, 'This database does not support '.$feature);
             return(FALSE);
         }
         return(TRUE);
@@ -1051,7 +1051,8 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             return;
         }
 
-        $prepared_query = $this->db->prepareQuery('INSERT INTO files (document,picture) VALUES (?,?)');
+        $prepared_query = $this->db->prepareQuery('INSERT INTO files (ID, document,picture) VALUES (1,?,?)');
+        //$prepared_query = $this->db->prepareQuery('INSERT INTO files (document,picture) VALUES (?,?)');
 
         $this->db->setParamNull($prepared_query, 1, 'clob');
         $this->db->setParamNull($prepared_query, 2, 'blob');
