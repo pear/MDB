@@ -23,7 +23,7 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
     * Transactions support
     * Large Object support
     * Index/Unique support
-    * Extension Framework to load advanced functionality on demand
+    * Module Framework to load advanced functionality on demand
     * Table information interface
     * RDBMS management methods (creating, dropping, altering)
     * RDBMS independent xml based schema definition management
@@ -80,9 +80,9 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.1.0b1</version>
-    <state>stable</state>
-    <date>2002-11-02</date>
+    <version>1.0.1RC1</version>
+    <state>devel</state>
+    <date>2002-11-14</date>
     <notes>
 PEAR-ized directory structure and class names
 Added PHPUnit test suite
@@ -102,12 +102,12 @@ Minor bugfixes and API changes
         <file role="php">peardb_wrapper.php</file>
         <file role="php">reverse_engineer_xml_schema.php</file>
         <dir name="Modules">
+          <file role="php">LOB.php</file>
           <dir name="Manager">
             <file role="php">Common.php</file>
             <file role="php">mysql.php</file>
             <file role="php">pgsql.php</file>
           </dir>
-          <file role="php">LOB.php</file>
         </dir>
       </dir>
       <dir name="doc">
@@ -118,11 +118,6 @@ Minor bugfixes and API changes
         <file role="doc">skeleton.php</file>
         <file role="doc">Modules_Manager_skeleton.php</file>
       </dir>
-<!--      <dir name="examples">
-        <file role="doc">MDB_test.php</file>
-        <file role="doc">MDB_pear_wrapper_test.php</file>
-        <file role="doc">metapear_test_db.schema</file>
-      </dir> -->
       <dir name="tests">
         <file role="test">driver_test.schema</file>
         <file role="test">lob_test.schema</file>
@@ -131,22 +126,25 @@ Minor bugfixes and API changes
         <file role="test">MDB_usage_testcase.php</file>
         <file role="test">MDB_bugs_testcase.php</file>
         <file role="test">README</file>
-        <file role="test">setup_test.php</file>
         <file role="test">test.php</file>
         <file role="test">tests.css</file>
         <file role="test">testchoose.php</file>
         <file role="test">testUtils.php</file>
-        <file role="test">test.schema</file>
         <file role="test">test_setup.php.dist</file>
+        <file role="test">test.schema</file>
+        <file role="test">MDB_test.php</file>
+        <file role="test">MDB_pear_wrapper_test.php</file>
+        <file role="test">metapear_test_db.schema</file>
         <file role="test">driver_test_config.php</file>
         <file role="test">driver_test.php</file>
+        <file role="test">setup_test.php</file>
         <dir name="templates">
           <file role="test">results.tpl</file>
         </dir>
       </dir>
     </filelist>
     <deps>
-        <dep type="php" rel="ge" version="4.0.4pl1" />
+        <dep type="php" rel="ge" version="4.1.0" />
         <dep type="pkg" rel="has" version="0.91-dev">PEAR</dep>
         <dep type="pkg" rel="has">XML_Parser</dep>
     </deps>
