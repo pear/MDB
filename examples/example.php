@@ -31,7 +31,6 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     // just for kicks you can mess up this part to see some pear error handling
     $user = 'metapear';
     $pass = 'funky';
-    //$pass = '';
     $host = 'localhost';
     $db_name = 'metapear_test_db';
     if (isset($_GET['db_type'])) {
@@ -60,8 +59,8 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     if (MDB::isError($db)) {
         die (__LINE__.$db->getMessage());
     }
-/*
-    MDB::loadFile('Manager');
+
+    MDB::loadFile('../Manager');
     $manager =& new MDB_Manager;
     $input_file = 'metapear_test_db.schema';
     // you can either pass a dsn string, a dsn array or an exisiting db connection
@@ -71,7 +70,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     // in that case MDB will just compare the two schemas and make any necessary modifications to the existing DB
     echo(Var_Dump::display($manager->updateDatabase($input_file, $input_file.'.before')).'<br>');
     echo('updating database from xml schema file<br>');
-*/
+
     echo('switching to database: '.$db_name.'<br>');
     $db->setDatabase($db_name);
     // happy query
@@ -80,7 +79,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get row:0 column:0 and free the result
-    $field = $db->fetchOne($result);
+    $field = $db->fetch($result);
     $db->freeResult($result);
     echo('<br>field:<br>'.$field.'<br>');
     // run the query and get a result handler
@@ -124,8 +123,9 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo(Var_Dump::display($array).'<br>');
     // run the query and get a result handler
     $result = $db->query($query);
+    Var_Dump::display($db->loadModule('reverse'));
     echo('tableInfo:<br>');
-    echo(Var_Dump::display($db->tableInfo($result)).'<br>');
+    echo(Var_Dump::display($db->reverse->tableInfo($result)).'<br>');
     $types = array('integer', 'text', 'timestamp');
     $db->setResultTypes($result, $types);
     $array = $db->fetchAll($result, MDB_FETCHMODE_FLIPPED);
@@ -194,7 +194,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo('<br>see getAssoc in action:<br>');
     echo(Var_Dump::display($db->extended->getAll('SELECT * FROM test',array('integer','text','text'), null, null, MDB_FETCHMODE_ASSOC)).'<br>');
     echo('tableInfo on a string:<br>');
-    echo(Var_Dump::display($db->tableInfo('numbers')).'<br>');
+    echo(Var_Dump::display($db->reverse->tableInfo('numbers')).'<br>');
     echo('<br>just a simple update query:<br>');
     echo(Var_Dump::display($db->query('UPDATE numbers set trans_en ='.$db->getValue('integer', 0))).'<br>');
     echo('<br>affected rows:<br>');
@@ -220,18 +220,18 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     );
     echo('<br>create index:<br>');
     echo(Var_Dump::display($db->manager->createIndex('test', 'test_id_index', $index_def)).'<br>');
-/*
+
     if ($db_type == 'mysql') {
-        $manager->captureDebugOutput(true);
-        $manager->database->setOption('log_line_break', '<br>');
+        $manager->db->setOption('debug', true);
+        $manager->db->setOption('log_line_break', '<br>');
         // ok now lets create a new xml schema file from the existing DB
         // we will not use the 'metapear_test_db.schema' for this
         // this feature is especially interesting for people that have an existing Db and want to move to MDB's xml schema management
         // you can also try MDB_MANAGER_DUMP_ALL and MDB_MANAGER_DUMP_CONTENT
         echo(Var_Dump::display($manager->dumpDatabase(
             array(
-                'Output_Mode' => 'file',
-                'Output' => $db_name.'2.schema'
+                'output_mode' => 'file',
+                'output' => $db_name.'2.schema'
             ),
             MDB_MANAGER_DUMP_STRUCTURE
         )).'<br>');
@@ -241,7 +241,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
         // this is the database definition as an array
         echo(Var_Dump::display($manager->database_definition).'<br>');
     }
-*/
+
     echo('<br>just a simple delete query:<br>');
     echo(Var_Dump::display($db->query('DELETE FROM numbers')).'<br>');
     // You can disconnect from the database with:
