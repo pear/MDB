@@ -108,6 +108,8 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $result = $this->db->executeQuery($prepared_query);
 
+        $this->db->freePreparedQuery($prepared_query);
+
         if (MDB::isError($result)) {
             $this->assertTrue(FALSE, 'Error executing prepared query' . $result->getMessage());
         }
@@ -117,8 +119,59 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         if (MDB::isError($result)) {
             $this->assertTrue(FALSE, 'Error selecting from users' . $result->getMessage());
         }
-
+  
         $this->verifyFetchedValues($result, 0, $data);
+
+        if (MDB::isError($this->db->query('DELETE FROM users'))) {
+            $this->assertTrue(FALSE, 'Error deleting from table users');
+        }
+        
+    }
+
+    function testBulkFetch() {
+        if (MDB::isError($this->db->query('DELETE FROM users'))) {
+            $this->assertTrue(FALSE, 'Error deleting from table users');
+        }
+
+        $data = array();
+        $total_rows = 5;
+        for ($row = 0; $row < $total_rows; $row++) {
+            $data[$row]["user_name"] = "user_$row";
+            $data[$row]["user_password"] = "somepassword";
+            $data[$row]["subscribed"] = $row % 2;
+            $data[$row]["user_id"] = $row;
+            $data[$row]["quota"] = sprintf("%.2f",strval(1+($row+1)/100));
+            $data[$row]["weight"] = sqrt($row);
+            $data[$row]["access_date"] = MDB_date::mdbToday();
+            $data[$row]["access_time"] = MDB_date::mdbTime();
+            $data[$row]["approved"] = MDB_date::mdbNow();
+
+            $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+
+            $this->insertTestValues($prepared_query, $data[$row]);
+
+            $result = $this->db->executeQuery($prepared_query);
+            
+            $this->db->freePreparedQuery($prepared_query);
+
+            if (MDB::isError($result)) {
+                $this->assertTrue(FALSE, 'Error executing prepared query' . $result->getMessage());
+            }
+        }
+
+        $total_fields =  count($this->fields);
+        for ($i = 0; $i < $total_fields; $i++) {
+            $field = $this->fields[$i];
+            for ($row = 0; $row < $total_rows; $row++) {
+                $value = $this->db->queryOne('SELECT ' . $field . ' FROM users WHERE user_id=' . $row, $this->types[$i]);
+                //                print_r($value);
+                if (MDB::isError($value)) {
+                    $this->assertTrue(FALSE, 'Error fetching row ' . $row . ' for field ' . $field . ' of type ' . $this->types[$i]);  
+                } else {
+                    $this->assertEquals(strval(rtrim($value)), strval($data[$row][$field]), 'the query field ' . $field . ' of type ' . $this->types[$i] . ' for row ' . $row . ' was returned in ' . $value . ' unlike ' . $data[$row][$field] . ' as expected'); 
+                }
+            }
+        }
 
         if (MDB::isError($this->db->query('DELETE FROM users'))) {
             $this->assertTrue(FALSE, 'Error deleting from table users');
