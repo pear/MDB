@@ -116,14 +116,14 @@ class MDB_Manager_ibase extends MDB_Manager_common
             switch(key($changes)) {
                 case "ChangedNotNull":
                 case "notnull":
-                    return($this->raiseError(MDB_ERROR_MANAGER, '', '',
+                    return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
                         'Check supported changes: it is not supported changes to field not null constraint'));
                 case "ChangedDefault":
                 case "default":
-                    return($this->raiseError(MDB_ERROR_MANAGER, '', '',
+                    return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
                         'Check supported changes: it is not supported changes to field default value'));
                 case "length":
-                    return($this->raiseError(MDB_ERROR_MANAGER, '', '',
+                    return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
                         'Check supported changes: it is not supported changes to field default length'));
                 case "unsigned":
                 case "type":
@@ -131,7 +131,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
                 case "Definition":
                     break;
                 default:
-                    return($this->raiseError(MDB_ERROR_MANAGER, '', '',
+                    return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
                         'Check supported changes: it is not supported change of type' . key($changes)));
             }
         }
@@ -260,7 +260,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
                         }
                         break;
                     default:
-                        return($this->raiseError(MDB_ERROR_MANAGER, '', '',
+                        return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
                             'Alter table: change type ' . key($changes) . ' not yet supported'));
                 }
             }
@@ -354,7 +354,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
     function listViews(&$db)
     {
         //return($db->queryCol('SELECT RDB$VIEW_NAME'));
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not supported feature'));
+        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'not supported feature'));
     }
 
     // }}}

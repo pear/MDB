@@ -597,7 +597,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
                                 WHERE (pg_class.relname='$index_name') 
                                 AND (pg_class.oid=pg_index.indexrelid)", NULL, MDB_FETCHMODE_ASSOC);
         if ($row[0]['relname'] != $index_name) {
-            return($db->raiseError(MDB_ERROR_MANAGER, '', '', 'Get table index definition: it was not specified an existing table index'));
+            return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL, 'Get table index definition: it was not specified an existing table index'));
         }
 
         $columns = $this->listTableFields($db, $table);
