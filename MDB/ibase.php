@@ -876,15 +876,12 @@ class MDB_ibase extends MDB_Common
     function nextId($seq_name, $ondemand = true)
     {
         $sequence_name = $this->getSequenceName($seq_name);
-        $this->expectError(MDB_ERROR_NOSUCHTABLE);
+        $this->pushErrorHandling(PEAR_ERROR_RETURN);
         $result = $this->_doQuery("SELECT GEN_ID($sequence_name, 1) as the_value FROM RDB\$DATABASE");
-        $this->popExpect();
-        if ($ondemand && MDB::isError($result)
-            //&& $result->getCode() == MDB_ERROR_NOSUCHTABLE
-            )
-        {
+        $this->popErrorHandling();
+        if ($ondemand && MDB::isError($result)) {
             $this->loadManager();
-            // Since we are create the sequence on demand
+            // Since we are creating the sequence on demand
             // we know the first id = 1 so initialize the
             // sequence at 2
             $result = $this->manager->createSequence($this, $seq_name, 2);

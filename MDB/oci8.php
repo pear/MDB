@@ -834,11 +834,11 @@ class MDB_oci8 extends MDB_Common
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
         $result = $this->_doQuery("SELECT $sequence_name.nextval FROM DUAL");
         $this->popExpect();
-        if ($ondemand && MDB::isError($result) &&
-            $result->getCode() == MDB_ERROR_NOSUCHTABLE)
-        {
+        if ($ondemand && MDB::isError($result)
+            && $result->getCode() == MDB_ERROR_NOSUCHTABLE
+        ) {
             $this->loadManager();
-            // Since we are create the sequence on demand
+            // Since we are creating the sequence on demand
             // we know the first id = 1 so initialize the
             // sequence at 2
             $result = $this->manager->createSequence($this, $seq_name, 2);
