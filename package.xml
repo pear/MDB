@@ -44,10 +44,10 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>0.9.7.1</version>
+    <version>0.9.8</version>
     <state>beta</state>
-    <date>2002-06-20</date>
-    <notes>Bugfix release: fetchInto in the pgsql driver and baseFetchInto fixed to handle when now run numbers is passed to the method; mysql subselect emulation now returns NULL if no data is found;</notes>
+    <date>2002-06-28</date>
+    <notes>Further cleanups to the API (especially for sending the types of to be fetched data);added initial pgsql manager class; formatting improvements</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
@@ -56,6 +56,7 @@
           <file role="php">pgsql.php</file>
           <file role="php">manager_common.php</file>
           <file role="php">manager_mysql.php</file>
+          <file role="php">manager_pgsql.php</file>
           <file role="php">lob.php</file>
           <file role="php">manager.php</file>
           <file role="php">parser.php</file>
