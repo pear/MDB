@@ -1472,6 +1472,9 @@ class MDB_oci8 extends MDB_Common {
             && $result->getCode() == MDB_ERROR_NOSUCHTABLE)
         {
             $result = $this->createSequence($seq_name, 1);
+            if (MDB::isError($result)) {
+                return $result;
+            }
             return $this->nextId($seq_name, false);
         }
         return($this->fetchOne($result));
