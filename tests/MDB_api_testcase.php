@@ -53,7 +53,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     // contains the types of the fields from the test table
     var $types;
 
-    function MDB_Test($name) {
+    function MDB_Api_Test($name) {
         $this->PHPUnit_TestCase($name);
     }
 
@@ -114,7 +114,6 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     function testGetOption() {
         if ($this->methodExists($this->db, 'getOption')) {
             $atc = $this->db->getOption('persistent');
-            print_r($atc);
             $this->assertEquals($atc, $this->db->options['persistent']);
         }
     }

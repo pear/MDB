@@ -53,7 +53,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     // contains the types of the fields from the test table
     var $types;
 
-    function MDB_Test($name) {
+    function MDB_Usage_TestCase($name) {
         $this->PHPUnit_TestCase($name);
     }
 

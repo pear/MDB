@@ -53,7 +53,7 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     // contains the types of the fields from the test table
     var $types;
 
-    function MDB_Test($name) {
+    function MDB_Manager_Test($name) {
         $this->PHPUnit_TestCase($name);
     }
 
