@@ -101,8 +101,8 @@ class MDB_mysql extends MDB_Common
         
         $this->decimal_factor = pow(10.0, $this->decimal_places);
         
-        $this->options['DefaultDataType'] = NULL;
-        $this->options['fixed_float'] = NULL;
+        $this->options['DefaultTableType'] = FALSE;
+        $this->options['fixed_float'] = FALSE;
         
         $this->errorcode_map = array(
             1004 => MDB_ERROR_CANNOT_CREATE,
