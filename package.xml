@@ -12,8 +12,10 @@
       - fixed listTableIndexes()
       - fixed typo in getTableFieldDefinition()
       - hardcode fetchmode to prevent issues when a different default fetchmode is set (fixed bug #1914)
-      - fixed typo in MDB_Manager_oci8::listTables() (fix for bug #2434)
-    </notes>
+      MDB_Manager_oci8
+      - fixed typo in listTables() (fix for bug #2434)
+      MDB_pgsql
+      - updated error mappings from MDB2</notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
       <file role="doc">README</file>
