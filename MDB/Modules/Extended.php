@@ -231,7 +231,7 @@ class MDB_Extended
     {
         settype($params, 'array');
         if (count($params) == 0) {
-            return $this->queryOne($db, $query, $type);
+            return MDB_Extended::queryOne($db, $query, $type);
         }
 
         if ($type != null) {
@@ -243,8 +243,7 @@ class MDB_Extended
             return $prepared_query;
         }
 
-        $db->setParamArray($prepared_query, $params, $param_types);
-        $result = $db->executeQuery($prepared_query, $type);
+        $result = MDB_Extended::execute($db, $prepared_query, $type, $params, $param_types);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -280,11 +279,12 @@ class MDB_Extended
      * 0, or a MDB error code.
      * @access public
      */
-    function getRow(&$db, $query, $types = null, $params = array(), $param_types = null, $fetchmode = MDB_FETCHMODE_DEFAULT)
+    function getRow(&$db, $query, $types = null, $params = array(),
+        $param_types = null, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
         settype($params, 'array');
         if (count($params) == 0) {
-            return $this->queryRow($db, $query, $types, $fetchmode);
+            return MDB_Extended::queryRow($db, $query, $types, $fetchmode);
         }
 
         $prepared_query = $db->prepareQuery($query);
@@ -292,8 +292,7 @@ class MDB_Extended
             return $prepared_query;
         }
 
-        $db->setParamArray($prepared_query, $params, $param_types);
-        $result = $db->executeQuery($prepared_query, $types);
+        $result = MDB_Extended::execute($db, $prepared_query, $types, $params, $param_types);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -330,14 +329,15 @@ class MDB_Extended
      * row at index 0, or a MDB error code.
      * @access public
      */
-    function getCol(&$db, $query, $type = null, $params = array(), $param_types = null, $colnum = 0)
+    function getCol(&$db, $query, $type = null, $params = array(),
+        $param_types = null, $colnum = 0)
     {
         if ($type != null) {
             $type = array($type);
         }
         settype($params, 'array');
         if (count($params) > 0) {
-            $result = $this->queryCol($db, $query, $type, $colnum);
+            $result = MDB_Extended::queryCol($db, $query, $type, $colnum);
         }
 
         $prepared_query = $db->prepareQuery($query);
@@ -345,8 +345,7 @@ class MDB_Extended
             return $prepared_query;
         }
 
-        $db->setParamArray($prepared_query, $params, $param_types);
-        $result = $db->executeQuery($prepared_query, $type);
+        $result = MDB_Extended::execute($db, $prepared_query, $type, $params, $param_types);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -389,12 +388,13 @@ class MDB_Extended
      * @return array an nested array, or a MDB error
      * @access public
      */
-    function getAll(&$db, $query, $types = null, $params = array(), $param_types = null, $fetchmode = MDB_FETCHMODE_DEFAULT,
+    function getAll(&$db, $query, $types = null, $params = array(),
+        $param_types = null, $fetchmode = MDB_FETCHMODE_DEFAULT,
         $rekey = false, $force_array = false, $group = false)
     {
         settype($params, 'array');
         if (count($params) > 0) {
-            return $this->queryAll($db, $query, $types, $fetchmode, $rekey, $force_array, $group);
+            return MDB_Extended::queryAll($db, $query, $types, $fetchmode, $rekey, $force_array, $group);
         }
 
         $prepared_query = $db->prepareQuery($query);
@@ -402,8 +402,7 @@ class MDB_Extended
             return $prepared_query;
         }
 
-        $db->setParamArray($prepared_query, $params, $param_types);
-        $result = $db->executeQuery($prepared_query, $types);
+        $result = MDB_Extended::execute($db, $prepared_query, $types, $params, $param_types);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -419,6 +418,33 @@ class MDB_Extended
         return $all;
     }
 
+    // }}}
+    // {{{ execute()
+
+    /**
+     * Executes a prepared SQL query
+     * With execute() the generic query of prepare is assigned with the given
+     * data array. The values of the array inserted into the query in the same
+     * order like the array order
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param resource $prepared_query query handle from prepare()
+     * @param array $types array that contains the types of the columns in
+     *        the result set
+     * @param array $params numeric array containing the data to insert into
+     *        the query
+     * @param array $param_types array that contains the types of the values
+     *        defined in $params
+     * @return mixed a new result handle or a MDB_Error when fail
+     * @access public
+     * @see prepare()
+     */
+    function execute(&$db, $prepared_query, $types = null, $params = false, $param_types = null)
+    {
+        $db->setParamArray($prepared_query, $params, $param_types);
+
+        return $db->executeQuery($prepared_query, $types);
+    }
 
     // }}}
     // {{{ executeMultiple()
@@ -437,7 +463,7 @@ class MDB_Extended
      *        the result set
      * @param array $params numeric array containing the
      *        data to insert into the query
-     * @param array $parAM_types array that contains the types of the values
+     * @param array $param_types array that contains the types of the values
      *        defined in $params
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access public
@@ -446,14 +472,13 @@ class MDB_Extended
     function executeMultiple(&$db, $prepared_query, $types = null, $params, $param_types = null)
     {
         for($i = 0, $j = count($params); $i < $j; $i++) {
-            $result = $db->execute($prepared_query, $types, $params[$i], $param_types);
+            $result = MDB_Extended::execute($db, $prepared_query, $types, $params[$i], $param_types);
             if (MDB::isError($result)) {
                 return $result;
             }
         }
         return MDB_OK;
     }
-
 
     // }}}
     // {{{ autoPrepare()
@@ -472,7 +497,7 @@ class MDB_Extended
      */
     function autoPrepare(&$db, $table, $table_fields, $mode = MDB_AUTOQUERY_INSERT, $where = false)
     {
-        $query = $this->buildManipSQL($db, $table, $table_fields, $mode, $where);
+        $query = MDB_Extended::buildManipSQL($db, $table, $table_fields, $mode, $where);
         return $db->prepareQuery($query);
     }
 
@@ -485,20 +510,24 @@ class MDB_Extended
      * @param object    &$db reference to driver MDB object
      * @param string $table name of the table
      * @param array $fields_values assoc ($key=>$value) where $key is a field name and $value its value
+     * @param array $types array that contains the types of the columns in
+     *        the result set
      * @param int $mode type of query to make (MDB_AUTOQUERY_INSERT or MDB_AUTOQUERY_UPDATE)
+     * @param array $param_types array that contains the types of the values
+     *        defined in $params
      * @param string $where in case of update queries, this string will be put after the sql WHERE statement
      * @return mixed  a new MDB_Result or a MDB_Error when fail
      * @see buildManipSQL
      * @see autoPrepare
      * @access public
     */
-    function autoExecute(&$db, $table, $fields_values, $mode = MDB_AUTOQUERY_INSERT, $where = false)
+    function autoExecute(&$db, $table, $fields_values,
+        $types = null, $param_types = null, $mode = MDB_AUTOQUERY_INSERT, $where = false)
     {
-        $sth = $this->autoPrepare($db, $table, array_keys($fields_values), $mode, $where);
-        $ret = $db->execute($sth, null, array_values($fields_values));
+        $prepared_query = MDB_Extended::autoPrepare($db, $table, array_keys($fields_values), $mode, $where);
+        $ret = MDB_Extended::execute($db, $prepared_query, $types, array_values($fields_values), $param_types);
         $db->freePreparedQuery($sth);
         return $ret;
-
     }
 
     // {{{

@@ -163,7 +163,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     $prepared_query = $db->prepareQuery('INSERT INTO numbers VALUES(?,?,?)');
     foreach ($alldata as $row) {
             echo('running execute<br>');
-            $db->execute($prepared_query, null, $row, array('integer', 'text', 'text'));
+            $db->extended->execute($db, $prepared_query, null, $row, array('integer', 'text', 'text'));
     }
     // lets try an prepare execute combo
     $alldata = array(
@@ -184,12 +184,12 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo(Var_Dump::display($db->extended->getRow($db, 'SELECT * FROM numbers WHERE number = ?',array('integer','text','text'),$array)));
     echo('default fetchmode ist now MDB_FETCHMODE_ORDERED<br>');
     $db->setFetchmode(MDB_FETCHMODE_ORDERED);
-    echo('<br>see getCol in action:<br>');
-    echo(Var_Dump::display($db->extended->getCol($db, 'SELECT * FROM numbers','text', null, null, 1)).'<br>');
+    echo('<br>see getCol in action using static method call:<br>');
+    echo(Var_Dump::display(MDB_Extended::getCol($db, 'SELECT * FROM numbers','text', null, null, 1)).'<br>');
     echo('<br>see getAll in action:<br>');
     echo(Var_Dump::display($db->extended->getAll($db, 'SELECT * FROM test',array('integer','text','text'))).'<br>');
-    echo('<br>see getAssoc in action:<br>');
-    echo(Var_Dump::display($db->extended->getAll($db, 'SELECT * FROM test',array('integer','text','text'), null, null, MDB_FETCHMODE_ASSOC)).'<br>');
+    echo('<br>see getAssoc in action using static method call:<br>');
+    echo(Var_Dump::display(MDB_Extended::getAll($db, 'SELECT * FROM test',array('integer','text','text'), null, null, MDB_FETCHMODE_ASSOC)).'<br>');
     echo('tableInfo on a string:<br>');
     echo(Var_Dump::display($db->tableInfo('numbers')).'<br>');
     echo('<br>just a simple update query:<br>');
