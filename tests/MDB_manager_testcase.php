@@ -46,12 +46,18 @@
 class MDB_Manager_TestCase extends PHPUnit_TestCase {
     //contains the dsn of the database we are testing
     var $dsn;
-    //contains the MDB object of the db once we have connected
-    var $db;
-    // contains field names from the test table
-    var $fields;
-    // contains the types of the fields from the test table
-    var $types;
+    //contains the options that should be used during testing
+    var $options;
+    //contains the name of the database we are testing
+    var $database;
+    //contains the MDB_Manager object of the db once we have connected
+    var $manager;
+    //contains the name of the driver_test schema
+    var $driver_input_file = 'driver_test.schema';
+    //contains the name of the lob_test schema
+    var $lob_input_file = 'lob_test.schema';
+    //contains the name of the extension to use for backup schemas
+    var $backup_extension = '.before';
 
     function MDB_Manager_Test($name) {
         $this->PHPUnit_TestCase($name);
@@ -60,10 +66,18 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     function setUp() {
         global $dsn, $options, $database;
         $this->dsn = $dsn;
-        unset($this->dsn['database']);
+        $this->options = $options;
         $this->database = $database;
+        $backup_file = $this->driver_input_file.$this->backup_extension;
+        if(file_exists($backup_file)) {
+            unlink($backup_file);
+        }
+        $backup_file = $this->lob_input_file.$this->backup_extension;
+        if(file_exists($backup_file)) {
+            unlink($backup_file);
+        }
         $this->manager =& new MDB_Manager;
-        $this->manager->connect($this->dsn, $options);
+        $this->manager->connect($dsn, $options);
         if (MDB::isError($this->manager)) {
             $this->assertTrue(FALSE, 'Could not connect to manager in setUp');
             exit;
@@ -110,17 +124,41 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     }
 
     // test the manager
-    function testManager() {
-        if ($this->methodExists($this->manager, 'updateDatabase')) {
-            $input_file = 'driver_test.schema';
-            $backup_file = $input_file.'.before';
-            $result = $this->manager->updateDatabase($input_file, $backup_file, array('create' =>'1', 'name' =>$this->database));
-            if(!MDB::isError($result)) {
-                $input_file = 'lob_test.schema';
-                $backup_file = $input_file.'.before';
-                $result = $this->manager->updateDatabase($input_file, $backup_file, array('create' =>'1', 'name' =>$this->database));
+    function testCreateDatabase() {
+        if (!$this->methodExists($this->manager->database, 'dropDatabase')) {
+            return;
+        }
+        $result = $this->manager->database->dropDatabase($this->database);
+        if (!MDB::isError($result) || $result->getCode() != MDB_ERROR_UNSUPPORTED) {
+            if (!$this->methodExists($this->manager, 'updateDatabase')) {
+                return;
             }
-            $this->assertTrue(!MDB::isError($result), 'Error creating/updating database');
+            $result = $this->manager->updateDatabase($this->driver_input_file, FALSE, array('create' =>'1', 'name' => $this->database));
+            if(!MDB::isError($result)) {
+                $result = $this->manager->updateDatabase($this->lob_input_file, FALSE, array('create' =>'0', 'name' => $this->database));
+            }
+            $this->assertTrue(TRUE, 'Error creating database');
+        } else if ($result->getCode() == MDB_ERROR_UNSUPPORTED) {
+            $this->assertTrue(FALSE, 'Database creation not supported');
+        }
+    }
+
+    // test the manager
+    function testUpdateDatabase() {
+        if ($this->methodExists($this->manager, 'updateDatabase')) {
+            $backup_file = $this->driver_input_file.$this->backup_extension;
+            if(!file_exists($backup_file)) {
+                copy($this->driver_input_file, $backup_file);
+            }
+            $result = $this->manager->updateDatabase($this->driver_input_file, $backup_file, array('create' =>'1', 'name' =>$this->database));
+            if(!MDB::isError($result)) {
+                $backup_file = $this->lob_input_file.$this->backup_extension;
+                if(!file_exists($backup_file)) {
+                    copy($this->lob_input_file, $backup_file);
+                }
+                $result = $this->manager->updateDatabase($this->lob_input_file, $backup_file, array('create' =>'1', 'name' => $this->database));
+            }
+            $this->assertTrue(TRUE, 'Error updating database');
         }
     }
 }
