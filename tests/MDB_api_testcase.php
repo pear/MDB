@@ -62,8 +62,12 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $this->dsn = $dsn;
         $this->database = $database;
         $this->db =& MDB::connect($dsn, $options);
+        if (MDB::isError($this->db)) {
+            print_r($this->db);
+            $this->assertTrue(FALSE, 'Could not connect to database in setUp');
+            exit;
+        }
         $this->db->setDatabase($this->database);
-        
         $this->fields = array('user_name',
                         'user_password',
                         'subscribed',
@@ -95,11 +99,11 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         unset($this->db);
     }
 
-    function methodExists(&$class, $name) {
-        if (array_key_exists(strtolower($name), array_flip(get_class_methods($class)))) {
+    function methodExists($name) {
+        if (array_key_exists(strtolower($name), array_flip(get_class_methods($this->db)))) {
             return TRUE;
         }
-        $this->assertTrue(FALSE, 'method '. $name . ' not implemented in ' . get_class($class));
+        $this->assertTrue(FALSE, 'method '. $name . ' not implemented in ' . get_class($this->db));
         return FALSE;
     }
 
@@ -113,27 +117,30 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function testGetOption() {
-        if ($this->methodExists($this->db, 'getOption')) {
-            $atc = $this->db->getOption('persistent');
-            $this->assertEquals($atc, $this->db->options['persistent']);
+        if (!$this->methodExists('getOption')) {
+            return;
         }
+        $atc = $this->db->getOption('persistent');
+        $this->assertEquals($atc, $this->db->options['persistent']);
     }
 
     function testSetOption() {
-        if ($this->methodExists($this->db, 'setOption')) {
-            $option = $this->db->getOption('persistent');
-            $this->db->setOption('persistent', !$option);
-            $this->assertEquals(!$option, $this->db->getOption('persistent'));
-            $this->db->setOption('persistent', $option);
+        if (!$this->methodExists($this->db, 'setOption')) {
+            return;
         }
+        $option = $this->db->getOption('persistent');
+        $this->db->setOption('persistent', !$option);
+        $this->assertEquals(!$option, $this->db->getOption('persistent'));
+        $this->db->setOption('persistent', $option);
     }
 
     function testGetTextValue() {
-        if ($this->methodExists($this->db, 'getTextValue')) {
-            $text = "Mr O'Leary";
-            $text = $this->db->getTextValue($text);
-            $this->assertEquals("'Mr O\'Leary'", $text);
+        if (!$this->methodExists($this->db, 'getTextValue')) {
+            return;
         }
+        $text = "Mr O'Leary";
+        $text = $this->db->getTextValue($text);
+        $this->assertEquals("'Mr O\'Leary'", $text);
     }
 
     function testLoadExtension() {
@@ -141,9 +148,10 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function testLoadManager() {
-        if ($this->methodExists($this->db, 'loadManager')) {
-            $this->assertTrue(!MDB::isError($this->db->loadManager("Create database")));
+        if (!$this->methodExists($this->db, 'loadManager')) {
+            return;
         }
+        $this->assertTrue(!MDB::isError($this->db->loadManager("Create database")));
     }
 
     // test of the driver
@@ -158,24 +166,27 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function testQuery() {
-        if ($this->methodExists($this->db, 'query')) {
-            $result = $this->standardQuery();
-            $this->assertTrue(is_resource($result), 'query: $result returned is not a resource');
+        if (!$this->methodExists($this->db, 'query')) {
+            return;
         }
+        $result = $this->standardQuery();
+        $this->assertTrue(is_resource($result), 'query: $result returned is not a resource');
     }
 
     function testFetch() {
-        if ($this->methodExists($this->db, 'fetch')) {
-            $result = $this->standardQuery();
-            $this->assertNotNull($this->db->fetch($result, 0, 0));
+        if (!$this->methodExists($this->db, 'fetch')) {
+            return;
         }
+        $result = $this->standardQuery();
+        $this->assertNotNull($this->db->fetch($result, 0, 0));
     }
 
     function testNumCols() { 
-        if ($this->methodExists($this->db, 'numCols')) {
-            $result = $this->standardQuery();
-            $this->assertTrue((!MDB::isError($this->db->numCols($result))) && ($this->db->numCols($result) > 0));
+        if (!$this->methodExists($this->db, 'numCols')) {
+            return;
         }
+        $result = $this->standardQuery();
+        $this->assertTrue((!MDB::isError($this->db->numCols($result))) && ($this->db->numCols($result) > 0));
     }
 }
 

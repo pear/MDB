@@ -62,6 +62,10 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $this->dsn = $dsn;
         $this->database = $database;
         $this->db =& MDB::connect($dsn, $options);
+        if (MDB::isError($this->db)) {
+            $this->assertTrue(FALSE, 'Could not connect to database in setUp');
+            exit;
+        }
         $this->db->setDatabase($this->database);
         $this->fields = array('user_name',
                         'user_password',
@@ -95,11 +99,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         unset($this->db);
     }
 
-    function methodExists(&$class, $name) {
-        if (array_key_exists(strtolower($name), array_flip(get_class_methods($class)))) {
+    function methodExists($name) {
+        if (array_key_exists(strtolower($name), array_flip(get_class_methods($this->db)))) {
             return TRUE;
         }
-        $this->assertTrue(FALSE, 'method '. $name . ' not implemented in ' . get_class($class));
+        $this->assertTrue(FALSE, 'method '. $name . ' not implemented in ' . get_class($this->db));
         return FALSE;
     }
 

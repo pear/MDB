@@ -62,6 +62,10 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         $this->dsn = $dsn;
         $this->database = $database;
         $this->db =& MDB::connect($dsn, $options);
+        if (MDB::isError($this->db)) {
+            $this->assertTrue(FALSE, 'Could not connect to database in setUp');
+            exit;
+        }
         $this->db->setDatabase($this->database);
         $this->fields = array('user_name',
                         'user_password',
