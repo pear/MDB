@@ -44,25 +44,12 @@
 //
 // $Id$
 
-require_once 'PEAR.php';
-
-define('MDB_TYPE_TEXT'      , 0);
-define('MDB_TYPE_BOOLEAN'   , 1);
-define('MDB_TYPE_INTEGER'   , 2);
-define('MDB_TYPE_DECIMAL'   , 3);
-define('MDB_TYPE_FLOAT'     , 4);
-define('MDB_TYPE_DATE'      , 5);
-define('MDB_TYPE_TIME'      , 6);
-define('MDB_TYPE_TIMESTAMP' , 7);
-define('MDB_TYPE_CLOB'      , 8);
-define('MDB_TYPE_BLOB'      , 9);
-
 /**
  * @package MDB
  * @author Lukas Smith <smith@dybnet.de>
  */
 
-$registered_transactions_shutdown = 0;
+$_MDB_registered_transactions_shutdown = 0;
 
 // }}}
 // {{{ _MDB_shutdownTransactions()
@@ -85,7 +72,7 @@ function _MDB_shutdownTransactions()
 }
 
 // }}}
-// {{{ defaultDebugOutput()
+// {{{ MDB_defaultDebugOutput()
 
 /**
  * default debug output handler
@@ -98,7 +85,7 @@ function _MDB_shutdownTransactions()
  * if the error code was unknown
  * @access public
  */
-function defaultDebugOutput($database, $message)
+function MDB_defaultDebugOutput($database, $message)
 {
     global $databases;
 
@@ -130,6 +117,7 @@ class MDB_Common extends PEAR
             'autofree' => FALSE,
             'lob_buffer_length' => 8000,
             'log_line_break' => "\n",
+            'seqname_format' => '%s_seq'
         );
     var $escape_quotes = '';
     var $decimal_places = 2;
@@ -207,7 +195,7 @@ class MDB_Common extends PEAR
         if (isset($options['includepath'])) {
             $this->include_path = $options['includepath'];
         } else {
-            $this->include_path = dirname(__FILE__);
+            $this->include_path = '.';
         }
     }
 
@@ -409,7 +397,7 @@ class MDB_Common extends PEAR
     function captureDebugOutput($capture)
     {
         $this->pass_debug_handle = $capture;
-        $this->debug = ($capture ? 'defaultDebugOutput' : '');
+        $this->debug = ($capture ? 'MDB_defaultDebugOutput' : '');
     }
 
     // }}}
@@ -560,29 +548,19 @@ class MDB_Common extends PEAR
     function _loadExtension($scope, $extension, $included_constant, $include)
     {
         if (strlen($included_constant) == 0 || !defined($included_constant)) {
-            $include_path = $this->include_path;
-            $length = strlen($include_path);
-            $separator = '';
-            if ($length) {
-                $directory_separator = (defined('DIRECTORY_SEPARATOR') ? DIRECTORY_SEPARATOR : '/');
-                if ($include_path[$length - 1] != $directory_separator) {
-                    $separator = $directory_separator;
-                }
-            }
-            if (!file_exists($include_path . $separator . $include)) {
-                $directory = 0;
-                if (!strcmp($include_path, '') || ($directory = @opendir($include_path))) {
-                    if ($directory) {
-                        closedir($directory);
-                    }
+            $separator = (defined('MDB_DIRECTORY_SEPARATOR') ? MDB_DIRECTORY_SEPARATOR : '/');
+            $include_path = $this->include_path.$separator.'MDB'.$separator.$extension.$seperator;
+            if (!file_exists($include_path.$separator.$include)) {
+                $directory = @opendir($include_path);
+                if ($directory) {
+                    closedir($directory);
                     return $this->raiseError(MDB_ERROR_LOADEXTENSION, '', '',
                         $scope . ': it was not specified an existing ' . $extension . ' file (' . $include . ')');
-                } else {
-                    return $this->raiseError(MDB_ERROR_LOADEXTENSION, '', '',
-                        $scope . ': it was not specified a valid ' . $extension . ' include path');
                 }
+                return $this->raiseError(MDB_ERROR_LOADEXTENSION, '', '',
+                    $scope . ': it was not specified a valid ' . $extension . ' include path');
             }
-            include($include_path . $separator . $include);
+            include_once($include_path.$separator.$include);
         }
         return (MDB_OK);
     }
@@ -603,7 +581,7 @@ class MDB_Common extends PEAR
             return (MDB_OK);
         }
         $result = $this->_loadExtension($scope, 'LOB',
-            'MDB_LOB_INCLUDED', 'MDB/LOB.php');
+            'MDB_LOB_INCLUDED', 'LOB.php');
         if (MDB::isError($result)) {
             return($result);
         }
@@ -622,26 +600,15 @@ class MDB_Common extends PEAR
      */
     function loadManager($scope = '')
     {
-        if (isset($this->manager)) {
+        if (defined('MDB_MANAGER_INCLUDED')) {
             return (MDB_OK);
         }
-        $result = $this->_loadExtension($scope, 'database manager',
-            'MDB_MANAGER_COMMON_INCLUDED', 'manager_common.php');
+        $result = $this->_loadExtension($scope, 'Manager',
+            'MDB_MANAGER_INCLUDED', $this->dbsyntax.'.php');
         if (MDB::isError($result)) {
             return($result);
         }
-        if (strlen($this->manager_class_name)) {
-            if (strlen($this->manager_include) == 0)
-                return $this->raiseError(MDB_LOADEXTENSION, '', '', $scope . ': no valid database manager include file');
-            $result = $this->_loadExtension($scope, 'database manager',
-                $this->manager_included_constant, $this->manager_include);
-            if (MDB::isError($result)) {
-                return($result);
-            }
-            $class_name = $this->manager_class_name;
-        } else {
-            $class_name = 'MDB_Manager_Common';
-        }
+        $class_name = 'MDB_Manager_'.$this->dbsyntax;
         $this->manager = new $class_name;
         return (MDB_OK);
     }
@@ -658,11 +625,11 @@ class MDB_Common extends PEAR
      */
     function _registerTransactionShutdown($auto_commit)
     {
-        global $registered_transactions_shutdown;
+        global $_MDB_registered_transactions_shutdown;
 
-        if (($this->in_transaction = !$auto_commit) && !$registered_transactions_shutdown) {
+        if (($this->in_transaction = !$auto_commit) && !$_MDB_registered_transactions_shutdown) {
             register_shutdown_function('_MDB_shutdownTransactions');
-            $registered_transactions_shutdown = 1;
+            $_MDB_registered_transactions_shutdown = 1;
         }
         return (MDB_OK);
     }
