@@ -629,7 +629,6 @@ class MDB_ibase extends MDB_Common
      *      respective numbers of the columns starting from 0. Some DBMS may
      *      not return any columns when the result set does not contain any
      *      rows.
-     *     a MDB error on failure
      * @access public
      */
     function getColumnNames($result)
@@ -643,8 +642,8 @@ class MDB_ibase extends MDB_Common
             $this->results[$result_value]['columns'] = array();
             $columns = ibase_num_fields($result);
             for ($column=0; $column<$columns; $column++) {
-                $column_info = ibase_field_info($result, $column);
-                $this->results[$result_value]['columns'][strtolower($column_info["name"])] = $column;
+                $column_info = strtolower(ibase_field_info($result, $column));
+                $this->results[$result_value]['columns'][$column_info["name"]] = $column;
             }
         }
         return $this->results[$result_value]['columns'];
@@ -704,9 +703,7 @@ class MDB_ibase extends MDB_Common
                     return true;
                 }
             }
-            $row = @ibase_fetch_assoc($result);
-            $row = array_change_key_case($row);
-            if (is_array($row = @ibase_fetch_row($result))) {
+            if (is_array($row = @ibase_fetch_assoc($result))) {
                 $this->results[$result_value]['row_buffer'] = $row;
                 return false;
             }
@@ -754,7 +751,6 @@ class MDB_ibase extends MDB_Common
         if ($this->options['result_buffering']) {
             $result_value = intval($result);
             if (!isset($this->results[$result_value]['rows'])) {
-                $getcolumnnames = $this->getColumnNames($result);
                 if (isset($this->results[$result_value]['limits'])) {
                     $skipfirstrow = $this->_skipLimitOffset($result);
                     if (MDB::isError($skipfirstrow)) {
