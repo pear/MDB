@@ -695,7 +695,7 @@ class MDB_querysim extends MDB_Common
     {
         $result_value = $this->_querySimSignature($result);
         //if specific rownum request
-        if ($rownum == null) {
+        if (is_null($rownum)) {
             ++$this->results[$result_value]['highest_fetched_row'];
             $rownum = $this->results[$result_value]['highest_fetched_row'];
         } else {

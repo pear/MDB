@@ -1706,7 +1706,7 @@ class MDB_Common extends PEAR
         }
         for($column = 0; $column < $columns; $column++) {
             $result = $this->fetch($result, $rownum, $column);
-            if ($result == null) {
+            if (!is_array($result)) {
                 return null;
             }
             if (isset($column_names)) {

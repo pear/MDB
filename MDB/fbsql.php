@@ -135,7 +135,7 @@ class MDB_fbsql extends MDB_Common
      */
     function fbsqlRaiseError($errno = null)
     {
-        if ($errno == null) {
+        if (is_null($errno)) {
             $errno = $this->errorCode(fbsql_errno($this->connection));
         }
         return $this->raiseError($errno, null, null, null,
@@ -645,7 +645,7 @@ class MDB_fbsql extends MDB_Common
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_value = intval($result);
-        if ($rownum == null) {
+        if (is_null($rownum)) {
             ++$this->results[$result_value]['highest_fetched_row'];
         } else {
             if (!@fbsql_data_seek($result, $rownum)) {

@@ -106,7 +106,7 @@ class MDB_Result
 
         $this->row_counter++;
         $row = $this->dbh->fetchRow($this->result, $fetchmode, $rownum);
-        if ($row == null && $this->autofree) {
+        if (is_null($row) && $this->autofree) {
             $this->freeResult();
         }
         return $row;

@@ -676,7 +676,7 @@ class MDB_mssql extends MDB_Common
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_value = intval($result);
-        if ($rownum == null) {
+        if (is_null($rownum)) {
             ++$this->results[$result_value]['highest_fetched_row'];
         } else {
             if (!@mssql_data_seek($result, $rownum)) {
