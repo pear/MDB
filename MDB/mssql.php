@@ -344,11 +344,10 @@ class MDB_mssql extends MDB_Common
     // {{{ standaloneQuery()
 
    /**
-     * Send a query to the database and return any results
+     * execute a query as DBA
      * 
      * @param string $query the SQL query
      * @return mixed MDB_OK on success, a MDB error on failure
-     *
      * @access public
      */
     function standaloneQuery($query)

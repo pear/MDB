@@ -425,14 +425,14 @@ class MDB_pgsql extends MDB_Common
     }
 
     // }}}
-    // {{{ _standaloneQuery()
+    // {{{ standaloneQuery()
 
-    /**
-     * execute a query
-     *
-     * @param string $query
-     * @return
-     * @access private
+   /**
+     * execute a query as DBA
+     * 
+     * @param string $query the SQL query
+     * @return mixed MDB_OK on success, a MDB error on failure
+     * @access public
      */
     function _standaloneQuery($query)
     {
