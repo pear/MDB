@@ -325,10 +325,10 @@ class MDB_Parser extends XML_Parser
             {
                 $this->raiseError('field "create" has to be 1 or 0', $xp);
             };
-            if (isset($this->database_definition['override']) 
-                && !$this->is_boolean($this->database_definition['override']))
+            if (isset($this->database_definition['overwrite']) 
+                && !$this->is_boolean($this->database_definition['overwrite']))
             {
-                $this->raiseError('field "override" has to be 1 or 0', $xp);
+                $this->raiseError('field "overwrite" has to be 1 or 0', $xp);
             };
             if (!isset($this->database_definition['name']) || !$this->database_definition['name']) {
                 $this->raiseError('database needs a name', $xp);
