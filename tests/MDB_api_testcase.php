@@ -62,13 +62,12 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function setUp() {
-        global $dsn, $options, $database;
-        $this->dsn = $dsn;
-        $this->options = $options;
-        $this->database = $database;
-        $this->db =& MDB::connect($dsn, $options);
+        $this->dsn      = $GLOBALS['dsn'];
+        $this->options  = $GLOBALS['options'];
+        $this->database = $GLOBALS['database'];
+        $this->db =& MDB::connect($this->dsn, $this->options);
         if (MDB::isError($this->db)) {
-            $this->assertTrue(FALSE, 'Could not connect to database in setUp - ' .$this->db->getMessage() . ' - ' .$this->db->getUserInfo());
+            $this->assertTrue(false, 'Could not connect to database in setUp - ' .$this->db->getMessage() . ' - ' .$this->db->getUserInfo());
             exit;
         }
         $this->db->setDatabase($this->database);
@@ -107,17 +106,17 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
 
     function methodExists($name) {
         if (array_key_exists(strtolower($name), array_flip(get_class_methods($this->db)))) {
-            return(TRUE);
+            return true;
         }
-        $this->assertTrue(FALSE, 'method '. $name.' not implemented in '.get_class($this->db));
-        return(FALSE);
+        $this->assertTrue(false, 'method '. $name.' not implemented in '.get_class($this->db));
+        return false;
     }
 
     //test stuff in common.php
     function testConnect() {
         $db =& MDB::connect($this->dsn, $this->options);
         if(MDB::isError($db)) {
-            $this->assertTrue(FALSE, 'Connect failed bailing out - ' .$db->getMessage() . ' - ' .$db->getUserInfo());
+            $this->assertTrue(false, 'Connect failed bailing out - ' .$db->getMessage() . ' - ' .$db->getUserInfo());
         }
         if (MDB::isError($this->db)) {
             exit;
@@ -128,8 +127,8 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         if (!$this->methodExists('getOption')) {
             return;
         }
-        $atc = $this->db->getOption('persistent');
-        $this->assertEquals($atc, $this->db->options['persistent']);
+        $option = $this->db->getOption('persistent');
+        $this->assertEquals($option, $this->db->options['persistent']);
     }
 
     function testSetOption() {
@@ -167,9 +166,9 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $query = 'SELECT * FROM users';
         // run the query and get a result handler
         if (!MDB::isError($this->db)) {
-            return($this->db->query($query));
+            return $this->db->query($query);
         }
-        return(FALSE);
+        return false;
     }
 
     function testQuery() {
@@ -187,7 +186,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $result = $this->standardQuery();
         $err = $this->db->fetchInto($result);
         if(MDB::isError($err)) {
-            $this->assertTrue(FALSE, 'Error testFetch: '.$err->getMessage().' - '.$err->getUserInfo());
+            $this->assertTrue(false, 'Error testFetch: '.$err->getMessage().' - '.$err->getUserInfo());
         }
         $this->assertNull($err);
     }
@@ -203,10 +202,10 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     function testSingleton() {
         $mdb =& MDB::singleton();
         $this->assertTrue(MDB::isConnection($mdb));
-        
+
         // should have a different database name set
         $mdb =& MDB::singleton($this->dsn, $this->options);
-        
+
         $this->assertTrue($mdb->database != $this->db->database);
     }
 }

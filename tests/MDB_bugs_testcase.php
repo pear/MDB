@@ -62,13 +62,12 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
     }
 
     function setUp() {
-        global $dsn, $options, $database;
-        $this->dsn = $dsn;
-        $this->options = $options;
-        $this->database = $database;
-        $this->db =& MDB::connect($dsn, $options);
+        $this->dsn      = $GLOBALS['dsn'];
+        $this->options  = $GLOBALS['options'];
+        $this->database = $GLOBALS['database'];
+        $this->db =& MDB::connect($this->dsn, $this->options);
         if (MDB::isError($this->db)) {
-            $this->assertTrue(FALSE, 'Could not connect to database in setUp');
+            $this->assertTrue(false, 'Could not connect to database in setUp');
             exit;
         }
         $this->db->setDatabase($this->database);
@@ -109,10 +108,10 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
     function clearTables() {
         if (MDB::isError($this->db->query('DELETE FROM users'))) {
-            $this->assertTrue(FALSE, 'Error deleting from table users');
+            $this->assertTrue(false, 'Error deleting from table users');
         }
         if (MDB::isError($this->db->query('DELETE FROM files'))) {
-            $this->assertTrue(FALSE, 'Error deleting from table users');
+            $this->assertTrue(false, 'Error deleting from table users');
         }
     }
 
@@ -146,9 +145,9 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
             $this->insertTestValues($prepared_query, $data[$row]);
 
             $result = $this->db->executeQuery($prepared_query);
-            
+
             if (MDB::isError($result)) {
-                $this->assertTrue(FALSE, 'Error executing prepared query'.$result->getMessage());
+                $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
             }
         }
 
@@ -157,7 +156,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         $result = $this->db->query('SELECT * FROM users ORDER BY user_name');
 
         if (MDB::isError($result)) {
-            $this->assertTrue(FALSE, 'Error selecting from users'.$result->getMessage());
+            $this->assertTrue(false, 'Error selecting from users'.$result->getMessage());
         }
 
         $this->db->setFetchMode(MDB_FETCHMODE_ASSOC);

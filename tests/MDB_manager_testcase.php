@@ -64,10 +64,9 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     }
 
     function setUp() {
-        global $dsn, $options, $database;
-        $this->dsn = $dsn;
-        $this->options = $options;
-        $this->database = $database;
+        $this->dsn      = $GLOBALS['dsn'];
+        $this->options  = $GLOBALS['options'];
+        $this->database = $GLOBALS['database'];
         $backup_file = $this->driver_input_file.$this->backup_extension;
         if (file_exists($backup_file)) {
             unlink($backup_file);
@@ -77,9 +76,9 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
             unlink($backup_file);
         }
         $this->manager =& new MDB_Manager;
-        $this->manager->connect($dsn, $options);
+        $this->manager->connect($this->dsn, $this->options);
         if (MDB::isError($this->manager)) {
-            $this->assertTrue(FALSE, 'Could not connect to manager in setUp');
+            $this->assertTrue(false, 'Could not connect to manager in setUp');
             exit;
         }
         $this->fields = array(
@@ -93,7 +92,7 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
             'access_time',
             'approved'
         );
-        
+
         $this->types = array(
            'text',
            'text',
@@ -116,11 +115,13 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     }
 
     function methodExists(&$class, $name) {
-        if (array_key_exists(strtolower($name), array_flip(get_class_methods($class)))) {
-            return(TRUE);
+        if (is_object($class)
+            && array_key_exists(strtolower($name), array_flip(get_class_methods($class)))
+        ) {
+            return true;
         }
-        $this->assertTrue(FALSE, 'method '. $name.' not implemented in '.get_class($class));
-        return(FALSE);
+        $this->assertTrue(false, 'method '. $name.' not implemented in '.get_class($class));
+        return false;
     }
 
     function testCreateDatabase() {
@@ -132,13 +133,13 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
             if (!$this->methodExists($this->manager, 'updateDatabase')) {
                 return;
             }
-            $result = $this->manager->updateDatabase($this->driver_input_file, FALSE, array('create' =>'1', 'name' => $this->database));
+            $result = $this->manager->updateDatabase($this->driver_input_file, false, array('create' =>'1', 'name' => $this->database));
             if(!MDB::isError($result)) {
-                $result = $this->manager->updateDatabase($this->lob_input_file, FALSE, array('create' =>'0', 'name' => $this->database));
+                $result = $this->manager->updateDatabase($this->lob_input_file, false, array('create' =>'0', 'name' => $this->database));
             }
             $this->assertFalse(MDB::isError($result), 'Error creating database');
         } else if ($result->getCode() == MDB_ERROR_UNSUPPORTED) {
-            $this->assertTrue(FALSE, 'Database creation not supported');
+            $this->assertTrue(false, 'Database creation not supported');
         }
     }
 
