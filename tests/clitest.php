@@ -41,7 +41,7 @@
 // | Author: Paul Cooper <pgc@ucecom.com>                                 |
 // +----------------------------------------------------------------------+
 //
-// $Id:
+// $Id$
 
 /*
  This is a small test suite for MDB using PHPUnit
