@@ -125,7 +125,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function testSetOption() {
-        if (!$this->methodExists($this->db, 'setOption')) {
+        if (!$this->methodExists('setOption')) {
             return;
         }
         $option = $this->db->getOption('persistent');
@@ -135,7 +135,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function testGetTextValue() {
-        if (!$this->methodExists($this->db, 'getTextValue')) {
+        if (!$this->methodExists('getTextValue')) {
             return;
         }
         $text = "Mr O'Leary";
@@ -148,7 +148,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function testLoadManager() {
-        if (!$this->methodExists($this->db, 'loadManager')) {
+        if (!$this->methodExists('loadManager')) {
             return;
         }
         $this->assertTrue(!MDB::isError($this->db->loadManager("Create database")));
@@ -166,7 +166,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function testQuery() {
-        if (!$this->methodExists($this->db, 'query')) {
+        if (!$this->methodExists('query')) {
             return;
         }
         $result = $this->standardQuery();
@@ -174,7 +174,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function testFetch() {
-        if (!$this->methodExists($this->db, 'fetch')) {
+        if (!$this->methodExists('fetch')) {
             return;
         }
         $result = $this->standardQuery();
@@ -182,7 +182,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function testNumCols() { 
-        if (!$this->methodExists($this->db, 'numCols')) {
+        if (!$this->methodExists('numCols')) {
             return;
         }
         $result = $this->standardQuery();
