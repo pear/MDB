@@ -45,15 +45,6 @@
 // $Id$
 //
 
-/**
-* The database manager is a class that provides a set of database
-* management services like installing, altering and dumping the data
-* structures of databases.
-*
-* @package MDB
-* @author  Lukas Smith <smith@dybnet.de>
- */
-
 require_once 'PEAR.php';
 require_once(dirname(__FILE__).'/MDB.php');
 require_once(dirname(__FILE__).'/parser.php');
@@ -62,6 +53,15 @@ require_once(dirname(__FILE__).'/xml_parser.php');
 define('MDB_MANAGER_DUMP_ALL',          0);
 define('MDB_MANAGER_DUMP_STRUCTURE',    1);
 define('MDB_MANAGER_DUMP_CONTENT',      2);
+
+/**
+* The database manager is a class that provides a set of database
+* management services like installing, altering and dumping the data
+* structures of databases.
+*
+* @package MDB
+* @author  Lukas Smith <smith@dybnet.de>
+ */
 
 class MDB_manager extends PEAR
 {
@@ -386,13 +386,14 @@ class MDB_manager extends PEAR
             return PEAR::raiseError(NULL, DB_ERROR_UNSUPPORTED, NULL, NULL,
                 'sequences are not supported', 'MDB_Error', TRUE);
         }
-        $this->database->debug('Create sequence: '.$sequence_name);
         if (!isset($sequence_name) || !strcmp($sequence_name, '')) {
             return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL,
                 'no valid sequence name specified', 'MDB_Error', TRUE);
         }
-        $start = $sequence['start'];
-        if (isset($sequence['on']) && !$created_on_table) {
+        $this->database->debug('Create sequence: '.$sequence_name);
+        if (isset($sequence['start']) && $sequence['start'] != '') {
+            $start = $sequence['start'];
+        } else if (isset($sequence['on']) && !$created_on_table) {
             $table = $sequence['on']['table'];
             $field = $sequence['on']['field'];
             if ($this->database->support('Summaryfunctions')) {
@@ -402,6 +403,8 @@ class MDB_manager extends PEAR
             if (MDB::isError($start)) {
                 return $start;
             }
+        } else {
+            $start = 1;
         }
         return $this->database->createSequence($sequence_name, $start);
     }
@@ -483,7 +486,7 @@ class MDB_manager extends PEAR
             && is_array($this->database_definition['SEQUENCES'])) 
         {
             foreach($this->database_definition['SEQUENCES'] as $sequence_name => $sequence) {
-                $result = $this->_createSequence($sequence_name, $sequence, 1);
+                $result = $this->_createSequence($sequence_name, $sequence, 0);
 
                 if (MDB::isError($result)) {
                     break;
@@ -1207,20 +1210,12 @@ class MDB_manager extends PEAR
      *
      * @param string  $sequence_name
      * @param string  $eol
-     * @param boolean $dump_definition
      * @return mixed string with xml seqeunce definition on success, or a MDB error object
      * @access private
      */
-    function _dumpSequence($sequence_name, $eol, $dump = MDB_MANAGER_DUMP_ALL, $dump_definition)
+    function _dumpSequence($sequence_name, $eol, $dump = MDB_MANAGER_DUMP_ALL)
     {
-        if ($dump_definition) {
-            $sequence_definition = $this->database_definition['SEQUENCES'][$sequence_name];
-        } else {
-            $sequence_definition = $this->database->getSequenceDefinition($sequence_name);
-            if (MDB::isError($sequence_definition)) {
-                return($sequence_definition);
-            }
-        }
+        $sequence_definition = $this->database_definition['SEQUENCES'][$sequence_name];
         $buffer = "$eol <sequence>$eol  <name>$sequence_name</name>$eol";
         if($dump == MDB_MANAGER_DUMP_ALL || $dump == MDB_MANAGER_DUMP_CONTENT) {
             $start = $sequence_definition['start'];
@@ -1258,8 +1253,9 @@ class MDB_manager extends PEAR
         $parser = new MDB_parser;
         $parser->variables = $variables;
         $parser->fail_on_invalid_names = $fail_on_invalid_names;
-        if (strcmp($error = $parser->parseStream($file), '')) {
-            $error_msg .= ' Line '.$parser->error_line.' column '.$parser->error_column.' Byte index '.$parser->error_byte_index;
+        if (strcmp($error_msg = $parser->parseStream($file), '')) {
+            $error_msg .= ' (Line '.$parser->error_line.' column'.
+                $parser->error_column.' Byte index '.$parser->error_byte_index.')'; 
             $error = PEAR::raiseError(NULL, DB_ERROR_MANAGER_PARSE, NULL, NULL,
                 $error_msg, 'MDB_Error', TRUE);
         } else {
@@ -1267,7 +1263,7 @@ class MDB_manager extends PEAR
         }
         fclose($file);
 
-        if (MDB::isError($error)) {
+        if (isset($error) && MDB::isError($error)) { 
             return $error;
         }
 
@@ -1454,10 +1450,11 @@ class MDB_manager extends PEAR
      * This method can be used if no xml schema file exists yet.
      * The resulting xml schema file may need some manual adjustments.
      *
+     * @param boolean $schema_file path of the database schema file.
      * @return mixed DB_OK or array with all ambiguities on success, or a MDB error object
      * @access public
      */
-    function getDefinitionFromDatabase()
+    function getDefinitionFromDatabase($ignore_ambiguity = TRUE)
     {
         $database = $this->database->database_name;
         if (strlen($database) == 0) {
@@ -1486,32 +1483,63 @@ class MDB_manager extends PEAR
                 if (MDB::isError($definition)) {
                     return ($definition);
                 }
-                $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_name] = $definition[0][0];
-                $field_choices = count($definition[0]);
-                for($field_choice = 1; $field_choice < $field_choices; $field_choice++) {
-                    $this->database_definition['TABLES'][$table_name]['FIELDS']['MDB_Alternative_Choice_'.$field_choice.'_for_'.$field_name] = $definition[0][$field_choice];
+                if(isset($definition[0][0]['notnull']) && $definition[0][0]['notnull'] && !isset($definition[0][0]['default'])) {
+                    switch ($definition[0][0]['type']) {
+                        case 'integer':
+                        case 'float':
+                        case 'decimal':
+                            $definition[0][0]['default'] = '0';
+                            break;
+                        case 'text':
+                            $definition[0][0]['default'] = '';
+                            break;
+                        case 'timestamp':
+                            $definition[0][0]['default'] = '0000-00-00 00:0:00';
+                            break;
+                        case 'date':
+                            $definition[0][0]['default'] = '0000-00-00';
+                            break;
+                        case 'time':
+                            $definition[0][0]['default'] = '00:0:00';
+                            break;
+                        default:
+                            $definition[0][0]['default'] = '0';
+                            break;
+                    }
                 }
-                if($field_choices > 1) {
+                $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_name] = $definition[0][0];
+                for($field_choice = 0, $field_choices = count($definition[0]);
+                    $field_choice < $field_choices;
+                    $field_choice++)
+                {
                     $this->warnings[] = "there is ambiguity in the table: $table_name
-                        with the field: $field_name. You will manually have to select
-                        the correct field definition in the output";
+                        with the field: $field_name.".serialize($definition[0][$field_choice]);
                 }
                 if(isset($definition[1])) {
                     $sequence = $definition[1]['definition'];
                     $sequence_name = $definition[1]['name'];
                     $this->database->debug('Implicitly defining sequence: '.$sequence_name);
+                    if(!isset($this->database_definition['SEQUENCES'])) {
+                        $this->database_definition['SEQUENCES'] = array();
+                    }
                     $this->database_definition['SEQUENCES'][$sequence_name] = $sequence;
                 }
                 if(isset($definition[2])) {
                     $index = $definition[2]['definition'];
                     $index_name = $definition[2]['name'];
                     $this->database->debug('Implicitly defining index: '.$index_name);
+                    if(!isset($this->database_definition['TABLES'][$table_name]['INDEXES'])) {
+                        $this->database_definition['TABLES'][$table_name]['INDEXES'] = array();
+                    }
                     $this->database_definition['TABLES'][$table_name]['INDEXES'][$index_name] = $index;
                 }
             }
             $indexes = $this->database->listTableIndexes($table_name);
             if (MDB::isError($indexes)) {
                 return($indexes);
+            }
+            if(!isset($this->database_definition['TABLES'][$table_name]['INDEXES'])) {
+                $this->database_definition['TABLES'][$table_name]['INDEXES'] = array();
             }
             for($index = 0; $index < count($indexes); $index++)
             {
@@ -1526,6 +1554,9 @@ class MDB_manager extends PEAR
         $sequences = $this->database->listSequences();
         if (MDB::isError($sequences)) {
             return ($sequences);
+        }
+        if(!isset($this->database_definition['SEQUENCES'])) {
+            $this->database_definition['SEQUENCES'] = array();
         }
         for($sequence = 0; $sequence < count($sequences); $sequence++) {
             $sequence_name = $sequences[$sequence];
@@ -1584,10 +1615,10 @@ class MDB_manager extends PEAR
             $this->getDefinitionFromDatabase();
             $dump_definition = FALSE;
         }
-        $output = FALSE;
         if (isset($arguments['Output'])) {
             if (isset($arguments['Output_Mode']) && $arguments['Output_Mode'] == 'file') {
                 $fp = fopen($arguments['Output'], 'w');
+                $output = FALSE;
             } elseif (function_exists($arguments['Output'])) {
                 $output = $arguments['Output'];
             } else {
@@ -1598,7 +1629,11 @@ class MDB_manager extends PEAR
             return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL,
                 'no output method specified', 'MDB_Error', TRUE);
         }
-        $eol = (isset($arguments['EndOfLine']) ? $arguments['EndOfLine'] : "\n");
+        if (isset($arguments['EndOfLine'])) {
+            $eol = $arguments['EndOfLine'];
+        } else {
+            $eol = "\n";
+        }
 
         $sequences = array();
         if (isset($this->database_definition['SEQUENCES'])
@@ -1670,12 +1705,12 @@ class MDB_manager extends PEAR
                     if (isset($table['INDEXES']) && is_array($table['INDEXES'])) {
                         foreach($table['INDEXES'] as $index_name => $index) {
                             $buffer .=("$eol   <index>$eol    <name>$index_name</name>$eol");
-                            if (isset($indexes[$index_name]['unique'])) {
+                            if (isset($index['unique'])) {
                                 $buffer .=("    <unique>1</unique>$eol");
                             }
                             foreach($index['FIELDS'] as $field_name => $field) {
                                 $buffer .=("    <field>$eol     <name>$field_name</name>$eol");
-                                if (isset($field['sorting'])) {
+                                if (is_array($field) && isset($field['sorting'])) { 
                                     $buffer .=('     <sorting>'.$field['sorting']."</sorting>$eol");
                                 }
                                 $buffer .=("    </field>$eol");
@@ -1722,7 +1757,6 @@ class MDB_manager extends PEAR
                             } else {
                                 fwrite($fp, $buffer);
                             }
-                            $buffer = '';
 
                             for($row = 0; $row < $rows; $row++) {
                                 $buffer = ("$eol   <insert>$eol");
@@ -1761,7 +1795,6 @@ class MDB_manager extends PEAR
                 } else {
                     fwrite($fp, $buffer);
                 }
-                $buffer = '';
             }
 
             if (isset($sequences[$table_name])) {
@@ -1769,7 +1802,7 @@ class MDB_manager extends PEAR
                     $sequence < $j;
                     $sequence++)
                 {
-                    $result = $this->_dumpSequence($sequences[$table_name][$sequence], $eol, $dump, $dump_definition);
+                    $result = $this->_dumpSequence($sequences[$table_name][$sequence], $eol, $dump);
                     if (MDB::isError($result)) {
                         return $result;
                     }
@@ -1778,7 +1811,6 @@ class MDB_manager extends PEAR
                     } else {
                         fwrite($fp, $result);
                     }
-                    $buffer = '';
                 }
             }
         }
@@ -1787,7 +1819,7 @@ class MDB_manager extends PEAR
                 $sequence < count($sequences['']);
                 $sequence++)
             {
-                $result = $this->_dumpSequence($sequences[''][$sequence], $eol, $dump, $dump_definition);
+                $result = $this->_dumpSequence($sequences[''][$sequence], $eol, $dump);
                 if (MDB::isError($result)) {
                     return $result;
                 }
@@ -1796,19 +1828,17 @@ class MDB_manager extends PEAR
                    } else {
                        fwrite($fp, $result);
                 }
-                $buffer = '';
             }
         }
-        $buffer = ("$eol</database>$eol");
 
+        $buffer = ("$eol</database>$eol");
         if ($output) {
             $output($buffer);
         } else {
             fwrite($fp, $buffer);
             fclose($fp);
         }
-        $buffer = '';
-
+        
         if (strcmp($previous_database_name, '')) {
             $this->database->setDatabase($previous_database_name);
         }
