@@ -32,7 +32,7 @@ function MetabaseSetupDatabase($arguments, &$database)
     
     if (MDB::isError($db) || !is_object($db)) {
         $database = 0;
-        $error = $result->getMessage.":".$result->getCode();
+        $error = $result->getMessage;
     } else {
         $metabase_databases[$database] = $db;
         $metabase_databases[$database]->database = $database;
@@ -62,7 +62,7 @@ function MetabaseQuery($database, $query)
     global $metabase_databases;
     $result = $metabase_databases[$database]->query($query);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -74,7 +74,7 @@ function MetabaseQueryField($database, $query, &$field, $type = "text")
     global $metabase_databases;
     $result = $metabase_databases[$database]->queryField($query, $field, $type);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -86,7 +86,7 @@ function MetabaseQueryRow($database, $query, &$row, $types = "")
     global $metabase_databases;
     $result = $metabase_databases[$database]->queryRow($query, $row, $types);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -96,9 +96,9 @@ function MetabaseQueryRow($database, $query, &$row, $types = "")
 function MetabaseQueryColumn($database, $query, &$column, $type = "text")
 {
     global $metabase_databases;
-    $result = $metabase_databases[$database]->queryColumn($query, $column, $type);
+    $result = $metabase_databases[$database]->queryCol($query, $column, $type);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -110,7 +110,7 @@ function MetabaseQueryAll($database, $query, &$all, $types = "")
     global $metabase_databases;
     $result = $metabase_databases[$database]->queryAll($query, $all, $types);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -122,7 +122,7 @@ function MetabaseReplace($database, $table, &$fields)
     global $metabase_databases;
     $result = $metabase_databases[$database]->replace($table, $fields);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -134,7 +134,7 @@ function MetabasePrepareQuery($database, $query)
     global $metabase_databases;
     $result = $metabase_databases[$database]->prepareQuery($query);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -146,7 +146,7 @@ function MetabaseFreePreparedQuery($database, $prepared_query)
     global $metabase_databases;
     $result = $metabase_databases[$database]->freePreparedQuery($prepared_query);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -158,7 +158,7 @@ function MetabaseExecuteQuery($database, $prepared_query)
     global $metabase_databases;
     $result = $metabase_databases[$database]->executeQuery($prepared_query);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -170,7 +170,7 @@ function MetabaseQuerySet($database, $prepared_query, $parameter, $type, $value,
     global $metabase_databases;
     $result = $metabase_databases[$database]->querySet($prepared_query, $parameter, $type, $value, $is_null, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -182,7 +182,7 @@ function MetabaseQuerySetNull($database, $prepared_query, $parameter, $type)
     global $metabase_databases;
     $result = $metabase_databases[$database]->querySetNull($prepared_query, $parameter, $type);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -194,7 +194,7 @@ function MetabaseQuerySetText($database, $prepared_query, $parameter, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->querySetText($prepared_query, $parameter, $value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -206,7 +206,7 @@ function MetabaseQuerySetCLob($database, $prepared_query, $parameter, $value, $f
     global $metabase_databases;
     $result = $metabase_databases[$database]->querySetCLob($prepared_query, $parameter, $value, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -218,7 +218,7 @@ function MetabaseQuerySetBLob($database, $prepared_query, $parameter, $value, $f
     global $metabase_databases;
     $result = $metabase_databases[$database]->querySetBLob($prepared_query, $parameter, $value, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -230,7 +230,7 @@ function MetabaseQuerySetInteger($database, $prepared_query, $parameter, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->querySetInteger($prepared_query, $parameter, $value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -242,7 +242,7 @@ function MetabaseQuerySetBoolean($database, $prepared_query, $parameter, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->querySetBoolean($prepared_query, $parameter, $value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -254,7 +254,7 @@ function MetabaseQuerySetDate($database, $prepared_query, $parameter, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->querySetDate($prepared_query, $parameter, $value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -266,7 +266,7 @@ function MetabaseQuerySetTimestamp($database, $prepared_query, $parameter, $valu
     global $metabase_databases;
     $result = $metabase_databases[$database]->querySetTimestamp($prepared_query, $parameter, $value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -278,7 +278,7 @@ function MetabaseQuerySetTime($database, $prepared_query, $parameter, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->querySetTime($prepared_query, $parameter, $value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -290,7 +290,7 @@ function MetabaseQuerySetFloat($database, $prepared_query, $parameter, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->querySetFloat($prepared_query, $parameter, $value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -302,7 +302,7 @@ function MetabaseQuerySetDecimal($database, $prepared_query, $parameter, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->querySetDecimal($prepared_query, $parameter, $value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -314,7 +314,7 @@ function MetabaseAffectedRows($database, &$affected_rows)
     global $metabase_databases;
     $result = $metabase_databases[$database]->affectedRows();
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $affected_rows = $result;
@@ -327,7 +327,7 @@ function MetabaseFetchResult($database, $result, $row, $field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetch($result, $row, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -339,7 +339,7 @@ function MetabaseFetchClobResult($database, $result, $row, $field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetchClobResult($result, $row, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -351,7 +351,7 @@ function MetabaseFetchBlobResult($database, $result, $row, $field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetchBlobResult($result, $row, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -363,7 +363,7 @@ function MetabaseDestroyResultLob($database, $lob)
     global $metabase_databases;
     $result = $metabase_databases[$database]->destroyResultLob($lob);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -375,7 +375,7 @@ function MetabaseEndOfResultLob($database, $lob)
     global $metabase_databases;
     $result = $metabase_databases[$database]->endOfResultLob($lob);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -387,7 +387,7 @@ function MetabaseReadResultLob($database, $lob, &$data, $length)
     global $metabase_databases;
     $result = $metabase_databases[$database]->readResultLob($lob, $data, $length);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -399,7 +399,7 @@ function MetabaseResultIsNull($database, $result, $row, $field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->resultIsNull($result, $row, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -411,7 +411,7 @@ function MetabaseFetchDateResult($database, $result, $row, $field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetch($result, $row, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $metabase_databases[$database]->convertResult($result, MDB_TYPE_DATE);
@@ -424,7 +424,7 @@ function MetabaseFetchTimestampResult($database, $result, $row, $field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetch($result, $row, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $metabase_databases[$database]->convertResult($result, MDB_TYPE_TIMESTAMP);
@@ -437,7 +437,7 @@ function MetabaseFetchTimeResult($database, $result, $row, $field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetch($result, $row, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $metabase_databases[$database]->convertResult($result, MDB_TYPE_TIME);
@@ -450,7 +450,7 @@ function MetabaseFetchBooleanResult($database, $result, $row, $field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetch($result, $row, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $metabase_databases[$database]->convertResult($result, MDB_TYPE_BOOLEAN);
@@ -463,7 +463,7 @@ function MetabaseFetchFloatResult($database, $result, $row, $field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetch($result, $row, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $metabase_databases[$database]->convertResult($result, MDB_TYPE_FLOAT);
@@ -476,7 +476,7 @@ function MetabaseFetchDecimalResult($database, $result, $row, $field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetch($result, $row, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $metabase_databases[$database]->convertResult($result, MDB_TYPE_DECIMAL);
@@ -489,7 +489,7 @@ function MetabaseFetchResultField($database, $result, &$field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetchField($result, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -501,7 +501,7 @@ function MetabaseFetchResultArray($database, $result, &$array, $row)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetchInto($result, $array, "NULL", $row);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -513,7 +513,7 @@ function MetabaseFetchResultRow($database, $result, &$row)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetchRow($result, $row);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -523,9 +523,9 @@ function MetabaseFetchResultRow($database, $result, &$row)
 function MetabaseFetchResultColumn($database, $result, &$column)
 {
     global $metabase_databases;
-    $result = $metabase_databases[$database]->fetchColumn($result, $column);
+    $result = $metabase_databases[$database]->fetchCol($result, $column);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -537,7 +537,7 @@ function MetabaseFetchResultAll($database, $result, &$all)
     global $metabase_databases;
     $result = $metabase_databases[$database]->fetchAll($result, $all);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -549,7 +549,7 @@ function MetabaseNumberOfRows($database, $result)
     global $metabase_databases;
     $result = $metabase_databases[$database]->numRows($result);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
        return($result);
@@ -561,7 +561,7 @@ function MetabaseNumberOfColumns($database, $result)
     global $metabase_databases;
     $result = $metabase_databases[$database]->numCols($result);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -573,7 +573,7 @@ function MetabaseGetColumnNames($database, $result, &$column_names)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getColumnNames($result, $column_names);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -585,7 +585,7 @@ function MetabaseSetResultTypes($database, $result, &$types)
     global $metabase_databases;
     $result = $metabase_databases[$database]->setResultTypes($result, $types);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -597,7 +597,7 @@ function MetabaseFreeResult($database, $result)
     global $metabase_databases;
     $result = $metabase_databases[$database]->freeResult($result);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -609,7 +609,7 @@ function MetabaseError($database)
     global $metabase_databases;
     $result = $metabase_databases[$database]->error();
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -621,7 +621,7 @@ function MetabaseSetErrorHandler($database, $function)
     global $metabase_databases;
     $result = $metabase_databases[$database]->setErrorHandler($function);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -633,7 +633,7 @@ function MetabaseCreateDatabase($database, $name)
     global $metabase_databases;
     $result = $metabase_databases[$database]->createDatabase($name);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -645,7 +645,7 @@ function MetabaseDropDatabase($database, $name)
     global $metabase_databases;
     $result = $metabase_databases[$database]->dropDatabase($name);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -657,7 +657,7 @@ function MetabaseSetDatabase($database, $name)
     global $metabase_databases;
     $result = $metabase_databases[$database]->setDatabase($name);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -669,7 +669,7 @@ function MetabaseGetIntegerFieldTypeDeclaration($database, $name, &$field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getIntegerDeclaration($name, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -681,7 +681,7 @@ function MetabaseGetTextFieldTypeDeclaration($database, $name, &$field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getTextDeclaration($name, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -693,7 +693,7 @@ function MetabaseGetClobFieldTypeDeclaration($database, $name, &$field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getClobDeclaration($name, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -705,7 +705,7 @@ function MetabaseGetBlobFieldTypeDeclaration($database, $name, &$field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getBlobDeclaration($name, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -717,7 +717,7 @@ function MetabaseGetBooleanFieldTypeDeclaration($database, $name, &$field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getBooleanDeclaration($name, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -729,7 +729,7 @@ function MetabaseGetDateFieldTypeDeclaration($database, $name, &$field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getDateDeclaration($name, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -741,7 +741,7 @@ function MetabaseGetTimestampFieldTypeDeclaration($database, $name, &$field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getTimestampDeclaration($name, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -753,7 +753,7 @@ function MetabaseGetTimeFieldTypeDeclaration($database, $name, &$field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getTimeDeclaration($name, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -765,7 +765,7 @@ function MetabaseGetFloatFieldTypeDeclaration($database, $name, &$field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getFloatDeclaration($name, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -777,7 +777,7 @@ function MetabaseGetDecimalFieldTypeDeclaration($database, $name, &$field)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getDecimalDeclaration($name, $field);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -789,7 +789,7 @@ function MetabaseGetTextFieldValue($database, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getTextFieldValue($value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -801,7 +801,7 @@ function MetabaseGetBooleanFieldValue($database, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getBooleanFieldValue($value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -813,7 +813,7 @@ function MetabaseGetDateFieldValue($database, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getDateFieldValue($value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -825,7 +825,7 @@ function MetabaseGetTimestampFieldValue($database, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getTimestampFieldValue($value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -837,7 +837,7 @@ function MetabaseGetTimeFieldValue($database, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getTimeFieldValue($value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -849,7 +849,7 @@ function MetabaseGetFloatFieldValue($database, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getFloatFieldValue($value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -861,7 +861,7 @@ function MetabaseGetDecimalFieldValue($database, $value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->getDecimalFieldValue($value);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -873,7 +873,7 @@ function MetabaseSupport($database, $feature)
     global $metabase_databases;
     $result = $metabase_databases[$database]->support($feature);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
        return($result);
@@ -885,7 +885,7 @@ function MetabaseCreateTable($database, $name, &$fields)
     global $metabase_databases;
     $result = $metabase_databases[$database]->createTable($name, $fields);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -897,7 +897,7 @@ function MetabaseDropTable($database, $name)
     global $metabase_databases;
     $result = $metabase_databases[$database]->dropTable($name);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -909,7 +909,7 @@ function MetabaseAlterTable($database, $name, &$changes, $check = 0)
     global $metabase_databases;
     $result = $metabase_databases[$database]->alterTable($name, $changes, $check);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -921,7 +921,7 @@ function MetabaseListTables($database, &$tables)
     global $metabase_databases;
     $result = $metabase_databases[$database]->listTables($tables);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $tables = $result;
@@ -934,7 +934,7 @@ function MetabaseListTableFields($database, $table, &$fields)
     global $metabase_databases;
     $result = $metabase_databases[$database]->listTableFields($table,$fields);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $fields = $result;
@@ -947,7 +947,7 @@ function MetabaseGetTableFieldDefinition($database, $table, $field, &$definition
     global $metabase_databases;
     $result = $metabase_databases[$database]->getTableFieldDefinition($table, $field, $definition);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $definition = $result;
@@ -960,7 +960,7 @@ function MetabaseCreateSequence($database, $name, $start)
     global $metabase_databases;
     $result = $metabase_databases[$database]->createSequence($name, $start);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -972,7 +972,7 @@ function MetabaseDropSequence($database, $name)
     global $metabase_databases;
     $result = $metabase_databases[$database]->dropSequence($name);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -984,7 +984,7 @@ function MetabaseGetSequenceNextValue($database, $name, &$value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->nextId($name, false);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $value = $result;
@@ -997,7 +997,7 @@ function MetabaseGetSequenceCurrentValue($database, $name, &$value)
     global $metabase_databases;
     $result = $metabase_databases[$database]->currId($name);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $value = $result;
@@ -1010,7 +1010,7 @@ function MetabaseListSequences($database, &$sequences)
     global $metabase_databases;
     $result = $metabase_databases[$database]->listSequences($sequence);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         $sequences = $result;
@@ -1023,7 +1023,7 @@ function MetabaseAutoCommitTransactions($database, $auto_commit)
     global $metabase_databases;
     $result = $metabase_databases[$database]->autoCommitTransactions($auto_commit);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -1035,7 +1035,7 @@ function MetabaseCommitTransaction($database)
     global $metabase_databases;
     $result = $metabase_databases[$database]->commitTransaction();
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -1047,7 +1047,7 @@ function MetabaseRollbackTransaction($database)
     global $metabase_databases;
     $result = $metabase_databases[$database]->rollbackTransaction();
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -1059,7 +1059,7 @@ function MetabaseCreateIndex($database, $table, $name, $definition)
     global $metabase_databases;
     $result = $metabase_databases[$database]->createIndex($table, $name, $definition);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -1071,7 +1071,7 @@ function MetabaseDropIndex($database, $table, $name)
     global $metabase_databases;
     $result = $metabase_databases[$database]->dropIndex($table, $name);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -1098,7 +1098,7 @@ function MetabaseSetSelectedRowRange($database, $first, $limit)
     global $metabase_databases;
     $result = $metabase_databases[$database]->setSelectedRowRange($first, $limit);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -1110,7 +1110,7 @@ function MetabaseEndOfResult($database, $result)
     global $metabase_databases;
     $result = $metabase_databases[$database]->endOfResult($result);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
        return($result);
@@ -1122,7 +1122,7 @@ function MetabaseCaptureDebugOutput($database, $capture)
     global $metabase_databases;
     $result = $metabase_databases[$database]->captureDebugOutput($capture);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -1134,7 +1134,7 @@ function MetabaseDebugOutput($database)
     global $metabase_databases;
     $result = $metabase_databases[$database]->debugOutput();
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -1146,7 +1146,7 @@ function MetabaseDebug($database, $message)
     global $metabase_databases;
     $result = $metabase_databases[$database]->debug($message);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -1163,7 +1163,7 @@ function MetabaseDefaultDebugOutput($database, $message)
     global $metabase_databases;
     $result = $metabase_databases[$database]->defaultDebugOutput($metabase_databases[$database], $message);
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -1179,7 +1179,7 @@ function MetabaseCreateLob(&$arguments, &$lob)
     $args["Database"] = $arguments["Database"];
     $arguments = $args;
     if (MDB::isError($result)) {
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -1191,7 +1191,7 @@ function MetabaseDestroyLob($lob)
     $result = destroyLob($lob);
     if (MDB::isError($result)) {
         global $metabase_databases;
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return(1);
@@ -1203,7 +1203,7 @@ function MetabaseEndOfLob($lob)
     $result = endOfLob($lob);
     if (MDB::isError($result)) {
         global $metabase_databases;
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -1215,7 +1215,7 @@ function MetabaseReadLob($lob, &$data, $length)
     $result = readLob($lob, &$data, $length);
     if (MDB::isError($result)) {
         global $metabase_databases;
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
@@ -1227,7 +1227,7 @@ function MetabaseLobError($lob)
     $result = lobError($lob);
     if (MDB::isError($result)) {
         global $metabase_databases;
-        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
     } else {
         return($result);
