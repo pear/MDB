@@ -41,7 +41,7 @@
 // +----------------------------------------------------------------------+
 // | Author: Paul Cooper <pgc@ucecom.com>                                 |
 // +----------------------------------------------------------------------+
-
+//
 // $Id$
 
 /**
@@ -125,7 +125,6 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ errorCode()
-
     /**
      * Map native error codes to DB's portable ones.  Requires that
      * the DB implementation's constructor fills in the $errorcode_map
@@ -1050,7 +1049,6 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ getColumnNames()
-
     /**
      * Retrieve the names of columns returned by the DBMS in a query result.
      *
@@ -1220,7 +1218,6 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ nextResult()
-
     /**
      * Move the internal pgsql result pointer to the next available result
      *
@@ -1342,7 +1339,6 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ fetchInto()
-
     /**
      * Fetch a row and insert the data into an existing array.
      *
