@@ -11,109 +11,106 @@ class MDB_manager
     var $fail_on_invalid_names = 1;
     var $error = "";
     var $warnings = array();
-    var $database = 0;
+    var $database;
     var $database_definition = array(
         "name" => "",
         "create" => 0,
         "TABLES" => array()
     );
 
-    function setupDatabase(&$arguments)
+    function setupDatabase($dsninfo, $options = false)
     {
-        global $databases;
-        if (isset($arguments["Debug"])) {
-            $this->debug = $arguments["Debug"];
+        if (isset($options["debug"])) {
+            $this->debug = $options["debug"];
         }
-        if (strcmp($error = setupDatabase($arguments, $this->database), "")) {
-            return($error);
+
+        $this->database = MDB::connect($dsninfo, $options);
+
+        if (!isset($options["debug"])) {
+            $this->database->captureDebugOutput(1);
         }
-        if (!isset($arguments["Debug"])) {
-            $databases[$this->database]->captureDebugOutput(1);
-        }
-        return("");
+        return(1);
     }
 
     function closeSetup()
     {
-        if ($this->database != 0) {
-            global $databases;
-            $databases[$this->database]->closeSetup();
+        if (is_object($this->database)) {
+            $this->database->closeSetup();
         }
     }
 
     function getField(&$field, $field_name, $declaration, &$query)
     {
-        global $databases;
         if (!strcmp($field_name, "")) {
             return("it was not specified a valid field name (\"$field_name\")");
         }
         switch($field["type"]) {
             case "integer":
                 if ($declaration) {
-                    $query = $databases[$this->database]->getIntegerFieldTypeDeclaration($field_name, $field);
+                    $query = $this->database->getIntegerDeclaration($field_name, $field);
                 } else {
                     $query = $field_name;
                 }
                 break;
             case "text":
                 if ($declaration) {
-                    $query = $databases[$this->database]->getTextFieldTypeDeclaration($field_name, $field);
+                    $query = $this->database->getTextDeclaration($field_name, $field);
                 } else {
                     $query = $field_name;
                 }
                 break;
             case "clob":
                 if ($declaration) {
-                    $query = $databases[$this->database]->getClobFieldTypeDeclaration($field_name, $field);
+                    $query = $this->database->getClobDeclaration($field_name, $field);
                 } else {
                     $query = $field_name;
                 }
                 break;
             case "blob":
                 if ($declaration) {
-                    $query = $databases[$this->database]->getBlobFieldTypeDeclaration($field_name, $field);
+                    $query = $this->database->getBlobDeclaration($field_name, $field);
                 } else {
                     $query = $field_name;
                 }
                 break;
             case "boolean":
                 if ($declaration) {
-                    $query = $databases[$this->database]->getBooleanFieldTypeDeclaration(field_name, $field);
+                    $query = $this->database->getBooleanDeclaration(field_name, $field);
                 } else {
                     $query = $field_name;
                 }
                 break;
             case "date":
                 if ($declaration) {
-                    $query = $databases[$this->database]->getDateFieldTypeDeclaration($field_name, $field);
+                    $query = $this->database->getDateDeclaration($field_name, $field);
                 } else {
                     $query = $field_name;
                 }
                 break;
             case "timestamp":
                 if ($declaration) {
-                    $query = $databases[$this->database]->getTimestampFieldTypeDeclaration($field_name, $field);
+                    $query = $this->database->getTimestampDeclaration($field_name, $field);
                 } else {
                     $query = $field_name;
                 }
                 break;
             case "time":
                 if ($declaration) {
-                    $query = $databases[$this->database]->getTimeFieldTypeDeclaration($field_name, $field);
+                    $query = $this->database->getTimeDeclaration($field_name, $field);
                 } else {
                     $query = $field_name;
                 }
                 break;
             case "float":
                 if ($declaration) {
-                    $query = $databases[$this->database]->getFloatFieldTypeDeclaration($field_name, $field);
+                    $query = $this->database->getFloatDeclaration($field_name, $field);
                 } else {
                     $query = $field_name;
                 }
                 break;
             case "decimal":
                 if ($declaration) {
-                    $query = $databases[$this->database]->getDecimalFieldTypeDeclaration($field_name, $field);
+                    $query = $this->database->getDecimalDeclaration($field_name, $field);
                 } else {
                     $query = $field_name;
                 }
@@ -149,10 +146,9 @@ class MDB_manager
 
     function createTable($table_name, $table)
     {
-        global $databases;
-        $databases[$this->database]->debug("Create table: ".$table_name);
-        if (!$databases[$this->database]->createTable($table_name, $table["FIELDS"])) {
-            return($databases[$this->database]->error());
+        $this->database->debug("Create table: ".$table_name);
+        if (!$this->database->createTable($table_name, $table["FIELDS"])) {
+            return($this->database->error());
         }
         $success = 1;
         $error = "";
@@ -181,7 +177,7 @@ class MDB_manager
                             $query_fields .= $query;
                             $query_values .= "?";
                         }
-                        if (($success = ($prepared_query = $databases[$this->database]->
+                        if (($success = ($prepared_query = $this->database->
                             prepareQuery("INSERT INTO $table_name ($query_fields) VALUES ($query_values)"))))
                         {
                             for($lobs = array(), reset($fields), $field_number = 0;
@@ -195,10 +191,10 @@ class MDB_manager
                                 }
                                 switch($field["type"]) {
                                     case "integer":
-                                        $success = $databases[$this->database]->querySetInteger($prepared_query, $field_number+1,intval($fields[$field_name]));
+                                        $success = $this->database->querySetInteger($prepared_query, $field_number+1,intval($fields[$field_name]));
                                         break;
                                     case "text":
-                                        $success = $databases[$this->database]->querySetText($prepared_query, $field_number+1, $fields[$field_name]);
+                                        $success = $this->database->querySetText($prepared_query, $field_number+1, $fields[$field_name]);
                                         break;
                                     case "clob":
                                         $lob_definition = array(
@@ -212,7 +208,7 @@ class MDB_manager
                                             $error = $lob_definition["Error"];
                                             break;
                                         }
-                                        $success = $databases[$this->database]->querySetCLOB($prepared_query, $field_number+1, $lobs[$lob], $field_name);
+                                        $success = $this->database->querySetCLOB($prepared_query, $field_number+1, $lobs[$lob], $field_name);
                                         break;
                                     case "blob":
                                         $lob_definition = array(
@@ -225,25 +221,25 @@ class MDB_manager
                                             $error = $lob_definition["Error"];
                                             break;
                                         }
-                                        $success = $databases[$this->database]->querySetBLOB($prepared_query, $field_number+1, $lobs[$lob], $field_name);
+                                        $success = $this->database->querySetBLOB($prepared_query, $field_number+1, $lobs[$lob], $field_name);
                                         break;
                                     case "boolean":
-                                        $success = $databases[$this->database]->querySetBoolean($prepared_query, $field_number+1,intval($fields[$field_name]));
+                                        $success = $this->database->querySetBoolean($prepared_query, $field_number+1,intval($fields[$field_name]));
                                         break;
                                     case "date":
-                                        $success = $databases[$this->database]->querySetDate($prepared_query, $field_number+1, $fields[$field_name]);
+                                        $success = $this->database->querySetDate($prepared_query, $field_number+1, $fields[$field_name]);
                                         break;
                                     case "timestamp":
-                                        $success = $databases[$this->database]->querySetTimestamp($prepared_query, $field_number+1, $fields[$field_name]);
+                                        $success = $this->database->querySetTimestamp($prepared_query, $field_number+1, $fields[$field_name]);
                                         break;
                                     case "time":
-                                        $success = $databases[$this->database]->querySetTime($prepared_query, $field_number+1, $fields[$field_name]);
+                                        $success = $this->database->querySetTime($prepared_query, $field_number+1, $fields[$field_name]);
                                         break;
                                     case "float":
-                                        $success = $databases[$this->database]->querySetFloat($prepared_query, $field_number+1,doubleval($fields[$field_name]));
+                                        $success = $this->database->querySetFloat($prepared_query, $field_number+1,doubleval($fields[$field_name]));
                                         break;
                                     case "decimal":
-                                        $success = $databases[$this->database]->querySetDecimal($prepared_query, $field_number+1, $fields[$field_name]);
+                                        $success = $this->database->querySetDecimal($prepared_query, $field_number+1, $fields[$field_name]);
                                         break;
                                     default:
                                         $error = "type \"".$field["type"]."\" is not yet supported";
@@ -251,27 +247,27 @@ class MDB_manager
                                         break;
                                 }
                                 if (!$success && $error == "") {
-                                    $error = $databases[$this->database]->error();
+                                    $error = $this->database->error();
                                     break;
                                 }
                             }
                             if ($success
-                            && !($success = $databases[$this->database]->executeQuery($prepared_query))) {
-                                $error = $databases[$this->database]->error();
+                            && !($success = $this->database->executeQuery($prepared_query))) {
+                                $error = $this->database->error();
                             }
                             for($lob = 0; $lob < count($lobs); $lob++) {
                                 destroyLOB($lobs[$lob]);
                             }
-                            $databases[$this->database]->freePreparedQuery($prepared_query);
+                            $this->database->freePreparedQuery($prepared_query);
                         }
                         else
-                            $error = $databases[$this->database]->error();
+                            $error = $this->database->error();
                         break;
                 }
             }
         }
         if ($success && isset($table["INDEXES"])) {
-            if (!$databases[$this->database]->support("Indexes")) {
+            if (!$this->database->support("Indexes")) {
                 return("indexes are not supported");
             }
             $indexes = $table["INDEXES"];
@@ -279,16 +275,16 @@ class MDB_manager
                 $index < count($indexes);
                 next($indexes), $index++)
             {
-                if (!$databases[$this->database]->createIndex($table_name,key($indexes), $indexes[key($indexes)])) {
-                    $error = $databases[$this->database]->error();
+                if (!$this->database->createIndex($table_name,key($indexes), $indexes[key($indexes)])) {
+                    $error = $this->database->error();
                     $success = 0;
                     break;
                 }
             }
         }
         if (!$success) {
-            if (!$databases[$this->database]->dropTable($table_name)) {
-                $error = "could not initialize the table \"$table_name\" ($error) and then could not drop the table (".$databases[$this->database]->error().")"; 
+            if (!$this->database->dropTable($table_name)) {
+                $error = "could not initialize the table \"$table_name\" ($error) and then could not drop the table (".$this->database->error().")"; 
             }
         }
         return($error);
@@ -296,17 +292,15 @@ class MDB_manager
 
     function dropTable($table_name)
     {
-        global $databases;
-        return($databases[$this->database]->dropTable($table_name) ? "" : $databases[$this->database]->error());
+        return($this->database->dropTable($table_name) ? "" : $this->database->error());
     }
 
     function createSequence($sequence_name, $sequence, $created_on_table)
     {
-        if (!$databases[$this->database]->support("Sequences")) {
+        if (!$this->database->support("Sequences")) {
             return("sequences are not supported");
         }
-        global $databases;
-        $databases[$this->database]->debug("Create sequence: ".$sequence_name);
+        $this->database->debug("Create sequence: ".$sequence_name);
         if (!isset($sequence_name) || !strcmp($sequence_name, "")) {
             return("it was not specified a valid sequence name");
         }
@@ -314,34 +308,33 @@ class MDB_manager
         if (isset($sequence["on"]) && !$created_on_table) {
             $table = $sequence["on"]["table"];
             $field = $sequence["on"]["field"];
-            if ($databases[$this->database]->support("Summaryfunctions")) {
+            if ($this->database->support("Summaryfunctions")) {
                 $field = "MAX($field)";
             }
-            if (!($result = $databases[$this->database]->query("SELECT $field FROM $table"))) {
-                return($databases[$this->database]->error());
+            if (!($result = $this->database->query("SELECT $field FROM $table"))) {
+                return($this->database->error());
             }
-            if (($rows = $databases[$this->database]->numberOfRows($result))) {
+            if (($rows = $this->database->numberOfRows($result))) {
                 for($row = 0; $row < $rows; $row++)    {
-                    if (!$databases[$this->database]->resultIsNull($result, $row, 0)
-                        && ($value = $databases[$this->database]->fetchResult($result, $row, 0)+1)>$start)
+                    if (!$this->database->resultIsNull($result, $row, 0)
+                        && ($value = $this->database->fetch($result, $row, 0)+1)>$start)
                     
                     {
                         $start = $value;
                     }
                 }
             }
-            $databases[$this->database]->freeResult($result);
+            $this->database->freeResult($result);
         }
-        if (!$databases[$this->database]->createSequence($sequence_name, $start)) {
-            return($databases[$this->database]->error());
+        if (!$this->database->createSequence($sequence_name, $start)) {
+            return($this->database->error());
         }
         return("");
     }
 
     function dropSequence($sequence_name)
     {
-        global $databases;
-        return($databases[$this->database]->dropSequence($sequence_name) ? "" : $databases[$this->database]->error());
+        return($this->database->dropSequence($sequence_name) ? "" : $this->database->error());
     }
 
     function createDatabase()
@@ -351,21 +344,20 @@ class MDB_manager
         {
             return("it was not specified a valid database name");
         }
-        global $databases;
         $create = (isset($this->database_definition["create"]) && $this->database_definition["create"]);
         if ($create) {
-            $databases[$this->database]->debug("Create database: ".$this->database_definition["name"]);
-            if (!$databases[$this->database]->createDatabase($this->database_definition["name"])) {
-                $error = $databases[$this->database]->error();
-                $databases[$this->database]->debug("Create database error: ".$error);
+            $this->database->debug("Create database: ".$this->database_definition["name"]);
+            if (!$this->database->createDatabase($this->database_definition["name"])) {
+                $error = $this->database->error();
+                $this->database->debug("Create database error: ".$error);
                 return($error);
             }
         }
-        $previous_database_name = $databases[$this->database]->setDatabase($this->database_definition["name"]);
-        if (($support_transactions = $databases[$this->database]->support("Transactions"))
-            && !$databases[$this->database]->autoCommitTransactions(0))
+        $previous_database_name = $this->database->setDatabase($this->database_definition["name"]);
+        if (($support_transactions = $this->database->support("Transactions"))
+            && !$this->database->autoCommitTransactions(0))
         {
-            return($databases[$this->database]->error());
+            return($this->database->error());
         }
         $created_objects = 0;
         for($error = "", reset($this->database_definition["TABLES"]), $table = 0;
@@ -396,8 +388,8 @@ class MDB_manager
         if (strcmp($error, "")) {
             if ($created_objects) {
                 if ($support_transactions) {
-                    if (!$databases[$this->database]->rollbackTransaction()) {
-                        $error = "Could not rollback the partially created database alterations: Rollback error: ".$databases[$this->database]->error()." Creation error: $error";
+                    if (!$this->database->rollbackTransaction()) {
+                        $error = "Could not rollback the partially created database alterations: Rollback error: ".$this->database->error()." Creation error: $error";
                     }
                 } else {
                     $error = "the database was only partially created: $error";
@@ -405,17 +397,17 @@ class MDB_manager
             }
         } else {
             if ($support_transactions) {
-                if (!$databases[$this->database]->autoCommitTransactions(1)) {
-                    $error = "Could not end transaction after successfully created the database: ".$databases[$this->database]->error();
+                if (!$this->database->autoCommitTransactions(1)) {
+                    $error = "Could not end transaction after successfully created the database: ".$this->database->error();
                 }
             }
         }
-        $databases[$this->database]->setDatabase($previous_database_name);
+        $this->database->setDatabase($previous_database_name);
         if (strcmp($error, "")
             && $create
-            && !$databases[$this->database]->dropDatabase($this->database_definition["name"]))
+            && !$this->database->dropDatabase($this->database_definition["name"]))
         {
-            $error = "Could not drop the created database after unsuccessful creation attempt: ".$databases[$this->database]->error()." Creation error: ".$error;
+            $error = "Could not drop the created database after unsuccessful creation attempt: ".$this->database->error()." Creation error: ".$error;
         }
         return($error);
     }
@@ -449,7 +441,6 @@ class MDB_manager
 
     function compareDefinitions(&$previous_definition, &$changes)
     {
-        global $databases;
         $changes = array();
         for($defined_tables = array(), reset($this->database_definition["TABLES"]), $table = 0;
             $table < count($this->database_definition["TABLES"]);
@@ -466,7 +457,7 @@ class MDB_manager
             if (isset($previous_definition["TABLES"][$was_table_name])) {
                 if (strcmp($was_table_name, $table_name)) {
                     $this->addDefinitionChange($changes, "TABLES", $was_table_name,array("name" =>$table_name));
-                    $databases[$this->database]->debug("Renamed table '$was_table_name' to '$table_name'");
+                    $this->database->debug("Renamed table '$was_table_name' to '$table_name'");
                 }
                 if (isset($defined_tables[$was_table_name])) {
                     return("the table '$was_table_name' was specified as base of more than of table of the database");
@@ -499,7 +490,7 @@ class MDB_manager
                                     "Declaration" =>$query
                                 )))
                             );
-                            $databases[$this->database]->debug("Renamed field '$was_field_name' to '$field_name' in table '$table_name'");
+                            $this->database->debug("Renamed field '$was_field_name' to '$field_name' in table '$table_name'");
                         }
                         if (isset($defined_fields[$was_field_name])) {
                             return("the field '$was_field_name' was specified as base of more than one field of table '$table_name'");
@@ -513,7 +504,7 @@ class MDB_manager
                                     $unsigned = isset($fields[$field_name]["unsigned"]);
                                     if (strcmp($previous_unsigned, $unsigned)) {
                                         $change["unsigned"] = $unsigned;
-                                        $databases[$this->database]->debug("Changed field '$field_name' type from '".($previous_unsigned ? "unsigned " : "").$previous_fields[$was_field_name]["type"]."' to '".($unsigned ? "unsigned " : "").$fields[$field_name]["type"]."' in table '$table_name'");
+                                        $this->database->debug("Changed field '$field_name' type from '".($previous_unsigned ? "unsigned " : "").$previous_fields[$was_field_name]["type"]."' to '".($unsigned ? "unsigned " : "").$fields[$field_name]["type"]."' in table '$table_name'");
                                     }
                                     break;
                                 case "text":
@@ -523,7 +514,7 @@ class MDB_manager
                                     $length = (isset($fields[$field_name]["length"]) ? $fields[$field_name]["length"] : 0);
                                     if (strcmp($previous_length, $length)) {
                                         $change["length"] = $length;
-                                        $databases[$this->database]->debug("Changed field '$field_name' length from '".$previous_fields[$was_field_name]["type"].($previous_length == 0 ? " no length" : "($previous_length)")."' to '".$fields[$field_name]["type"].($length == 0 ? " no length" : "($length)")."' in table '$table_name'");
+                                        $this->database->debug("Changed field '$field_name' length from '".$previous_fields[$was_field_name]["type"].($previous_length == 0 ? " no length" : "($previous_length)")."' to '".$fields[$field_name]["type"].($length == 0 ? " no length" : "($length)")."' in table '$table_name'");
                                     }
                                     break;
                                 case "date":
@@ -544,7 +535,7 @@ class MDB_manager
                                 if ($notnull) {
                                     $change["notnull"] = isset($fields[$field_name]["notnull"]);
                                 }
-                                $databases[$this->database]->debug("Changed field '$field_name' notnull from $previous_notnull to $notnull in table '$table_name'");
+                                $this->database->debug("Changed field '$field_name' notnull from $previous_notnull to $notnull in table '$table_name'");
                             }
 
                             $previous_default = isset($previous_fields[$was_field_name]["default"]);
@@ -554,19 +545,19 @@ class MDB_manager
                                 if ($default) {
                                     $change["default"] = $fields[$field_name]["default"];
                                 }
-                                $databases[$this->database]->debug("Changed field '$field_name' default from ".($previous_default ? "'".$previous_fields[$was_field_name]["default"]."'" : "NULL")." TO ".($default ? "'".$fields[$field_name]["default"]."'" : "NULL")." IN TABLE '$table_name'");
+                                $this->database->debug("Changed field '$field_name' default from ".($previous_default ? "'".$previous_fields[$was_field_name]["default"]."'" : "NULL")." TO ".($default ? "'".$fields[$field_name]["default"]."'" : "NULL")." IN TABLE '$table_name'");
                             } else {
                                 if ($default
                                     && strcmp($previous_fields[$was_field_name]["default"], $fields[$field_name]["default"]))
                                 {
                                     $change["ChangedDefault"] = 1;
                                     $change["default"] = $fields[$field_name]["default"];
-                                    $databases[$this->database]->debug("Changed field '$field_name' default from '".$previous_fields[$was_field_name]["default"]."' to '".$fields[$field_name]["default"]."' in table '$table_name'");
+                                    $this->database->debug("Changed field '$field_name' default from '".$previous_fields[$was_field_name]["default"]."' to '".$fields[$field_name]["default"]."' in table '$table_name'");
                                 }
                             }
                         } else {
                             $change["type"] = $fields[$field_name]["type"];
-                            $databases[$this->database]->debug("Changed field '$field_name' type from '".$previous_fields[$was_field_name]["type"]."' to '".$fields[$field_name]["type"]."' in table '$table_name'");
+                            $this->database->debug("Changed field '$field_name' type from '".$previous_fields[$was_field_name]["type"]."' to '".$fields[$field_name]["type"]."' in table '$table_name'");
                         }
                         if (count($change)) {
                             $field_declaration = $fields[$field_name];
@@ -587,7 +578,7 @@ class MDB_manager
                         }
                         $field_declaration["Declaration"] = $query;
                         $this->addDefinitionChange($changes, "TABLES", $table_name,array("AddedFields" =>array($field_name =>$field_declaration)));
-                        $databases[$this->database]->debug("Added field '$field_name' to table '$table_name'");
+                        $this->database->debug("Added field '$field_name' to table '$table_name'");
                     }
                 }
                 for(reset($previous_fields), $field = 0;
@@ -597,7 +588,7 @@ class MDB_manager
                     $field_name = key($previous_fields);
                     if (!isset($defined_fields[$field_name])) {
                         $this->addDefinitionChange($changes, "TABLES", $table_name,array("RemovedFields" =>array($field_name =>array())));
-                        $databases[$this->database]->debug("Removed field '$field_name' from table '$table_name'");
+                        $this->database->debug("Removed field '$field_name' from table '$table_name'");
                     }
                 }
 
@@ -620,7 +611,7 @@ class MDB_manager
 
                         if (strcmp($was_index_name, $index_name)) {
                             $change["name"] = $was_index_name;
-                            $databases[$this->database]->debug("Changed index '$was_index_name' name to '$index_name' in table '$table_name'");
+                            $this->database->debug("Changed index '$was_index_name' name to '$index_name' in table '$table_name'");
                         }
                         if (isset($defined_indexes[$was_index_name])) {
                             return("the index '$was_index_name' was specified as base of more than one index of table '$table_name'");
@@ -634,7 +625,7 @@ class MDB_manager
                             if ($unique) {
                                 $change["unique"] = $unique;
                             }
-                            $databases[$this->database]->debug("Changed index '$index_name' unique from $previous_unique to $unique in table '$table_name'");
+                            $this->database->debug("Changed index '$index_name' unique from $previous_unique to $unique in table '$table_name'");
                         }
 
                         $fields = $indexes[$index_name]["FIELDS"];
@@ -649,12 +640,12 @@ class MDB_manager
                                 $sorting = (isset($fields[$field_name]["sorting"]) ? $fields[$field_name]["sorting"] : "");
                                 $previous_sorting = (isset($previous_fields[$field_name]["sorting"]) ? $previous_fields[$field_name]["sorting"] : "");
                                 if (strcmp($sorting, $previous_sorting)) {
-                                    $databases[$this->database]->debug("Changed index field '$field_name' sorting default from '$previous_sorting' to '$sorting' in table '$table_name'");
+                                    $this->database->debug("Changed index field '$field_name' sorting default from '$previous_sorting' to '$sorting' in table '$table_name'");
                                     $change["ChangedFields"] = 1;
                                 }
                             } else {
                                 $change["ChangedFields"] = 1;
-                                $databases[$this->database]->debug("Added field '$field_name' to index '$index_name' of table '$table_name'");
+                                $this->database->debug("Added field '$field_name' to index '$index_name' of table '$table_name'");
                             }
                         }
                         for(reset($previous_fields), $field = 0;
@@ -664,7 +655,7 @@ class MDB_manager
                             $field_name = key($previous_fields);
                             if (!isset($defined_fields[$field_name])) {
                                 $change["ChangedFields"] = 1;
-                                $databases[$this->database]->debug("Removed field '$field_name' from index '$index_name' of table '$table_name'");
+                                $this->database->debug("Removed field '$field_name' from index '$index_name' of table '$table_name'");
                             }
                         }
 
@@ -676,7 +667,7 @@ class MDB_manager
                             return("it was specified a previous index name ('$was_index_name') for index '$index_name' of table '$table_name' that does not exist");
                         }
                         $this->addDefinitionChange($changes, "INDEXES", $table_name,array("AddedIndexes" =>array($index_name =>$indexes[$index_name])));
-                        $databases[$this->database]->debug("Added index '$index_name' to table '$table_name'");
+                        $this->database->debug("Added index '$index_name' to table '$table_name'");
                     }
                 }
                 for(reset($previous_indexes), $index = 0;
@@ -686,7 +677,7 @@ class MDB_manager
                     $index_name = key($previous_indexes);
                     if (!isset($defined_indexes[$index_name])) {
                         $this->addDefinitionChange($changes, "INDEXES", $table_name,array("RemovedIndexes" =>array($index_name =>1)));
-                        $databases[$this->database]->debug("Removed index '$index_name' from table '$table_name'");
+                        $this->database->debug("Removed index '$index_name' from table '$table_name'");
                     }
                 }
             } else {
@@ -694,7 +685,7 @@ class MDB_manager
                     return("it was specified a previous table name ('$was_table_name') for table '$table_name' that does not exist");
                 }
                 $this->addDefinitionChange($changes, "TABLES", $table_name,array("Add" =>1));
-                $databases[$this->database]->debug("Added table '$table_name'");
+                $this->database->debug("Added table '$table_name'");
             }
         }
         for(reset($previous_definition["TABLES"]), $table = 0;
@@ -704,7 +695,7 @@ class MDB_manager
             $table_name = key($previous_definition["TABLES"]);
             if (!isset($defined_tables[$table_name])) {
                 $this->addDefinitionChange($changes, "TABLES", $table_name,array("Remove" =>1));
-                $databases[$this->database]->debug("Removed table '$table_name'");
+                $this->database->debug("Removed table '$table_name'");
             }
         }
         if (isset($this->database_definition["SEQUENCES"])) {
@@ -723,7 +714,7 @@ class MDB_manager
                 if (isset($previous_definition["SEQUENCES"][$was_sequence_name])) {
                     if (strcmp($was_sequence_name, $sequence_name)) {
                         $this->addDefinitionChange($changes, "SEQUENCES", $was_sequence_name,array("name" =>$sequence_name));
-                        $databases[$this->database]->debug("Renamed sequence '$was_sequence_name' to '$sequence_name'");
+                        $this->database->debug("Renamed sequence '$was_sequence_name' to '$sequence_name'");
                     }
                     if (isset($defined_sequences[$was_sequence_name])) {
                         return("the sequence '$was_sequence_name' was specified as base of more than of sequence of the database");
@@ -732,13 +723,13 @@ class MDB_manager
                     $change = array();
                     if (strcmp($this->database_definition["SEQUENCES"][$sequence_name]["start"], $previous_definition["SEQUENCES"][$was_sequence_name]["start"])) {
                         $change["start"] = $this->database_definition["SEQUENCES"][$sequence_name]["start"];
-                        $databases[$this->database]->debug("Changed sequence '$sequence_name' start from '".$previous_definition["SEQUENCES"][$was_sequence_name]["start"]."' to '".$this->database_definition["SEQUENCES"][$sequence_name]["start"]."'");
+                        $this->database->debug("Changed sequence '$sequence_name' start from '".$previous_definition["SEQUENCES"][$was_sequence_name]["start"]."' to '".$this->database_definition["SEQUENCES"][$sequence_name]["start"]."'");
                     }
                     if (strcmp($this->database_definition["SEQUENCES"][$sequence_name]["on"]["table"], $previous_definition["SEQUENCES"][$was_sequence_name]["on"]["table"])
                         || strcmp($this->database_definition["SEQUENCES"][$sequence_name]["on"]["field"], $previous_definition["SEQUENCES"][$was_sequence_name]["on"]["field"]))
                     {
                         $change["on"] = $this->database_definition["SEQUENCES"][$sequence_name]["on"];
-                        $databases[$this->database]->debug("Changed sequence '$sequence_name' on table field from '".$previous_definition["SEQUENCES"][$was_sequence_name]["on"]["table"].".".$previous_definition["SEQUENCES"][$was_sequence_name]["on"]["field"]."' to '".$this->database_definition["SEQUENCES"][$sequence_name]["on"]["table"].".".$this->database_definition["SEQUENCES"][$sequence_name]["on"]["field"]."'");
+                        $this->database->debug("Changed sequence '$sequence_name' on table field from '".$previous_definition["SEQUENCES"][$was_sequence_name]["on"]["table"].".".$previous_definition["SEQUENCES"][$was_sequence_name]["on"]["field"]."' to '".$this->database_definition["SEQUENCES"][$sequence_name]["on"]["table"].".".$this->database_definition["SEQUENCES"][$sequence_name]["on"]["field"]."'");
                     }
                     if (count($change)) {
                         $this->addDefinitionChange($changes, "SEQUENCES", $was_sequence_name,array("Change" =>array($sequence_name =>array($change))));
@@ -748,7 +739,7 @@ class MDB_manager
                         return("it was specified a previous sequence name ('$was_sequence_name') for sequence '$sequence_name' that does not exist");
                     }
                     $this->addDefinitionChange($changes, "SEQUENCES", $sequence_name,array("Add" =>1));
-                    $databases[$this->database]->debug("Added sequence '$sequence_name'");
+                    $this->database->debug("Added sequence '$sequence_name'");
                 }
             }
         }
@@ -760,7 +751,7 @@ class MDB_manager
                 $sequence_name = key($previous_definition["SEQUENCES"]);
                 if (!isset($defined_sequences[$sequence_name])) {
                     $this->addDefinitionChange($changes, "SEQUENCES", $sequence_name,array("Remove" =>1));
-                    $databases[$this->database]->debug("Removed sequence '$sequence_name'");
+                    $this->database->debug("Removed sequence '$sequence_name'");
                 }
             }
         }
@@ -769,7 +760,6 @@ class MDB_manager
 
     function alterDatabase(&$previous_definition, &$changes)
     {
-        global $databases;
         if (isset($changes["TABLES"])) {
             for($change = 0, reset($changes["TABLES"]);
                 $change < count($changes["TABLES"]);
@@ -781,13 +771,13 @@ class MDB_manager
                 {
                     continue;
                 }
-                if (!$databases[$this->database]->alterTable($table_name, $changes["TABLES"][$table_name], 1)) {
-                    return("database driver is not able to perform the requested alterations: ".$databases[$this->database]->error());
+                if (!$this->database->alterTable($table_name, $changes["TABLES"][$table_name], 1)) {
+                    return("database driver is not able to perform the requested alterations: ".$this->database->error());
                 }
             }
         }
         if (isset($changes["SEQUENCES"])) {
-            if (!$databases[$this->database]->support("Sequences")) {
+            if (!$this->database->support("Sequences")) {
                 return("sequences are not supported");
             }
             for($change = 0, reset($changes["SEQUENCES"]);
@@ -805,7 +795,7 @@ class MDB_manager
             }
         }
         if (isset($changes["INDEXES"]))    {
-            if (!$databases[$this->database]->support("Indexes")) {
+            if (!$this->database->support("Indexes")) {
                 return("indexes are not supported");
             }
             for($change = 0, reset($changes["INDEXES"]);
@@ -828,10 +818,10 @@ class MDB_manager
                 }
             }
         }
-        $previous_database_name = $databases[$this->database]->setDatabase($this->database_definition["name"]);
-        if (($support_transactions = $databases[$this->database]->support("Transactions"))
-            && !$databases[$this->database]->autoCommitTransactions(0)) {
-            return($databases[$this->database]->error());
+        $previous_database_name = $this->database->setDatabase($this->database_definition["name"]);
+        if (($support_transactions = $this->database->support("Transactions"))
+            && !$this->database->autoCommitTransactions(0)) {
+            return($this->database->error());
         }
         $error = "";
         $alterations = 0;
@@ -847,8 +837,8 @@ class MDB_manager
                         $index < count($indexes);
                         next($indexes), $index++)
                     {
-                        if (!$databases[$this->database]->dropIndex($table_name,key($indexes))) {
-                            $error = $databases[$this->database]->error();
+                        if (!$this->database->dropIndex($table_name,key($indexes))) {
+                            $error = $this->database->error();
                             break;
                         }
                         $alterations++;
@@ -864,8 +854,8 @@ class MDB_manager
                     {
                         $name = key($indexes);
                         $was_name = (isset($indexes[$name]["name"]) ? $indexes[$name]["name"] : $name);
-                        if (!$databases[$this->database]->dropIndex($table_name, $was_name)) {
-                            $error = $databases[$this->database]->error();
+                        if (!$this->database->dropIndex($table_name, $was_name)) {
+                            $error = $this->database->error();
                             break;
                         }
                         $alterations++;
@@ -890,8 +880,8 @@ class MDB_manager
                     }
                 } else {
                     if (!isset($changes["TABLES"][$table_name]["Add"])) {
-                        if (!$databases[$this->database]->alterTable($table_name, $changes["TABLES"][$table_name], 0)) {
-                            $error = $databases[$this->database]->error();
+                        if (!$this->database->alterTable($table_name, $changes["TABLES"][$table_name], 0)) {
+                            $error = $this->database->error();
                         } else {
                             $alterations++;
                         }
@@ -984,8 +974,8 @@ class MDB_manager
                         $index < count($indexes);
                         next($indexes), $index++)
                     {
-                        if (!$databases[$this->database]->createIndex($table_name, key($indexes), $this->database_definition["TABLES"][$table_name]["INDEXES"][key($indexes)])) {
-                            $error = $databases[$this->database]->error();
+                        if (!$this->database->createIndex($table_name, key($indexes), $this->database_definition["TABLES"][$table_name]["INDEXES"][key($indexes)])) {
+                            $error = $this->database->error();
                             break;
                         }
                         $alterations++;
@@ -999,8 +989,8 @@ class MDB_manager
                         $index < count($indexes);
                         next($indexes), $index++)
                     {
-                        if (!$databases[$this->database]->createIndex($table_name, key($indexes), $this->database_definition["TABLES"][$table_name]["INDEXES"][key($indexes)])) {
-                            $error = $databases[$this->database]->error();
+                        if (!$this->database->createIndex($table_name, key($indexes), $this->database_definition["TABLES"][$table_name]["INDEXES"][key($indexes)])) {
+                            $error = $this->database->error();
                             break;
                         }
                         $alterations++;
@@ -1015,19 +1005,19 @@ class MDB_manager
             && strcmp($error, ""))
         {
             if ($support_transactions) {
-                if (!$databases[$this->database]->rollbackTransaction()) {
-                    $error = "Could not rollback the partially implemented the requested database alterations: Rollback error: ".$databases[$this->database]->error()." Alterations error: $error";
+                if (!$this->database->rollbackTransaction()) {
+                    $error = "Could not rollback the partially implemented the requested database alterations: Rollback error: ".$this->database->error()." Alterations error: $error";
                 }
             } else {
                 $error = "the requested database alterations were only partially implemented: $error";
             }
         }
         if ($support_transactions) {
-            if (!$databases[$this->database]->autoCommitTransactions(1)) {
-                $this->warnings[] = "Could not end transaction after successfully implemented the requested database alterations: ".$databases[$this->database]->error();
+            if (!$this->database->autoCommitTransactions(1)) {
+                $this->warnings[] = "Could not end transaction after successfully implemented the requested database alterations: ".$this->database->error();
             }
         }
-        $databases[$this->database]->setDatabase($previous_database_name);
+        $this->database->setDatabase($previous_database_name);
         return($error);
     }
 
@@ -1065,14 +1055,13 @@ class MDB_manager
         if ($dump_definition) {
             $start = $sequence_definition["start"];
         } else {
-            global $databases;
-            if ($databases[$this->database]->support("GetSequenceCurrentValue")) {
-                if (!$databases[$this->database]->getSequenceCurrentValue($sequence_name, $start)) {
+            if ($this->database->support("GetSequenceCurrentValue")) {
+                if (!$this->database->getSequenceCurrentValue($sequence_name, $start)) {
                     return(0);
                 }
                 $start++;
             } else {
-                if (!$databases[$this->database]->getSequencenextValue($sequence_name, $start)) {
+                if (!$this->database->getSequencenextValue($sequence_name, $start)) {
                     return(0);
                 }
                 $this->warnings[] = "database does not support getting current sequence value, the sequence value was incremented";
@@ -1088,7 +1077,6 @@ class MDB_manager
 
     function dumpDatabase($arguments)
     {
-        global $databases;
         if (!isset($arguments["Output"])) {
             return("it was not specified a valid output function");
         }
@@ -1110,7 +1098,7 @@ class MDB_manager
                 $sequences[$table][] = $sequence_name;
             }
         }
-        $previous_database_name = (strcmp($this->database_definition["name"], "") ? $databases[$this->database]->setDatabase($this->database_definition["name"]) : "");
+        $previous_database_name = (strcmp($this->database_definition["name"], "") ? $this->database->setDatabase($this->database_definition["name"]) : "");
         $output("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>$eol");
         $output("<database>$eol$eol <name>".$this->database_definition["name"]."</name>$eol <create>".$this->database_definition["create"]."</create>$eol");
         for($error = "", reset($this->database_definition["TABLES"]), $table = 0;
@@ -1218,18 +1206,18 @@ class MDB_manager
                 if (strcmp($error = $this->getFields($table_name, $query_fields), "")) {
                     return($error);
                 }
-                if (($support_summary_functions = $databases[$this->database]->support("Summaryfunctions"))) {
-                    if (($result = $databases[$this->database]->query("SELECT cOUNT(*) FROM $table_name")) == 0) {
-                        return($databases[$this->database]->error());
+                if (($support_summary_functions = $this->database->support("Summaryfunctions"))) {
+                    if (($result = $this->database->query("SELECT cOUNT(*) FROM $table_name")) == 0) {
+                        return($this->database->error());
                     }
-                    $rows = $databases[$this->database]->fetchResult($result, 0, 0);
-                    $databases[$this->database]->freeResult($result);
+                    $rows = $this->database->fetch($result, 0, 0);
+                    $this->database->freeResult($result);
                 }
-                if (($result = $databases[$this->database]->query("SELECT $query_fields FROM $table_name")) == 0) {
-                    return($databases[$this->database]->error());
+                if (($result = $this->database->query("SELECT $query_fields FROM $table_name")) == 0) {
+                    return($this->database->error());
                 }
                 if (!$support_summary_functions) {
-                    $rows = $databases[$this->database]->numberOfRows(result);
+                    $rows = $this->database->numberOfRows(result);
                 }
                 if ($rows>0) {
                     $output("$eol  <initialization>$eol");
@@ -1240,17 +1228,17 @@ class MDB_manager
                             $field_number++, next($fields))
                         {
                             $field_name = key($fields);
-                            if (!$databases[$this->database]->resultIsNull($result, $row, $field_name)) {
+                            if (!$this->database->resultIsNull($result, $row, $field_name)) {
                                 $field = $fields[$field_name];
                                 $output("$eol   <field>$eol     <name>$field_name</name>$eol     <value>");
                                 switch($field["type"]) {
                                     case "integer":
                                     case "text":
-                                        $output($this->escapeSpecialCharacters($databases[$this->database]->fetchResult($result, $row, $field_name)));
+                                        $output($this->escapeSpecialCharacters($this->database->fetch($result, $row, $field_name)));
                                         break;
                                     case "clob":
-                                        if (!($lob = $databases[$this->database]->fetchClobResult($result, $row, $field_name))) {
-                                            return($databases[$this->database]->error($this->database));
+                                        if (!($lob = $this->database->fetchClobResult($result, $row, $field_name))) {
+                                            return($this->database->error($this->database));
                                         }
                                         while(!endOfLOB($lob)) {
                                             if (readLOB($lob, $data, 8000) < 0) {
@@ -1261,8 +1249,8 @@ class MDB_manager
                                         destroyLOB($lob);
                                         break;
                                     case "blob":
-                                        if (!($lob = $databases[$this->database]->fetchBlobResult($result, $row, $field_name))) {
-                                            return($databases[$this->database]->error());
+                                        if (!($lob = $this->database->fetchBlobResult($result, $row, $field_name))) {
+                                            return($this->database->error());
                                         }
                                         while(!endOfLOB($lob)) {
                                             if (readLOB($lob, $data, 8000) < 0) {
@@ -1273,22 +1261,22 @@ class MDB_manager
                                         destroyLOB($lob);
                                         break;
                                     case "float":
-                                        $output($this->escapeSpecialCharacters($databases[$this->database]->fetchFloatResult($result, $row, $field_name)));
+                                        $output($this->escapeSpecialCharacters($this->database->fetchFloatResult($result, $row, $field_name)));
                                         break;
                                     case "decimal":
-                                        $output($this->escapeSpecialCharacters($databases[$this->database]->fetchDecimalResult($result, $row, $field_name)));
+                                        $output($this->escapeSpecialCharacters($this->database->fetchDecimalResult($result, $row, $field_name)));
                                         break;
                                     case "boolean":
-                                        $output($this->escapeSpecialCharacters($databases[$this->database]->fetchBooleanResult($result, $row, $field_name)));
+                                        $output($this->escapeSpecialCharacters($this->database->fetchBooleanResult($result, $row, $field_name)));
                                         break;
                                     case "date":
-                                        $output($this->escapeSpecialCharacters($databases[$this->database]->fetchDateResult($result, $row, $field_name)));
+                                        $output($this->escapeSpecialCharacters($this->database->fetchDateResult($result, $row, $field_name)));
                                         break;
                                     case "timestamp":
-                                        $output($this->escapeSpecialCharacters($databases[$this->database]->fetchTimestampResult($result, $row, $field_name)));
+                                        $output($this->escapeSpecialCharacters($this->database->fetchTimestampResult($result, $row, $field_name)));
                                         break;
                                     case "time":
-                                        $output($this->escapeSpecialCharacters($databases[$this->database]->fetchTimeResult($result, $row, $field_name)));
+                                        $output($this->escapeSpecialCharacters($this->database->fetchTimeResult($result, $row, $field_name)));
                                         break;
                                     default:
                                         return("type \"".$field["type"]."\" is not yet supported");
@@ -1300,7 +1288,7 @@ class MDB_manager
                     }
                     $output("$eol  </initialization>$eol");
                 }
-                $databases[$this->database]->freeResult($result);
+                $this->database->freeResult($result);
             }
             $output("$eol </table>$eol");
             if (isset($sequences[$table_name])) {
@@ -1309,7 +1297,7 @@ class MDB_manager
                     $sequence++)
                 {
                     if (!$this->dumpSequence($sequences[$table_name][$sequence], $output, $eol, $dump_definition)) {
-                        return($databases[$this->database]->error());
+                        return($this->database->error());
                     }
                 }
             }
@@ -1320,13 +1308,13 @@ class MDB_manager
                 $sequence++)
             {
                 if (!$this->dumpSequence($sequences[""][$sequence], $output, $eol, $dump_definition)) {
-                    return($databases[$this->database]->error());
+                    return($this->database->error());
                 }
             }
         }
         $output("$eol</database>$eol");
         if (strcmp($previous_database_name, "")) {
-            $databases[$this->database]->setDatabase($previous_database_name);
+            $this->database->setDatabase($previous_database_name);
         }
         return($error);
     }
@@ -1350,22 +1338,21 @@ class MDB_manager
 
     function dumpDatabaseChanges(&$changes)
     {
-        global $databases;
         if (isset($changes["TABLES"])) {
             for($change = 0, reset($changes["TABLES"]);
                 $change < count($changes["TABLES"]);
                 next($changes["TABLES"]), $change++)
             {
                 $table_name = key($changes["TABLES"]);
-                $databases[$this->database]->debug("$table_name:");
+                $this->database->debug("$table_name:");
                 if (isset($changes["tables"][$table_name]["Add"])) {
-                    $databases[$this->database]->debug("\tAdded table '$table_name'");
+                    $this->database->debug("\tAdded table '$table_name'");
                 } else {
                     if (isset($changes["TABLES"][$table_name]["Remove"])) {
-                        $databases[$this->database]->debug("\tRemoved table '$table_name'");
+                        $this->database->debug("\tRemoved table '$table_name'");
                     } else {
                         if (isset($changes["TABLES"][$table_name]["name"])) {
-                            $databases[$this->database]->debug("\tRenamed table '$table_name' to '".$changes["TABLES"][$table_name]["name"]."'");
+                            $this->database->debug("\tRenamed table '$table_name' to '".$changes["TABLES"][$table_name]["name"]."'");
                         }
                         if (isset($changes["TABLES"][$table_name]["AddedFields"])) {
                             $fields = $changes["TABLES"][$table_name]["AddedFields"];
@@ -1373,7 +1360,7 @@ class MDB_manager
                                 $field < count($fields);
                                 $field++, next($fields))
                             {
-                                $databases[$this->database]->debug("\tAdded field '".key($fields)."'");
+                                $this->database->debug("\tAdded field '".key($fields)."'");
                             }
                         }
                         if (isset($changes["TABLES"][$table_name]["RemovedFields"])) {
@@ -1382,7 +1369,7 @@ class MDB_manager
                                 $field < count($fields);
                                 $field++, next($fields))
                             {
-                                $databases[$this->database]->debug("\tRemoved field '".key($fields)."'");
+                                $this->database->debug("\tRemoved field '".key($fields)."'");
                             }
                         }
                         if (isset($changes["TABLES"][$table_name]["RenamedFields"])) {
@@ -1391,7 +1378,7 @@ class MDB_manager
                                 $field < count($fields);
                                 $field++, next($fields))
                             {
-                                $databases[$this->database]->debug("\tRenamed field '".key($fields)."' to '".$fields[key($fields)]["name"]."'");
+                                $this->database->debug("\tRenamed field '".key($fields)."' to '".$fields[key($fields)]["name"]."'");
                             }
                         }
                         if (isset($changes["TABLES"][$table_name]["ChangedFields"])) {
@@ -1402,23 +1389,23 @@ class MDB_manager
                             {
                                 $field_name = key($fields);
                                 if (isset($fields[$field_name]["type"])) {
-                                    $databases[$this->database]->debug("\tChanged field '$field_name' type to '".$fields[$field_name]["type"]."'");
+                                    $this->database->debug("\tChanged field '$field_name' type to '".$fields[$field_name]["type"]."'");
                                 }
                                 if (isset($fields[$field_name]["unsigned"]))
                                 {
-                                    $databases[$this->database]->debug("\tChanged field '$field_name' type to '".($fields[$field_name]["unsigned"] ? "" : "not ")."unsigned'");
+                                    $this->database->debug("\tChanged field '$field_name' type to '".($fields[$field_name]["unsigned"] ? "" : "not ")."unsigned'");
                                 }
                                 if (isset($fields[$field_name]["length"]))
                                 {
-                                    $databases[$this->database]->debug("\tChanged field '$field_name' length to '".($fields[$field_name]["length"] == 0 ? "no length" : $fields[$field_name]["length"])."'");
+                                    $this->database->debug("\tChanged field '$field_name' length to '".($fields[$field_name]["length"] == 0 ? "no length" : $fields[$field_name]["length"])."'");
                                 }
                                 if (isset($fields[$field_name]["ChangedDefault"]))
                                 {
-                                    $databases[$this->database]->debug("\tChanged field '$field_name' default to ".(isset($fields[$field_name]["default"]) ? "'".$fields[$field_name]["default"]."'" : "NULL"));
+                                    $this->database->debug("\tChanged field '$field_name' default to ".(isset($fields[$field_name]["default"]) ? "'".$fields[$field_name]["default"]."'" : "NULL"));
                                 }
                                 if (isset($fields[$field_name]["ChangedNotNull"]))
                                 {
-                                    $databases[$this->database]->debug("\tChanged field '$field_name' notnull to ".(isset($fields[$field_name]["notnull"]) ? "'1'" : "0"));
+                                    $this->database->debug("\tChanged field '$field_name' notnull to ".(isset($fields[$field_name]["notnull"]) ? "'1'" : "0"));
                                 }
                             }
                         }
@@ -1432,15 +1419,15 @@ class MDB_manager
                 next($changes["SEQUENCES"]), $change++)
             {
                 $sequence_name = key($changes["SEQUENCES"]);
-                $databases[$this->database]->debug("$sequence_name:");
+                $this->database->debug("$sequence_name:");
                 if (isset($changes["SEQUENCES"][$sequence_name]["Add"])) {
-                    $databases[$this->database]->debug("\tAdded sequence '$sequence_name'");
+                    $this->database->debug("\tAdded sequence '$sequence_name'");
                 } else {
                     if (isset($changes["SEQUENCES"][$sequence_name]["Remove"])) {
-                        $databases[$this->database]->debug("\tRemoved sequence '$sequence_name'");
+                        $this->database->debug("\tRemoved sequence '$sequence_name'");
                     } else {
                         if (isset($changes["SEQUENCES"][$sequence_name]["name"])) {
-                            $databases[$this->database]->debug("\tRenamed sequence '$sequence_name' to '".$changes["SEQUENCES"][$sequence_name]["name"]."'");
+                            $this->database->debug("\tRenamed sequence '$sequence_name' to '".$changes["SEQUENCES"][$sequence_name]["name"]."'");
                         }
                         if (isset($changes["SEQUENCES"][$sequence_name]["Change"])) {
                             $sequences = $changes["SEQUENCES"][$sequence_name]["Change"];
@@ -1450,7 +1437,7 @@ class MDB_manager
                             {
                                 $sequence_name = key($sequences);
                                 if (isset($sequences[$sequence_name]["start"])) {
-                                    $databases[$this->database]->debug("\tChanged sequence '$sequence_name' start to '".$sequences[$sequence_name]["start"]."'");
+                                    $this->database->debug("\tChanged sequence '$sequence_name' start to '".$sequences[$sequence_name]["start"]."'");
                                 }
                             }
                         }
@@ -1464,14 +1451,14 @@ class MDB_manager
                 next($changes["INDEXES"]), $change++)
             {
                 $table_name = key($changes["INDEXES"]);
-                $databases[$this->database]->debug("$table_name:");
+                $this->database->debug("$table_name:");
                 if (isset($changes["INDEXES"][$table_name]["AddedIndexes"])) {
                     $indexes = $changes["INDEXES"][$table_name]["AddedIndexes"];
                     for($index = 0, reset($indexes);
                         $index < count($indexes);
                         next($indexes), $index++)
                     {
-                        $databases[$this->database]->debug("\tAdded index '".key($indexes)."' of table '$table_name'");
+                        $this->database->debug("\tAdded index '".key($indexes)."' of table '$table_name'");
                     }
                 }
                 if (isset($changes["INDEXES"][$table_name]["RemovedIndexes"])) {
@@ -1480,7 +1467,7 @@ class MDB_manager
                         $index < count($indexes);
                         next($indexes), $index++)
                     {
-                        $databases[$this->database]->debug("\tRemoved index '".key($indexes)."' of table '$table_name'");
+                        $this->database->debug("\tRemoved index '".key($indexes)."' of table '$table_name'");
                     }
                 }
                 if (isset($changes["INDEXES"][$table_name]["ChangedIndexes"])) {
@@ -1490,15 +1477,15 @@ class MDB_manager
                         next($indexes), $index++)
                     {
                         if (isset($indexes[key($indexes)]["name"])) {
-                            $databases[$this->database]->debug("\tRenamed index '".key($indexes)."' to '".$indexes[key($indexes)]["name"]."' on table '$table_name'");
+                            $this->database->debug("\tRenamed index '".key($indexes)."' to '".$indexes[key($indexes)]["name"]."' on table '$table_name'");
                         }
                         if (isset($indexes[key($indexes)]["ChangedUnique"]))
                         {
-                            $databases[$this->database]->debug("\tChanged index '".key($indexes)."' unique to '".isset($indexes[key($indexes)]["unique"])."' on table '$table_name'");
+                            $this->database->debug("\tChanged index '".key($indexes)."' unique to '".isset($indexes[key($indexes)]["unique"])."' on table '$table_name'");
                         }
                         if (isset($indexes[key($indexes)]["ChangedFields"]))
                         {
-                            $databases[$this->database]->sebug("\tChanged index '".key($indexes)."' on table '$table_name'");
+                            $this->database->sebug("\tChanged index '".key($indexes)."' on table '$table_name'");
                         }
                     }
                 }
@@ -1506,13 +1493,14 @@ class MDB_manager
         }
     }
 
-    function UpdateDatabase($current_schema_file, $previous_schema_file, &$arguments, &$variables)
+    function updateDatabase($current_schema_file, $previous_schema_file, &$dsninfo, &$variables, $options = false)
     {
-        if (strcmp($error = $this->parseDatabaseDefinitionFile($current_schema_file, $this->database_definition, $variables, $this->fail_on_invalid_names), "")) {
+		if (strcmp($error = $this->parseDatabaseDefinitionFile($current_schema_file, $this->database_definition, $variables, $this->fail_on_invalid_names), "")) {
             $this->error = "Could not parse database schema file: $error";
             return(0);
         }
-        if (strcmp($error = $this->SetupDatabase($arguments), "")) {
+
+		if (!$this->setupDatabase($dsninfo, $options)) {
             $this->error = "Could not setup database: $error";
             return(0);
         }
@@ -1539,7 +1527,7 @@ class MDB_manager
         if ($copy
             && !copy($current_schema_file, $previous_schema_file))
         {
-            $this->error = "could not copy the new database definition file to the current file";
+            $this->error = "Could not copy the new database definition file to the current file";
             return(0);
         }
         return(1);
