@@ -55,14 +55,14 @@
 if (!defined('MDB_MANAGER_PGSQL_INCLUDED')) {
     define('MDB_MANAGER_PGSQL_INCLUDED', 1);
 
-class MDB_manager_pgsql_class extends MDB_manager_common { 
-    // }}} 
+class MDB_manager_pgsql_class extends MDB_manager_common {
+    // }}}
     // {{{ createDatabase()
     /**
      * create a new database
      * @param  $dbs (reference) array where database names will be stored
      * @param string $name name of the database that should be created
-     * @access public 
+     * @access public
      * @return mixed DB_OK on success, a DB error on failure
      **/
     function createDatabase(&$db, $name)
@@ -70,13 +70,13 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
         return($db->_standaloneQuery("CREATE DATABASE $name"));
     }
 
-    // }}} 
+    // }}}
     // {{{ dropDatabase()
     /**
      * drop an existing database
      * @param  $dbs (reference) array where database names will be stored
      * @param string $name name of the database that should be dropped
-     * @access public 
+     * @access public
      * @return mixed DB_OK on success, a DB error on failure
      **/
     function dropDatabase(&$db, $name)
@@ -84,7 +84,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
         return($db->_standaloneQuery("DROP DATABASE $name"));
     }
 
-    // }}} 
+    // }}}
     // {{{ createTable()
     /**
      * create a new table
@@ -94,10 +94,10 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      *                         The indexes of the array entries are the names of the fields of the table an
      *                         the array entry values are associative arrays like those that are meant to be
      *                          passed with the field definitions to get[Type]Declaration() functions.
-     * 
+     *
      *                         Example
      *                         array(
-     * 
+     *
      *                             'id' => array(
      *                                 'type' => 'integer',
      *                                 'unsigned' => 1
@@ -113,7 +113,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      *                                 'length' => 12
      *                             )
      *                         );
-     * @access public 
+     * @access public
      * @return mixed DB_OK on success, a DB error on failure
      **/
     function createTable(&$db, $name, $fields)
@@ -131,7 +131,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
         return ($db->query("CREATE TABLE $name ($query_fields)"));
     }
 
-    // }}} 
+    // }}}
     // {{{ alterTable()
     /**
      * alter an existing table
@@ -140,56 +140,56 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      * @param array $changes associative array that contains the details of each type
      *                              of change that is intended to be performed. The types of
      *                              changes that are currently supported are defined as follows:
-     * 
+     *
      *                              name
-     * 
+     *
      *                                 New name for the table.
-     * 
+     *
      *                             AddedFields
-     * 
+     *
      *                                 Associative array with the names of fields to be added as
      *                                  indexes of the array. The value of each entry of the array
      *                                  should be set to another associative array with the properties
      *                                  of the fields to be added. The properties of the fields should
      *                                  be the same as defined by the Metabase parser.
-     * 
+     *
      *                                 Additionally, there should be an entry named Declaration that
      *                                  is expected to contain the portion of the field declaration already
      *                                  in DBMS specific SQL code as it is used in the CREATE TABLE statement.
-     * 
+     *
      *                             RemovedFields
-     * 
+     *
      *                                 Associative array with the names of fields to be removed as indexes
      *                                  of the array. Currently the values assigned to each entry are ignored.
      *                                  An empty array should be used for future compatibility.
-     * 
+     *
      *                             RenamedFields
-     * 
+     *
      *                                 Associative array with the names of fields to be renamed as indexes
      *                                  of the array. The value of each entry of the array should be set to
      *                                  another associative array with the entry named name with the new
      *                                  field name and the entry named Declaration that is expected to contain
      *                                  the portion of the field declaration already in DBMS specific SQL code
      *                                  as it is used in the CREATE TABLE statement.
-     * 
+     *
      *                             ChangedFields
-     * 
+     *
      *                                 Associative array with the names of the fields to be changed as indexes
      *                                  of the array. Keep in mind that if it is intended to change either the
      *                                  name of a field and any other properties, the ChangedFields array entries
      *                                  should have the new names of the fields as array indexes.
-     * 
+     *
      *                                 The value of each entry of the array should be set to another associative
      *                                  array with the properties of the fields to that are meant to be changed as
      *                                  array entries. These entries should be assigned to the new values of the
      *                                  respective properties. The properties of the fields should be the same
      *                                  as defined by the Metabase parser.
-     * 
+     *
      *                                 If the default property is meant to be added, removed or changed, there
      *                                  should also be an entry with index ChangedDefault assigned to 1. Similarly,
      *                                  if the notNULL constraint is to be added or removed, there should also be
      *                                  an entry with index ChangedNotNull assigned to 1.
-     * 
+     *
      *                                 Additionally, there should be an entry named Declaration that is expected
      *                                  to contain the portion of the field changed declaration already in DBMS
      *                                  specific SQL code as it is used in the CREATE TABLE statement.
@@ -224,7 +224,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      * @param boolean $check indicates whether the function should just check if the DBMS driver
      *                              can perform the requested table alterations if the value is TRUE or
      *                              actually perform them otherwise.
-     * @access public 
+     * @access public
      * @return mixed DB_OK on success, a DB error on failure
      **/
     function alterTable($name, &$changes, $check)
@@ -269,12 +269,12 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
         }
     }
 
-    // }}} 
+    // }}}
     // {{{ listDatabases()
     /**
      * list all databases
      * @param  $dbs (reference) array where database names will be stored
-     * @access public 
+     * @access public
      * @return mixed data array on success, a DB error on failure
      **/
     function listDatabases(&$db)
@@ -282,12 +282,12 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
         return $db->queryCol('SELECT datname FROM pg_database', NULL, DB_FETCHMODE_ORDERED);
     }
 
-    // }}} 
+    // }}}
     // {{{ listUsers()
     /**
      * list all users
      * @param  $dbs (reference) array where database names will be stored
-     * @access public 
+     * @access public
      * @return mixed data array on success, a DB error on failure
      **/
     function listUsers(&$db)
@@ -295,16 +295,16 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
         return $db->queryCol('SELECT usename FROM pg_user', NULL, DB_FETCHMODE_ORDERED);
     }
 
-    // }}} 
+    // }}}
     // {{{ listTables()
     /**
      * list all tables in the current database
      * @param  $dbs (reference) array where database names will be stored
-     * @access public 
+     * @access public
      * @return mixed data array on success, a DB error on failure
      **/
     function listTables(&$db)
-    { 
+    {
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
         $sql = 'SELECT c.relname as "Name"
             FROM pg_class c, pg_user u
@@ -321,7 +321,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
         return $db->queryCol($sql, NULL, DB_FETCHMODE_ORDERED);
     }
 
-    // }}} 
+    // }}}
     // {{{ listViews()
     /**
      * list the tables in the database
@@ -329,19 +329,19 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      * @return mixed DB_OK on success, a DB error on failure
      **/
     function listViews(&$db)
-    { 
+    {
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
         return $db->queryCol('SELECT viewname FROM pg_views', NULL, DB_FETCHMODE_ORDERED);
     }
 
-    // }}} 
+    // }}}
     // {{{ createSequence()
     /**
      * create sequence
      * @param  $dbs (reference) array where database names will be stored
      * @param string $seq_name name of the sequence to be created
      * @param string $start start value of the sequence; default is 1
-     * @access public 
+     * @access public
      * @return mixed DB_OK on success, a DB error on failure
      **/
     function createSequence(&$db, $seq_name, $start)
@@ -350,13 +350,13 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
         return($db->query("CREATE SEQUENCE $seqname INCREMENT 1".($start < 1 ? " MINVALUE $start" : '')." START $start"));
     }
 
-    // }}} 
+    // }}}
     // {{{ dropSequence()
     /**
      * drop existing sequence
      * @param  $dbs (reference) array where database names will be stored
      * @param string $seq_name name of the sequence to be dropped
-     * @access public 
+     * @access public
      * @return mixed DB_OK on success, a DB error on failure
      **/
     function dropSequence(&$db, $seq_name)
