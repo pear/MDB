@@ -98,7 +98,7 @@ class MDB_mysql extends MDB_common
     {
         return mysql_errno($this->connection);
     }
-	
+    
     function mysqlRaiseError($errno = NULL)
     {
         if ($errno == NULL) {
@@ -312,13 +312,13 @@ class MDB_mysql extends MDB_common
      * @access public
      *
      * @param string $query  the SQL query
+     * @param array    $types array that contains the types of the columns in the result set
      * 
      * @return mixed a result handle or DB_OK on success, a DB error on failure
      */
-    function query($query)
+    function query($query, $types = NULL)
     {
         $this->last_query = $query;
-        $this->debug("Query: $query");
         
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;
@@ -350,6 +350,15 @@ class MDB_mysql extends MDB_common
             return $this->mysqlRaiseError(DB_ERROR);
         }
         if (is_resource($result)) {
+            if ($types != NULL) {
+                if (!is_array($types)) {
+                    $types = array($types);
+                }
+                if (MDB::isError($err = $this->setResultTypes($result, $types))) {
+                    $this->freeResult($result);
+                    return $err;
+                }
+            }
             return $result;
         }
         return DB_OK;
