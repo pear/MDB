@@ -22,26 +22,26 @@
         $db_type = "mysql";
     }
     echo $db_type."<br>";
+    
+    if($db_type == "mysql") {
+        // just for kicks you can mess up this part to see some pear error handling
+        $dsn["username"] = $user;
+        $dsn["password"] = $pass;
+        //$pass = "";
+        $dsn["hostspec"] = $host;
+        // Data Source Name: This is the universal connection string
+        $dsn["phptype"] = $db_type;
 
-/*
-    // just for kicks you can mess up this part to see some pear error handling
-    $dsn["username"] = $user;
-    $dsn["password"] = $pass;
-    //$pass = "";
-    $dsn["hostspec"] = $host;
-    // Data Source Name: This is the universal connection string
-    $dsn["phptype"] = $db_type;
-
-    $manager = new MDB_manager;
-    $input_file = 'metapear_test_db.schema';
-    $database_variables = array();
-    // lets create the database using 'metapear_test_db.schema'
-    // if you have allready run this script you should have 'metapear_test_db.schema.before'
-    // in that case MDB will just compare the two schemas and make any necessary modifications to the existing DB
-    var_dump($manager->updateDatabase($input_file, $input_file.".before", $dsn, $database_variables));
-    echo "updating database from xml schema file<br>";
-*/
-
+        $manager = new MDB_manager;
+        $input_file = 'metapear_test_db.schema';
+        $database_variables = array();
+        // lets create the database using 'metapear_test_db.schema'
+        // if you have allready run this script you should have 'metapear_test_db.schema.before'
+        // in that case MDB will just compare the two schemas and make any necessary modifications to the existing DB
+        echo Var_Dump::display($manager->updateDatabase($input_file, $input_file.".before", $dsn, $database_variables))."<br>";
+        echo "updating database from xml schema file<br>";
+    }
+    
     // Data Source Name: This is the universal connection string
     $dsn = "$db_type://$user:$pass@$host/$db_name";
     // MDB::connect will return a Pear DB object on success
@@ -62,24 +62,24 @@
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get row:0 column:0 and free the result
-    $db->fetchOne($result, $field);
+    $field = $db->fetchOne($result);
     echo "<br>field:<br>".$field."<br>";
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get row:0 and free the result
-    $db->fetchRow($result, $array);
+    $array = $db->fetchRow($result);
     echo "<br>row:<br>";
     echo Var_Dump::display($array)."<br>";
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get column:0 and free the result
-    $db->fetchCol($result, $array);
+    $array = $db->fetchCol($result);
     echo "<br>column:<br>";
     echo Var_Dump::display($array)."<br>";
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get column:0 and free the result
-    $db->fetchCol($result, $array, DB_FETCHMODE_DEFAULT, 2);
+    $array = $db->fetchCol($result, DB_FETCHMODE_DEFAULT, 2);
     echo "<br>get column #2 (counting from 0):<br>";
     echo Var_Dump::display($array)."<br>";
     // run the query and get a result handler
@@ -90,28 +90,28 @@
     $result = $db->query($query);
     $types = array('integer', 'text', 'timestamp');
     $db->setResultTypes($result, $types);
-    $db->fetchAll($result, &$array);
+    $array = $db->fetchAll($result);
     echo "<br>all:<br>";
     echo Var_Dump::display($array)."<br>";
     // save some time with this function
     // lets just get all and free the result
-    $db->queryAll($query, $array);
+    $array = $db->queryAll($query);
     echo "<br>all with just one call:<br>";
     echo Var_Dump::display($array)."<br>";
     // run the query with the offset 1 and count 1 and get a result handler
     $result = $db->limitQuery($query, 1, 1);
     // lets just get everything but with an associative array and free the result
-    $db->fetchAll($result, $array, DB_FETCHMODE_ASSOC);
+    $array = $db->fetchAll($result, DB_FETCHMODE_ASSOC);
     echo "<br>associative array with offset 1 and count 1:<br>";
     echo Var_Dump::display($array)."<br>";
     // lets create a sequence
     echo "<br>create a new seq with start 3 name real_funky_id<br>";
-    $err = $db->createSequence("real_funky_id",3);
+    $err = $db->createSequence("real_funky_id", 3);
     if (MDB::isError($err)) {
             echo "<br>could not create sequence again<br>";
     }
     echo "<br>get the next id:<br>";
-    $db->nextId("real_funky_id", $value);
+    $value = $db->nextId("real_funky_id");
     echo $value."<br>";
     // lets try an prepare execute combo
     $alldata = array(
@@ -136,8 +136,6 @@
     $prepared_query = $db->prepareQuery("INSERT INTO numbers VALUES(?,?,?)");
     echo "running executeMultiple<br>";
     echo Var_Dump::display($db->executeMultiple($prepared_query, NULL, $alldata))."<br>";
-    echo "<br>affected rows:<br>";
-    echo $db->affectedRows()."<br>";
     $array = array(4);
     echo "<br>see getOne in action:<br>";
     echo Var_Dump::display($db->getOne("SELECT trans_en FROM numbers WHERE number = ?",'text',$array))."<br>";
@@ -152,40 +150,45 @@
     echo Var_Dump::display($db->getAssoc("SELECT * FROM test",array('integer','text','text'), NULL, NULL, DB_FETCHMODE_ASSOC))."<br>";
     echo "tableInfo on a string:<br>";
     echo Var_Dump::display($db->tableInfo("numbers"))."<br>";
+    echo "<br>just a simple update query:<br>";
+    echo Var_Dump::display($db->query("UPDATE numbers set trans_en =".$db->getIntegerValue(0)))."<br>";
     echo "<br>just a simple delete query:<br>";
     echo Var_Dump::display($db->query("DELETE FROM numbers"))."<br>";
+    echo "<br>affected rows:<br>";
+    echo $db->affectedRows()."<br>";
     // subselect test
-    $sub_select = $db->subSelect("SELECT test_name from test WHERE test_name = ".$db->getTextFieldValue('gummihuhn'), TRUE);
+    $sub_select = $db->subSelect("SELECT test_name from test WHERE test_name = ".$db->getTextValue('gummihuhn'), TRUE);
     echo Var_Dump::display($sub_select)."<br>";
     $query_with_subselect = "SELECT * FROM test WHERE test_name IN (".$sub_select.")";
     // run the query and get a result handler
     echo $query_with_subselect."<br>";
     $result = $db->query($query_with_subselect);
-    $db->fetchAll($result, &$array);
+    $array = $db->fetchAll($result);
     echo "<br>all with subselect:<br>";
     echo Var_Dump::display($array)."<br>";
 
-/*
-    // ok now lets create a new xml schema file from the existing DB
-    // we will not use the 'metapear_test_db.schema' for this
-    // this feature is especially interesting for people that have an existing Db and want to move to MDB's xml schema management
-    $manager->setupDatabase($dsn);
-    $manager->getDefinitionFromDatabase();
-    // this is the database definition as an array
-    echo Var_Dump::display($manager->database_definition)."<br>";
-
-    // new we will write this array as an xml schema file
-    $manager->debug = "Output";
-    echo $manager->dumpDatabase(
-        array(
-            "Output" => "Dump",
-            "EndOfLine" => "\n",
-            "Output_Mode" => "file",
-            "Output_File" => $manager->database->database_name.'2.schema'
-        )
-    );
-    if($manager->database) {
-        echo $manager->database->debugOutput();
+    if($db_type == "mysql") {
+        // ok now lets create a new xml schema file from the existing DB
+        // we will not use the 'metapear_test_db.schema' for this
+        // this feature is especially interesting for people that have an existing Db and want to move to MDB's xml schema management
+        echo Var_Dump::display($manager->setupDatabase($dsn))."<br>";
+        echo Var_Dump::display($manager->getDefinitionFromDatabase())."<br>";
+    
+        // this is the database definition as an array
+        echo Var_Dump::display($manager->database_definition)."<br>";
+    
+        // new we will write this array as an xml schema file
+        $manager->debug = "Output";
+        echo $manager->dumpDatabase(
+            array(
+                "Output" => "Dump",
+                "EndOfLine" => "\n",
+                "Output_Mode" => "file",
+                "Output_File" => $manager->database->database_name.'2.schema'
+            )
+        );
+        if($manager->database) {
+            echo Var_Dump::display($manager->database->debugOutput())."<br>";
+        }
     }
-*/
 ?>
