@@ -616,7 +616,7 @@ class MDB_Extended
      * Generates a limited query
      *
      * @param string $query query
-     * @param array   $types  array that contains the types of the columns in
+     * @param mixed   $types  array that contains the types of the columns in
      *                        the result set
      * @param integer $from the row to start to fetching
      * @param integer $count the numbers of rows to fetch
