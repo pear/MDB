@@ -140,7 +140,7 @@
             Ported to PEAR MDB.
             Methods supported:
                 connect, query, getColumnNames, numCols, endOfResult, fetch,
-                numRows, freeResult, fetchInto, nextResult, setSelectedRowRange
+                numRows, freeResult, fetchInto, nextResult, setLimit
                 (inherited).
         </history>
         <history
@@ -275,7 +275,7 @@ class MDB_querysim extends MDB_Common
      *
      * @param string $dsn the data source name (see MDB::parseDSN for syntax)
      * @param mixed $persistent (optional) boolean whether the connection should
-     *        be persistent (default FALSE) or assoc array of config options
+     *        be persistent (default false) or assoc array of config options
      *
      * @access public
      *
@@ -283,7 +283,7 @@ class MDB_querysim extends MDB_Common
      */
     function connect()
     {
-        if($this->connection != 0) {
+        if ($this->connection != 0) {
             if (!strcmp($this->selected_database, $this->database_name)
                 && ($this->opened_persistent == $this->options['persistent']))
             {
@@ -294,9 +294,9 @@ class MDB_querysim extends MDB_Common
             }
             $this->connection = 0;
         }
-        if(is_array($this->options)) {
+        if (is_array($this->options)) {
             foreach($this->options as $option => $value) {
-                if((in_array($option, array('columnDelim','dataDelim','eolDelim')))
+                if ((in_array($option, array('columnDelim','dataDelim','eolDelim')))
                     && ($value == '\\')) {
                         return $this->raiseError(MDB_ERROR, null, null,
                             "MDB Error: option $option cannot be set to '\\'");
@@ -336,8 +336,8 @@ class MDB_querysim extends MDB_Common
      *
      * @access public
      *
-     * @return bool TRUE on success, FALSE if file closed.
-     *              Always TRUE if simulated.
+     * @return bool true on success, false if file closed.
+     *              Always true if simulated.
      */
     function _close()
     {
@@ -505,7 +505,7 @@ class MDB_querysim extends MDB_Common
         //populate columnNames array
         $thisLine = each($lineData);
         $columnNames = $this->_parseOnDelim($thisLine[1], $columnDelim);
-        if ((in_array('', $columnNames)) || (in_array('null', $columnNames))) {
+        if ((in_array('', $columnNames)) || (in_array('NULL', $columnNames))) {
             return $this->raiseError(MDB_ERROR_SYNTAX, null, null,
                 'all column names must be defined');
         }
@@ -525,7 +525,7 @@ class MDB_querysim extends MDB_Common
                 }
                 //loop through data elements in data line
                 foreach ($thisData as $thisElement) {
-                    if (strtolower($thisElement) == 'null'){
+                    if (strtoupper($thisElement) == 'NULL'){
                         $thisElement = '';
                     }
                     //replace double-slash tokens with single-slash
@@ -647,7 +647,7 @@ class MDB_querysim extends MDB_Common
     * check if the end of the result set has been reached
     *
     * @param resource    $result result identifier
-    * @return mixed TRUE or FALSE on sucess, a MDB error on failure
+    * @return mixed true or false on sucess, a MDB error on failure
     * @access public
     */
     function endOfResult($result)
@@ -661,29 +661,6 @@ class MDB_querysim extends MDB_Common
     }
     // }}}
 
-    // {{{ fetch()
-
-    /**
-    * fetch value from a simulated result set
-    *
-    * @param array  $result simulated result
-    * @param int    $row    number of the row where the data can be found
-    * @param int    $field    field number where the data can be found
-    * @return mixed string on success, a MDB error on failure
-    * @access public
-    */
-    function fetch($result, $row, $field)
-    {
-        $result_link = $this->_querySimSignature($result);
-        $this->highest_fetched_row[$result_link] = max($this->highest_fetched_row[$result_link], $row);
-        if (isset($result[1][$row][$field])) {
-            $res = $result[1][$row][$field];
-        } else {
-            return $this->raiseError(MDB_ERROR, null, null,
-                "fetch():  row $row, field $field is undefined in result set");
-        }
-        return $res;
-    }
     // }}}
 
     // {{{ numRows()
@@ -713,20 +690,20 @@ class MDB_querysim extends MDB_Common
      * Free the internal resources associated with $result.
      *
      * @param $result result identifier
-     * @return bool TRUE on success, FALSE if $result is invalid
+     * @return bool true on success, false if $result is invalid
      * @access public
      */
     function freeResult(&$result)
     {
         $result_link = $this->_querySimSignature($result);
         
-        if(isset($this->highest_fetched_row[$result_link])) {
+        if (isset($this->highest_fetched_row[$result_link])) {
             unset($this->highest_fetched_row[$result_link]);
         }
-        if(isset($this->columns[$result_link])) {
+        if (isset($this->columns[$result_link])) {
             unset($this->columns[$result_link]);
         }
-        if(isset($this->result_types[$result_link])) {
+        if (isset($this->result_types[$result_link])) {
             unset($this->result_types[$result_link]);
         }
         if (isset($result)) {
@@ -747,7 +724,7 @@ class MDB_querysim extends MDB_Common
      * @param resource $result result identifier
      * @param int $fetchmode ignored
      * @param int $rownum the row number to fetch
-     * @return mixed data array or NULL on success, a MDB error on failure
+     * @return mixed data array or null on success, a MDB error on failure
      * @access public
      */
     function fetchInto(&$result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
@@ -767,7 +744,7 @@ class MDB_querysim extends MDB_Common
             $fetchmode = $this->fetchmode;
         }
         // get row
-        if(!$array = @$result[1][$rownum]) {
+        if (!$array = @$result[1][$rownum]) {
             return null;
         }
         // make row associative

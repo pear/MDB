@@ -48,8 +48,8 @@
  */
 
 // BC hack to define PATH_SEPARATOR for version of PHP prior 4.3
-if(!defined('PATH_SEPARATOR')) {
-    if(defined('DIRECTORY_SEPARATOR') && DIRECTORY_SEPARATOR == "\\") {
+if (!defined('PATH_SEPARATOR')) {
+    if (defined('DIRECTORY_SEPARATOR') && DIRECTORY_SEPARATOR == "\\") {
         define('PATH_SEPARATOR', ';');
     } else {
         define('PATH_SEPARATOR', ':');
@@ -57,11 +57,11 @@ if(!defined('PATH_SEPARATOR')) {
 }
 ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
 
-require_once('PHPUnit.php');
-require_once('test_setup.php');
-require_once('testUtils.php');
-require_once('MDB.php');
-require_once('HTML_TestListener.php');
+require_once 'PHPUnit.php';
+require_once 'test_setup.php';
+require_once 'testUtils.php';
+require_once 'MDB.php';
+require_once 'HTML_TestListener.php';
 
 // you may need to uncomment the line and modify the multiplier as you see fit
 set_time_limit(60*count($dbarray));
@@ -70,12 +70,12 @@ MDB::loadFile('Manager');
 MDB::loadFile('Date');
 
 foreach ($testcases as $testcase) {
-    include_once($testcase.'.php');
+    include_once $testcase.'.php';
 }
 
 $database = 'driver_test';
 
-$testmethods = isset($_POST['testmethods']) ? $_POST['testmethods'] : NULL;
+$testmethods = isset($_POST['testmethods']) ? $_POST['testmethods'] : null;
 
 if (!is_array($testmethods)) {
     foreach ($testcases as $testcase) {

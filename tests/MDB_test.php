@@ -5,8 +5,8 @@
 //
 
 // BC hack to define PATH_SEPARATOR for version of PHP prior 4.3
-if(!defined('PATH_SEPARATOR')) {
-    if(defined('DIRECTORY_SEPARATOR') && DIRECTORY_SEPARATOR == "\\") {
+if (!defined('PATH_SEPARATOR')) {
+    if (defined('DIRECTORY_SEPARATOR') && DIRECTORY_SEPARATOR == "\\") {
         define('PATH_SEPARATOR', ';');
     } else {
         define('PATH_SEPARATOR', ':');
@@ -16,10 +16,10 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
 
     // MDB.php doesnt have to be included since manager.php does that
     // manager.php is only necessary for handling xml schema files
-    require_once('MDB.php');
+    require_once 'MDB.php';
     MDB::loadFile('Manager');
     // only including this to output result data
-    require_once('Var_Dump.php');
+    require_once 'Var_Dump.php';
 
     PEAR::setErrorHandling(PEAR_ERROR_CALLBACK, 'handle_pear_error');
     function handle_pear_error ($error_obj)
@@ -35,7 +35,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     //$pass = '';
     $host = 'localhost';
     $db_name = 'metapear_test_db';
-    if(isset($_GET['db_type'])) {
+    if (isset($_GET['db_type'])) {
         $db_type = $_GET['db_type'];
     } else {
         $db_type = 'mysql';
@@ -49,9 +49,9 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     $dsn['phptype'] = $db_type;
     // MDB::connect will return a Pear DB object on success
     // or a Pear MDB error object on error
-    // You can also set to TRUE the second param
+    // You can also set to true the second param
     // if you want a persistent connection:
-    // $db = MDB::connect($dsn, TRUE);
+    // $db = MDB::connect($dsn, true);
     // you can alternatively build a dsn here
    //$dsn = "$db_type://$user:$pass@$host/$db_name";
     Var_Dump::display($dsn);
@@ -117,7 +117,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo('<br>all with just one call:<br>');
     echo(Var_Dump::display($array).'<br>');
     // run the query with the offset 1 and count 1 and get a result handler
-    $result = $db->limitQuery($query, NULL, 1, 1);
+    $result = $db->limitQuery($query, null, 1, 1);
     // lets just get everything but with an associative array and free the result
     $array = $db->fetchAll($result, MDB_FETCHMODE_ASSOC);
     echo('<br>associative array with offset 1 and count 1:<br>');
@@ -141,7 +141,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     $prepared_query = $db->prepareQuery('INSERT INTO numbers VALUES(?,?,?)');
     foreach ($alldata as $row) {
             echo('running execute<br>');
-            $db->execute($prepared_query, NULL, $row);
+            $db->execute($prepared_query, null, $row);
     }
     // lets try an prepare execute combo
     $alldata = array(
@@ -152,7 +152,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     );
     $prepared_query = $db->prepareQuery('INSERT INTO numbers VALUES(?,?,?)');
     echo('running executeMultiple<br>');
-    echo(Var_Dump::display($db->executeMultiple($prepared_query, NULL, $alldata)).'<br>');
+    echo(Var_Dump::display($db->executeMultiple($prepared_query, null, $alldata)).'<br>');
     $array = array(4);
     echo('<br>see getOne in action:<br>');
     echo(Var_Dump::display($db->getOne('SELECT trans_en FROM numbers WHERE number = ?','text',$array)).'<br>');
@@ -163,11 +163,11 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo('default fetchmode ist now MDB_FETCHMODE_ORDERED<br>');
     $db->setFetchmode(MDB_FETCHMODE_ORDERED);
     echo('<br>see getCol in action:<br>');
-    echo(Var_Dump::display($db->getCol('SELECT * FROM numbers','text', NULL, NULL, 1)).'<br>');
+    echo(Var_Dump::display($db->getCol('SELECT * FROM numbers','text', null, null, 1)).'<br>');
     echo('<br>see getAll in action:<br>');
     echo(Var_Dump::display($db->getAll('SELECT * FROM test',array('integer','text','text'))).'<br>');
     echo('<br>see getAssoc in action:<br>');
-    echo(Var_Dump::display($db->getAssoc('SELECT * FROM test',array('integer','text','text'), NULL, NULL, MDB_FETCHMODE_ASSOC)).'<br>');
+    echo(Var_Dump::display($db->getAssoc('SELECT * FROM test',array('integer','text','text'), null, null, MDB_FETCHMODE_ASSOC)).'<br>');
     echo('tableInfo on a string:<br>');
     echo(Var_Dump::display($db->tableInfo('numbers')).'<br>');
     echo('<br>just a simple update query:<br>');
@@ -175,7 +175,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo('<br>affected rows:<br>');
     echo($db->affectedRows().'<br>');
     // subselect test
-    $sub_select = $db->subSelect('SELECT test_name from test WHERE test_name = '.$db->getTextValue('gummihuhn'), TRUE);
+    $sub_select = $db->subSelect('SELECT test_name from test WHERE test_name = '.$db->getTextValue('gummihuhn'), true);
     echo(Var_Dump::display($sub_select).'<br>');
     $query_with_subselect = 'SELECT * FROM test WHERE test_name IN ('.$sub_select.')';
     // run the query and get a result handler
@@ -195,8 +195,8 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     );
     echo('<br>create index:<br>');
     echo(Var_Dump::display($db->createIndex('test', 'test_id_index', $index_def)).'<br>');
-    if($db_type == 'mysql') {
-        $manager->captureDebugOutput(TRUE);
+    if ($db_type == 'mysql') {
+        $manager->captureDebugOutput(true);
         $manager->database->setOption('log_line_break', '<br>');
         // ok now lets create a new xml schema file from the existing DB
         // we will not use the 'metapear_test_db.schema' for this
@@ -209,7 +209,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
             ),
             MDB_MANAGER_DUMP_STRUCTURE
         )).'<br>');
-        if($manager->options['debug']) {
+        if ($manager->options['debug']) {
             echo($manager->debugOutput().'<br>');
         }
         // this is the database definition as an array

@@ -44,7 +44,7 @@
 //
 // $Id$
 //
-require_once('PEAR.php');
+require_once 'PEAR.php';
 
 /**
  * The method mapErrorCode in each MDB_dbtype implementation maps
@@ -94,7 +94,7 @@ define('MDB_ERROR_INSUFFICIENT_DATA',  -33);
  * These constants are used when storing information about prepared
  * statements (using the 'prepare' method in MDB_dbtype).
  *
- * The prepare/execute model in DB is mostly borrowed from the ODBC
+ * The prepare/execute model in MDB is mostly borrowed from the ODBC
  * extension, in a query the '?' character means a scalar parameter.
  * There are two extensions though, a '&' character means an opaque
  * parameter.  An opaque parameter is simply a file name, the real
@@ -169,17 +169,6 @@ define('MDB_TABLEINFO_ORDER',      1);
 define('MDB_TABLEINFO_ORDERTABLE', 2);
 define('MDB_TABLEINFO_FULL',       3);
 
-define('MDB_TYPE_TEXT'      , 0);
-define('MDB_TYPE_BOOLEAN'   , 1);
-define('MDB_TYPE_INTEGER'   , 2);
-define('MDB_TYPE_DECIMAL'   , 3);
-define('MDB_TYPE_FLOAT'     , 4);
-define('MDB_TYPE_DATE'      , 5);
-define('MDB_TYPE_TIME'      , 6);
-define('MDB_TYPE_TIMESTAMP' , 7);
-define('MDB_TYPE_CLOB'      , 8);
-define('MDB_TYPE_BLOB'      , 9);
-
 /**
  * The main 'MDB' class is simply a container class with some static
  * methods for creating DB objects as well as some utility functions
@@ -217,7 +206,6 @@ define('MDB_TYPE_BLOB'      , 9);
  */
 class MDB
 {
-    
     // }}}
     // {{{ setOptions()
     
@@ -231,33 +219,33 @@ class MDB
      */
     function setOptions(&$db, $options)
     {
-        if(is_array($options)) {
+        if (is_array($options)) {
             foreach($options as $option => $value) {
                 $test = $db->setOption($option, $value);
-                if(MDB::isError($test)) {
+                if (MDB::isError($test)) {
                     return $test;
                 }
             }
         } else {
             $db->setOption('persistent', $options);
         }
-        $include_lob = $db->getOption('includelob');
-        if(!MDB::isError($include_lob) && $include_lob) {
+        $include_lob = $db->getOption('include_lob');
+        if (!MDB::isError($include_lob) && $include_lob) {
             $db->loadLob('load at start');
         }
-        $includemanager = $db->getOption('includemanager');
-        if(!MDB::isError($includemanager) && $includemanager) {
+        $include_manager = $db->getOption('include_manager');
+        if (!MDB::isError($include_manager) && $include_manager) {
             $db->loadManager('load at start');
         }
         $debug = $db->getOption('debug');
-        if(!MDB::isError($debug) && $debug) {
-            $db->captureDebugOutput(TRUE);
+        if (!MDB::isError($debug) && $debug) {
+            $db->captureDebugOutput(true);
         }
     }
-    
+
     // }}}
     // {{{ factory()
-    
+
     /**
      * Create a new DB connection object for the specified database
      * type
@@ -271,16 +259,16 @@ class MDB
     {
         $class_name = "MDB_$type";
         
-        @include_once("MDB/${type}.php");
+        @include_once "MDB/${type}.php";
         
         @$db =& new $class_name;
         
-        return($db);
+        return $db;
     }
-    
+
     // }}}
     // {{{ connect()
-    
+
     /**
      * Create a new MDB connection object and connect to the specified
      * database
@@ -307,55 +295,54 @@ class MDB
      * @access  public
      * @see     MDB::parseDSN
      */
-    function &connect($dsn, $options = FALSE)
+    function &connect($dsn, $options = false)
     {
         $dsninfo = MDB::parseDSN($dsn);
-        if(isset($dsninfo['phptype'])) {
+        if (isset($dsninfo['phptype'])) {
             $type          = $dsninfo['phptype'];
             $class_name    = 'MDB_'.$type;
             $include       = 'MDB/'.$type.'.php';
         } else {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                NULL, NULL, 'no RDBMS driver specified',
-                'MDB_Error', TRUE));
+            return PEAR::raiseError(null, MDB_ERROR_NOT_FOUND,
+                null, null, 'no RDBMS driver specified',
+                'MDB_Error', true);
         }
-        
-        if(is_array($options)
+
+        if (is_array($options)
             && isset($options['debug'])
             && $options['debug'] >= 2
         ) {
             // expose php errors with sufficient debug level
-            @include_once($include);
+            @include_once $include;
         } else {
-            include_once($include);
+            include_once $include;
         }
-        
-        if(!class_exists($class_name)) {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND, NULL, NULL,
+
+        if (!class_exists($class_name)) {
+            return PEAR::raiseError(null, MDB_ERROR_NOT_FOUND, null, null,
                 'Unable to include the '.$include.' file',
-                'MDB_Error', TRUE));
+                'MDB_Error', true);
         }
-        
+
         @$db =& new $class_name();
-        
+
         $db->setDSN($dsninfo);
-        
         MDB::setOptions($db, $options);
-        
-        if(isset($dsninfo['database'])) {
+
+        if (isset($dsninfo['database'])) {
             $err = $db->connect();
             if (MDB::isError($err)) {
                 $dsn = $db->getDSN();
                 $err->addUserInfo($dsn);
-                return($err);
+                return $err;
             }
         }
-        return($db);
+        return $db;
     }
-    
+
     // }}}
-    // {{{ connect()
-    
+    // {{{ singleton()
+
     /**
      * Returns a MDB connection with the requested DSN.
      * A newnew MDB connection object is only created if no object with the 
@@ -383,18 +370,18 @@ class MDB
      * @access  public
      * @see     MDB::parseDSN
      */
-    function &singleton($dsn = NULL, $options = FALSE)
+    function &singleton($dsn = null, $options = false)
     {
         global $_MDB_databases;
         if ($dsn) {
             $dsninfo = MDB::parseDSN($dsn);
             $dsninfo = array_merge(
                 array(
-                    'phptype' => NULL,
-                    'username' => NULL,
-                    'password' => NULL,
-                    'hostspec' => NULL,
-                    'database' => NULL)
+                    'phptype' => null,
+                    'username' => null,
+                    'password' => null,
+                    'hostspec' => null,
+                    'database' => null)
                 , $dsninfo);
             for ($i=1, $j=count($_MDB_databases)+1; $i<$j; ++$i) {
                 $tmp_dsn = $_MDB_databases[$i]->getDSN('array');
@@ -417,17 +404,17 @@ class MDB
     }
     
     // }}}
-    // {{{ loadFile()
+    // {{{ loadModule()
     
     /**
-     * load a file (like 'Date.php' or 'Manager.php')
+     * load a file (like 'Date.php')
      *
-     * @return $file    name of the file to be included from the MDB dir
+     * @return $module    name of the file to be included from the MDB modules dir
      * @access public
      */
-    function loadFile($file)
+    function loadModule($module)
     {
-        @include_once('MDB/'.$file.'.php');
+        @include_once 'MDB/Modules'.$file.'.php';
     }
     
     // }}}
@@ -441,7 +428,7 @@ class MDB
      */
     function apiVersion()
     {
-        return(1);
+        return 2;
     }
     
     // }}}
@@ -456,9 +443,9 @@ class MDB
      */
     function isError($value)
     {
-        return(is_object($value) &&
+        return is_object($value) &&
             (get_class($value) == 'mdb_error' ||
-            is_subclass_of($value, 'mdb_error')));
+            is_subclass_of($value, 'mdb_error'));
     }
     
     // }}}
@@ -495,9 +482,9 @@ class MDB
         $manips = 'INSERT|UPDATE|DELETE|REPLACE|CREATE|DROP|
                   ALTER|GRANT|REVOKE|LOCK|UNLOCK|ROLLBACK|COMMIT';
         if (preg_match('/^\s*"?('.$manips.')\s+/i', $query)) {
-            return(TRUE);
+            return true;
         }
-        return(FALSE);
+        return false;
     }
     
     // }}}
@@ -556,8 +543,8 @@ class MDB
             $value = $value->getCode();
         }
         
-        return(isset($errorMessages[$value]) ?
-           $errorMessages[$value] : $errorMessages[MDB_ERROR]);
+        return isset($errorMessages[$value]) ?
+           $errorMessages[$value] : $errorMessages[MDB_ERROR];
     }
     
     // }}}
@@ -598,28 +585,28 @@ class MDB
     function parseDSN($dsn)
     {
         if (is_array($dsn)) {
-            return($dsn);
+            return $dsn;
         }
         
         $parsed = array(
-            'phptype'  => FALSE,
-            'dbsyntax' => FALSE,
-            'username' => FALSE,
-            'password' => FALSE,
-            'protocol' => FALSE,
-            'hostspec' => FALSE,
-            'port'     => FALSE,
-            'socket'   => FALSE,
-            'database' => FALSE
+            'phptype'  => false,
+            'dbsyntax' => false,
+            'username' => false,
+            'password' => false,
+            'protocol' => false,
+            'hostspec' => false,
+            'port'     => false,
+            'socket'   => false,
+            'database' => false
         );
         
         // Find phptype and dbsyntax
-        if (($pos = strpos($dsn, '://')) !== FALSE) {
+        if (($pos = strpos($dsn, '://')) !== false) {
             $str = substr($dsn, 0, $pos);
             $dsn = substr($dsn, $pos + 3);
         } else {
             $str = $dsn;
-            $dsn = NULL;
+            $dsn = null;
         }
         
         // Get phptype and dbsyntax
@@ -633,15 +620,15 @@ class MDB
         }
         
         if (empty($dsn)) {
-            return($parsed);
+            return $parsed;
         }
         
         // Get (if found): username and password
         // $dsn => username:password@protocol+hostspec/database
-        if (($at = strrpos($dsn,'@')) !== FALSE) {
+        if (($at = strrpos($dsn,'@')) !== false) {
             $str = substr($dsn, 0, $at);
             $dsn = substr($dsn, $at + 1);
-            if (($pos = strpos($str, ':')) !== FALSE) {
+            if (($pos = strpos($str, ':')) !== false) {
                 $parsed['username'] = rawurldecode(substr($str, 0, $pos));
                 $parsed['password'] = rawurldecode(substr($str, $pos + 1));
             } else {
@@ -654,19 +641,19 @@ class MDB
         // $dsn => proto(proto_opts)/database
         if (preg_match('|^([^(]+)\((.*?)\)/?(.*?)$|', $dsn, $match)) {
             $proto       = $match[1];
-            $proto_opts  = (!empty($match[2])) ? $match[2] : FALSE;
+            $proto_opts  = (!empty($match[2])) ? $match[2] : false;
             $dsn         = $match[3];
         
         // $dsn => protocol+hostspec/database (old format)
         } else {
-            if (strpos($dsn, '+') !== FALSE) {
+            if (strpos($dsn, '+') !== false) {
                 list($proto, $dsn) = explode('+', $dsn, 2);
             }
-            if (strpos($dsn, '/') !== FALSE) {
+            if (strpos($dsn, '/') !== false) {
                 list($proto_opts, $dsn) = explode('/', $dsn, 2);
             } else {
                 $proto_opts = $dsn;
-                $dsn = NULL;
+                $dsn = null;
             }
         }
         
@@ -674,7 +661,7 @@ class MDB
         $parsed['protocol'] = (!empty($proto)) ? $proto : 'tcp';
         $proto_opts = rawurldecode($proto_opts);
         if ($parsed['protocol'] == 'tcp') {
-            if (strpos($proto_opts, ':') !== FALSE) {
+            if (strpos($proto_opts, ':') !== false) {
                 list($parsed['hostspec'], $parsed['port']) =
                                                      explode(':', $proto_opts);
             } else {
@@ -688,13 +675,13 @@ class MDB
         // $dsn => database
         if (!empty($dsn)) {
             // /database
-            if (($pos = strpos($dsn, '?')) === FALSE) {
+            if (($pos = strpos($dsn, '?')) === false) {
                 $parsed['database'] = $dsn;
             // /database?param1=value1&param2=value2
             } else {
                 $parsed['database'] = substr($dsn, 0, $pos);
                 $dsn = substr($dsn, $pos + 1);
-                if (strpos($dsn, '&') !== FALSE) {
+                if (strpos($dsn, '&') !== false) {
                     $opts = explode('&', $dsn);
                 } else { // database?param1=value1
                     $opts = array($dsn);
@@ -708,7 +695,7 @@ class MDB
             }
         }
         
-        return($parsed);
+        return $parsed;
     }
 }
 
@@ -736,7 +723,7 @@ class MDB_Error extends PEAR_Error
      * @param smixed  $debuginfo additional debug info, such as the last query
      */
     function MDB_Error($code = MDB_ERROR, $mode = PEAR_ERROR_RETURN,
-              $level = E_USER_NOTICE, $debuginfo = NULL)
+              $level = E_USER_NOTICE, $debuginfo = null)
     {
         if (is_int($code)) {
             $this->PEAR_Error('MDB Error: '.MDB::errorMessage($code), $code,

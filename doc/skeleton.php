@@ -60,7 +60,7 @@
 // implementations of Metabase methods is the error handling.
 // Anyways don't worry if you are having problems: Lukas Smith is here to help!
 
-require_once('MDB/Common.php');
+require_once 'MDB/Common.php';
 
 /**
  * MDB XXX driver
@@ -104,7 +104,7 @@ class MDB_xxx extends MDB_Common
         // the error code maps from corresponding PEAR DB driver constructor
 
         // also please remember to "register" all driver specific options here like so
-        // $this->options['option_name'] = 'non NULL default value';
+        // $this->options['option_name'] = 'non null default value';
     }
 
     // }}}
@@ -136,7 +136,7 @@ class MDB_xxx extends MDB_Common
      * @access public
      * @see PEAR_Error
      */
-    function xxxRaiseError($errno = NULL)
+    function xxxRaiseError($errno = null)
     {
         // take this method from the corresponding PEAR DB driver: xxxRaiseError()
     }
@@ -208,15 +208,15 @@ class MDB_xxx extends MDB_Common
     /**
      * Connect to the database
      *
-     * @return TRUE on success, MDB_Error on failure
+     * @return true on success, MDB_Error on failure
      **/
     function connect()
     {
         // take this from the corresponding Metabase driver: Connect() and Setup()
         if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', TRUE));
+            return PEAR::raiseError(null, MDB_ERROR_NOT_FOUND,
+                null, null, 'extension '.$this->phptype.' is not compiled into PHP',
+                'MDB_Error', true);
         }
     }
 
@@ -247,7 +247,7 @@ class MDB_xxx extends MDB_Common
      *
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      */
-    function query($query, $types = NULL)
+    function query($query, $types = null)
     {
         // take this from the corresponding Metabase driver: Query()
     }
@@ -267,7 +267,7 @@ class MDB_xxx extends MDB_Common
      *
      * @return string the query
      */
-    function subSelect($query, $quote = FALSE)
+    function subSelect($query, $quote = false)
     {
         // This is a new method that only needs to be added if the RDBMS does
         // not support sub-selects. See the MySQL driver for an example
@@ -316,11 +316,11 @@ class MDB_xxx extends MDB_Common
      *
      *    Null
      *          Boolean property that indicates that the value for this field
-     *          should be set to NULL.
+     *          should be set to null.
      *
      *          The default value for fields missing in INSERT queries may be
      *          specified the definition of a table. Often, the default value
-     *          is already NULL, but since the REPLACE may be emulated using
+     *          is already null, but since the REPLACE may be emulated using
      *          an UPDATE query, make sure that all fields of the table are
      *          listed in this function argument array.
      *
@@ -333,8 +333,8 @@ class MDB_xxx extends MDB_Common
      *          updated if it exists or inserted a new row otherwise.
      *
      *          This function will fail if no key field is specified or if the
-     *          value of a key field is set to NULL because fields that are
-     *          part of unique index they may not be NULL.
+     *          value of a key field is set to null because fields that are
+     *          part of unique index they may not be null.
      *
      *    Default: 0
      *
@@ -392,7 +392,7 @@ class MDB_xxx extends MDB_Common
     * check if the end of the result set has been reached
     *
     * @param resource    $result result identifier
-    * @return mixed TRUE or FALSE on sucess, a MDB error on failure
+    * @return mixed true or false on sucess, a MDB error on failure
     * @access public
     */
     function endOfResult($result)
@@ -423,7 +423,7 @@ class MDB_xxx extends MDB_Common
      * therefore there is no more data to be read for the its input stream.
      *
      * @param int    $lob handle to a lob created by the createLob() function
-     * @return mixed TRUE or FALSE on success, a MDB error on failure
+     * @return mixed true or false on success, a MDB error on failure
      * @access public
      */
     function endOfResultLob($lob)
@@ -466,92 +466,6 @@ class MDB_xxx extends MDB_Common
     }
 
     // }}}
-    // {{{ fetch()
-
-    /**
-    * fetch value from a result set
-    *
-    * @param resource    $result result identifier
-    * @param int    $row    number of the row where the data can be found
-    * @param int    $field    field number where the data can be found
-    * @return mixed string on success, a MDB error on failure
-    * @access public
-    */
-    function fetch($result, $row, $field)
-    {
-        // take this from the corresponding Metabase driver: FetchResult()
-    }
-
-    // }}}
-    // {{{ fetchClob()
-
-    /**
-    * fetch a clob value from a result set
-    *
-    * @param resource    $result result identifier
-    * @param int    $row    number of the row where the data can be found
-    * @param int    $field    field number where the data can be found
-    * @return mixed content of the specified data cell, a MDB error on failure,
-    *               a MDB error on failure
-    * @access public
-    */
-    function fetchClob($result, $row, $field)
-    {
-        // take this from the corresponding Metabase driver: FetchCLOB()
-    }
-
-    // }}}
-    // {{{ fetchBlob()
-
-    /**
-    * fetch a blob value from a result set
-    *
-    * @param resource    $result result identifier
-    * @param int    $row    number of the row where the data can be found
-    * @param int    $field    field number where the data can be found
-    * @return mixed content of the specified data cell, a MDB error on failure
-    * @access public
-    */
-    function fetchBlob($result, $row, $field)
-    {
-        // take this from the corresponding Metabase driver: FetchBLOB()
-    }
-
-    // }}}
-    // {{{ resultIsNull()
-
-    /**
-     * Determine whether the value of a query result located in given row and
-     *   field is a NULL.
-     *
-     * @param resource    $result result identifier
-     * @param int    $row    number of the row where the data can be found
-     * @param int    $field    field number where the data can be found
-     * @return mixed TRUE or FALSE on success, a MDB error on failure
-     * @access public
-     */
-    function resultIsNull($result, $row, $field)
-    {
-        // take this from the corresponding Metabase driver: ResultIsNull()
-    }
-
-    // }}}
-    // {{{ convertResult()
-
-    /**
-    * convert a value to a RDBMS indepdenant MDB type
-    *
-    * @param mixed  $value   value to be converted
-    * @param int    $type    constant that specifies which type to convert to
-    * @return mixed converted value
-    * @access public
-    */
-    function convertResult($value, $type)
-    {
-        // take this from the corresponding Metabase driver: ConvertResult()
-    }
-
-    // }}}
     // {{{ numRows()
 
     /**
@@ -573,112 +487,12 @@ class MDB_xxx extends MDB_Common
      * Free the internal resources associated with $result.
      *
      * @param $result result identifier
-     * @return bool TRUE on success, FALSE if $result is invalid
+     * @return bool true on success, false if $result is invalid
      * @access public
      */
     function freeResult($result)
     {
         // take this from the corresponding Metabase driver: FreeResult()
-    }
-
-    // }}}
-    // {{{ get*Declaration()
-
-    // take phpdoc comments from MDB common.php: get*Declaration()
-
-    function get*Declaration($name, $field)
-    {
-        // take this from the corresponding Metabase driver: Get*FieldValue()
-    }
-
-    // }}}
-    // {{{ get*Value()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
-     * @param           $clob
-     * @return string  text string that represents the given argument value in
-     *                 a DBMS specific format.
-     * @access public
-     */
-    function get*Value($prepared_query, $parameter, $clob)
-    {
-        // take this from the corresponding Metabase driver: Get*FieldValue()
-    }
-
-    // }}}
-    // {{{ getClobValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
-     * @param           $clob
-     * @return string  text string that represents the given argument value in
-     *                 a DBMS specific format.
-     * @access public
-     */
-    function getClobValue($prepared_query, $parameter, $clob)
-    {
-        // take this from the corresponding Metabase driver: GetCLOBFieldValue()
-    }
-
-    // }}}
-    // {{{ freeClobValue()
-
-    /**
-     * free a chracter large object
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param string    $clob
-     * @param string    $value
-     * @return MDB_OK
-     * @access public
-     */
-    function freeClobValue($prepared_query, $clob, &$value)
-    {
-        // take this from the corresponding Metabase driver: FreeClobValue()
-    }
-
-    // }}}
-    // {{{ getBlobValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
-     * @param           $blob
-     * @return string  text string that represents the given argument value in
-     *                 a DBMS specific format.
-     * @access public
-     */
-    function getBlobValue($prepared_query, $parameter, $blob)
-    {
-        // take this from the corresponding Metabase driver: GetBLOBFieldValue()
-    }
-
-    // }}}
-    // {{{ freeBlobValue()
-
-    /**
-     * free a binary large object
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param string    $blob
-     * @return MDB_OK
-     * @access public
-     */
-    function freeBlobValue($prepared_query, $blob)
-    {
-        // take this from the corresponding Metabase driver: FreeBlobValue()
     }
 
     // }}}
@@ -695,7 +509,7 @@ class MDB_xxx extends MDB_Common
      * @return mixed MDB_Error or id
      * @access public
      */
-    function nextId($seq_name, $ondemand = FALSE)
+    function nextId($seq_name, $ondemand = false)
     {
         // take this from the corresponding PEAR DB driver: nextId()
     }
@@ -762,7 +576,7 @@ class MDB_xxx extends MDB_Common
     * @return array an nested array, or a MDB error
     * @access public
     */
-    function tableInfo($result, $mode = NULL) {
+    function tableInfo($result, $mode = null) {
         // take this from the corresponding PEAR DB driver: tableInfo()
     }
 }
