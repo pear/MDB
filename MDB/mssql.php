@@ -84,16 +84,16 @@ class MDB_mssql extends MDB_Common
         $this->phptype = 'mssql';
         $this->dbsyntax = 'mssql';
 
-        $this->supported['Sequences'] = 1;
-        $this->supported['Indexes'] = 1;
-        $this->supported['AffectedRows'] = 1;
-        $this->supported['Summaryfunctions'] = 1;
-        $this->supported['OrderByText'] = 0;
-        $this->supported['CurrId'] = 1;
-        $this->supported['SelectRowRanges'] = 0;
+        $this->supported['sequences'] = 1;
+        $this->supported['indexes'] = 1;
+        $this->supported['affected_rows'] = 1;
+        $this->supported['summary_functions'] = 1;
+        $this->supported['order_by_text'] = 0;
+        $this->supported['current_id'] = 1;
+        $this->supported['limit_querys'] = 0;
         $this->supported['LOBs'] = 1;
-        $this->supported['Replace'] = 0;
-        $this->supported['SubSelects'] = 1;
+        $this->supported['replace'] = 0;
+        $this->supported['sub_selects'] = 1;
 
         $this->errorcode_map = array(
             208   => MDB_ERROR_NOSUCHTABLE,
@@ -171,7 +171,7 @@ class MDB_mssql extends MDB_Common
     function autoCommit($auto_commit)
     {
         $this->debug(($auto_commit ? 'On' : 'Off'), 'autoCommit');
-        if (!isset($this->supported['Transactions'])) {
+        if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Auto-commit transactions: transactions are not in use');
         }
@@ -211,7 +211,7 @@ class MDB_mssql extends MDB_Common
     function commit()
     {
         $this->debug('commit transaction', 'commit');
-        if (!isset($this->supported['Transactions'])) {
+        if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Commit transactions: transactions are not in use');
         }
@@ -242,7 +242,7 @@ class MDB_mssql extends MDB_Common
     function rollback()
     {
         $this->debug('rolling back transaction', 'rollback');
-        if (!isset($this->supported['Transactions'])) {
+        if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Rollback transactions: transactions are not in use');
         }
@@ -309,7 +309,7 @@ class MDB_mssql extends MDB_Common
                 $php_errormsg);
         }
 
-        if (isset($this->supported['Transactions']) && !$this->auto_commit
+        if (isset($this->supported['transactions']) && !$this->auto_commit
             && !$this->_doQuery("BEGIN TRANSACTION"))
         {
             mssql_close($this->connection);
@@ -336,7 +336,7 @@ class MDB_mssql extends MDB_Common
     function _close()
     {
         if ($this->connection != 0) {
-            if (isset($this->supported['Transactions']) && !$this->auto_commit) {
+            if (isset($this->supported['transactions']) && !$this->auto_commit) {
                 $result = $this->_doQuery("ROLLBACK TRANSACTION");
             }
             mssql_close($this->connection);
@@ -346,8 +346,8 @@ class MDB_mssql extends MDB_Common
             if (isset($result) && MDB::isError($result)) {
                 return $result;
             }
-            global $_MDB_databases;
-            $_MDB_databases[$this->database] = '';
+
+            $GLOBALS['_MDB_databases'][$this->database] = '';
             return true;
         }
         return false;
@@ -650,7 +650,10 @@ class MDB_mssql extends MDB_Common
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
         $value = @mssql_result($result, $rownum, $field);
         if ($value === false && $value != null) {
-            return($this->mysqlRaiseError($errno));
+            return($this->mssqlRaiseError($errno));
+        }
+        if (isset($this->results[$result_value]['types'][$field])) {
+            $value = $this->datatype->convertResult($this, $result, $value, $this->results[$result_value]['types'][$field]);
         }
         return($value);
     }

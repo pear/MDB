@@ -62,11 +62,10 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function setUp() {
-        global $dsn, $options, $database;
-        $this->dsn = $dsn;
-        $this->options = $options;
-        $this->database = $database;
-        $this->db =& MDB::connect($dsn, $options);
+        $this->dsn = $GLOBALS['dsn'];
+        $this->options = $GLOBALS['options'];
+        $this->database = $GLOBALS['database'];
+        $this->db =& MDB::connect($this->dsn, $this->options);
         if (MDB::isError($this->db)) {
             $this->assertTrue(false, 'Could not connect to database in setUp - ' .$this->db->getMessage() . ' - ' .$this->db->getUserInfo());
             exit;
@@ -156,7 +155,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         if (!$this->methodExists('loadManager')) {
             return;
         }
-        $this->assertTrue(!MDB::isError($this->db->loadManager('Load Management Class')));
+        $this->assertTrue(!MDB::isError($this->db->loadManager()));
     }
 
     // test of the driver
@@ -175,6 +174,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
             return;
         }
         $result = $this->standardQuery();
+
         $this->assertTrue(is_resource($result), 'query: $result returned is not a resource');
     }
 

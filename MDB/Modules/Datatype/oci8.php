@@ -67,7 +67,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
      * @return mixed converted value
      * @access public 
      */
-    function convertResult(&$db, $value, $type)
+    function convertResult(&$db, $result, $value, $type)
     {
         switch ($type) {
             case MDB_TYPE_DATE:
@@ -75,7 +75,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
             case MDB_TYPE_TIME:
                 return substr($value, strlen('YYYY-MM-DD '), strlen('HH:MI:SS'));
             default:
-                return $this->_baseConvertResult($db, $value, $type);
+                return $this->_baseConvertResult($db, $result, $value, $type);
         }
     }
 
@@ -99,7 +99,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
             case 'integer':
                 return 'INT';
             case 'text':
-                return 'VARCHAR ('.(isset($field['length']) ? $field['length'] : (isset($db->options['DefaultTextFieldLength']) ? $db->options['DefaultTextFieldLength'] : 4000)).')';
+                return 'VARCHAR ('.(isset($field['length']) ? $field['length'] : (isset($db->options['default_text_field_length']) ? $db->options['default_text_field_length'] : 4000)).')';
             case 'boolean':
                 return 'CHAR (1)';
             case 'date':
@@ -183,7 +183,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getClobDeclaration()
+    // {{{ getCLOBDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
@@ -207,13 +207,13 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
      *        declare the specified field.
      * @access public 
      */
-    function getClobDeclaration(&$db, $name, $field)
+    function getCLOBDeclaration(&$db, $name, $field)
     {
         return "$name CLOB".(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
-    // {{{ getBlobDeclaration()
+    // {{{ getBLOBDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
@@ -237,7 +237,7 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
      *        declare the specified field.
      * @access public 
      */
-    function getBlobDeclaration(&$db, $name, $field)
+    function getBLOBDeclaration(&$db, $name, $field)
     {
         return "$name BLOB".(isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -411,75 +411,75 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getClobValue()
+    // {{{ getCLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      * 
      * @param object    &$db reference to driver MDB object
-     * @param resource $prepared_query query handle from prepare()
-     * @param  $parameter 
      * @param  $clob 
      * @return string text string that represents the given argument value in
      *        a DBMS specific format.
      * @access public 
      */
-    function getClobValue(&$db, $prepared_query, $parameter, $clob)
+    function getCLOBValue(&$db, $clob)
     {
+        if ($clob === null) {
+            return 'NULL';
+        }
         return 'EMPTY_CLOB()';
     }
 
     // }}}
-    // {{{ freeClobValue()
+    // {{{ freeCLOBValue()
 
     /**
      * free a character large object
      * 
      * @param object    &$db reference to driver MDB object
-     * @param resource $prepared_query query handle from prepare()
-     * @param string $blob 
-     * @param string $value 
+     * @param string $clob
+     * @param string $value
      * @access public 
      */
-    function freeClobValue(&$db, $prepared_query, $clob, &$value)
+    function freeCLOBValue(&$db, $clob, &$value)
     {
         unset($value);
     }
 
     // }}}
-    // {{{ getBlobValue()
+    // {{{ getBLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      * 
      * @param object    &$db reference to driver MDB object
-     * @param resource $prepared_query query handle from prepare()
-     * @param  $parameter 
      * @param  $blob 
      * @return string text string that represents the given argument value in
      *        a DBMS specific format.
      * @access public 
      */
-    function getBlobValue(&$db, $prepared_query, $parameter, $blob)
+    function getBLOBValue(&$db, $blob)
     {
+        if ($blob === null) {
+            return 'NULL';
+        }
         return 'EMPTY_BLOB()';
     }
 
     // }}}
-    // {{{ freeBlobValue()
+    // {{{ freeBLOBValue()
 
     /**
      * free a binary large object
      * 
      * @param object    &$db reference to driver MDB object
-     * @param resource $prepared_query query handle from prepare()
      * @param string $blob 
      * @param string $value 
      * @access public 
      */
-    function freeBlobValue(&$db, $prepared_query, $blob, &$value)
+    function freeBLOBValue(&$db, $blob, &$value)
     {
         unset($value);
     }
@@ -571,6 +571,33 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
     function getDecimalValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : $value;
+    }
+
+    // }}}
+    // {{{ _retrieveLob()
+
+    /**
+     * retrieve LOB from the database
+     * 
+     * @param int $lob handle to a lob created by the createLob() function
+     * @return mixed MDB_OK on success, a MDB error on failure
+     * @access private 
+     */
+    function _retrieveLob(&$db, $lob)
+    {
+        if (!isset($db->lobs[$lob])) {
+            return $db->raiseError(MDB_ERROR, null, null,
+                'Retrieve LOB: it was not specified a valid lob');
+        }
+        if (!isset($db->lobs[$lob]['loaded'])) {
+            if (!is_object($db->lobs[$lob]['value'])) {
+               return $db->raiseError(MDB_ERROR, null, null,
+                   'Retrieve LOB: attemped to retrieve LOB from non existing or NULL column');
+            }
+            $db->lobs[$lob]['value'] = $db->lobs[$lob]['value']->load();
+            $db->lobs[$lob]['loaded'] = true;
+        }
+        return MDB_OK;
     }
 }
 

@@ -82,55 +82,6 @@ class MDB_Datatype_Common
         'blob'      => MDB_TYPE_BLOB
     );
 
-    // {{{ setParamBlob()
- 
-    /**
-     * Set a parameter of a prepared query with a binary large object value.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
-     * @param int $parameter order number of the parameter in the query
-     *       statement. The order number of the first parameter is 1.
-     * @param int $value handle of large object created with createLOB()
-     *       function from which it will be read the data value that is meant
-     *       to be assigned to specified parameter.
-     * @param string $field name of the field of a INSERT or UPDATE query to
-     *       which it will be assigned the value to specified parameter.
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see setParam()
-     */
-    function setParamBlob(&$db, $prepared_query, $parameter, $value, $field)
-    {
-        return $this->setParam($prepared_query, $parameter, 'blob', $value, 0, $field);
-    }
-
-    // }}}
-    // {{{ setParamClob()
-
-    /**
-     * Set a parameter of a prepared query with a character large object value.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
-     * @param int $parameter order number of the parameter in the query
-     *       statement. The order number of the first parameter is 1.
-     * @param int $value handle of large object created with createLOB()
-     *       function from which it will be read the data value that is meant
-     *       to be assigned to specified parameter.
-     * @param string $field name of the field of a INSERT or UPDATE query to
-     *       which it will be assigned the value to specified parameter.
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see setParam()
-     */
-    function setParamClob(&$db, $prepared_query, $parameter, $value, $field)
-    {
-        return $this->setParam($prepared_query, $parameter, 'clob', $value, 0, $field);
-    }
-
     // }}}
     // {{{ setResultTypes()
 
@@ -160,16 +111,26 @@ class MDB_Datatype_Common
         $result_value = intval($result);
         if (isset($db->results[$result_value]['types'])) {
             return $db->raiseError(MDB_ERROR_INVALID, null, null,
-                'Set result types: attempted to redefine the types of the columns of a result set');
+                'setResultTypes: attempted to redefine the types of the columns of a result set');
         }
 
         $columns = count($types);
         for($column = 0; $column < $columns; $column++) {
-            if (!isset($this->valid_types[$types[$column]])) {
-                return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                    'Set result types: ' . $types[$column] . ' is not a supported column type');
+            if (is_array($types[$column])) {
+/*
+                if (!isset($this->validateLOBArray($db, $types[$column])) {
+                    return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                        'setResultTypes: ' . $types[$column]['type'] . ' is not a supported column type');
+                }
+*/
+                $db->results[$result_value]['types'][$column] = $types[$column];
+            } else {
+                if (!isset($this->valid_types[$types[$column]])) {
+                    return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                        'setResultTypes: ' . $types[$column] . ' is not a supported column type');
+                }
+                $db->results[$result_value]['types'][$column] = $this->valid_types[$types[$column]];
             }
-            $db->results[$result_value]['types'][$column] = $this->valid_types[$types[$column]];
         }
         while ($column < $columns) {
             $db->results[$result_value]['types'][$column] = MDB_TYPE_TEXT;
@@ -190,14 +151,29 @@ class MDB_Datatype_Common
      * @return object a MDB error on failure
      * @access private
      */
-    function _baseConvertResult(&$db, $value, $type)
+    function _baseConvertResult(&$db, $result, $value, $type)
     {
+        if (is_array($type) && isset($type['type'])) {
+            $lob = count($db->lobs) + 1;
+            $db->lobs[$lob] = array(
+                'value' => $value,
+                'position' => 0
+            );
+            $dst_lob = array(
+                'database' => &$db,
+                'type' => 'resultlob',
+                'resultLOB' => $lob
+            );
+            if (MDB::isError($lob = $this->createLOB($db, $dst_lob))) {
+                return $db->raiseError(MDB_ERROR, null, null,
+                    'Fetch LOB result: ' . $dst_lob['error']);
+            }
+            $type['LOB'] = $lob;
+            $type['database'] = &$db;
+            return $db->datatype->createLOB($db, $type);
+        }
         switch ($type) {
             case MDB_TYPE_TEXT:
-                return $value;
-            case MDB_TYPE_BLOB:
-                return $value;
-            case MDB_TYPE_CLOB:
                 return $value;
             case MDB_TYPE_INTEGER:
                 return intval($value);
@@ -214,10 +190,22 @@ class MDB_Datatype_Common
             case MDB_TYPE_TIMESTAMP:
                 return $value;
             case MDB_TYPE_CLOB:
-                return $value;
             case MDB_TYPE_BLOB:
-                return $db->raiseError(MDB_ERROR_INVALID, null, null,
-                    'BaseConvertResult: attempt to convert result value to an unsupported type ' . $type);
+                $lob = count($db->lobs) + 1;
+                $db->lobs[$lob] = array(
+                    'value' => $value,
+                    'position' => 0
+                );
+                $dst_lob = array(
+                    'database' => &$db,
+                    'type' => 'resultlob',
+                    'resultLOB' => $lob
+                );
+                if (MDB::isError($lob = $this->createLOB($db, $dst_lob))) {
+                    return $db->raiseError(MDB_ERROR, null, null,
+                        'Fetch LOB result: ' . $dst_lob['error']);
+                }
+                return $lob;
             default:
                 return $db->raiseError(MDB_ERROR_INVALID, null, null,
                     'BaseConvertResult: attempt to convert result value to an unknown type ' . $type);
@@ -236,9 +224,9 @@ class MDB_Datatype_Common
      * @return mixed converted value or a MDB error on failure
      * @access public
      */
-    function convertResult(&$db, $value, $type)
+    function convertResult(&$db, $result, $value, $type)
     {
-        return $this->_baseConvertResult($db, $value, $type);
+        return $this->_baseConvertResult($db, $result, $value, $type);
     }
 
     // }}}
@@ -267,14 +255,12 @@ class MDB_Datatype_Common
                 }
                 switch ($type = $db->results[$result_value]['types'][$current_column]) {
                     case MDB_TYPE_TEXT:
-                    case MDB_TYPE_BLOB:
-                    case MDB_TYPE_CLOB:
                         break;
                     case MDB_TYPE_INTEGER:
                         $row[$key] = intval($row[$key]);
                         break;
                     default:
-                        $value = $this->convertResult($db, $row[$key], $type);
+                        $value = $this->convertResult($db, $result, $row[$key], $type);
                         if (MDB::isError($value)) {
                             return $value;
                         }
@@ -356,7 +342,7 @@ class MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getClobDeclaration()
+    // {{{ getCLOBDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
@@ -380,13 +366,13 @@ class MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getClobDeclaration(&$db, $name, $field)
+    function getCLOBDeclaration(&$db, $name, $field)
     {
         return (isset($field['length']) ? "$name CHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? ' DEFAULT ' . $this->getTextValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
-    // {{{ getBlobDeclaration()
+    // {{{ getBLOBDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
@@ -410,7 +396,7 @@ class MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getBlobDeclaration(&$db, $name, $field)
+    function getBLOBDeclaration(&$db, $name, $field)
     {
         return (isset($field['length']) ? "$name CHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? ' DEFAULT ' . $this->getTextValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -468,7 +454,7 @@ class MDB_Datatype_Common
      */
     function getDateDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (" . strlen("YYYY-MM-DD") . ")" . (isset($field['default']) ? ' DEFAULT ' . $this->getDateValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        return "$name CHAR (" . strlen('YYYY-MM-DD') . ')' . (isset($field['default']) ? ' DEFAULT ' . $this->getDateValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -496,7 +482,7 @@ class MDB_Datatype_Common
      */
     function getTimestampDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (" . strlen("YYYY-MM-DD HH:MM:SS") . ")" . (isset($field['default']) ? ' DEFAULT ' . $this->getTimestampValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        return "$name CHAR (" . strlen('YYYY-MM-DD HH:MM:SS') . ')' . (isset($field['default']) ? ' DEFAULT ' . $this->getTimestampValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -524,7 +510,7 @@ class MDB_Datatype_Common
      */
     function getTimeDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (" . strlen("HH:MM:SS") . ")" . (isset($field['default']) ? ' DEFAULT ' . $this->getTimeValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        return "$name CHAR (" . strlen('HH:MM:SS') . ')' . (isset($field['default']) ? ' DEFAULT ' . $this->getTimeValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -620,7 +606,7 @@ class MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getClobValue()
+    // {{{ getCLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
@@ -634,30 +620,29 @@ class MDB_Datatype_Common
      *       a DBMS specific format.
      * @access public
      */
-    function getClobValue(&$db, $prepared_query, $parameter, $clob)
+    function getCLOBValue(&$db, $clob)
     {
         return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
             'Get CLOB field value: prepared queries with values of type "clob" are not yet supported');
     }
 
     // }}}
-    // {{{ freeClobValue()
+    // {{{ freeCLOBValue()
 
     /**
      * free a character large object
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource $prepared_query query handle from prepare()
      * @param string $blob
      * @param string $value
      * @access public
      */
-    function freeClobValue(&$db, $prepared_query, $clob, &$value)
+    function freeCLOBValue(&$db, $clob, &$value)
     {
     }
 
     // }}}
-    // {{{ getBlobValue()
+    // {{{ getBLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
@@ -671,25 +656,24 @@ class MDB_Datatype_Common
      *       a DBMS specific format.
      * @access public
      */
-    function getBlobValue(&$db, $prepared_query, $parameter, $blob)
+    function getBLOBValue(&$db, $blob)
     {
         return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
             'Get BLOB field value: prepared queries with values of type "blob" are not yet supported');
     }
 
     // }}}
-    // {{{ freeBlobValue()
+    // {{{ freeBLOBValue()
 
     /**
      * free a binary large object
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource $prepared_query query handle from prepare()
      * @param string $blob
      * @param string $value
      * @access public
      */
-    function freeBlobValue(&$db, $prepared_query, $blob, &$value)
+    function freeBLOBValue(&$db, $blob, &$value)
     {
     }
 
@@ -799,6 +783,342 @@ class MDB_Datatype_Common
     function getDecimalValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : "'$value'";
+    }
+
+    // }}}
+    // {{{ createLOB()
+
+    /**
+     * Create a handler object of a specified class with functions to
+     * retrieve data from a large object data stream.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param array $arguments An associative array with parameters to create
+     *                  the handler object. The array indexes are the names of
+     *                  the parameters and the array values are the respective
+     *                  parameter values.
+     *
+     *                  Some parameters are specific of the class of each type
+     *                  of handler object that is created. The following
+     *                  parameters are common to all handler object classes:
+     *
+     *                  type
+     *
+     *                      Name of the type of the built-in supported class
+     *                      that will be used to create the handler object.
+     *                      There are currently four built-in types of handler
+     *                      object classes: data, resultlob, inputfile and
+     *                      outputfile.
+     *
+     *                      The data handler class is the default class. It
+     *                      simply reads data from a given data string.
+     *
+     *                      The resultlob handler class is meant to read data
+     *                      from a large object retrieved from a query result.
+     *                      This class is not used directly by applications.
+     *
+     *                      The inputfile handler class is meant to read data
+     *                      from a file to use in prepared queries with large
+     *                      object field parameters.
+     *
+     *                      The outputfile handler class is meant to write to
+     *                      a file data from result columns with large object
+     *                      fields. The functions to read from this type of
+     *                      large object do not return any data. Instead, the
+     *                      data is just written to the output file with the
+     *                      data retrieved from a specified large object handle.
+     *
+     *                  class
+     *
+     *                      Name of the class of the handler object that will be
+     *                      created if the Type argument is not specified. This
+     *                      argument should be used when you need to specify a
+     *                      custom handler class.
+     *
+     *                  database
+     *
+     *                      Database object as returned by MDB::connect.
+     *                      This is an option argument needed by some handler
+     *                      classes like resultlob.
+     *
+     *                  The following arguments are specific of the inputfile
+     *                  handler class:
+     *
+     *                      file
+     *
+     *                          Integer handle value of a file already opened
+     *                          for writing.
+     *
+     *                      file_name
+     *
+     *                          Name of a file to be opened for writing if the
+     *                          File argument is not specified.
+     *
+     *                  The following arguments are specific of the outputfile
+     *                  handler class:
+     *
+     *                      file
+     *
+     *                          Integer handle value of a file already opened
+     *                          for writing.
+     *
+     *                      file_name
+     *
+     *                          Name of a file to be opened for writing if the
+     *                          File argument is not specified.
+     *
+     *                      buffer_length
+     *
+     *                          Integer value that specifies the length of a
+     *                          buffer that will be used to read from the
+     *                          specified large object.
+     *
+     *                      LOB
+     *
+     *                          Integer handle value that specifies a large
+     *                          object from which the data to be stored in the
+     *                          output file will be written.
+     *
+     *                      result
+     *
+     *                          Integer handle value as returned by the function
+     *                          MDB::query() or MDB::executeQuery() that specifies
+     *                          the result set that contains the large object value
+     *                          to be retrieved. If the LOB argument is specified,
+     *                          this argument is ignored.
+     *
+     *                      row
+     *
+     *                          Integer value that specifies the number of the
+     *                          row of the result set that contains the large
+     *                          object value to be retrieved. If the LOB
+     *                          argument is specified, this argument is ignored.
+     *
+     *                      field
+     *
+     *                          Integer or string value that specifies the
+     *                          number or the name of the column of the result
+     *                          set that contains the large object value to be
+     *                          retrieved. If the LOB argument is specified,
+     *                          this argument is ignored.
+     *
+     *                      binary
+     *
+     *                          Boolean value that specifies whether the large
+     *                          object column to be retrieved is of binary type
+     *                          (blob) or otherwise is of character type (clob).
+     *                          If the LOB argument is specified, this argument
+     *                          is ignored.
+     *
+     *                  The following argument is specific of the data
+     *                  handler class:
+     *
+     *                  data
+     *
+     *                      String of data that will be returned by the class
+     *                      when it requested with the readLOB() method.
+     *
+     *                  The following argument is specific of the resultlob
+     *                  handler class:
+     *
+     *                      resultLOB
+     *
+     *                          Integer handle value of a large object result
+     *                          row field.
+     * @return integer handle value that should be passed as argument insubsequent
+     * calls to functions that retrieve data from the large object input stream.
+     * @access public
+     */
+    function createLOB(&$db, $arguments)
+    {
+        $result = MDB::loadModule('LOB');
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        $class_name = 'MDB_LOB';
+        if (isset($arguments['type'])) {
+            switch ($arguments['type']) {
+                case 'data':
+                    break;
+                case 'resultlob':
+                    $class_name = 'MDB_LOB_Result';
+                    break;
+                case 'inputfile':
+                    $class_name = 'MDB_LOB_Input_File';
+                    break;
+                case 'outputfile':
+                    $class_name = 'MDB_LOB_Output_File';
+                    break;
+                default:
+                    if (isset($arguments['error'])) {
+                        $arguments['error'] = $arguments['type'] . ' is not a valid type of large object';
+                    }
+                    return $db->raiseError();
+            }
+        } else {
+            if (isset($arguments['class'])) {
+                $class = $arguments['class'];
+            }
+        }
+
+        $lob = count($GLOBALS['_MDB_LOBs']) + 1;
+        $GLOBALS['_MDB_LOBs'][$lob] =& new $class_name;
+        if (isset($arguments['database'])) {
+            $GLOBALS['_MDB_LOBs'][$lob]->database = &$arguments['database'];
+        } else {
+            $GLOBALS['_MDB_LOBs'][$lob]->database = &$db;
+        }
+        $result = $GLOBALS['_MDB_LOBs'][$lob]->create($arguments);
+        if (MDB::isError($result)) {
+            $GLOBALS['_MDB_LOBs'][$lob]->database->datatype->destroyLOB($GLOBALS['_MDB_LOBs'][$lob]->database, $lob);
+            return $result;
+        }
+        return $lob;
+    }
+
+    // }}}
+    // {{{ _retrieveLob()
+
+    /**
+     * retrieve LOB from the database
+     * 
+     * @param object    &$db reference to driver MDB object
+     * @param int $lob handle to a lob created by the createLob() function
+     * @return mixed MDB_OK on success, a MDB error on failure
+     * @access private 
+     */
+    function _retrieveLob($db, $lob)
+    {
+        if (!isset($db->lobs[$lob])) {
+            return $db->raiseError(MDB_ERROR, null, null,
+                'Retrieve LOB: it was not specified a valid lob');
+        }
+        return MDB_OK;
+    }
+
+    // }}}
+    // {{{ _readResultLOB()
+
+    /**
+     * Read data from large object input stream.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param int $lob handle to a lob created by the createLOB() function
+     * @param blob $data reference to a variable that will hold data to be
+     *       read from the large object input stream
+     * @param int $length integer value that indicates the largest ammount of
+     *       data to be read from the large object input stream.
+     * @return mixed length on success, a MDB error on failure
+     * @access private
+     */
+    function _readResultLOB(&$db, $lob, &$data, $length)
+    {
+        $lobresult = $this->_retrieveLob($db, $lob);
+        if (MDB::isError($lobresult)) {
+            return $lobresult;
+        }
+        $length = min($length, strlen($db->lobs[$lob]['value']) - $db->lobs[$lob]['position']);
+        $data = substr($db->lobs[$lob]['value'], $db->lobs[$lob]['position'], $length);
+        $db->lobs[$lob]['position'] += $length;
+        return $length;
+    }
+
+    // }}}
+    // {{{ readLOB()
+
+    /**
+     * Read data from large object input stream.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param integer $lob argument handle that is returned by the
+     *                          MDB::createLOB() method.
+     * @param string $data reference to a variable that will hold data
+     *                          to be read from the large object input stream
+     * @param integer $length    value that indicates the largest ammount ofdata
+     *                          to be read from the large object input stream.
+     * @return mixed the effective number of bytes read from the large object
+     *                      input stream on sucess or an MDB error object.
+     * @access public
+     * @see endOfLOB()
+     */
+    function readLOB(&$db, $lob, &$data, $length)
+    {
+        return $GLOBALS['_MDB_LOBs'][$lob]->readLOB($data, $length);
+    }
+
+    // }}}
+    // {{{ _endOfResultLOB()
+
+    /**
+     * Determine whether it was reached the end of the large object and
+     * therefore there is no more data to be read for the its input stream.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param int $lob handle to a lob created by the createLOB() function
+     * @return mixed true or false on success, a MDB error on failure
+     * @access private
+     */
+    function _endOfResultLOB(&$db, $lob)
+    {
+        $lobresult = $this->_retrieveLob($db, $lob);
+        if (MDB::isError($lobresult)) {
+            return $lobresult;
+        }
+        return $db->lobs[$lob]['position'] >= strlen($db->lobs[$lob]['value']);
+    }
+
+    // }}}
+    // {{{ endOfLOB()
+
+    /**
+     * Determine whether it was reached the end of the large object and
+     * therefore there is no more data to be read for the its input stream.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param integer $lob argument handle that is returned by the
+     *                          MDB::createLOB() method.
+     * @access public
+     * @return boolean flag that indicates whether it was reached the end of the large object input stream
+     */
+    function endOfLOB(&$db, $lob)
+    {
+        return $GLOBALS['_MDB_LOBs'][$lob]->endOfLOB();
+    }
+
+    // }}}
+    // {{{ _destroyResultLOB()
+
+    /**
+     * Free any resources allocated during the lifetime of the large object
+     * handler object.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param int $lob handle to a lob created by the createLOB() function
+     * @access private
+     */
+    function _destroyResultLOB(&$db, $lob)
+    {
+        if (isset($db->lobs[$lob])) {
+            $db->lobs[$lob] = '';
+        }
+    }
+
+    // }}}
+    // {{{ destroyLOB()
+
+    /**
+     * Free any resources allocated during the lifetime of the large object
+     * handler object.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param integer $lob argument handle that is returned by the
+     *                          MDB::createLOB() method.
+     * @access public
+     */
+    function destroyLOB(&$db, $lob)
+    {
+        $GLOBALS['_MDB_LOBs'][$lob]->destroy();
+        unset($GLOBALS['_MDB_LOBs'][$lob]);
     }
 };
 

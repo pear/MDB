@@ -93,16 +93,16 @@ class MDB_ibase extends MDB_Common
             return 'FireBird/InterBase support is not available in this PHP configuration';
         }
 */
-        $this->supported['Sequences'] = 1;
-        $this->supported['Indexes'] = 1;
-        $this->supported['SummaryFunctions'] = 1;
-        $this->supported['OrderByText'] = 1;
-        $this->supported['Transactions'] = 1;
-        $this->supported['CurrId'] = 1;
-        $this->supported['SelectRowRanges'] = 1;
+        $this->supported['sequences'] = 1;
+        $this->supported['indexes'] = 1;
+        $this->supported['summary_functions'] = 1;
+        $this->supported['order_by_text'] = 1;
+        $this->supported['transactions'] = 1;
+        $this->supported['current_id'] = 1;
+        $this->supported['limit_querys'] = 1;
         $this->supported['LOBs'] = 1;
-        $this->supported['Replace'] = 0;   // TEMPORARY SECURITY MEASURE...
-        $this->supported['SubSelects'] = 1;
+        $this->supported['replace'] = 0;   // TEMPORARY SECURITY MEASURE...
+        $this->supported['sub_selects'] = 1;
 
         $this->decimal_factor = pow(10.0, $this->decimal_places);
 
@@ -450,8 +450,7 @@ class MDB_ibase extends MDB_Common
             $this->connection = 0;
             $this->affected_rows = -1;
 
-            global $_MDB_databases;
-            $_MDB_databases[$this->database] = '';
+            $GLOBALS['_MDB_databases'][$this->database] = '';
             return true;
         }
         return false;

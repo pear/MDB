@@ -89,16 +89,16 @@ class MDB_fbsql extends MDB_Common
         $this->phptype = 'fbsql';
         $this->dbsyntax = 'fbsql';
         
-        $this->supported['Sequences'] = 1;
-        $this->supported['Indexes'] = 1;
-        $this->supported['AffectedRows'] = 1;
-        $this->supported['Summaryfunctions'] = 1;
-        $this->supported['OrderByText'] = 1;
-        $this->supported['CurrId'] = 1;
-        $this->supported['SelectRowRanges'] = 1;
+        $this->supported['sequences'] = 1;
+        $this->supported['indexes'] = 1;
+        $this->supported['affected_rows'] = 1;
+        $this->supported['summary_functions'] = 1;
+        $this->supported['order_by_text'] = 1;
+        $this->supported['current_id'] = 1;
+        $this->supported['limit_querys'] = 1;
         $this->supported['LOBs'] = 1;
-        $this->supported['Replace'] = 0;
-        $this->supported['SubSelects'] = 1;
+        $this->supported['replace'] = 0;
+        $this->supported['sub_selects'] = 1;
         
         $this->decimal_factor = pow(10.0, $this->decimal_places);
         
@@ -180,7 +180,7 @@ class MDB_fbsql extends MDB_Common
     function autoCommit($auto_commit)
     {
         $this->debug(($auto_commit ? 'On' : 'Off'), 'autoCommit');
-        if (!isset($this->supported['Transactions'])) {
+        if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Auto-commit transactions: transactions are not in use');
         }
@@ -225,7 +225,7 @@ class MDB_fbsql extends MDB_Common
     function commit()
     {
         $this->debug('commit', 'commiting transaction');
-        if (!isset($this->supported['Transactions'])) {
+        if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Commit transactions: transactions are not in use');
         }
@@ -252,7 +252,7 @@ class MDB_fbsql extends MDB_Common
     function rollback()
     {
         $this->debug('rolling back transaction', 'rollback');
-        if (!isset($this->supported['Transactions'])) {
+        if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Rollback transactions: transactions are not in use');
         }
@@ -326,7 +326,7 @@ class MDB_fbsql extends MDB_Common
                 fbsql_free_result($result);
             }
         }
-        if (isset($this->supported['Transactions']) && !$this->auto_commit) {
+        if (isset($this->supported['transactions']) && !$this->auto_commit) {
             if (!fbsql_query('SET AUTOCOMMIT false', $this->connection)) {
                 fbsql_close($this->connection);
                 $this->connection = 0;
@@ -354,7 +354,7 @@ class MDB_fbsql extends MDB_Common
     function _close()
     {
         if ($this->connection != 0) {
-            if (isset($this->supported['Transactions']) && !$this->auto_commit) {
+            if (isset($this->supported['transactions']) && !$this->auto_commit) {
                 $result = $this->autoCommit(true);
             }
             fbsql_close($this->connection);
@@ -364,8 +364,7 @@ class MDB_fbsql extends MDB_Common
             if (isset($result) && MDB::isError($result)) {
                 return $result;
             }
-            global $_MDB_databases;
-            $_MDB_databases[$this->database] = '';
+            $GLOBALS['_MDB_databases'][$this->database] = '';
             return true;
         }
         return false;
@@ -644,9 +643,12 @@ class MDB_fbsql extends MDB_Common
         $result_value = intval($result);
         $this->results[$result_value]['highest_fetched_row'] =
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
-        $value = @@fbsql_result($result, $rownum, $field);
+        $value = @fbsql_result($result, $rownum, $field);
         if ($value === false && $value != null) {
-            return($this->mysqlRaiseError($errno));
+            return($this->fbsqlRaiseError($errno));
+        }
+        if (isset($this->results[$result_value]['types'][$field])) {
+            $value = $this->datatype->convertResult($this, $result, $value, $this->results[$result_value]['types'][$field]);
         }
         return($value);
     }

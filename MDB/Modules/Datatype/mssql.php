@@ -122,11 +122,13 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
     function getIntegerDeclaration(&$db, $name, $field)
     {
         if (isset($field['unsigned'])) {
-            $db->warnings[] = "unsigned integer field \"$name\" is being
-                declared as signed integer";
-        }
-        return "$name INT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
-    }
+            $this->warning =
+                "unsigned integer field \"$name\" is being declared as signed integer";
+        ]
+        return "$name INT"
+            .(isset($field['default']) ? ' DEFAULT '
+            .$field['default'] : '')
+            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
     }
 
     // }}}
@@ -159,11 +161,15 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getTextDeclaration(&$db, $name, $field)
     {
-        return (isset($field["length"]) ? "$name VARCHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->getTextValue($db, $field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return (isset($field['length']) ? "$name VARCHAR ("
+            .$field['length'].')' : "$name TEXT")
+            .(isset($field['default']) ? ' DEFAULT '
+            .$this->getTextValue($db, $field['default']) : '')
+            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
     }
 
     // }}}
-    // {{{ getClobDeclaration()
+    // {{{ getCLOBDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
@@ -189,23 +195,23 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getClobDeclaration(&$db, $name, $field)
+    function getCLOBDeclaration(&$db, $name, $field)
     {
-        if (isset($field["length"])) {
-            $length = $field["length"];
+        if (isset($field['length'])) {
+            $length = $field['length'];
             if ($length <= 8000) {
                 $type = "VARCHAR($length)";
             } else {
-                $type = "TEXT";
+                $type = 'TEXT';
             }
         } else {
-            $type = "TEXT";
+            $type = 'TEXT';
         }
-        return "$name $type".(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name $type".(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
     }
 
     // }}}
-    // {{{ getBlobDeclaration()
+    // {{{ getBLOBDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
@@ -231,19 +237,19 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getBlobDeclaration(&$db, $name, $field)
+    function getBLOBDeclaration(&$db, $name, $field)
     {
-        if (isset($field["length"])) {
-            $length = $field["length"];
+        if (isset($field['length'])) {
+            $length = $field['length'];
             if ($length <= 8000) {
                 $type = "VARBINARY($length)";
             } else {
-                $type = "IMAGE";
+                $type = 'IMAGE';
             }
         } else {
-            $type = "IMAGE";
+            $type = 'IMAGE';
         }
-        return "$name $type".(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name $type".(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
     }
 
     // }}}
@@ -271,7 +277,10 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getBooleanDeclaration(&$db, $name, $field)
     {
-        return "$name BIT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name BIT"
+            .(isset($field['default']) ? ' DEFAULT '
+            .$field['default'] : '')
+            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
     }
 
     // }}}
@@ -300,7 +309,10 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getDateDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (".strlen("YYYY-MM-DD").")".(isset($field["default"]) ? " DEFAULT ".$this->getDateValue($db, $field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name CHAR (".strlen('YYYY-MM-DD').')'
+            .(isset($field['default']) ? ' DEFAULT '
+            .$this->getDateValue($db, $field['default']) : '')
+            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
     }
 
     // }}}
@@ -330,7 +342,10 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getTimestampDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (".strlen("YYYY-MM-DD HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimestampValue($db, $field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name CHAR (".strlen('YYYY-MM-DD HH:MM:SS').')'
+            .(isset($field['default']) ? ' DEFAULT '
+            .$this->getTimestampValue($db, $field['default']) : '')
+            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
     }
 
     // }}}
@@ -359,7 +374,10 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getTimeDeclaration(&$db, $name, $field)
     {
-        return "$name CHAR (".strlen("HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimeValue($db, $field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name CHAR (".strlen('HH:MM:SS').')'
+            .(isset($field['default']) ? ' DEFAULT '
+            .$this->getTimeValue($db, $field['default']) : '')
+            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
     }
 
     // }}}
@@ -389,7 +407,9 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getFloatDeclaration(&$db, $name, $field)
     {
-        return "$name FLOAT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name FLOAT"
+            .(isset($field['default']) ? ' DEFAULT '.$field['default'] : '')
+            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
     }
 
     // }}}
@@ -419,29 +439,35 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      */
     function getDecimalDeclaration(&$db, $name, $field)
     {
-        return "$name DECIMAL(18,".$db->decimal_places.")".(isset($field["default"]) ? " DEFAULT ".$this->getDecimalValue($db, $field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name DECIMAL(18,".$db->decimal_places.')'
+            .(isset($field['default']) ? ' DEFAULT '
+            .$this->getDecimalValue($db, $field['default']) : '')
+            .(isset($field['notnull']) ? ' NOT NULL' : ' NULL');
     }
 
     // }}}
-    // {{{ getClobValue()
+    // {{{ getCLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
      * @param           $clob
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      * @access public
      */
-    function getClobValue(&$db, $prepared_query, $parameter, $clob)
+    function getCLOBValue(&$db, $clob)
     {
-        $value="'";
-        while(!$this->endOfLob($clob)) {
-            if (MDB::isError($result = $this->readLob($clob, $data, $db->options['lob_buffer_length']))) {
+        if ($clob === null) {
+            return 'NULL';
+        }
+        $value = "'";
+        $data = null;
+        while(!$this->endOfLOB($db, $clob)) {
+            $result = $this->readLOB($db, $clob, $data, $db->options['lob_buffer_length']);
+            if (MDB::isError($result)) {
                 return $result;
             }
             $value .= $db->quote($data);
@@ -451,67 +477,66 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ freeClobValue()
+    // {{{ freeCLOBValue()
 
     /**
      * free a character large object
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
      * @param string    $clob
-     * @return MDB_OK
+     * @param string    $value
      * @access public
      */
-    function freeClobValue(&$db, $prepared_query, $clob)
+    function freeCLOBValue(&$db, $clob)
     {
-        unset($this->lobs[$clob]);
-        return MDB_OK;
+        unset($value);
     }
 
     // }}}
-    // {{{ getBlobValue()
+    // {{{ getBLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
      * @param           $blob
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      * @access public
      */
-    function getBlobValue(&$db, $prepared_query, $parameter, $blob)
+    function getBLOBValue(&$db, $blob)
     {
+        if ($blob === null) {
+            return 'NULL';
+        }
         $value = "0x";
-        while(!$this->endOfLob($blob))
-        {
-            if (MDB::isError($result = $this->readLob($blob, $data, $db->options['lob_buffer_length']))) {
+        $data = null;
+        while(!$this->endOfLOB($db, $blob)) {
+        $result = $this->readLOB($db, $blob, $data, $db->options['lob_buffer_length']);
+            if (MDB::isError($result)) {
                 return $result;
             }
-            $value.= Bin2Hex($data);
+            $value .= Bin2Hex($data);
         }
+        $value .= "'";
         return $value;
     }
 
     // }}}
-    // {{{ freeBlobValue()
+    // {{{ freeBLOBValue()
 
     /**
      * free a binary large object
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
-     * @return MDB_OK
+     * @param string    $value
      * @access public
      */
-    function freeBlobValue(&$db, $prepared_query, $blob)
+    function freeBLOBValue(&$db, $blob, $value)
     {
-        unset($this->lobs[$blob]);
-        return MDB_OK;
+        unset($value);
     }
 
     // }}}

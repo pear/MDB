@@ -43,6 +43,8 @@
 //
 // $Id$
 
+require_once 'MDB/Manager.php';
+
 class MDB_Manager_TestCase extends PHPUnit_TestCase {
     //contains the dsn of the database we are testing
     var $dsn;
@@ -64,10 +66,9 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     }
 
     function setUp() {
-        global $dsn, $options, $database;
-        $this->dsn = $dsn;
-        $this->options = $options;
-        $this->database = $database;
+        $this->dsn = $GLOBALS['dsn'];
+        $this->options = $GLOBALS['options'];
+        $this->database = $GLOBALS['database'];
         $backup_file = $this->driver_input_file.$this->backup_extension;
         if (file_exists($backup_file)) {
             unlink($backup_file);
@@ -77,7 +78,7 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
             unlink($backup_file);
         }
         $this->manager =& new MDB_Manager;
-        $this->manager->connect($dsn, $options);
+        $this->manager->connect($this->dsn, $this->options);
         if (MDB::isError($this->manager)) {
             $this->assertTrue(false, 'Could not connect to manager in setUp');
             exit;
@@ -124,10 +125,10 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     }
 
     function testCreateDatabase() {
-        if (!$this->methodExists($this->manager->database, 'dropDatabase')) {
+        if (!$this->methodExists($this->manager->database->manager, 'dropDatabase')) {
             return;
         }
-        $result = $this->manager->database->dropDatabase($this->database);
+        $result = $this->manager->database->manager->dropDatabase($this->manager->database, $this->database);
         if (!MDB::isError($result) || $result->getCode() != MDB_ERROR_UNSUPPORTED) {
             if (!$this->methodExists($this->manager, 'updateDatabase')) {
                 return;

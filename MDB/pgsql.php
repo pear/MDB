@@ -80,16 +80,16 @@ class MDB_pgsql extends MDB_Common
         $this->phptype = 'pgsql';
         $this->dbsyntax = 'pgsql';
 
-        $this->supported['Sequences'] = 1;
-        $this->supported['Indexes'] = 1;
-        $this->supported['SummaryFunctions'] = 1;
-        $this->supported['OrderByText'] = 1;
-        $this->supported['Transactions'] = 1;
-        $this->supported['CurrId'] = 1;
-        $this->supported['SelectRowRanges'] = 1;
+        $this->supported['sequences'] = 1;
+        $this->supported['indexes'] = 1;
+        $this->supported['summary_functions'] = 1;
+        $this->supported['order_by_text'] = 1;
+        $this->supported['transactions'] = 1;
+        $this->supported['current_id'] = 1;
+        $this->supported['limit_querys'] = 1;
         $this->supported['LOBs'] = 1;
-        $this->supported['Replace'] = 1;
-        $this->supported['SubSelects'] = 1;
+        $this->supported['replace'] = 1;
+        $this->supported['sub_selects'] = 1;
         
         $this->decimal_factor = pow(10.0, $this->decimal_places);
     }
@@ -325,7 +325,7 @@ class MDB_pgsql extends MDB_Common
                     $error_reporting = error_reporting(63);
                     @pg_cmdTuples($result);
                     if (!isset($php_errormsg) || strcmp($php_errormsg, 'This compilation does not support pg_cmdtuples()')) {
-                        $this->supported['AffectedRows'] = 1;
+                        $this->supported['affected_rows'] = 1;
                     }
                     error_reporting($error_reporting);
                 } else {
@@ -375,9 +375,8 @@ class MDB_pgsql extends MDB_Common
             pg_Close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
-            
-            global $_MDB_databases;
-            $_MDB_databases[$this->database] = '';
+
+            $GLOBALS['_MDB_databases'][$this->database] = '';
             return MDB_OK;
         }
         return MDB_ERROR;
@@ -395,7 +394,7 @@ class MDB_pgsql extends MDB_Common
     function _doQuery($query)
     {
         if (($result = @pg_Exec($this->connection, $query))) {
-            $this->affected_rows = (isset($this->supported['AffectedRows']) ? pg_cmdTuples($result) : -1);
+            $this->affected_rows = (isset($this->supported['affected_rows']) ? pg_cmdTuples($result) : -1);
         } else {
             $error = pg_ErrorMessage($this->connection);
             return $this->pgsqlRaiseError();
@@ -723,7 +722,10 @@ class MDB_pgsql extends MDB_Common
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
         $value = @pg_result($result, $rownum, $field);
         if ($value === false && $value != null) {
-            return($this->mysqlRaiseError($errno));
+            return($this->pgsqlRaiseError($errno));
+        }
+        if (isset($this->results[$result_value]['types'][$field])) {
+            $value = $this->datatype->convertResult($this, $result, $value, $this->results[$result_value]['types'][$field]);
         }
         return($value);
     }

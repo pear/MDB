@@ -69,13 +69,13 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      * @return mixed converted value
      * @access public
      */
-    function convertResult(&$db, $value, $type)
+    function convertResult(&$db, $result, $value, $type)
     {
         switch($type) {
             case MDB_TYPE_DECIMAL:
                 return sprintf('%.'.$db->decimal_places.'f', doubleval($value)/$db->decimal_factor);
             default:
-                return $this->_baseConvertResult($db, $value, $type);
+                return $this->_baseConvertResult($db, $result, $value, $type);
         }
     }
 
@@ -119,7 +119,7 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getClobDeclaration()
+    // {{{ getCLOBDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
@@ -145,7 +145,7 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getClobDeclaration(&$db, $name, $field)
+    function getCLOBDeclaration(&$db, $name, $field)
     {
         if (isset($field['length'])) {
             $length = $field['length'];
@@ -170,7 +170,7 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getBlobDeclaration()
+    // {{{ getBLOBDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
@@ -196,7 +196,7 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getBlobDeclaration(&$db, $name, $field)
+    function getBLOBDeclaration(&$db, $name, $field)
     {
         if (isset($field['length'])) {
             $length = $field['length'];
@@ -389,25 +389,28 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getClobValue()
+    // {{{ getCLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
      * @param           $clob
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      * @access public
      */
-    function getClobValue(&$db, $prepared_query, $parameter, $clob)
+    function getCLOBValue(&$db, $clob)
     {
+        if ($clob === null) {
+            return 'NULL';
+        }
         $value = "'";
-        while(!$this->endOfLob($clob)) {
-            if (MDB::isError($result = $this->readLob($clob, $data, $db->options['lob_buffer_length']))) {
+        $data = null;
+        while(!$this->endOfLOB($db, $clob)) {
+            $result = $this->readLOB($db, $clob, $data, $db->options['lob_buffer_length']);
+            if (MDB::isError($result)) {
                 return $result;
             }
             $value .= $db->quote($data);
@@ -417,43 +420,43 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ freeClobValue()
+    // {{{ freeCLOBValue()
 
     /**
      * free a character large object
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
      * @param string    $clob
-     * @return MDB_OK
      * @access public
      */
-    function freeClobValue(&$db, $prepared_query, $clob)
+    function freeCLOBValue(&$db, $clob)
     {
-        unset($this->lobs[$clob]);
-        return MDB_OK;
+        unset($db->lobs[$clob]);
     }
 
     // }}}
-    // {{{ getBlobValue()
+    // {{{ getBLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
      * @param           $blob
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      * @access public
      */
-    function getBlobValue(&$db, $prepared_query, $parameter, $blob)
+    function getBLOBValue(&$db, $blob)
     {
+        if ($blob === null) {
+            return 'NULL';
+        }
         $value = "'";
-        while(!$this->endOfLob($blob)) {
-            if (MDB::isError($result = $this->readLob($blob, $data, $db->options['lob_buffer_length']))) {
+        $data = null;
+        while(!$this->endOfLOB($db, $blob)) {
+        $result = $this->readLOB($db, $blob, $data, $db->options['lob_buffer_length']);
+            if (MDB::isError($result)) {
                 return $result;
             }
             $value .= addslashes($data);
@@ -463,21 +466,18 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ freeBlobValue()
+    // {{{ freeBLOBValue()
 
     /**
      * free a binary large object
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
-     * @return MDB_OK
      * @access public
      */
-    function freeBlobValue(&$db, $prepared_query, $blob)
+    function freeBLOBValue(&$db, $blob)
     {
-        unset($this->lobs[$blob]);
-        return MDB_OK;
+        unset($db->lobs[$blob]);
     }
 
     // }}}

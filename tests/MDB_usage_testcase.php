@@ -62,11 +62,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     }
 
     function setUp() {
-        global $dsn, $options, $database;
-        $this->dsn = $dsn;
-        $this->options  = $options;
-        $this->database = $database;
-        $this->db =& MDB::connect($dsn, $options);
+        $this->dsn = $GLOBALS['dsn'];
+        $this->options  = $GLOBALS['options'];
+        $this->database = $GLOBALS['database'];
+        $this->db =& MDB::connect($this->dsn, $this->options);
+
         if (MDB::isError($this->db)) {
             $this->assertTrue(false, 'Could not connect to database in setUp');
             exit;
@@ -131,7 +131,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
     function insertTestValues($prepared_query, &$data) {
         for ($i = 0; $i < count($this->fields); $i++) {
-            $this->db->setParam($prepared_query, ($i + 1), $this->types[$i], $data[$this->fields[$i]]);
+            $this->db->setParam($prepared_query, ($i + 1), $data[$this->fields[$i]], $this->types[$i]);
         }
     }
 
@@ -252,7 +252,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $prepared_query = $this->db->prepareQuery("INSERT INTO users (user_name, user_password, user_id) VALUES (?, $question_value, 1)");
 
-        $this->db->setParam($prepared_query, 1, 'text', 'Sure!');
+        $this->db->setParam($prepared_query, 1, 'Sure!', 'text');
 
         $result = $this->db->executeQuery($prepared_query);
 
@@ -268,7 +268,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $prepared_query = $this->db->prepareQuery("INSERT INTO users (user_name, user_password, user_id) VALUES (?, $question_value, 2)");
 
-        $this->db->setParam($prepared_query, 1, 'text', 'For Sure!');
+        $this->db->setParam($prepared_query, 1, 'For Sure!', 'text');
 
         $result = $this->db->executeQuery($prepared_query);
 
@@ -436,7 +436,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Test the use of setLimit to return paged queries
      */
     function testRanges() {
-        if (!$this->supported('SelectRowRanges')) {
+        if (!$this->supported('limit_querys')) {
             return;
         }
 
@@ -516,7 +516,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Test the handling of sequences
      */
     function testSequences() {
-        if (!$this->supported('Sequences')) {
+        if (!$this->supported('sequences')) {
             return;
         }
 
@@ -571,7 +571,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * The replace method emulates the replace query of mysql
      */
     function testReplace() {
-        if (!$this->supported('Replace')) {
+        if (!$this->supported('replace')) {
             return;
         }
 
@@ -627,7 +627,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             )
         );
 
-        $support_affected_rows = $this->db->support('AffectedRows');
+        $support_affected_rows = $this->db->support('affected_rows');
 
         $result = $this->db->replace('users', $fields);
 
@@ -688,7 +688,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Test affected rows methods
      */
     function testAffectedRows() {
-        if (!$this->supported('AffectedRows')) {
+        if (!$this->supported('affected_rows')) {
             return;
         }
 
@@ -726,8 +726,8 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $prepared_query = $this->db->prepareQuery('UPDATE users SET user_password=? WHERE user_id < ?');
 
         for ($row = 0; $row < $total_rows; $row++) {
-            $this->db->setParam($prepared_query, 1, 'text', "another_password_$row");
-            $this->db->setParam($prepared_query, 2, 'integer', $row);
+            $this->db->setParam($prepared_query, 1, "another_password_$row", 'text');
+            $this->db->setParam($prepared_query, 2, $row, 'integer');
 
             $result = $this->db->executeQuery($prepared_query);
 
@@ -746,7 +746,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $prepared_query = $this->db->prepareQuery('DELETE FROM users WHERE user_id >= ?');
 
         for ($row = $total_rows; $total_rows; $total_rows = $row) {
-            $this->db->setParam($prepared_query, 1, 'integer', $row = intval($total_rows / 2));
+            $this->db->setParam($prepared_query, 1, $row = intval($total_rows / 2), 'integer');
 
             $result = $this->db->executeQuery($prepared_query);
 
@@ -767,7 +767,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Testing transaction support
      */
     function testTransactions() {
-        if (!$this->supported('Transactions')) {
+        if (!$this->supported('transactions')) {
             return;
         }
 
@@ -834,40 +834,33 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     /**
      * Testing LOB storage
      */
-/*
-    function testLobStorage() {
+
+    function testLOBStorage() {
         if (!$this->supported('LOBs')) {
             return;
         }
 
-        //$prepared_query = $this->db->prepareQuery('INSERT INTO files (document,picture) VALUES (?,?)');
-        $prepared_query = $this->db->prepareQuery('INSERT INTO files (ID, document,picture) VALUES (1,?,?)');
+        $prepared_query = $this->db->prepareQuery('INSERT INTO files (ID, document, picture) VALUES (1,?,?)');
 
         $character_lob = array(
-                              'Database' => $this->db,
-                              'Error' => '',
-                              'Data' => ''
+                            'data' => '',
+                            'field' => 'document'
+
                               );
         for ($code = 32; $code <= 127; $code++) {
-            $character_lob['Data'] .= chr($code);
+            $character_lob['data'] .= chr($code);
         }
         $binary_lob = array(
-                            'Database' => $this->db,
-                            'Error' => '',
-                            'Data' => ''
+                            'data' => '',
+                            'field' => 'picture'
                             );
         for ($code = 0; $code <= 255; $code++) {
-            $binary_lob['Data'] .= chr($code);
+            $binary_lob['data'] .= chr($code);
         }
 
-        $clob = $this->db->createLob($character_lob);
-        $this->assertTrue(!MDB::isError($clob), 'Error creating character LOB: '.$character_lob['Error']);
+        $this->db->setParam($prepared_query, 1, $character_lob, 'clob');
+        $this->db->setParam($prepared_query, 2, $binary_lob, 'blob');
 
-        $blob = $this->db->createLob($binary_lob);
-        $this->assertTrue(!MDB::isError($blob), 'Error creating binary LOB: '.$binary_lob['Error']);
-
-        $this->db->setParamClob($prepared_query, 1, $clob, 'document');
-        $this->db->setParamBlob($prepared_query, 2, $blob, 'picture');
         $result = $this->db->executeQuery($prepared_query);
 
         if ($is_error = MDB::isError($result)) {
@@ -877,58 +870,56 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         }
         $this->assertTrue(!$is_error, 'Error executing prepared query: '.$msg);
 
-        $this->db->destroyLob($blob);
-        $this->db->destroyLob($clob);
         $this->db->freePreparedQuery($prepared_query);
 
-        //$result = $this->db->query('SELECT document, picture FROM files', array('clob', 'blob'));
-        $result = $this->db->query('SELECT document, picture FROM files');
+        $result = $this->db->query('SELECT document, picture FROM files', array('clob', 'blob'));
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error selecting from files'.$result->getMessage());
         }
+
         $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result too soon.');
 
-        $clob = $this->db->fetchClob($result, 0, 'document');
+        $row = $this->db->fetchRow($result);
+
+        $clob = $row[0];
         if (!MDB::isError($clob)) {
-            for ($value = ''; !$this->db->endOfLob($clob);) {
-                $this->assertTrue(($this->db->readLob($clob, $data, 8192) >= 0), 'Could not read CLOB');
+            for ($value = ''; !$this->db->datatype->endOfLOB($this->db, $clob);) {
+                $this->assertTrue(($this->db->datatype->readLOB($this->db, $clob, $data, 8192) >= 0), 'Could not read CLOB');
                 $value .= $data;
             }
-            $this->db->destroyLob($clob);
+            $this->db->datatype->destroyLOB($this->db, $clob);
 
-            $this->assertEquals($value, $character_lob['Data'], 'Retrieved character LOB value ("' . $value . '") is different from what was stored ("' . $character_lob['Data'] . '")');
+            $this->assertEquals($character_lob['data'], $value, 'Retrieved character LOB value ("' . $value . '") is different from what was stored ("' . $character_lob['data'] . '")');
         } else {
             $this->assertTrue(false, 'Error retrieving CLOB result');
         }
 
-        $blob = $this->db->fetchBlob($result, 0, 'picture');
-
+        $blob = $row[1];
         if (!MDB::isError($blob)) {
-            for ($value = ''; !$this->db->endOfLob($clob);) {
-                $this->assertTrue(($this->db->readLob($blob, $data, 8192) >= 0), 'Could not read BLOB');
+            for ($value = ''; !$this->db->datatype->endOfLOB($this->db, $blob);) {
+                $this->assertTrue(($this->db->datatype->readLOB($this->db, $blob, $data, 8192) >= 0), 'Could not read BLOB');
                 $value .= $data;
             }
 
-            $this->db->destroyLob($blob);
+            $this->db->datatype->destroyLOB($this->db, $blob);
 
-            $this->assertEquals($value, $binary_lob['Data'], 'Retrieved binary LOB value ("'.$value.'") is different from what was stored ("'.$binary_lob['Data'].'")');
+            $this->assertEquals($value, $binary_lob['data'], 'Retrieved binary LOB value ("'.$value.'") is different from what was stored ("'.$binary_lob['data'].'")');
         } else {
             $this->assertTrue(false, 'Error retrieving CLOB result');
         }
         $this->db->freeResult($result);
     }
-*/
+
     /**
      * Test for lob storage from and to files
      */
-/*
-    function testLobFiles() {
+
+    function testLOBFiles() {
         if (!$this->supported('LOBs')) {
             return;
         }
 
-        $prepared_query = $this->db->prepareQuery('INSERT INTO files (ID, document,picture) VALUES (1,?,?)');
-        //$prepared_query = $this->db->prepareQuery('INSERT INTO files (document,picture) VALUES (?,?)');
+        $prepared_query = $this->db->prepareQuery('INSERT INTO files (ID, document, picture) VALUES (1,?,?)');
 
         $character_data_file = 'character_data';
         if (($file = fopen($character_data_file, 'w'))) {
@@ -936,10 +927,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $character_data .= chr($code);
             }
             $character_lob = array(
-                                   'Type' => 'inputfile',
-                                   'Database' => $this->db,
-                                   'Error' => '',
-                                   'FileName' => $character_data_file
+                                   'type' => 'inputfile',
+                                   'field' => 'document',
+                                   'file_name' => $character_data_file
                                    );
             $this->assertTrue((fwrite($file, $character_data, strlen($character_data)) == strlen($character_data)), 'Error creating clob file to read from');
             fclose($file);
@@ -951,55 +941,49 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                     $binary_data .= chr($code);
             }
             $binary_lob = array(
-                                'Type' => 'inputfile',
-                                'Database' => $this->db,
-                                'Error' => '',
-                                'FileName' => $binary_data_file
+                                'type' => 'inputfile',
+                                'field' => 'picture',
+                                'file_name' => $binary_data_file
                                 );
             $this->assertTrue((fwrite($file, $binary_data, strlen($binary_data)) == strlen($binary_data)), 'Error creating blob file to read from');
             fclose($file);
         }
 
-        $clob = $this->db->createLob($character_lob);
-        $this->assertTrue(!MDB::isError($clob), 'Error creating clob');
-
-        $blob = $this->db->createLob($binary_lob);
-        $this->assertTrue(!MDB::isError($blob), 'Error creating blob');
-
-        $this->db->setParamCLOB($prepared_query, 1, $clob, 'document');
-        $this->db->setParamBLOB($prepared_query, 2, $blob, 'picture');
+        $this->db->setParam($prepared_query, 1, $character_lob, 'clob');
+        $this->db->setParam($prepared_query, 2, $binary_lob, 'blob');
 
         $result = $this->db->executeQuery($prepared_query);
         $this->assertTrue(!MDB::isError($result), 'Error executing prepared query - inserting LOB from files');
 
-        $this->db->destroyLOB($blob);
-        $this->db->destroyLOB($clob);
-
         $this->db->freePreparedQuery($prepared_query);
 
-        $result = $this->db->query('SELECT document, picture FROM files');
+
+        $character_lob = array(
+                             'type' => 'outputfile',
+                             'field' => 'document',
+                             'binary' => 0,
+                             'file_name' => $character_data_file
+                             );
+
+        $binary_lob = array(
+                            'type' => 'outputfile',
+                            'field' => 'picture',
+                            'binary' => 1,
+                            'file_name' => $binary_data_file
+                            );
+
+        $result = $this->db->query('SELECT document, picture FROM files', array($character_lob, $binary_lob));
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error selecting from files'.$result->getMessage());
         }
 
         $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result too soon.');
 
-        $character_lob = array(
-                             'Type' => 'outputfile',
-                             'Database' => $this->db,
-                             'Result' => $result,
-                             'Row' => 0,
-                             'Field' => 'document',
-                             'Binary' => 0,
-                             'Error' => '',
-                             'FileName' => $character_data_file
-                             );
-
-        $clob = $this->db->createLOB($character_lob);
-
+        $row = $this->db->fetchRow($result);
+        $clob = $row[0];
         if (!MDB::isError($clob)) {
-            $this->assertTrue(($this->db->readLOB($clob, $data, 0) >= 0), 'Error reading CLOB ');
-            $this->db->destroyLOB($clob);
+            $this->assertTrue(($this->db->datatype->readLOB($this->db, $clob, $data, 0) >= 0), 'Error reading CLOB ');
+            $this->db->datatype->destroyLOB($this->db, $clob);
 
             $this->assertTrue(($file = fopen($character_data_file, 'r')), "Error opening character data file: $character_data_file");
             $this->assertEquals(getType($value = fread($file, filesize($character_data_file))), 'string', "Could not read from character LOB file: $character_data_file");
@@ -1010,22 +994,10 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $this->assertTrue(false, 'Error creating character LOB in a file');
         }
 
-        $binary_lob = array(
-                            'Type' => 'outputfile',
-                            'Database' => $this->db,
-                            'Result' => $result,
-                            'Row' => 0,
-                            'Field' => 'picture',
-                            'Binary' => 1,
-                            'Error' => '',
-                            'FileName' => $binary_data_file
-                            );
-
-        $blob = $this->db->createLOB($binary_lob);
-
+        $blob = $row[1];
         if (!MDB::isError($blob)) {
-            $this->assertTrue(($this->db->readLOB($blob, $data, 0) >= 0), 'Error reading BLOB ');
-            $this->db->destroyLOB($blob);
+            $this->assertTrue(($this->db->datatype->readLOB($this->db, $blob, $data, 0) >= 0), 'Error reading BLOB ');
+            $this->db->datatype->destroyLOB($this->db, $blob);
 
             $this->assertTrue(($file = fopen($binary_data_file, 'rb')), "Error opening binary data file: $binary_data_file");
             $this->assertEquals(getType($value = fread($file, filesize($binary_data_file))), 'string', "Could not read from binary LOB file: $binary_data_file");
@@ -1038,28 +1010,27 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->db->freeResult($result);
     }
-*/
+
     /**
      * Test handling of lob nulls
      */
-/*
-    function testLobNulls() {
+
+    function testLOBNulls() {
         if (!$this->supported('LOBs')) {
             return;
         }
 
         $prepared_query = $this->db->prepareQuery('INSERT INTO files (ID, document,picture) VALUES (1,?,?)');
-        //$prepared_query = $this->db->prepareQuery('INSERT INTO files (document,picture) VALUES (?,?)');
 
-        $this->db->setParamNull($prepared_query, 1, 'clob');
-        $this->db->setParamNull($prepared_query, 2, 'blob');
+        $this->db->setParam($prepared_query, 1, null, 'clob');
+        $this->db->setParam($prepared_query, 2, null, 'blob');
 
         $result = $this->db->executeQuery($prepared_query);
         $this->assertTrue(!MDB::isError($result), 'Error executing prepared query - inserting NULL lobs');
 
         $this->db->freePreparedQuery($prepared_query);
 
-        $result = $this->db->query('SELECT document, picture FROM files');
+        $result = $this->db->query('SELECT document, picture FROM files', array('clob', 'blob'));
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error selecting from files'.$result->getMessage());
         }
@@ -1071,7 +1042,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->db->freeResult($result);
     }
-*/
 }
 
 ?>

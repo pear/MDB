@@ -171,17 +171,17 @@
                 <string name="phptype" default="querysim" />
                 <string name="dbsyntax" default="querysim" />
                 <array name="supported" comments="most of these don't actually do anything, they are enabled to simulate the option being available if checked">
-                    <boolean name="Sequences" default="true" />
-                    <boolean name="Indexes" default="true" />
-                    <boolean name="AffectedRows" default="true" />
-                    <boolean name="Summaryfunctions" default="true" />
-                    <boolean name="OrderByText" default="true" />
-                    <boolean name="CurrId" default="true" />
-                    <boolean name="SelectRowRanges" default="true" comments="this one is functional" />
+                    <boolean name="sequences" default="true" />
+                    <boolean name="indexes" default="true" />
+                    <boolean name="affected_rows" default="true" />
+                    <boolean name="summary_functions" default="true" />
+                    <boolean name="order_by_text" default="true" />
+                    <boolean name="current_id" default="true" />
+                    <boolean name="limit_querys" default="true" comments="this one is functional" />
                     <boolean name="LOBs" default="true" />
-                    <boolean name="Replace" default="true" />
-                    <boolean name="SubSelects" default="true" />
-                    <boolean name="Transactions" default="true" />
+                    <boolean name="replace" default="true" />
+                    <boolean name="sub_selects" default="true" />
+                    <boolean name="transactions" default="true" />
                 </array>
                 <string name="last_query" comments="last value passed in with query()" />
                 <array name="options" comments="these can be changed at run time">
@@ -245,17 +245,17 @@ class MDB_querysim extends MDB_Common
         $this->dbsyntax = 'querysim';
         
         // Most of these are dummies to simulate availability if checked
-        $this->supported['Sequences'] = 1;
-        $this->supported['Indexes'] = 1;
-        $this->supported['AffectedRows'] = 1;
-        $this->supported['Summaryfunctions'] = 1;
-        $this->supported['OrderByText'] = 1;
-        $this->supported['CurrId'] = 1;
-        $this->supported['SelectRowRanges'] = 1;// this one is real
+        $this->supported['sequences'] = 1;
+        $this->supported['indexes'] = 1;
+        $this->supported['affected_rows'] = 1;
+        $this->supported['summary_functions'] = 1;
+        $this->supported['order_by_text'] = 1;
+        $this->supported['current_id'] = 1;
+        $this->supported['limit_querys'] = 1;// this one is real
         $this->supported['LOBs'] = 1;
-        $this->supported['Replace'] = 1;
-        $this->supported['SubSelects'] = 1;
-        $this->supported['Transactions'] = 1;
+        $this->supported['replace'] = 1;
+        $this->supported['sub_selects'] = 1;
+        $this->supported['transactions'] = 1;
         
         // init QuerySim options
         $querySimOptions = array(
@@ -348,8 +348,8 @@ class MDB_querysim extends MDB_Common
                 $ret = @fclose($this->connection);
             }
             $this->connection = 0;
-            global $_MDB_databases;
-            $_MDB_databases[$this->database] = '';
+
+            $GLOBALS['_MDB_databases'][$this->database] = '';
         }
         return $ret;
     }
@@ -730,6 +730,9 @@ class MDB_querysim extends MDB_Common
                 "fetch():  row $row, field $field is undefined in result set");
         }
         $value = $result[1][$rownum][$field];
+        if (isset($this->results[$result_value]['types'][$field])) {
+            $value = $this->datatype->convertResult($this, $result, $value, $this->results[$result_value]['types'][$field]);
+        }
         return $value;
     }
     // }}}

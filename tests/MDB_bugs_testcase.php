@@ -62,11 +62,10 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
     }
 
     function setUp() {
-        global $dsn, $options, $database;
-        $this->dsn = $dsn;
-        $this->options = $options;
-        $this->database = $database;
-        $this->db =& MDB::connect($dsn, $options);
+        $this->dsn = $GLOBALS['dsn'];
+        $this->options = $GLOBALS['options'];
+        $this->database = $GLOBALS['database'];
+        $this->db =& MDB::connect($this->dsn, $this->options);
         if (MDB::isError($this->db)) {
             $this->assertTrue(false, 'Could not connect to database in setUp');
             exit;
@@ -116,7 +115,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
     function insertTestValues($prepared_query, &$data) {
         for ($i = 0; $i < count($this->fields); $i++) {
-            $this->db->setParam($prepared_query, ($i + 1), $this->types[$i], $data[$this->fields[$i]]);
+            $this->db->setParam($prepared_query, ($i + 1), $data[$this->fields[$i]], $this->types[$i]);
         }
     }
 

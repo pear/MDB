@@ -89,16 +89,16 @@ class MDB_mysql extends MDB_Common
         $this->phptype = 'mysql';
         $this->dbsyntax = 'mysql';
 
-        $this->supported['Sequences'] = 1;
-        $this->supported['Indexes'] = 1;
-        $this->supported['AffectedRows'] = 1;
-        $this->supported['Summaryfunctions'] = 1;
-        $this->supported['OrderByText'] = 1;
-        $this->supported['CurrId'] = 1;
-        $this->supported['SelectRowRanges'] = 1;
+        $this->supported['sequences'] = 1;
+        $this->supported['indexes'] = 1;
+        $this->supported['affected_rows'] = 1;
+        $this->supported['summary_functions'] = 1;
+        $this->supported['order_by_text'] = 1;
+        $this->supported['current_id'] = 1;
+        $this->supported['limit_querys'] = 1;
         $this->supported['LOBs'] = 1;
-        $this->supported['Replace'] = 1;
-        $this->supported['SubSelects'] = 0;
+        $this->supported['replace'] = 1;
+        $this->supported['sub_selects'] = 0;
         
         $this->decimal_factor = pow(10.0, $this->decimal_places);
         
@@ -183,7 +183,7 @@ class MDB_mysql extends MDB_Common
     function autoCommit($auto_commit)
     {
         $this->debug(($auto_commit ? 'On' : 'Off'), 'autoCommit');
-        if (!isset($this->supported['Transactions'])) {
+        if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Auto-commit transactions: transactions are not in use');
         }
@@ -228,7 +228,7 @@ class MDB_mysql extends MDB_Common
     function commit()
     {
         $this->debug('commit transaction', 'commit');
-        if (!isset($this->supported['Transactions'])) {
+        if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Commit transactions: transactions are not in use');
         }
@@ -255,7 +255,7 @@ class MDB_mysql extends MDB_Common
     function rollback()
     {
         $this->debug('rolling back transaction', 'rollback');
-        if (!isset($this->supported['Transactions'])) {
+        if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Rollback transactions: transactions are not in use');
         }
@@ -299,7 +299,7 @@ class MDB_mysql extends MDB_Common
 
         $use_transactions = $this->options['use_transactions'];
         if (!MDB::isError($use_transactions) && $use_transactions) {
-            $this->supported['Transactions'] = 1;
+            $this->supported['transactions'] = 1;
             $this->default_table_type = 'BDB';
         } else {
             $this->default_table_type = '';
@@ -318,7 +318,7 @@ class MDB_mysql extends MDB_Common
                 case 'MERGE':
                 case 'MRG_MYISAM':
                 case 'MYISAM':
-                    if (isset($this->supported['Transactions'])) {
+                    if (isset($this->supported['transactions'])) {
                         $this->warnings[] = $default_table_type
                             .' is not a transaction-safe default table type';
                     }
@@ -361,7 +361,7 @@ class MDB_mysql extends MDB_Common
                 mysql_free_result($result);
             }
         }
-        if (isset($this->supported['Transactions']) && !$this->auto_commit) {
+        if (isset($this->supported['transactions']) && !$this->auto_commit) {
             if (!mysql_query('SET AUTOCOMMIT = 0', $this->connection)) {
                 mysql_close($this->connection);
                 $this->connection = 0;
@@ -389,7 +389,7 @@ class MDB_mysql extends MDB_Common
     function _close()
     {
         if ($this->connection != 0) {
-            if (isset($this->supported['Transactions']) && !$this->auto_commit) {
+            if (isset($this->supported['transactions']) && !$this->auto_commit) {
                 $result = $this->autoCommit(true);
             }
             mysql_close($this->connection);
@@ -399,8 +399,8 @@ class MDB_mysql extends MDB_Common
             if (isset($result) && MDB::isError($result)) {
                 return $result;
             }
-            global $_MDB_databases;
-            $_MDB_databases[$this->database] = '';
+
+            $GLOBALS['_MDB_databases'][$this->database] = '';
             return true;
         }
         return false;
@@ -483,7 +483,7 @@ class MDB_mysql extends MDB_Common
      */
     function subSelect($query, $type = false)
     {
-        if ($this->supported['SubSelects'] == 1) {
+        if ($this->supported['sub_selects'] == 1) {
             return $query;
         }
         $result = $this->query($query, $type);
@@ -822,6 +822,9 @@ class MDB_mysql extends MDB_Common
         $value = @mysql_result($result, $rownum, $field);
         if ($value === false && $value != null) {
             return($this->mysqlRaiseError($errno));
+        }
+        if (isset($this->results[$result_value]['types'][$field])) {
+            $value = $this->datatype->convertResult($this, $result, $value, $this->results[$result_value]['types'][$field]);
         }
         return($value);
     }

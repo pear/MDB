@@ -101,11 +101,11 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
             case 'integer':
                 return 'INTEGER';
             case 'text':
-                return 'VARCHAR ('.(isset($field['length']) ? $field['length'] : (isset($db->options['DefaultTextFieldLength']) ? $db->options['DefaultTextFieldLength'] : 4000)).')';
+                return 'VARCHAR ('.(isset($field['length']) ? $field['length'] : (isset($db->options['default_text_field_length']) ? $db->options['default_text_field_length'] : 4000)).')';
             case 'clob':
-                return('BLOB SUB_TYPE 1');
+                return 'BLOB SUB_TYPE 1';
             case 'blob':
-                return('BLOB SUB_TYPE 0');
+                return 'BLOB SUB_TYPE 0';
             case 'boolean':
                 return 'CHAR (1)';
             case 'date':
@@ -158,7 +158,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getClobDeclaration()
+    // {{{ getCLOBDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
@@ -182,14 +182,14 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      *      declare the specified field.
      * @access public
      */
-    function getClobDeclaration(&$db, $name, $field)
+    function getCLOBDeclaration(&$db, $name, $field)
     {
         return $name.' '.$this->getTypeDeclaration($field)
                .(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
-    // {{{ getBlobDeclaration()
+    // {{{ getBLOBDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
@@ -213,7 +213,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      *      declare the specified field.
      * @access public
      */
-    function getBlobDeclaration(&$db, $name, $field)
+    function getBLOBDeclaration(&$db, $name, $field)
     {
         return $name.' '.$this->getTypeDeclaration($field)
                .(isset($field['notnull']) ? ' NOT NULL' : '');
@@ -335,12 +335,13 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     function getDecimalDeclaration(&$db, $name, $field)
     {
         return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($db, $field['default']) : '')
+               .(isset($field['default']) ? ' DEFAULT '
+               .$this->getDecimalValue($db, $field['default']) : '')
                .(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
-    // {{{ _getLobValue()
+    // {{{ _getLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
@@ -354,25 +355,30 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      *      a DBMS specific format.
      * @access private
      */
-    function _getLobValue(&$db, $prepared_query, $parameter, $lob)
+    function _getLOBValue(&$db, $lob)
     {
         if (MDB::isError($connect = $db->connect())) {
             return $connect;
         }
+        $prepared_query = $lob['prepared_query'];
+        $parameter = $lob['parameter'];
         $success = 1;   // REMOVE ME
         $value   = '';  // DEAL WITH ME
         if (!$db->transaction_id = ibase_trans(IBASE_COMMITTED, $db->connection)) {
-            return $db->raiseError(MDB_ERROR, '', '', '_getLobValue: Could not start a new transaction: '.ibase_errmsg());
+            return $db->raiseError(MDB_ERROR, '', '',
+                '_getLOBValue: Could not start a new transaction: '.ibase_errmsg());
         }
 
         if (($lo = ibase_blob_create($db->auto_commit ? $db->connection : $db->transaction_id))) {
-            while (!$this->endOfLob($lob)) {
-                if (MDB::isError($result = $this->readLob($lob, $data, $db->options['lob_buffer_length']))) {
+            while (!$this->endOfLOB($db, $lob)) {
+                $result = $this->readLOB($db, $lob, $data, $db->options['lob_buffer_length'])
+                if (MDB::isError($result)) {
                     $success = 0;
                     break;
                 }
                 if (!ibase_blob_add($lo, $data)) {
-                    $result = $db->raiseError(MDB_ERROR, null, null, '_getLobValue - Could not add data to a large object: ' . ibase_errmsg());
+                    $result = $db->raiseError(MDB_ERROR, null, null,
+                        '_getLOBValue - Could not add data to a large object: ' . ibase_errmsg());
                     $success = 0;
                     break;
                 }
@@ -383,15 +389,16 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
                 $value = ibase_blob_close($lo);
             }
         } else {
-            $result = $db->raiseError(MDB_ERROR, null, null, 'Get LOB field value: ' . pg_ErrorMessage($db->connection));
+            $result = $db->raiseError(MDB_ERROR, null, null,
+                'Get LOB field value: ' . pg_ErrorMessage($db->connection));
         }
         if (!isset($db->query_parameters[$prepared_query])) {
             $db->query_parameters[$prepared_query]       = array(0, '');
             $db->query_parameter_values[$prepared_query] = array();
         }
         $query_parameter = count($db->query_parameters[$prepared_query]);
-        $db->query_parameter_values[$prepared_query][$parameter] = $query_parameter;
         $db->query_parameters[$prepared_query][$query_parameter] = $value;
+        $db->query_parameter_values[$prepared_query][$parameter] = $query_parameter;
         $value = '?';
 
         if (!$db->auto_commit) {
@@ -401,79 +408,102 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getClobValue()
+    // {{{ getCLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
      * @param           $clob
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
      * @access public
      */
-    function getClobValue(&$db, $prepared_query, $parameter, $clob)
+    function getCLOBValue(&$db, $clob)
     {
-        return $this->_getLobValue($db, $prepared_query, $parameter, $clob);
+        if ($clob === null) {
+            return 'NULL';
+        }
+        return $this->_getLOBValue($db, $clob);
     }
 
     // }}}
-    // {{{ freeClobValue()
+    // {{{ freeLOBValue()
+
+    /**
+     * free a large object
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param string $lob
+     * @param string $value
+     * @access public
+     */
+    function freeLOBValue(&$db, $lob,&$value)
+    {
+        $prepared_query;
+        $query_parameter = $this->query_parameter_values[$prepared_query][$lob];
+
+        unset($this->query_parameters[$prepared_query][$query_parameter]);
+        unset($this->query_parameter_values[$prepared_query][$lob]);
+        if (count($this->query_parameter_values[$prepared_query]) == 0) {
+            unset($this->query_parameters[$prepared_query]);
+            unset($this->query_parameter_values[$prepared_query]);
+        }
+        unset($value);
+    }
+
+    // }}}
+    // {{{ freeCLOBValue()
 
     /**
      * free a character large object
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
-     * @param string    $clob
-     * @return MDB_OK
+     * @param string $clob
+     * @param string $value
      * @access public
      */
-    function freeClobValue(&$db, $prepared_query, $clob)
+    function freeCLOBValue(&$db, $clob, &$value)
     {
-        unset($this->lobs[$clob]);
-        return MDB_OK;
+        $this->freeLOBValue(&$db, $clob, &$value);
     }
 
     // }}}
-    // {{{ getBlobValue()
+    // {{{ getBLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
      * @param           $blob
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
      * @access public
      */
-    function getBlobValue(&$db, $prepared_query, $parameter, $blob)
+    function getBLOBValue(&$db, $blob)
     {
-        return $this->_getLobValue($db, $prepared_query, $parameter, $blob);
+        if ($blob === null) {
+            return 'NULL';
+        }
+        return $this->_getLOBValue($db, $blob);
     }
 
     // }}}
-    // {{{ freeBlobValue()
+    // {{{ freeBLOBValue()
 
     /**
      * free a binary large object
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
-     * @param string    $blob
-     * @return MDB_OK
+     * @param string $blob
+     * @param string $value
      * @access public
      */
-    function freeBlobValue(&$db, $prepared_query, $blob)
+    function freeBLOBValue(&$db, $blob, &$value)
     {
-        unset($this->lobs[$blob]);
-        return MDB_OK;
+        $this->freeLOBValue(&$db, $clob, &$value);
     }
 
     // }}}

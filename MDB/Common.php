@@ -255,6 +255,24 @@ class MDB_Common extends PEAR
      */
     var $affected_rows = -1;
 
+    /**
+    * @var array
+    * @access private
+    */
+    var $lobs = array();
+
+    /**
+    * @var array
+    * @access private
+    */
+    var $clobs = array();
+
+    /**
+    * @var array
+    * @access private
+    */
+    var $blobs = array();
+
     // }}}
     // {{{ constructor
 
@@ -263,9 +281,8 @@ class MDB_Common extends PEAR
      */
     function MDB_Common()
     {
-        global $_MDB_databases;
-        $database = count($_MDB_databases) + 1;
-        $_MDB_databases[$database] = &$this;
+        $database = count($GLOBALS['_MDB_databases']) + 1;
+        $GLOBALS['_MDB_databases'][$database] = &$this;
         $this->database = $database;
 
         $this->PEAR('MDB_Error');
@@ -704,8 +721,7 @@ class MDB_Common extends PEAR
      */
     function _close()
     {
-        global $_MDB_databases;
-        $_MDB_databases[$database] = '';
+        $GLOBALS['_MDB_databases'][$database] = '';
     }
 
     // }}}
@@ -819,7 +835,7 @@ class MDB_Common extends PEAR
      */
     function setLimit($first, $limit)
     {
-        if (!isset($this->supported['SelectRowRanges'])) {
+        if (!isset($this->supported['limit_querys'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Set selected row range: selecting row ranges is not supported by this driver');
         }
@@ -878,7 +894,7 @@ class MDB_Common extends PEAR
      */
     function subSelect($query, $type = false)
     {
-        if ($this->supported['SubSelects'] == 1) {
+        if ($this->supported['sub_selects'] == 1) {
             return $query;
         }
         return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
@@ -951,7 +967,7 @@ class MDB_Common extends PEAR
      */
     function replace($table, $fields)
     {
-        if (!$this->supported['Replace']) {
+        if (!$this->supported['replace']) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Replace: replace query is not supported');
         }
         $count = count($fields);
@@ -1003,7 +1019,7 @@ class MDB_Common extends PEAR
             if (!MDB::isError($success)) {
                 if (($success = (!MDB::isError($this->commit())
                     && !MDB::isError($this->autoCommit(true))))
-                    && $this->supported['AffectedRows']
+                    && $this->supported['affected_rows']
                 ) {
                     $this->affected_rows = $affected_rows;
                 }
@@ -1065,15 +1081,16 @@ class MDB_Common extends PEAR
                 $position = $question + 1;
             }
         }
-        $this->prepared_queries[] = array('Query' => $query,
-            'Positions' => $positions,
-            'Values' => array(),
-            'Types' => array()
-            );
+        $this->prepared_queries[] = array(
+            'query' => $query,
+            'positions' => $positions,
+            'values' => array(),
+            'types' => array()
+        );
         $prepared_query = count($this->prepared_queries);
         if ($this->selected_row_limit > 0) {
-            $this->prepared_queries[$prepared_query-1]['First'] = $this->first_selected_row;
-            $this->prepared_queries[$prepared_query-1]['Limit'] = $this->selected_row_limit;
+            $this->prepared_queries[$prepared_query-1]['first'] = $this->first_selected_row;
+            $this->prepared_queries[$prepared_query-1]['limit'] = $this->selected_row_limit;
         }
         return $prepared_query;
     }
@@ -1097,6 +1114,93 @@ class MDB_Common extends PEAR
         if (gettype($this->prepared_queries[$prepared_query-1]) != 'array') {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'Validate prepared query: prepared query was already freed');
+        }
+        return MDB_OK;
+    }
+
+    // }}}
+    // {{{ setParam()
+
+    /**
+     * Set the value of a parameter of a prepared query.
+     *
+     * @param int $prepared_query argument is a handle that was returned
+     *       by the function prepareQuery()
+     * @param int $parameter the order number of the parameter in the query
+     *       statement. The order number of the first parameter is 1.
+     * @param mixed $value value that is meant to be assigned to specified
+     *       parameter. The type of the value depends on the $type argument.
+     * @param string $type designation of the type of the parameter to be set.
+     *       The designation of the currently supported types is as follows:
+     *           text, boolean, integer, decimal, float, date, time, timestamp,
+     *           clob, blob
+     * @return mixed MDB_OK on success, a MDB error on failure
+     * @access public
+     */
+    function setParam($prepared_query, $parameter, $value, $type = null)
+    {
+        if ($type) {
+            $result = $this->loadDatatype();
+            if (MDB::isError($result)) {
+                return $result;
+            }
+        }
+
+        $result = $this->_validatePreparedQuery($prepared_query);
+        if (MDB::isError($result)) {
+            return $result;
+        }
+
+        $index = $prepared_query-1;
+        if ($parameter < 1
+            || $parameter > count($this->prepared_queries[$index]['positions'])
+        ) {
+            return $this->raiseError(MDB_ERROR_SYNTAX, null, null,
+                'setParam: it was not specified a valid argument number');
+        }
+
+        $this->prepared_queries[$index]['values'][$parameter-1] = $value;
+        $this->prepared_queries[$index]['types'][$parameter-1] = $type;
+        return MDB_OK;
+    }
+
+    // }}}
+    // {{{ setParamArray()
+
+    /**
+     * Set the values of multiple a parameter of a prepared query in bulk.
+     *
+     * @param int $prepared_query argument is a handle that was returned by
+     *       the function prepareQuery()
+     * @param array $params array thats specifies all necessary infromation
+     *       for setParam() the array elements must use keys corresponding to
+     *       the number of the position of the parameter.
+     * @param array $types array thats specifies the types of the fields
+     * @return mixed MDB_OK on success, a MDB error on failure
+     * @access public
+     * @see setParam()
+     */
+    function setParamArray($prepared_query, $params, $types = null)
+    {
+        if (is_array($types)) {
+            if (count($params) != count($types)) {
+                return $this->raiseError(MDB_ERROR_SYNTAX, null, null,
+                    'setParamArray: the number of given types ('.count($types).')'
+                    .'is not corresponding to the number of given parameters ('.count($params).')');
+            }
+            for ($i = 0, $j = count($params); $i < $j; ++$i) {
+                $success = $this->setParam($prepared_query, $i + 1, $params[$i], $types[$i]);
+                if (MDB::isError($success)) {
+                    return $success;
+                }
+            }
+        } else {
+            for ($i = 0, $j = count($params); $i < $j; ++$i) {
+                $success = $this->setParam($prepared_query, $i + 1, $params[$i]);
+                if (MDB::isError($success)) {
+                    return $success;
+                }
+            }
         }
         return MDB_OK;
     }
@@ -1160,60 +1264,80 @@ class MDB_Common extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
+
+        $query = '';
         $index = $prepared_query-1;
-        for($this->clobs[$prepared_query] = $this->blobs[$prepared_query] = array(), $query = '', $last_position = $position = 0;
-            $position < count($this->prepared_queries[$index]['Positions']);
-            $position++) {
-            if (!isset($this->prepared_queries[$index]['Values'][$position])) {
-                return $this->raiseError(MDB_ERROR_NEED_MORE_DATA, null, null,
-                    'Execute query: it was not defined query argument '.($position + 1));
-            }
-            $current_position = $this->prepared_queries[$index]['Positions'][$position];
-            $query .= substr($this->prepared_queries[$index]['Query'], $last_position, $current_position - $last_position);
-            $value = $this->prepared_queries[$index]['Values'][$position];
-            switch ($this->prepared_queries[$index]['Types'][$position]) {
-                case 'clob':
-                    if (!MDB::isError($success = $this->getValue('clob', $prepared_query, $position + 1, $value))) {
-                        $this->clobs[$prepared_query][$position + 1] = $success;
-                        $query .= $this->clobs[$prepared_query][$position + 1];
+        $this->clobs[$prepared_query] = $this->blobs[$prepared_query] = array();
+        $count = count($this->prepared_queries[$index]['positions']);
+        for($last_position = $position = 0; $position < $count; $position++) {
+            $current_position = $this->prepared_queries[$index]['positions'][$position];
+            $query .= substr($this->prepared_queries[$index]['query'],
+                $last_position, $current_position - $last_position);
+            if (!isset($this->prepared_queries[$index]['values'][$position])
+                && !isset($this->prepared_queries[$index]['types'][$position])
+            ) {
+                $success = 'NULL';
+            } else {
+                $value = $this->prepared_queries[$index]['values'][$position];
+                $type = $this->prepared_queries[$index]['types'][$position];
+                if (is_array($value) && ($type == 'clob' || $type == 'blob')) {
+                    $value['database'] = &$this;
+                    $value['prepared_query'] = $prepared_query;
+                    $value['parameter'] = $position + 1;
+                    $this->prepared_queries[$index]['fields'][$position] = $value['field'];
+                    $value = $this->datatype->createLOB($this, $value);
+                    if (MDB::isError($value)) {
+                        return $value;
                     }
-                    break;
-                case 'blob':
-                    if (!MDB::isError($success = $this->getValue('blob', $prepared_query, $position + 1, $value))) {
-                        $this->blobs[$prepared_query][$position + 1] = $success;
-                        $query .= $this->blobs[$prepared_query][$position + 1];
-                    }
-                    break;
-                default:
-                    $query .= $value;
-                    break;
+                }
+                $success = $this->getValue($type, $value);
+                if (MDB::isError($success)) {
+                    return $success;
+                }
+                if ($value && $type == 'clob') {
+                    $this->clobs[$prepared_query][$value] = $success;
+                } elseif ($value && $type == 'blob') {
+                    $this->blobs[$prepared_query][$value] = $success;
+                }
             }
+            $query .= $success;
             $last_position = $current_position + 1;
         }
+
         if (!isset($success) || !MDB::isError($success)) {
-            $query .= substr($this->prepared_queries[$index]['Query'], $last_position);
+            $query .= substr($this->prepared_queries[$index]['query'], $last_position);
             if ($this->selected_row_limit > 0) {
-                $this->prepared_queries[$index]['First'] = $this->first_selected_row;
-                $this->prepared_queries[$index]['Limit'] = $this->selected_row_limit;
+                $this->prepared_queries[$index]['first'] = $this->first_selected_row;
+                $this->prepared_queries[$index]['limit'] = $this->selected_row_limit;
             }
-            if (isset($this->prepared_queries[$index]['Limit']) && $this->prepared_queries[$index]['Limit'] > 0) {
-                $this->first_selected_row = $this->prepared_queries[$index]['First'];
-                $this->selected_row_limit = $this->prepared_queries[$index]['Limit'];
+            if (isset($this->prepared_queries[$index]['limit'])
+                && $this->prepared_queries[$index]['limit'] > 0
+            ) {
+                $this->first_selected_row = $this->prepared_queries[$index]['first'];
+                $this->selected_row_limit = $this->prepared_queries[$index]['limit'];
             } else {
                 $this->first_selected_row = $this->selected_row_limit = 0;
             }
             $success = $this->_executePreparedQuery($prepared_query, $query, $types);
         }
-        for(reset($this->clobs[$prepared_query]), $clob = 0;
-            $clob < count($this->clobs[$prepared_query]);
-            $clob++, next($this->clobs[$prepared_query])) {
-            $this->freeClobValue($prepared_query, key($this->clobs[$prepared_query]), $this->clobs[$prepared_query][key($this->clobs[$prepared_query])], $success);
+        reset($this->clobs[$prepared_query]);
+        for($clob = 0, $count = count($this->clobs[$prepared_query]);
+             $clob < $count;
+             $clob++, next($this->clobs[$prepared_query])
+        ) {
+             $clob_stream = key($this->clobs[$prepared_query]);
+             $this->datatype->destroyLOB($this, $clob_stream);
+             $this->datatype->freeCLOBValue($this, $clob_stream, $this->clobs[$prepared_query][$clob_stream]);
         }
         unset($this->clobs[$prepared_query]);
-        for(reset($this->blobs[$prepared_query]), $blob = 0;
-            $blob < count($this->blobs[$prepared_query]);
-            $blob++, next($this->blobs[$prepared_query])) {
-            $this->freeBlobValue($prepared_query, key($this->blobs[$prepared_query]), $this->blobs[$prepared_query][key($this->blobs[$prepared_query])], $success);
+        reset($this->blobs[$prepared_query]);
+        for($blob = 0, $count = count($this->blobs[$prepared_query]);
+             $blob < $count;
+             $blob++, next($this->blobs[$prepared_query])
+        ) {
+             $blob_stream = key($this->blobs[$prepared_query]);
+             $this->datatype->destroyLOB($this, $blob_stream);
+             $this->datatype->freeBLOBValue($this, $blob_stream, $this->blobs[$prepared_query][$blob_stream]);
         }
         unset($this->blobs[$prepared_query]);
         return $success;
@@ -1244,87 +1368,6 @@ class MDB_Common extends PEAR
         $this->setParamArray($prepared_query, $params, $param_types);
 
         return $this->executeQuery($prepared_query, $types);
-    }
-
-    // }}}
-    // {{{ setParam()
-
-    /**
-     * Set the value of a parameter of a prepared query.
-     *
-     * @param int $prepared_query argument is a handle that was returned
-     *       by the function prepareQuery()
-     * @param int $parameter the order number of the parameter in the query
-     *       statement. The order number of the first parameter is 1.
-     * @param string $type designation of the type of the parameter to be set.
-     *       The designation of the currently supported types is as follows:
-     *           text, boolean, integer, decimal, float, date, time, timestamp,
-     *           clob, blob
-     * @param mixed $value value that is meant to be assigned to specified
-     *       parameter. The type of the value depends on the $type argument.
-     * @param boolean $is_null flag that indicates whether whether the
-     *       parameter is a null
-     * @param string $field name of the field that is meant to be assigned
-     *       with this parameter value when it is of type clob or blob
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     */
-    function setParam($prepared_query, $parameter, $type, $value, $is_null = 0, $field = '')
-    {
-        $result = $this->_validatePreparedQuery($prepared_query);
-        if (MDB::isError($result)) {
-            return $result;
-        }
-        $index = $prepared_query - 1;
-        if ($parameter < 1 || $parameter > count($this->prepared_queries[$index]['Positions'])) {
-            return $this->raiseError(MDB_ERROR_SYNTAX, null, null,
-                'Query set: it was not specified a valid argument number');
-        }
-        $this->prepared_queries[$index]['Values'][$parameter-1] = $this->getValue($type, $value);
-        $this->prepared_queries[$index]['Types'][$parameter-1] = $type;
-        $this->prepared_queries[$index]['Fields'][$parameter-1] = $field;
-        return MDB_OK;
-    }
-
-    // }}}
-    // {{{ setParamArray()
-
-    /**
-     * Set the values of multiple a parameter of a prepared query in bulk.
-     *
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
-     * @param array $params array thats specifies all necessary infromation
-     *       for setParam() the array elements must use keys corresponding to
-     *       the number of the position of the parameter.
-     * @param array $types array thats specifies the types of the fields
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see setParam()
-     */
-    function setParamArray($prepared_query, $params, $types = null)
-    {
-        if (is_array($types)) {
-            if (count($params) != count($types)) {
-                return $this->raiseError(MDB_ERROR_SYNTAX, null, null,
-                    'setParamArray: the number of given types ('.count($types).')'
-                    .'is not corresponding to the number of given parameters ('.count($params).')');
-            }
-            for ($i = 0, $j = count($params); $i < $j; ++$i) {
-                $success = $this->setParam($prepared_query, $i + 1, $types[$i], $params[$i]);
-                if (MDB::isError($success)) {
-                    return $success;
-                }
-            }
-        } else {
-            for ($i = 0, $j = count($params); $i < $j; ++$i) {
-                $success = $this->setParam($prepared_query, $i + 1, null, $params[$i]);
-                if (MDB::isError($success)) {
-                    return $success;
-                }
-            }
-        }
-        return MDB_OK;
     }
 
     // }}}
@@ -1370,8 +1413,8 @@ class MDB_Common extends PEAR
      */
     function affectedRows()
     {
-        if (!$this->support('AffectedRows')) {
-            return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'AffectedRows');
+        if (!$this->support('affected_rows')) {
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'affected_rows');
         }
         if ($this->affected_rows == -1) {
             return $this->raiseError(MDB_ERROR_NEED_MORE_DATA);
@@ -1639,6 +1682,24 @@ class MDB_Common extends PEAR
             return $id;
         }
         return $id;
+    }
+
+    // }}}
+    // {{{ fetch()
+
+    /**
+     * fetch value from a result set
+     *
+     * @param resource $result result identifier
+     * @param int $row number of the row where the data can be found
+     * @param int $field field number where the data can be found
+     * @return mixed string on success, a MDB error on failure
+     * @access public
+     */
+    function fetch($result, $row, $field)
+    {
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+            'fetch: fetch result method not implemented');
     }
 
     // }}}

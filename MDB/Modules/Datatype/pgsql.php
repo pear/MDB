@@ -68,7 +68,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * @return mixed converted value or a MDB error on failure
      * @access public
      */
-    function convertResult(&$db, $value, $type)
+    function convertResult(&$db, $result, $value, $type)
     {
         switch ($type) {
             case MDB_TYPE_BOOLEAN:
@@ -84,7 +84,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
             case MDB_TYPE_TIMESTAMP:
                 return substr($value, 0, strlen('YYYY-MM-DD HH:MM:SS'));
             default:
-                return $this->_baseConvertResult($db, $value, $type);
+                return $this->_baseConvertResult($db, $result, $value, $type);
         }
     }
 
@@ -122,7 +122,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getClobDeclaration()
+    // {{{ getCLOBDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
@@ -146,13 +146,13 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      declare the specified field.
      * @access public
      */
-    function getClobDeclaration(&$db, $name, $field)
+    function getCLOBDeclaration(&$db, $name, $field)
     {
         return "$name OID".(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
-    // {{{ getBlobDeclaration()
+    // {{{ getBLOBDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
@@ -176,7 +176,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      declare the specified field.
      * @access public
      */
-    function getBlobDeclaration(&$db, $name, $field)
+    function getBLOBDeclaration(&$db, $name, $field)
     {
         return "$name OID".(isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -322,7 +322,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ _getLobValue()
+    // {{{ _getLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
@@ -336,23 +336,28 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      a DBMS specific format.
      * @access private
      */
-    function _getLobValue(&$db, $prepared_query, $parameter, $lob)
+    function _getLOBValue(&$db, $lob)
     {
         $connect = $db->connect();
         if (MDB::isError($connect)) {
             return $connect;
         }
+        $prepared_query = $lob['prepared_query'];
+        $parameter = $lob['parameter'];
         if ($db->auto_commit && !@pg_Exec($db->connection, 'BEGIN')) {
-            return $db->raiseError(MDB_ERROR, null, null, '_getLobValue: error starting transaction');
+            return $db->raiseError(MDB_ERROR, null, null,
+                '_getLOBValue: error starting transaction');
         }
         if (($lo = pg_locreate($db->connection))) {
             if (($handle = pg_loopen($db->connection, $lo, 'w'))) {
-                while (!$this->endOfLob($lob)) {
-                    if (MDB::isError($result = $this->readLob($lob, $data, $db->options['lob_buffer_length']))) {
+                while (!$this->endOfLOB($db, $lob)) {
+                    $result = $this->readLOB($db, $lob, $data, $db->options['lob_buffer_length']);
+                    if (MDB::isError($result)) {
                         break;
                     }
                     if (!pg_lowrite($handle, $data)) {
-                        $result = $db->raiseError(MDB_ERROR, null, null, 'Get LOB field value: ' . pg_ErrorMessage($db->connection));
+                        $result = $db->raiseError(MDB_ERROR, null, null,
+                            'Get LOB field value: ' . pg_ErrorMessage($db->connection));
                         break;
                     }
                 }
@@ -361,13 +366,15 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
                     $value = strval($lo);
                 }
             } else {
-                $result = $db->raiseError(MDB_ERROR, null, null, 'Get LOB field value: ' .  pg_ErrorMessage($db->connection));
+                $result = $db->raiseError(MDB_ERROR, null, null,
+                    'Get LOB field value: ' .  pg_ErrorMessage($db->connection));
             }
             if (MDB::isError($result)) {
                 $result = pg_lounlink($db->connection, $lo);
             }
         } else {
-            $result = $db->raiseError(MDB_ERROR, null, null, 'Get LOB field value: ' . pg_ErrorMessage($db->connection));
+            $result = $db->raiseError(MDB_ERROR, null, null,
+                'Get LOB field value: ' . pg_ErrorMessage($db->connection));
         }
         if ($db->auto_commit) {
             @pg_Exec($db->connection, 'END');
@@ -379,79 +386,75 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ getClobValue()
+    // {{{ getCLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
      * @param           $clob
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
      * @access public
      */
-    function getClobValue(&$db, $prepared_query, $parameter, $clob)
+    function getCLOBValue(&$db, $clob)
     {
-        return $this->_getLobValue($prepared_query, $parameter, $clob);
+        if ($clob === null) {
+            return 'NULL';
+        }
+        return $this->_getLOBValue($db, $clob);
     }
 
     // }}}
-    // {{{ freeClobValue()
+    // {{{ freeCLOBValue()
 
     /**
      * free a character large object
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
      * @param string    $clob
-     * @return MDB_OK
      * @access public
      */
-    function freeClobValue(&$db, $prepared_query, $clob)
+    function freeCLOBValue(&$db, $clob, &$value)
     {
-        unset($this->lobs[$clob]);
-        return MDB_OK;
+#        pg_lounlink($db->connection, intval($value));
     }
 
     // }}}
-    // {{{ getBlobValue()
+    // {{{ getBLOBValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
      * @param           $blob
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
      * @access public
      */
-    function getBlobValue(&$db, $prepared_query, $parameter, $blob)
+    function getBLOBValue(&$db, $blob)
     {
-        return $this->_getLobValue($prepared_query, $parameter, $blob);
+        if ($blob === null) {
+            return 'NULL';
+        }
+        return $this->_getLOBValue($db, $blob);
     }
 
     // }}}
-    // {{{ freeBlobValue()
+    // {{{ freeBLOBValue()
 
     /**
      * free a binary large object
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
-     * @return MDB_OK
      * @access public
      */
-    function freeBlobValue(&$db, $prepared_query, $blob)
+    function freeBLOBValue(&$db, $blob, &$value)
     {
-        unset($this->lobs[$blob]);
-        return MDB_OK;
+#        pg_lounlink($db->connection, intval($value));
     }
 
     // }}}
@@ -506,6 +509,117 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     function getDecimalValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : strval(round($value*$db->decimal_factor));
+    }
+
+    // }}}
+    // {{{ _retrieveLob()
+
+    /**
+     * retrieve LOB from the database
+     *
+     * @param int $lob handle to a lob created by the createLob() function
+     * @return mixed MDB_OK on success, a MDB error on failure
+     * @access private
+     */
+    function _retrieveLob(&$db, $lob)
+    {
+        if (!isset($db->lobs[$lob])) {
+            return $db->raiseError(MDB_ERROR_INVALID, null, null,
+                'Retrieve LOB: did not specified a valid lob');
+        }
+        if (!isset($db->lobs[$lob]['handle'])) {
+            if ($db->auto_commit) {
+                if (!pg_exec($db->connection, 'BEGIN')) {
+                    return $db->raiseError(MDB_ERROR,  null, null,
+                        'Retrieve LOB: ' . pg_ErrorMessage($db->connection));
+                }
+                $db->lobs[$lob]['in_transaction'] = 1;
+            }
+            if (!($db->lobs[$lob]['handle'] = pg_loopen($db->connection, $db->lobs[$lob]['value'], 'r'))) {
+                if (isset($db->lobs[$lob]['in_transaction'])) {
+                    pg_Exec($db->connection, 'END');
+                    unset($db->lobs[$lob]['in_transaction']);
+                }
+                unset($db->lobs[$lob]['value']);
+                return $db->raiseError(MDB_ERROR, null, null,
+                    'Retrieve LOB: ' . pg_ErrorMessage($db->connection));
+            }
+        }
+        return MDB_OK;
+    }
+
+    // }}}
+    // {{{ _endOfResultLob()
+
+    /**
+     * Determine whether it was reached the end of the large object and
+     * therefore there is no more data to be read for the its input stream.
+     *
+     * @param int    $lob handle to a lob created by the createLob() function
+     * @return mixed true or false on success, a MDB error on failure
+     * @access private
+     */
+    function _endOfResultLob(&$db, $lob)
+    {
+        $lobresult = $this->_retrieveLob($db, $lob);
+        if (MDB::isError($lobresult)) {
+            return $lobresult;
+        }
+        return isset($db->lobs[$lob]['end_of_LOB']);
+    }
+
+    // }}}
+    // {{{ _readResultLob()
+
+    /**
+     * Read data from large object input stream.
+     *
+     * @param int $lob handle to a lob created by the createLob() function
+     * @param blob $data reference to a variable that will hold data to be
+     *      read from the large object input stream
+     * @param int $length integer value that indicates the largest ammount of
+     *      data to be read from the large object input stream.
+     * @return mixed length on success, a MDB error on failure
+     * @access private
+     */
+    function _readResultLob(&$db, $lob, &$data, $length)
+    {
+        $lobresult = $this->_retrieveLob($db, $lob);
+        if (MDB::isError($lobresult)) {
+            return $lobresult;
+        }
+        $data = pg_loread($db->lobs[$lob]['handle'], $length);
+        if (gettype($data) != 'string') {
+            $db->raiseError(MDB_ERROR, null, null,
+                'Read Result LOB: ' . pg_ErrorMessage($db->connection));
+        }
+        if (($length = strlen($data)) == 0) {
+            $db->lobs[$lob]['end_of_LOB'] = 1;
+        }
+        return $length;
+    }
+
+    // }}}
+    // {{{ _destroyResultLob()
+
+    /**
+     * Free any resources allocated during the lifetime of the large object
+     * handler object.
+     *
+     * @param int $lob handle to a lob created by the createLob() function
+     * @access private
+     */
+    function _destroyResultLob(&$db, $lob)
+    {
+        if (isset($db->lobs[$lob])) {
+            if (isset($db->lobs[$lob]['value'])) {
+                pg_loclose($db->lobs[$lob]['handle']);
+                if (isset($db->lobs[$lob]['in_transaction'])) {
+                    pg_Exec($db->connection, 'END');
+                }
+            }
+            $db->lobs[$lob] = '';
+        }
     }
 }
 
