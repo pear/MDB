@@ -1367,7 +1367,7 @@ class MDB_oci8 extends MDB_Common {
      */
     function getDateValue($value)
     {
-        return($value === NULL) ? 'NULL' : "TO_DATE('$value','YYYY-MM-DD')");
+        return(($value === NULL) ? 'NULL' : "TO_DATE('$value','YYYY-MM-DD')");
     }
 
     // }}}
@@ -1384,7 +1384,7 @@ class MDB_oci8 extends MDB_Common {
      */
     function getTimestampValue($value)
     {
-        return($value === NULL) ? 'NULL' : "TO_DATE('$value','YYYY-MM-DD HH24:MI:SS')");
+        return(($value === NULL) ? 'NULL' : "TO_DATE('$value','YYYY-MM-DD HH24:MI:SS')");
     }
 
     // }}}
@@ -1401,7 +1401,7 @@ class MDB_oci8 extends MDB_Common {
      */
     function getTimeValue($value)
     {
-        return($value === NULL) ? 'NULL' : "TO_DATE('0001-01-01 $value','YYYY-MM-DD HH24:MI:SS')");
+        return(($value === NULL) ? 'NULL' : "TO_DATE('0001-01-01 $value','YYYY-MM-DD HH24:MI:SS')");
     }
 
     // }}}
@@ -1435,7 +1435,7 @@ class MDB_oci8 extends MDB_Common {
      */
     function getDecimalValue($value)
     {
-        return($value === NULL) ? 'NULL' : $value);
+        return(($value === NULL) ? 'NULL' : $value);
     }
 
     // }}}
