@@ -6,7 +6,7 @@
   <release>
     <version>1.3.1</version>
     <state>stable</state>
-    <date>2005-02-16</date>
+    <date>2005-02-24</date>
     <notes>
       MDB_Manager_mysql
       - fixed listTableIndexes()
@@ -19,6 +19,7 @@
       MDB_ibase
       - fixed bug #3495: ibase_timefmt() was removed from php5
       - getColumnNames() now returns column aliases (request #3129)
+      - setSelectedRowRange() used to return one more result than requested
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
       <file role="doc">README</file>
