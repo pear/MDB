@@ -657,10 +657,10 @@ class MDB_driver_pgsql extends MDB_common {
     function _standaloneQuery($query)
     {
         if (($connection = $this->_doConnect("template1", 0)) == 0) {
-            return (0);
+            return $this->raiseError(DB_ERROR_CONNECT_FAILED, NULL, NULL, '_standaloneQuery: Cannot connect to template1');
         }
         if (!($success = @pg_Exec($connection, $query))) {
-            $this->SetError("Standalone query", pg_ErrorMessage($connection));
+            $this->raiseError(DB_ERROR, NULL, NULL, "_standaloneQuery: " . pg_ErrorMessage($connection));
         }
         pg_Close($connection);
         return ($success);
@@ -1060,7 +1060,7 @@ class MDB_driver_pgsql extends MDB_common {
     function getColumnNames($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return ($this->SetError("Get Column Names", "it was specified an inexisting result set"));
+            return ($this->raiseError(DB_ERROR, NULL, NULL, "Get Column Names: specified an nonexistant result set"));
         }
         if (!isset($this->columns[$result])) {
             $this->columns[$result] = array();
@@ -1086,8 +1086,7 @@ class MDB_driver_pgsql extends MDB_common {
     function numCols($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            $this->SetError("Number of columns", "it was specified an inexisting result set");
-            return (-1);
+            return $this->raiseError(DB_ERROR, NULL, NULL, "numCols: specified an nonexistant result set");
         }
         return (pg_numfields($result));
     }
@@ -1175,12 +1174,12 @@ class MDB_driver_pgsql extends MDB_common {
     function currId($name)
     {
         $seqname = $this->getSequenceName($seq_name);
-        if (!($result = $this->query("SELECT last_value FROM $seqname"))) {
-            return (0);
+        if (MDB::isError($result = $this->query("SELECT last_value FROM $seqname"))) {
+            return $this->raiseError(DB_ERROR, NULL, NULL, 'currId: Unable to select from ' . $seqname) ;
         }
         if ($this->numRows($result) == 0) {
             $this->freeResult($result);
-            return ($this->SetError("Get sequence current value", "could not find value in sequence table"));
+            return ($this->raiseError(DB_ERROR, NULL, NULL, "currId: could not find value in sequence table"));
         }
         $value = intval($this->fetch($result, 0, 0));
         $this->freeResult($result);
