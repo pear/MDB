@@ -3551,8 +3551,19 @@ class MDB_Common extends PEAR
     {
         $fetchmode = is_int($colnum) ? MDB_FETCHMODE_ORDERED : MDB_FETCHMODE_ASSOC;
         $column = array();
-        while (is_array($res = $this->fetchInto($result, $fetchmode))) {
+        $res = $this->fetchInto($result, $fetchmode, 0);
+        if(is_array($res)) {
+            if(isset($res[$colnum])) {
+                $column[] = $res[$colnum];
+            } else {
+                $this->freeResult($result);
+                return($this->raiseError(MDB_ERROR_TRUNCATED));
+            }
+        }
+        $row = 1;
+        while (is_array($res = $this->fetchInto($result, $fetchmode, $row))) {
             $column[] = $res[$colnum];
+            ++$row;
         }
         if (!$this->options['autofree']) {
             $this->freeResult($result);
@@ -3595,7 +3606,8 @@ class MDB_Common extends PEAR
             }
         }
         $all = array();
-        while (is_array($res = $this->fetchInto($result, $fetchmode))) {
+        $row = 0;
+        while (is_array($res = $this->fetchInto($result, $fetchmode, $row))) {
             if ($rekey) {
                 if ($fetchmode & MDB_FETCHMODE_ASSOC) {
                     reset($res);
@@ -3618,9 +3630,10 @@ class MDB_Common extends PEAR
                         $all[$key][] = $val;
                     }
                 } else {
-                    $all[] = $res;
+                   $all[] = $res;
                 }
             }
+            ++$row;
         }
         if (!$this->options['autofree']) {
             $this->freeResult($result);
