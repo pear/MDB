@@ -35,6 +35,14 @@ define("MDB_TYPE_BLOB", 9);
 
 $registered_transactions_shutdown = 0;
 
+// }}}
+// {{{ shutdownTransactions()
+/**
+* this function closes all open transactions
+* registerTransactionShutdown() registers this method to be executed at shutdown
+*
+* @access privat
+*/
 function shutdownTransactions()
 {
     global $databases;
@@ -46,7 +54,20 @@ function shutdownTransactions()
     }
 }
 
+// }}}
+// {{{ defaultDebugOutput()
 
+/**
+ * default debug output handler
+ *
+ * @param integer	$database	key in the $databases array that references to the proper db object
+ * @param string	$message	message htat should be appended to the debug variable
+ *
+ * @return string the corresponding error message, of FALSE
+ * if the error code was unknown
+ *
+ * @access public
+ */
 function defaultDebugOutput($database, $message)
 {
     global $databases;
@@ -495,7 +516,7 @@ class MDB_common extends PEAR
     // {{{ registerTransactionShutdown()
 
     /**
-     * 
+     * register the shutdown function to automatically commit open transactions
      * 
      * @param string $auto_commit
      *
@@ -1009,7 +1030,7 @@ class MDB_common extends PEAR
      * 
      * @param string    $table         name of the table on which the index is to be created
      * @param string    $name         name of the index to be created
-     * @param array        $definition associative array that defines properties of the index to be created.
+     * @param array     $definition		associative array that defines properties of the index to be created.
      *                                 Currently, only one property named FIELDS is supported. This property
      *                                 is also an associative with the names of the index fields as array
      *                                 indexes. Each entry of this array is set to another type of associative
