@@ -1649,38 +1649,41 @@ class MDB_manager extends PEAR
                     return ($definition);
                 }
                 if(isset($definition[0][0]['notnull']) && $definition[0][0]['notnull'] && !isset($definition[0][0]['default'])) {
-                    switch ($definition[0][0]['type']) {
-                        case 'integer':
-                        case 'float':
-                        case 'decimal':
-                            $definition[0][0]['default'] = '0';
-                            break;
-                        case 'text':
-                            $definition[0][0]['default'] = '';
-                            break;
-                        case 'timestamp':
-                            $definition[0][0]['default'] = '0000-00-00 00:0:00';
-                            break;
-                        case 'date':
-                            $definition[0][0]['default'] = '0000-00-00';
-                            break;
-                        case 'time':
-                            $definition[0][0]['default'] = '00:0:00';
-                            break;
-                        default:
-                            $definition[0][0]['default'] = '0';
-                            break;
+                    foreach($definition[0] as $field_setdefault) {
+                        switch ($field_setdefault['type']) {
+                            case 'integer':
+                            case 'float':
+                            case 'decimal':
+                                $field_setdefault['default'] = '0';
+                                break;
+                            case 'text':
+                                $field_setdefault['default'] = '';
+                                break;
+                            case 'timestamp':
+                                $field_setdefault['default'] = '0000-00-00 00:0:00';
+                                break;
+                            case 'date':
+                                $field_setdefault['default'] = '0000-00-00';
+                                break;
+                            case 'time':
+                                $field_setdefault['default'] = '00:0:00';
+                                break;
+                            default:
+                                $field_setdefault['default'] = '0';
+                                break;
+                        }
                     }
                 }
                 $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_name] = $definition[0][0];
                 $field_choices = count($definition[0]);
                 if($field_choices > 1) {
                     $warning = "There are $field_choices type choices in the table $table_name field $field_name (#1 is the default): ";
-                    for($field_choice = 0;
-                        $field_choice < $field_choices;
-                        $field_choice++)
-                    {
-                        $warning .= "choice #".($field_choice+1).": ".serialize($definition[0][$field_choice]);
+                    $field_choice_cnt = 1;
+                    $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_name]['CHOICES'] = array();
+                    foreach($definition[0] as $field_choice) {
+                        $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_name]['CHOICES'][] = $field_choice;
+                        $warning .= "choice #".($field_choice_cnt).": ".serialize($field_choice);
+                        $field_choice_cnt++;
                     }
                     $this->warnings[] = $warning;
                 }
@@ -1707,7 +1710,7 @@ class MDB_manager extends PEAR
             if (MDB::isError($indexes)) {
                 return($indexes);
             }
-            if(is_array($indexes) && !isset($this->database_definition['TABLES'][$table_name]['INDEXES'])) {
+            if(is_array($indexes) && count($indexes) > 0 && !isset($this->database_definition['TABLES'][$table_name]['INDEXES'])) {
                 $this->database_definition['TABLES'][$table_name]['INDEXES'] = array();
             }
             for($index = 0, $index_cnt = count($indexes); $index < $index_cnt; $index++)
@@ -1719,12 +1722,21 @@ class MDB_manager extends PEAR
                 }
                $this->database_definition['TABLES'][$table_name]['INDEXES'][$index_name] = $definition;
             }
+            if (is_array($this->database_definition['TABLES'][$table_name]['INDEXES']) &&
+                count($this->database_definition['TABLES'][$table_name]['INDEXES']) > 0)
+            {
+                foreach($this->database_definition['TABLES'][$table_name]['INDEXES'] as $index_check_null) {
+                    foreach($index_check_null['FIELDS'] as $field_name_check_null => $field_check_null) {
+                        $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_name_check_null]['notnull'] = 1;
+                    }
+                }
+            }
         }
         $sequences = $this->database->listSequences();
         if (MDB::isError($sequences)) {
             return ($sequences);
         }
-        if(is_array($sequences) && !isset($this->database_definition['SEQUENCES'])) {
+        if(is_array($sequences) && count($sequences) > 0 && !isset($this->database_definition['SEQUENCES'])) {
             $this->database_definition['SEQUENCES'] = array();
         }
         for($sequence = 0; $sequence < count($sequences); $sequence++) {
