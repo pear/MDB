@@ -68,9 +68,9 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public 
      */
+/*
     function createDatabase(&$db, $name)
     {
-return(MDB_OK);
         $user = $db->getOption('DBAUser');
         if (MDB::isError($user)) {
             return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
@@ -103,6 +103,7 @@ return(MDB_OK);
         }
         return($result);
     }
+*/
 
     // }}}
     // {{{ dropDatabase()
@@ -115,6 +116,7 @@ return(MDB_OK);
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public 
      */
+/*
     function dropDatabase(&$db, $name)
     {
         $user = $db->getOption('DBAUser');
@@ -132,6 +134,7 @@ return(MDB_OK);
         }
         return($db->_doQuery('DROP USER '.$db->user.' CASCADE'));
     }
+*/
 
     // }}}
     // {{{ alterTable()
