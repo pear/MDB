@@ -1408,7 +1408,7 @@ class MDB_Common extends PEAR
      */
     function setResultTypes($result, $types)
     {
-        $load = $this->loadDatatype('setResultTypes');
+        $load = $this->loadDatatype();
         if (MDB::isError($load)) {
             return $load;
         }
@@ -1524,18 +1524,18 @@ class MDB_Common extends PEAR
      *    field is a null.
      *
      * @param resource $result result identifier
-     * @param int $row number of the row where the data can be found
+     * @param int $rownum number of the row where the data can be found
      * @param int $field field number where the data can be found
      * @return mixed true or false on success, a MDB error on failure
      * @access public
      */
-    function resultIsNull($result, $row, $field)
+    function resultIsNull($result, $rownum, $field)
     {
-        $result = $this->fetch($result, $row, $field);
-        if (MDB::isError($result)) {
-            return $result;
+        $value = $this->fetch($result, $rownum, $field);
+        if (MDB::isError($value)) {
+            return $value;
         }
-        return !isset($result);
+        return !isset($value);
     }
 
     // }}}
@@ -1583,7 +1583,7 @@ class MDB_Common extends PEAR
      */
     function getValue($type, $value)
     {
-        $result = $this->loadDatatype('getValue');
+        $result = $this->loadDatatype();
         if (MDB::isError($result)) {
             return $result;
         }
@@ -1609,7 +1609,7 @@ class MDB_Common extends PEAR
      */
     function getDeclaration($type, $name, $field)
     {
-        $result = $this->loadDatatype('getDeclaration');
+        $result = $this->loadDatatype();
         if (MDB::isError($result)) {
             return $result;
         }
