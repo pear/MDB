@@ -3940,7 +3940,7 @@ class MDB_common extends PEAR {
      * @return mixed data array on success, a DB error on failure
      * @access public
      */
-    function queryAll($query, $types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT, $rekey = FALSE, $force_array = FALSE, $group = FALSE))
+    function queryAll($query, $types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT, $rekey = FALSE, $force_array = FALSE, $group = FALSE)
     {
         if (MDB::isError($result = $this->query($query, $types))) {
             return $result;
