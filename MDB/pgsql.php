@@ -179,7 +179,7 @@ class MDB_pgsql extends MDB_Common
      */
     function errorNative()
     {
-        return pg_ErrorMessage($this->connection);
+        return @pg_errormessage($this->connection);
     }
 
 
@@ -319,7 +319,7 @@ class MDB_pgsql extends MDB_Common
             {
                 return(MDB_OK);
             }
-            pg_Close($this->connection);
+            @pg_close($this->connection);
             $this->affected_rows = -1;
             $this->connection = 0;
         }
@@ -333,17 +333,17 @@ class MDB_pgsql extends MDB_Common
         if(function_exists('pg_cmdTuples')) {
             $connection = $this->_doConnect('template1', 0);
             if (!MDB::isError($connection)) {
-                if (($result = @pg_Exec($connection, 'BEGIN'))) {
+                if (($result = @pg_exec($connection, 'BEGIN'))) {
                     $error_reporting = error_reporting(63);
-                    @pg_cmdTuples($result);
+                    @pg_cmdtuples($result);
                     if (!isset($php_errormsg) || strcmp($php_errormsg, 'This compilation does not support pg_cmdtuples()')) {
                         $this->supported['AffectedRows'] = 1;
                     }
                     error_reporting($error_reporting);
                 } else {
-                    $err = $this->raiseError(MDB_ERROR, NULL, NULL, 'Setup: '.pg_ErrorMessage($connection));
+                    $err = $this->raiseError(MDB_ERROR, NULL, NULL, 'Setup: '.@pg_errormessage($connection));
                 }
-                pg_Close($connection);
+                @pg_close($connection);
             } else {
                 $err = $this->raiseError(MDB_ERROR, NULL, NULL, 'Setup: could not execute BEGIN');
             }
@@ -384,7 +384,7 @@ class MDB_pgsql extends MDB_Common
             if (!$this->auto_commit) {
                 $this->_doQuery('END');
             }
-            pg_Close($this->connection);
+            @pg_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
             
@@ -406,9 +406,9 @@ class MDB_pgsql extends MDB_Common
     function _doQuery($query)
     {
         if (($result = @pg_Exec($this->connection, $query))) {
-            $this->affected_rows = (isset($this->supported['AffectedRows']) ? pg_cmdTuples($result) : -1);
+            $this->affected_rows = (isset($this->supported['AffectedRows']) ? @pg_cmdtuples($result) : -1);
         } else {
-            $error = pg_ErrorMessage($this->connection);
+            $error = @pg_errormessage($this->connection);
             return($this->pgsqlRaiseError());
         }
         return($result);
@@ -430,7 +430,7 @@ class MDB_pgsql extends MDB_Common
             return($this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL, '_standaloneQuery: Cannot connect to template1'));
         }
         if (!($result = @pg_Exec($connection, $query))) {
-            $this->raiseError(MDB_ERROR, NULL, NULL, '_standaloneQuery: ' . pg_ErrorMessage($connection));
+            $this->raiseError(MDB_ERROR, NULL, NULL, '_standaloneQuery: ' . @pg_errormessage($connection));
         }
         pg_Close($connection);
         return($result);
@@ -502,7 +502,8 @@ class MDB_pgsql extends MDB_Common
                REVOKE, ROLLBACK, SELECT, SELECT INTO, SET, SHOW,
                UNLISTEN, UPDATE, VACUUM
             */
-            $this->highest_fetched_row[$result] = -1;
+            $result_value = intval($result);
+            $this->highest_fetched_row[$result_value] = -1;
             if ($types != NULL) {
                 if (!is_array($types)) {
                     $types = array($types);
@@ -538,17 +539,19 @@ class MDB_pgsql extends MDB_Common
      */
     function getColumnNames($result)
     {
-        if (!isset($this->highest_fetched_row[$result])) {
+        $result_value = intval($result);
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return($this->raiseError(MDB_ERROR, NULL, NULL, 'Get Column Names: specified an nonexistant result set'));
         }
-        if (!isset($this->columns[$result])) {
-            $this->columns[$result] = array();
-            $columns = pg_numfields($result);
+        if (!isset($this->columns[$result_value])) {
+            $this->columns[$result_value] = array();
+            $columns = @pg_numfields($result);
             for($column = 0; $column < $columns; $column++) {
-                $this->columns[$result][strtolower(pg_fieldname($result, $column))] = $column;
+                $field_name = strtolower(@pg_fieldname($result, $column));
+                $this->columns[$result_value][$field_name] = $column;
             }
         }
-        return($this->columns[$result]);
+        return($this->columns[$result_value]);
     }
 
     // }}}
@@ -564,7 +567,8 @@ class MDB_pgsql extends MDB_Common
      */
     function numCols($result)
     {
-        if (!isset($this->highest_fetched_row[$result])) {
+        $result_value = intval($result);
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return($this->raiseError(MDB_ERROR, NULL, NULL, 'numCols: specified an nonexistant result set'));
         }
         return(pg_numfields($result));
@@ -582,10 +586,11 @@ class MDB_pgsql extends MDB_Common
     */
     function endOfResult($result)
     {
-        if (!isset($this->highest_fetched_row[$result])) {
+        $result_value = intval($result);
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return($this->RaiseError(MDB_ERROR, NULL, NULL, 'End of result attempted to check the end of an unknown result'));
         }
-        return($this->highest_fetched_row[$result] >= $this->numRows($result) - 1);
+        return($this->highest_fetched_row[$result_value] >= $this->numRows($result) - 1);
     }
 
     // }}}
@@ -602,7 +607,8 @@ class MDB_pgsql extends MDB_Common
      */
     function fetch($result, $row, $field)
     {
-        $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
+        $result_value = intval($result);
+        $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $row);
         $res = @pg_result($result, $row, $field);
         if ($res === FALSE && $res != NULL) {
             return($this->pgsqlRaiseError());
@@ -623,23 +629,26 @@ class MDB_pgsql extends MDB_Common
     function _retrieveLob($lob)
     {
         if (!isset($this->lobs[$lob])) {
-            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL, 'Retrieve LOB: did not specified a valid lob'));
+            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                'Retrieve LOB: did not specified a valid lob'));
         }
         if (!isset($this->lobs[$lob]['Value'])) {
             if ($this->auto_commit) {
                 if (!@pg_exec($this->connection, 'BEGIN')) {
-                    return($this->raiseError(MDB_ERROR,  NULL, NULL, 'Retrieve LOB: ' . pg_ErrorMessage($this->connection)));
+                    return($this->raiseError(MDB_ERROR,  NULL, NULL,
+                        'Retrieve LOB: ' . @pg_errormessage($this->connection)));
                 }
                 $this->lobs[$lob]['InTransaction'] = 1;
             }
             $this->lobs[$lob]['Value'] = $this->fetch($this->lobs[$lob]['Result'], $this->lobs[$lob]['Row'], $this->lobs[$lob]['Field']);
             if (!($this->lobs[$lob]['Handle'] = @pg_loopen($this->connection, $this->lobs[$lob]['Value'], 'r'))) {
                 if (isset($this->lobs[$lob]['InTransaction'])) {
-                    @pg_Exec($this->connection, 'END');
+                    @pg_exec($this->connection, 'END');
                     unset($this->lobs[$lob]['InTransaction']);
                 }
                 unset($this->lobs[$lob]['Value']);
-                return($this->raiseError(MDB_ERROR, NULL, NULL, 'Retrieve LOB: ' . pg_ErrorMessage($this->connection)));
+                return($this->raiseError(MDB_ERROR, NULL, NULL,
+                    'Retrieve LOB: ' . @pg_errormessage($this->connection)));
             }
         }
         return(MDB_OK);
@@ -685,9 +694,10 @@ class MDB_pgsql extends MDB_Common
         if (MDB::isError($lobresult)) {
             return($lobresult);
         }
-        $data = pg_loread($this->lobs[$lob]['Handle'], $length);
+        $data = @pg_loread($this->lobs[$lob]['Handle'], $length);
         if (gettype($data) != 'string') {
-            $this->raiseError(MDB_ERROR, NULL, NULL, 'Read Result LOB: ' . pg_ErrorMessage($this->connection));
+            $this->raiseError(MDB_ERROR, NULL, NULL,
+                'Read Result LOB: ' . @pg_errormessage($this->connection));
         }
         if (($length = strlen($data)) == 0) {
             $this->lobs[$lob]['EndOfLOB'] = 1;
@@ -709,9 +719,9 @@ class MDB_pgsql extends MDB_Common
     {
         if (isset($this->lobs[$lob])) {
             if (isset($this->lobs[$lob]['Value'])) {
-                pg_loclose($this->lobs[$lob]['Handle']);
+                @pg_loclose($this->lobs[$lob]['Handle']);
                 if (isset($this->lobs[$lob]['InTransaction'])) {
-                    @pg_Exec($this->connection, 'END');
+                    @pg_exec($this->connection, 'END');
                 }
             }
             $this->lobs[$lob] = '';
@@ -791,8 +801,9 @@ class MDB_pgsql extends MDB_Common
      */
     function resultIsNull($result, $row, $field)
     {
-        $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
-        return(@pg_FieldIsNull($result, $row, $field));
+        $result_value = intval($result);
+        $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $row);
+        return(@pg_fieldisnull($result, $row, $field));
     }
 
     // }}}
@@ -807,7 +818,7 @@ class MDB_pgsql extends MDB_Common
      */
     function numRows($result)
     {
-        return(pg_numrows($result));
+        return(@pg_numrows($result));
     }
 
     // }}}
@@ -822,16 +833,17 @@ class MDB_pgsql extends MDB_Common
      */
     function freeResult($result)
     {
-        if(isset($this->highest_fetched_row[$result])) {
-            unset($this->highest_fetched_row[$result]);
+        $result_value = intval($result);
+        if(isset($this->highest_fetched_row[$result_value])) {
+            unset($this->highest_fetched_row[$result_value]);
         }
-        if(isset($this->columns[$result])) {
-            unset($this->columns[$result]);
+        if(isset($this->columns[$result_value])) {
+            unset($this->columns[$result_value]);
         }
-        if(isset($this->result_types[$result])) {
-            unset($this->result_types[$result]);
+        if(isset($this->result_types[$result_value])) {
+            unset($this->result_types[$result_value]);
         }
-        return(pg_freeresult($result));
+        return(@pg_freeresult($result));
     }
 
     // }}}
@@ -1052,35 +1064,39 @@ class MDB_pgsql extends MDB_Common
         if (MDB::isError($connect)) {
             return($connect);
         }
-        if ($this->auto_commit && !@pg_Exec($this->connection, 'BEGIN')) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, '_getLobValue: error starting transaction'));
+        if ($this->auto_commit && !@pg_exec($this->connection, 'BEGIN')) {
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
+                '_getLobValue: error starting transaction'));
         }
-        if (($lo = pg_locreate($this->connection))) {
-            if (($handle = pg_loopen($this->connection, $lo, 'w'))) {
+        if (($lo = @pg_locreate($this->connection))) {
+            if (($handle = @pg_loopen($this->connection, $lo, 'w'))) {
                 while (!$this->endOfLob($lob)) {
-                    if (MDB::isError($result = $this->readLob($lob, $data, $this->options['lob_buffer_length']))) {
+                    $result = $this->readLob($lob, $data, $this->options['lob_buffer_length']);
+                    if (MDB::isError($result)) {
                         break;
                     }
-                    if (!pg_lowrite($handle, $data)) {
-                        $result = $this->raiseError(MDB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
+                    if (!@pg_lowrite($handle, $data)) {
+                        $result = $this->raiseError(MDB_ERROR, NULL, NULL,
+                            'Get LOB field value: ' . @pg_errormessage($this->connection));
                         break;
                     }
                 }
-                pg_loclose($handle);
+                @pg_loclose($handle);
                 if (!MDB::isError($result)) {
                     $value = strval($lo);
                 }
             } else {
-                $result = $this->raiseError(MDB_ERROR, NULL, NULL, 'Get LOB field value: ' .  pg_ErrorMessage($this->connection));
+                $result = $this->raiseError(MDB_ERROR, NULL, NULL,
+                    'Get LOB field value: ' . @pg_errormessage($this->connection));
             }
             if (MDB::isError($result)) {
-                $result = pg_lounlink($this->connection, $lo);
+                $result = @pg_lounlink($this->connection, $lo);
             }
         } else {
             $result = $this->raiseError(MDB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
         }
         if ($this->auto_commit) {
-            @pg_Exec($this->connection, 'END');
+            @pg_exec($this->connection, 'END');
         }
         if (MDB::isError($result)) {
             return($result);
@@ -1233,38 +1249,34 @@ class MDB_pgsql extends MDB_Common
      */
     function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
+        $result_value = intval($result);
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
-        if ($rownum == NULL) {
-            ++$this->highest_fetched_row[$result];
-            $rownum = $this->highest_fetched_row[$result];
-            if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-                $row = @pg_fetch_assoc($result);
-                if (is_array($row) && $this->options['optimize'] == 'portability') {
-                    $row = array_change_key_case($row, CASE_LOWER);
-                }
-            } else {
-                $row = @pg_fetch_row($result);
+
+        if (is_null($rownum)) {
+            ++$this->highest_fetched_row[$result_value];
+        } else {
+            $this->highest_fetched_row[$result_value] =
+                max($this->highest_fetched_row[$result_value], $rownum);
+        }
+
+        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+            $row = @pg_fetch_assoc($result, $rownum, PGSQL_ASSOC);
+            if (is_array($row) && $this->options['optimize'] == 'portability') {
+                $row = array_change_key_case($row, CASE_LOWER);
             }
         } else {
-            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
-            if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-                $row = @pg_fetch_assoc($result, $rownum);
-                if (is_array($row) && $this->options['optimize'] == 'portability') {
-                    $row = array_change_key_case($row, CASE_LOWER);
-                }
-            } else {
-                $row = @pg_fetch_row($result, $rownum);
-            }
+            $row = @pg_fetch_row($result, $rownum);
         }
+
         if (!$row) {
             if ($this->options['autofree']) {
                 $this->freeResult($result);
             }
             return(NULL);
         }
-        if (isset($this->result_types[$result])) {
+        if (isset($this->result_types[$result_value])) {
             $row = $this->convertResultRow($result, $row);
         }
         return($row);
@@ -1342,7 +1354,7 @@ class MDB_pgsql extends MDB_Common
         // if $result is a string, then we want information about a
         // table without a resultset
         if (is_string($result)) {
-            $id = pg_exec($this->connection, "SELECT * FROM $result LIMIT 0");
+            $id = @pg_exec($this->connection, "SELECT * FROM $result LIMIT 0");
             if (empty($id)) {
                 return($this->pgsqlRaiseError());
             }
@@ -1411,33 +1423,33 @@ class MDB_pgsql extends MDB_Common
             AND typ.typrelid = f.attrelid
             AND f.attname = '$field_name'
             AND tab.relname = '$table_name'");
-        if (pg_numrows($result) > 0) {
-            $row = pg_fetch_row($result, 0);
+        if (@pg_numrows($result) > 0) {
+            $row = @pg_fetch_row($result, 0);
             $flags = ($row[0] == 't') ? 'not_null ' : '';
             
             if ($row[1] == 't') {
-                $result = pg_exec($this->connection, "SELECT a.adsrc
+                $result = @pg_exec($this->connection, "SELECT a.adsrc
                     FROM pg_attribute f, pg_class tab, pg_type typ, pg_attrdef a
                     WHERE tab.relname = typ.typname AND typ.typrelid = f.attrelid
                     AND f.attrelid = a.adrelid AND f.attname = '$field_name'
                     AND tab.relname = '$table_name'");
-                $row = pg_fetch_row($result, 0);
+                $row = @pg_fetch_row($result, 0);
                 $num = str_replace('\'', '', $row[0]);
                 
                 $flags .= "default_$num ";
             }
         }
-        $result = pg_exec($this->connection, "SELECT i.indisunique, i.indisprimary, i.indkey
+        $result = @pg_exec($this->connection, "SELECT i.indisunique, i.indisprimary, i.indkey
             FROM pg_attribute f, pg_class tab, pg_type typ, pg_index i
             WHERE tab.relname = typ.typname
             AND typ.typrelid = f.attrelid
             AND f.attrelid = i.indrelid
             AND f.attname = '$field_name'
             AND tab.relname = '$table_name'");
-        $count = pg_numrows($result);
+        $count = @pg_numrows($result);
         
         for ($i = 0; $i < $count ; $i++) {
-            $row = pg_fetch_row($result, $i);
+            $row = @pg_fetch_row($result, $i);
             $keys = explode(' ', $row[2]);
             
             if (in_array($num_field + 1, $keys)) {
