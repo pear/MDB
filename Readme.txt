@@ -41,6 +41,9 @@ The files that make up MDB are:
 MDB.php
 common.php
 mysql.php
+pgsql.php
+manager_common.php
+manager_mysql.php
 lob.php
 manager.php
 parser.php
@@ -108,19 +111,16 @@ There might be little tricky bugs that were introduced during the reformatting a
 I hope I fixed most of them through the help of the Metabase test suite but ...
 
 Roadmap in order of importance (Active help and code contributions are requested for all of following):
-- Move all error handling to the PEAR error handler.
-- PEAR Doc comments and Documentation
+- PEAR Doc comments and Documentation (common.php is now mostly documented)
 - More tests with Metabase and PEAR DB wrapper
-- Add support for more RDBMS
-- Making MDB PEAR CS compatible
-Removed from Roadmap:
-- Modularization (loading extended features on demand) - performance is fine so why bother
+- Add support for more RDBMS (mysql working, pgsql underway)
 
 Credits (never to early for those huh? :-)  ):
 I would especially like to thank Manuel Lemos (Author of Metabase) for getting me involved in this and generally being
 around to ask questions.
 I would also like to thank Tomas Cox and Stig S. Bakken from the PEAR projects for help in
 undertstanding PEAR, solving problems and trusting me enough.
+Paul Cooper for the work on the pgsql driver.
 Furthermore I would like to thank for Alex Black for being so enthusiastic about this project and offering
 binarycloud as a test bed for this project.
 Christian Dickmann for being the first to put MDB to some real use, making MDB use PEAR Error and working on the XMl schema manager.
