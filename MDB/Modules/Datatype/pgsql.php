@@ -466,21 +466,6 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     }
 
     // }}}
-    // {{{ freeCLOBValue()
-
-    /**
-     * free a character large object
-     *
-     * @param string    $clob
-     * @access public
-     */
-    function freeCLOBValue($clob, &$value)
-    {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-#        pg_lounlink($db->connection, intval($value));
-    }
-
-    // }}}
     // {{{ getBLOBValue()
 
     /**
@@ -499,21 +484,6 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
             return 'NULL';
         }
         return $this->_getLOBValue($blob);
-    }
-
-    // }}}
-    // {{{ freeBLOBValue()
-
-    /**
-     * free a binary large object
-     *
-     * @param string    $blob
-     * @access public
-     */
-    function freeBLOBValue($blob, &$value)
-    {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-#        pg_lounlink($db->connection, intval($value));
     }
 
     // }}}
