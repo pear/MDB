@@ -448,7 +448,7 @@ class MDB_PEAR_PROXY
 
     function limitQuery($query, $from, $count)
     {
-        $result = $this->MDB_object->limitQuery($query, $from, $count);
+        $result = $this->MDB_object->limitQuery($query, NULL, $from, $count);
         if (MDB::isError($result) || $result === DB_OK) {
             return $result;
         } else {

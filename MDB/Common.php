@@ -1379,10 +1379,12 @@ class MDB_common extends PEAR
      * Send a query to the database and return any results
      *
      * @param string $query the SQL query
+     * @param array   $types  array that contains the types of the columns in
+     *                        the result set
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function query($query)
+    function query($query, $types = NULL)
     {
         $this->debug("Query: $query");
         return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'Query: database queries are not implemented');
@@ -1425,18 +1427,20 @@ class MDB_common extends PEAR
      * Generates a limited query
      *
      * @param string $query query
+     * @param array   $types  array that contains the types of the columns in
+     *                        the result set
      * @param integer $from the row to start to fetching
      * @param integer $count the numbers of rows to fetch
      * @return mixed a valid ressource pointer or a MDB_Error
      * @access public
      */
-    function limitQuery($query, $from, $count)
+    function limitQuery($query, $types = NULL, $from, $count)
     {
         $result = $this->setSelectedRowRange($from, $count);
         if (MDB::isError($result)) {
             return $result;
         }
-        return $this->query($query);
+        return $this->query($query, $types);
     }
 
     // }}}
