@@ -44,36 +44,6 @@
 //
 // $Id$
 //
-
-/**
- * The main 'MDB' class is simply a container class with some static
- * methods for creating DB objects as well as some utility functions
- * common to all parts of DB.
- *
- * The object model of DB is as follows (indentation means inheritance):
- *
- * MDB           The main DB class.  This is simply a utility class
- *               with some 'static' methods for creating MDB objects as
- *               well as common utility functions for other MDB classes.
- *
- * MDB_common    The base for each DB implementation.  Provides default
- * |             implementations (in OO lingo virtual methods) for
- * |             the actual DB implementations as well as a bunch of
- * |             query utility functions.
- * |
- * +-MDB_driver_mysql   The DB implementation for MySQL. Inherits MDB_Common.
- *               When calling MDB::factory or MDB::connect for MySQL
- *               connections, the object returned is an instance of this
- *               class.
- * +-MDB_driver_pgsql   The DB implementation for PostGreSQL. Inherits MDB_Common.
- *               When calling MDB::factory or MDB::connect for PostGreSQL
- *               connections, the object returned is an instance of this
- *               class.
- *
- * @package  MDB
- * @author   Lukas Smith <smith@dybnet.de>
- */
-
 require_once 'PEAR.php';
 
 /**
@@ -178,12 +148,6 @@ define('DB_FETCHMODE_ORDERED',  1);
 define('DB_FETCHMODE_ASSOC',    2);
 
 /**
- * Column data as object properties
- */
-
-define('DB_FETCHMODE_OBJECT',   3);
-
-/**
  * For multi-dimensional results: normally the first level of arrays
  * is the row number, and the second level indexed by column number or name.
  * DB_FETCHMODE_FLIPPED switches this order, so the first level of arrays
@@ -213,6 +177,35 @@ define('DB_TABLEINFO_FULL',       3);
  */
 define('DB_AUTOQUERY_INSERT', 1);
 define('DB_AUTOQUERY_UPDATE', 2);
+
+/**
+ * The main 'MDB' class is simply a container class with some static
+ * methods for creating DB objects as well as some utility functions
+ * common to all parts of DB.
+ *
+ * The object model of DB is as follows (indentation means inheritance):
+ *
+ * MDB           The main DB class.  This is simply a utility class
+ *               with some 'static' methods for creating MDB objects as
+ *               well as common utility functions for other MDB classes.
+ *
+ * MDB_common    The base for each DB implementation.  Provides default
+ * |             implementations (in OO lingo virtual methods) for
+ * |             the actual DB implementations as well as a bunch of
+ * |             query utility functions.
+ * |
+ * +-MDB_driver_mysql   The DB implementation for MySQL. Inherits MDB_Common.
+ *               When calling MDB::factory or MDB::connect for MySQL
+ *               connections, the object returned is an instance of this
+ *               class.
+ * +-MDB_driver_pgsql   The DB implementation for PostGreSQL. Inherits MDB_Common.
+ *               When calling MDB::factory or MDB::connect for PostGreSQL
+ *               connections, the object returned is an instance of this
+ *               class.
+ *
+ * @package  MDB
+ * @author   Lukas Smith <smith@dybnet.de>
+ */
 
 class MDB
 {

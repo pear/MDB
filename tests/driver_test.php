@@ -45,6 +45,9 @@
 // $Id$
 //
 
+require(dirname(__FILE__).'/metabase_wrapper.php');
+require(dirname(__FILE__).'/manager.php');
+
 /**
 * Metabase test suite
 * This is a script intended to be used by Metabase DBMS driver class
@@ -67,10 +70,6 @@
 * @package MDB
 * @author  Manuel Lemos <mlemos@acm.org>>
 */
-
-require("metabase_wrapper.php");
-require("manager.php");
-require("lob.php");
 
 Function VerifyFetchedValues($database,$result,$row,&$data,&$value,&$field)
 {

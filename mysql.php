@@ -45,17 +45,17 @@
 // $Id$
 //
 
+if (!defined('MDB_MYSQL_INCLUDED')) {
+    define('MDB_MYSQL_INCLUDED', 1);
+
+require_once (dirname(__FILE__).'/common.php');
+
 /**
 * MDB MySQL driver
 *
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
 */
-
-if (!defined('MDB_MYSQL_INCLUDED')) {
-    define('MDB_MYSQL_INCLUDED', 1);
-
-require_once (dirname(__FILE__).'/common.php');
 
 class MDB_driver_mysql extends MDB_common
 {

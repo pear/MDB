@@ -45,15 +45,15 @@
 // $Id$
 
 
+if (!defined('MDB_MANAGER_PGSQL_INCLUDED')) {
+    define('MDB_MANAGER_PGSQL_INCLUDED', 1);
+
 /**
 * MDB MySQL driver for the management extensions
 *
 * @package MDB
 * @author  Paul Cooper <pgc@ucecom.com>
 */
-
-if (!defined('MDB_MANAGER_PGSQL_INCLUDED')) {
-    define('MDB_MANAGER_PGSQL_INCLUDED', 1);
 
 class MDB_manager_pgsql_class extends MDB_manager_common {
 

@@ -45,17 +45,16 @@
 // $Id$
 //
 
+if(!defined('MDB_MANAGER_COMMON_INCLUDED'))
+{
+    define('MDB_MANAGER_COMMON_INCLUDED',1);
+
 /**
 * Base class for the management extensions that is extended by each DB driver
 *
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
 */
-
-if(!defined('MDB_MANAGER_COMMON_INCLUDED'))
-{
-    define('MDB_MANAGER_COMMON_INCLUDED',1);
-
 
 class MDB_manager_common extends PEAR
 {

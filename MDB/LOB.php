@@ -45,18 +45,18 @@
 // $Id$
 //
 
+if(!defined('MDB_LOB_INCLUDED'))
+{
+    define('MDB_LOB_INCLUDED', 1);
+
+require_once 'PEAR.php';
+
 /**
 * MDB Large Object (BLOB/CLOB) classes
 *
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
  */
-
-require_once 'PEAR.php';
-
-if(!defined('MDB_LOB_INCLUDED'))
-{
-    define('MDB_LOB_INCLUDED', 1);
 
 class MDB_lob extends PEAR
 {

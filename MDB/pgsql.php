@@ -44,17 +44,17 @@
 //
 // $Id$
 
+if (!defined('MDB_PGSQL_INCLUDED')) {
+    define('MDB_PGSQL_INCLUDED', 1);
+
+require_once (dirname(__FILE__).'/common.php');
+
 /**
 * MDB PostGreSQL driver
 *
 * @package MDB
 * @author  Paul Cooper <pgc@ucecom.com>
 */
-
-if (!defined('MDB_PGSQL_INCLUDED')) {
-    define('MDB_PGSQL_INCLUDED', 1);
-
-require_once (dirname(__FILE__) . '/common.php');
 
 class MDB_driver_pgsql extends MDB_common {
     var $connection = 0;

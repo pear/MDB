@@ -44,13 +44,6 @@
 //
 // $Id$
 
-/**
- * MDB_common: Base class that is extended by each DB driver
- *
- * @package MDB
- * @author Lukas Smith <smith@dybnet.de>
- */
-
 require_once 'PEAR.php';
 
 define('MDB_TYPE_TEXT', 0);
@@ -63,6 +56,11 @@ define('MDB_TYPE_TIME', 6);
 define('MDB_TYPE_TIMESTAMP', 7);
 define('MDB_TYPE_CLOB', 8);
 define('MDB_TYPE_BLOB', 9);
+
+/**
+ * @package MDB
+ * @author Lukas Smith <smith@dybnet.de>
+ */
 
 $registered_transactions_shutdown = 0;
 
@@ -207,6 +205,13 @@ function mdbstamp2Unix($mdb_timestamp)
     $second = substr($mdb_timestamp, 17, 2);
     return mktime ($hour, $minute, $second, $month, $day, $year);
 }
+
+/**
+ * MDB_common: Base class that is extended by each DB driver
+ *
+ * @package MDB
+ * @author Lukas Smith <smith@dybnet.de>
+ */
 
 class MDB_common extends PEAR {
     var $database = 0;
@@ -3792,6 +3797,7 @@ class MDB_common extends PEAR {
                 return $this->raiseError(DB_ERROR_TRUNCATED);
             }
         }
+        $all = array(); 
         while (is_array($res = $this->fetchInto($result, $fetchmode, NULL))) {
             if ($rekey) {
                 if ($fetchmode == DB_FETCHMODE_ASSOC) {
@@ -4407,6 +4413,10 @@ class MDB_common extends PEAR {
      */
     function createLob($arguments)
     {
+        $result = $this->loadLob('Create LOB');
+        if (MDB::isError($result)) {
+            return ($result);
+        }
         $class_name = 'MDB_lob';
         if (isset($arguments['Type'])) {
             switch ($arguments['Type']) {
@@ -4453,7 +4463,7 @@ class MDB_common extends PEAR {
      *                          MDB::createLob() method.
      * @param string $data reference to a variable that will hold data
      *                          to be read from the large object input stream
-     * @paraminteger $length    value that indicates the largest ammount ofdata
+     * @param integer $length    value that indicates the largest ammount ofdata
      *                          to be read from the large object input stream.
      * @return mixed the effective number of bytes read from the large object
      *                      input stream on sucess or an MDB error object.

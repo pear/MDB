@@ -45,14 +45,14 @@
 // $Id$
 //
 
+require_once (dirname(__FILE__).'/MDB.php');
+
 /**
 * Wrapper that makes MDB behave like PEAR DB
 *
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
 */
-
-require_once (dirname(__FILE__).'/MDB.php');
 
 class DB
 {
