@@ -1262,7 +1262,7 @@ function MetabaseDebugOutput($database)
         $_MDB_databases[$database]->setError('DebugOutput', $result->getMessage());
         return(0);
     } else {
-        return(1);
+        return($result);
     }
 }
 
