@@ -45,8 +45,6 @@
 // $Id$
 //
 
-require_once 'PEAR.php';
-
 /**
 * Several methods to convert the MDB native timestamp format (ISO based)
 * to and from data structures that are convienient to worth with in side of php.
