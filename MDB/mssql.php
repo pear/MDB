@@ -52,9 +52,6 @@ require_once('MDB/Common.php');
  * MDB MSSQL Server driver
  *
  * Notes:
- * - This driver is fairly untested at this time and shoukd be considered
- *   alpha quality for this reason
- *
  * - Until at least version 6.5, the only kind of table changes that the
  *   ALTER TABLE SQL statement of Microsoft SQL server supports is new field
      and constraint additions.
