@@ -37,8 +37,8 @@
     $database_variables = array();
     // lets create the database using 'metapear_test_db.schema'
     // if you have allready run this script you should have 'metapear_test_db.schema.before'
-    // in that case MDb will just compare the two schemas and make any necessary modifications to the existing DB
-    $result = $manager->updateDatabase($input_file, $input_file.".before", $dsn, $database_variables);
+    // in that case MDB will just compare the two schemas and make any necessary modifications to the existing DB
+    var_dump($manager->updateDatabase($input_file, $input_file.".before", $dsn, $database_variables));
     echo "updating database from xml schema file<br>";
 */
 
@@ -111,7 +111,8 @@
             echo "<br>could not create sequence again<br>";
     }
     echo "<br>get the next id:<br>";
-    echo $db->nextId("real_funky_id")."<br>";
+    $db->nextId("real_funky_id", $value);
+    echo $value."<br>";
     // lets try an prepare execute combo
     $alldata = array(
                      array(1, 'one', 'un'),
@@ -163,8 +164,8 @@
     $db->fetchAll($result, &$array);
     echo "<br>all with subselect:<br>";
     echo Var_Dump::display($array)."<br>";
-  
-    /*
+
+/*
     // ok now lets create a new xml schema file from the existing DB
     // we will not use the 'metapear_test_db.schema' for this
     // this feature is especially interesting for people that have an existing Db and want to move to MDB's xml schema management
@@ -186,5 +187,5 @@
     if($manager->database) {
         echo $manager->database->debugOutput();
     }
-  */
+*/
 ?>
