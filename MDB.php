@@ -306,9 +306,10 @@ class MDB
             $class_name    = 'MDB_'.$type;
             $include       = 'MDB/'.$type.'.php';
         } else {
-            return PEAR::raiseError(null, MDB_ERROR_NOT_FOUND,
+            $error =& PEAR::raiseError(null, MDB_ERROR_NOT_FOUND,
                 null, null, 'no RDBMS driver specified',
                 'MDB_Error', true);
+            return $error;
         }
 
         if (is_array($options)
@@ -321,9 +322,10 @@ class MDB
         }
 
         if (!class_exists($class_name)) {
-            return PEAR::raiseError(null, MDB_ERROR_NOT_FOUND, null, null,
+            $error =& PEAR::raiseError(null, MDB_ERROR_NOT_FOUND, null, null,
                 'Unable to include the '.$include.' file',
                 'MDB_Error', true);
+            return $error;
         }
 
         @$db =& new $class_name();
