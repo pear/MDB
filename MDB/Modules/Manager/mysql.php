@@ -80,13 +80,13 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         switch(strtoupper($table_type)) {
             case 'BERKELEYDB':
             case 'BDB':
-                $check = 'have_bdb';
+                $check = array('have_bdb');
                 break;
             case 'INNODB':
-                $check = 'have_innobase';
+                $check = array('have_innobase', 'have_innodb');
                 break;
             case 'GEMINI':
-                $check = 'have_gemini';
+                $check = array('have_gemini');
                 break;
             case 'HEAP':
             case 'ISAM':
@@ -100,28 +100,35 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                     'Verify transactional table',
                     $table_type.' is not a supported table type'));
         }
-        if(MDB::isError($connect = $db->connect())) {
-            return($connect);
-        }
         if(isset($this->verified_table_types[$table_type])
             && $this->verified_table_types[$table_type] == $db->connection)
         {
             return(MDB_OK);
         }
-        if(MDB::isError($has = $db->queryAll("SHOW VARIABLES LIKE '$check'", NULL, MDB_FETCHMODE_ORDERED))) {
-            return($db->raiseError());
+        $not_supported = false;
+        for($i=0, $j=count($check); $i<$j; ++$i) {
+            $result = $db->query('SHOW VARIABLES LIKE '.$db->getValue('text', $check[$i]), null, false);
+            if (MDB::isError($result)) {
+                return $db->mysqlRaiseError();
+            }
+            $has = $db->fetchRow($result, MDB_FETCHMODE_ORDERED);
+            if (MDB::isError($has)) {
+                return $has;
+            }
+            if (is_array($has)) {
+                $not_supported = true;
+                if ($has[1] == 'YES') {
+                    $this->verified_table_types[$table_type] = $db->connection;
+                    return(MDB_OK);
+                }
+            }
         }
-        if(count($has) == 0) {
-            return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                'Verify transactional table','could not tell if '.$table_type.' is a supported table type'));
-        }
-        if(strcmp($has[0][1], 'YES')) {
-            return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                'Verify transactional table',
+        if ($not_supported) {
+            return($db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 $table_type.' is not a supported table type by this MySQL database server'));
         }
-        $this->verified_table_types[$table_type] = $db->connection;
-        return(MDB_OK);
+        return($db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+            'could not tell if '.$table_type.' is a supported table type'));
     }
 
     // }}}
@@ -476,7 +483,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         }
         for($i = 0, $j = count($table_names), $tables = array(); $i < $j; ++$i)
         {
-            if (!$db->_isSequenceName($table_names[$i]))
+            if (!$this->_isSequenceName($table_names[$i]))
                 $tables[] = $table_names[$i];
         }
         return($tables);
@@ -939,7 +946,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         }
         for($i = 0, $j = count($table_names), $sequences = array(); $i < $j; ++$i)
         {
-            if ($sqn = $db->_isSequenceName($table_names[$i]))
+            if ($sqn = $this->_isSequenceName($table_names[$i]))
                 $sequences[] = $sqn;
         }
         return($sequences);
