@@ -22,16 +22,16 @@
 // Base class for DB implementations.
 //
 
-define("MDB_TYPE_TEXT", 0);
-define("MDB_TYPE_BOOLEAN", 1);
-define("MDB_TYPE_INTEGER", 2);
-define("MDB_TYPE_DECIMAL", 3);
-define("MDB_TYPE_FLOAT", 4);
-define("MDB_TYPE_DATE", 5);
-define("MDB_TYPE_TIME", 6);
-define("MDB_TYPE_TIMESTAMP", 7);
-define("MDB_TYPE_CLOB", 8);
-define("MDB_TYPE_BLOB", 9);
+define('MDB_TYPE_TEXT', 0);
+define('MDB_TYPE_BOOLEAN', 1);
+define('MDB_TYPE_INTEGER', 2);
+define('MDB_TYPE_DECIMAL', 3);
+define('MDB_TYPE_FLOAT', 4);
+define('MDB_TYPE_DATE', 5);
+define('MDB_TYPE_TIME', 6);
+define('MDB_TYPE_TIMESTAMP', 7);
+define('MDB_TYPE_CLOB', 8);
+define('MDB_TYPE_BLOB', 9);
 
 $registered_transactions_shutdown = 0;
 
@@ -48,7 +48,7 @@ function shutdownTransactions()
     global $databases;
     
     foreach($databases as $database) {
-        if ($database->in_transaction && !MDB::is_Error($database->rollback())) {
+        if ($database->in_transaction && !MDB::is_Error($database->rollback())){
             $database->autoCommit(TRUE);
         }
     }
@@ -74,7 +74,8 @@ function defaultDebugOutput($database, $message)
 {
     global $databases;
 
-    $databases[$database]->debug_output.="$database $message".$databases[$database]->log_line_break;
+    $databases[$database]->debug_output.="$database $message".
+                           $databases[$database]->log_line_break;
 }
 
 /*
@@ -168,11 +169,11 @@ class MDB_common extends PEAR
      * the DB implementation's constructor fills in the $errorcode_map
      * property.
      *
-     * @param mixed $nativecode the native error code, as returned by the
-     *                          backend database extension (string or integer)
+     * @param  mixed $nativecode the native error code, as returned by the
+     *     backend database extension (string or integer)
      *
      * @return int a portable DB error code, or FALSE if this DB
-     * implementation has no mapping for the given error code.
+     *     implementation has no mapping for the given error code.
      *
      * @access public
      */
@@ -192,10 +193,10 @@ class MDB_common extends PEAR
      * Map a DB error code to a textual message.  This is actually
      * just a wrapper for DB::errorMessage().
      *
-     * @param integer $dbcode the DB error code
+     * @param  integer $dbcode the DB error code
      *
      * @return string the corresponding error message, of FALSE
-     * if the error code was unknown
+     *     if the error code was unknown
      *
      * @access public
      */
@@ -212,24 +213,22 @@ class MDB_common extends PEAR
      * callbacks etc.  Basically a wrapper for PEAR::raiseError
      * without the message string.
      *
-     * @param mixed    integer error code, or a PEAR error object (all
-     *                 other parameters are ignored if this parameter is
-     *                 an object
+     * @param  mixed $code integer error code, or a PEAR error object (all
+     *     other parameters are ignored if this parameter is an object
      *
-     * @param int      error mode, see PEAR_Error docs
+     * @param  int   $mode error mode, see PEAR_Error docs
      *
-     * @param mixed    If error mode is PEAR_ERROR_TRIGGER, this is the
-     *                 error level (E_USER_NOTICE etc).  If error mode is
-     *                 PEAR_ERROR_CALLBACK, this is the callback function,
-     *                 either as a function name, or as an array of an
-     *                 object and method name.  For other error modes this
-     *                 parameter is ignored.
+     * @param mixed  $options If error mode is PEAR_ERROR_TRIGGER, this is the
+     *     error level (E_USER_NOTICE etc).  If error mode is 
+     *     PEAR_ERROR_CALLBACK, this is the callback function, either as a
+     *     function name, or as an array of an object and method name. For
+     *     other error modes this parameter is ignored.
      *
-     * @param string   Extra debug information.  Defaults to the last
-     *                 query and native error code.
+     * @param string $userinfo Extra debug information.  Defaults to the last
+     *     query and native error code.
      *
-     * @param mixed    Native error code, integer or string depending the
-     *                 backend.
+     * @param mixed  $nativecode Native error code, integer or string depending
+     *     the backend.
      *
      * @return object  a PEAR error object
      *
@@ -299,7 +298,7 @@ class MDB_common extends PEAR
      * set a debug handler (deprecated)
      * 
      * @param string $capture name of the function that should be used in
-     *                        debug()
+     *     debug()
      *
      * @access public
      * @see debug()
@@ -353,7 +352,7 @@ class MDB_common extends PEAR
      * set an error (deprecated)
      * 
      * @param string $scope   Scope of the error message
-     *                        (usually the method tht caused the error)
+     *    (usually the method tht caused the error)
      * @param string $message Message with information for the user.
      *
      * @access private
@@ -382,28 +381,23 @@ class MDB_common extends PEAR
      * Specify a function that is called when an error occurs.
      * 
      * @param string $function  Name of the function that will be called on
-     *                          error. If an empty string is specified, no
-     *                          handler function is called on error.
+     *     error. If an empty string is specified, no handler function is
+     *     called on error. The error handler function receives two arguments.
+     *     The first argument a reference to the driver class object that
+     *     triggered the error.
      *
-     *                          The error handler function receives two
-     *                          arguments. The first argument a reference to
-     *                          the driver class object that triggered the
-     *                          error.
-     *
-     *                          The second argument is a reference to an
-     *                          associative array that provides details about
-     *                          the error that occured. These details provide
-     *                          more information than it is returned by the
-     *                          MetabaseError function.
+     *     The second argument is a reference to an associative array that
+     *     provides details about the error that occured. These details provide
+     *     more information than it is returned by the MetabaseError function.
      *                                
-     * These are the currently supported error detail entries:
+     *     These are the currently supported error detail entries:
      *
-     *            Scope
-     *             String that indicates the scope of the driver object class
-     *             within which the error occured.
+     *     Scope
+     *      String that indicates the scope of the driver object class
+     *      within which the error occured.
      *                            
-     *            Message
-     *             Error message as is returned by the MetabaseError function.
+     *     Message
+     *      Error message as is returned by the MetabaseError function.
      * 
      * @access public
      *
@@ -443,11 +437,11 @@ class MDB_common extends PEAR
      * loads an extension
      * 
      * @param string $scope information about what method is being loaded,
-     *                      that is used for error messages
+     *     that is used for error messages
      * @param string $extension name of the extension that should be loaded
-     *                      (only used for error messages)
+     *     (only used for error messages)
      * @param string $included_constant name of the constant that should be
-     *                      defined when the extension has been loaded
+     *     defined when the extension has been loaded
      * @param string $include name of the script that includes the extension
      * 
      * @access private
@@ -462,7 +456,8 @@ class MDB_common extends PEAR
             $length = strlen($include_path);
             $separator = "";
             if ($length) {
-                $directory_separator = (defined("DIRECTORY_SEPARATOR") ? DIRECTORY_SEPARATOR : "/");
+                $directory_separator =
+                   (defined("DIRECTORY_SEPARATOR") ? DIRECTORY_SEPARATOR : "/");
                 if ($include_path[$length - 1] != $directory_separator) {
                     $separator=$directory_separator;
                 }
@@ -476,10 +471,12 @@ class MDB_common extends PEAR
                         closedir($directory);
                     }
                     return $this->raiseError(DB_ERROR_LOADEXTENSION, "", "", 
-                        $scope.': it was not specified an existing '.$extension.' file ('.$include.')');
+                        $scope.': it was not specified an existing '.
+                        $extension.' file ('.$include.')');
                 } else {
                     return $this->raiseError(DB_ERROR_LOADEXTENSION, "", "", 
-                        $scope.': it was not specified a valid '.$extension.' include path');
+                        $scope.': it was not specified a valid '.
+                        $extension.' include path');
                 }
             }
             include($include_path.$separator.$include);
@@ -504,15 +501,17 @@ class MDB_common extends PEAR
         if (isset($this->manager)) {
             return (DB_OK);
         }
-        $result = $this->loadExtension($scope, "database manager", "MDB_MANAGER_DATABASE_INCLUDED", "manager_common.php");
+        $result = $this->loadExtension($scope, "database manager",
+                         "MDB_MANAGER_DATABASE_INCLUDED", "manager_common.php");
         if (MDB::isError($result)) {
             return($result);
         }
         if (strlen($this->manager_class_name)) {
             if(strlen($this->manager_include) == 0)
-                return $this->raiseError(DB_LOADEXTENSION, "", "", 
-                    $scope.': it was not configured a valid database manager include file');
-            $result = $this->loadExtension($scope, "database manager", $this->manager_included_constant, $this->manager_include);
+                return $this->raiseError(DB_LOADEXTENSION, "", "", $scope.
+                       ': no valid database manager include file');
+            $result = $this->loadExtension($scope, "database manager",
+                      $this->manager_included_constant, $this->manager_include);
             if (MDB::isError($result)) {
                 return($result);
             }
@@ -557,12 +556,10 @@ class MDB_common extends PEAR
      * committed. This function may also implicitly start or end a transaction.
      * 
      * @param boolean $auto_commit flag that indicates whether the database
-     *                             changes should be committed right after
-     *                             executing every query statement. If this
-     *                             argument is 0 a transaction implicitly
-     *                             started. Otherwise, if a transaction is in
-     *                             progress it is ended by committing any
-     *                             database changes that were pending.
+     *     changes should be committed right after executing every query
+     *     statement. If this argument is 0 a transaction implicitly started.
+     *     Otherwise, if a transaction is in progress it is ended by committing
+     *     any database changes that were pending.
      * 
      * @access public
      *
@@ -609,7 +606,7 @@ class MDB_common extends PEAR
     function rollback()
     {
         return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
-            'Rollback transaction: rolling back transactions are not supported');
+           'Rollback transaction: rolling back transactions are not supported');
     }
 
     // }}}
@@ -719,31 +716,28 @@ class MDB_common extends PEAR
      * 
      * @param string $name  Name of the database that should be created
      * @param array $fields Associative array that contains the definition of
-     *                      each field of the new table. The indexes of the
-     *                      array entries are the names of the fields of the
-     *                      table an the array entry values are associative
-     *                      arrays like those that are meant to be passed with
-     *                      the field definitions to get[Type]Declaration()
-     *                      functions.
+     *     each field of the new table. The indexes of the array entries are
+     *     the names of the fields of the table an the array entry values are
+     *     associative arrays like those that are meant to be passed with the
+     *     field definitions to get[Type]Declaration() functions.
      *
-     *                        Example
-     *                        array(
-     *                        
-     *                            "id" => array(
-     *                                "type" => "integer",
-     *                                "unsigned" => 1
-     *                                "notnull" => 1
-     *                                "default" => 0
-     *                            ),
-     *                            "name" => array(
-     *                                "type"=>"text",
-     *                                "length"=>12
-     *                            ),
-     *                            "password"=>array(
-     *                                "type"=>"text",
-     *                                "length"=>12
-     *                            )
-     *                        );
+     *     Example
+     *       array(
+     *           "id" => array(
+     *               "type" => "integer",
+     *               "unsigned" => 1
+     *               "notnull" => 1
+     *               "default" => 0
+     *           ),
+     *           "name" => array(
+     *               "type"=>"text",
+     *               "length"=>12
+     *           ),
+     *           "password"=>array(
+     *               "type"=>"text",
+     *               "length"=>12
+     *           )
+     *       );
      * 
      * @access public
      *
@@ -915,7 +909,7 @@ class MDB_common extends PEAR
      * list all users
      * 
      * @param array $users reference to an empty array into which the list is
-     *                     stored
+     *     stored
      * 
      * @access public
      *
@@ -937,7 +931,7 @@ class MDB_common extends PEAR
      * list all viewes in the current database
      * 
      * @param array $views reference to an empty array into which the list is
-     *                     stored
+     *     stored
      * 
      * @access public
      *
@@ -959,7 +953,7 @@ class MDB_common extends PEAR
      * list all functions in the current database
      * 
      * @param array $functions reference to an empty array into which the list
-     *                         is stored
+     *     is stored
      * 
      * @access public
      *
