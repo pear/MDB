@@ -97,8 +97,6 @@ class MDB_ibase extends MDB_Common
 
         $this->options['database_path'] = '';
         $this->options['database_extension'] = '.gdb';
-        $this->options['DBAUser'] = false;
-        $this->options['DBAPassword'] = false;
 
         $this->errorcode_map = array(
             -104 => MDB_ERROR_SYNTAX,
@@ -991,9 +989,9 @@ class MDB_ibase extends MDB_Common
                 $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
             }
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                $row = $this->results[$result_value][$rownum+1];
+                $row = $this->results[$result_value][$rownum];
             } else {
-                $row = array_values($this->results[$result_value][$rownum+1]);
+                $row = array_values($this->results[$result_value][$rownum]);
             }
             $this->results[$result_value]['highest_fetched_row'] =
                 max($this->results[$result_value]['highest_fetched_row'], $rownum);
