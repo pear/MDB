@@ -378,8 +378,8 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
         $table = strtoupper($table);
         $query = "SELECT column_name FROM user_tab_columns WHERE table_name='$table' ORDER BY column_id";
         $columns = $db->queryCol($query);
-        if (MDB::isError($result)) {
-            return($result);
+        if (MDB::isError($columns)) {
+            return($columns);
         }
         if ($db->options['optimize'] != 'portability') {
             $columns = array_flip($columns);
