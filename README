@@ -35,7 +35,7 @@ with Metabase. A wrapper will have to be created for PEAR DB as well.
 
 Basically the result is a Metabase that is really close to the PEAR DB structure.
 I have also added any missing methods from PEAR DB.
-Work on moving the error handling to PEAR error handling is under way but still needs alot of work.
+Work on moving the error handling to PEAR error handling is under way but still needs some work.
 
 The files that make up MDB are:
 MDB.php
@@ -57,7 +57,7 @@ xml_parser.php (this is actually a seperate project of Manuel Lemos that is used
 Var_Dump.php (used in MDB_test.php to display test results)
 Readme.txt (you are reading it currently)
 
-Documentation
+Documentation:
 There is currently work underway in terms of including phpdoc comments. But this will probably take until early
 June to be considered half way complete. Alot of the internal API is borrowed from PEAR DB. Since there are a large
 number of new methods available thx to the Metabasebasis of MDB you will also have to take a look in the Metabase
@@ -73,7 +73,7 @@ $converted_value=$db->getTimestampValue($value)
 
 If you want to help out with documentation please email me.
 
-Testing
+Testing:
 driver_test.php is the testing suite provided by Metabase
 you will need to configure the mysql section of driver_test_config.php to fit your enviornment
 
@@ -82,6 +82,19 @@ Depending how you name those you will have to change a few things here and there
 If I find the time it would probably be smart to show off the XML schema manager to get rid of this requirement. :-)
 
 MDB_pear_wrapper_test.php makes use of the same DB settings as MDB_test.php but uses the pear wrapper for its tests.
+
+How to write new Drivers:
+MDB is mostly based in Metabase. The method naming and formatting is changed to better match the PEAR CS however.
+Therefore the best starting point is to first take the mysql Metabase driver (metabase_mysql.php) and compare it with
+MDB's mysql driver (mysql.php) (Note: In order to get the Metabase code you will need to download it from phpclasses using the
+URl provided at the top). This will give a good idea what changes you have to make to an existing Metabase driver
+in order to make it MDB compatible.
+
+The methods towards the bottom are taken from PEAR DB however. Those have to be copied from the corresponding PEAR DB driver.
+
+In order to test the results driver_test.php will be the most comprehensive. This test suite uses the Metabase Wrapper however.
+Therefore I recommend getting MDB_test.php to work first and after that worry about driver_test.php. Also keep in mind
+that you will have to modify driver_test_config.php before running driver_test.php with the new driver.
 
 Some thoughts:
 This merger is very far along allready. Now is the time to decide what features should end up in MDB
@@ -105,7 +118,7 @@ I would also like to thank Tomas Cox and Stig S. Bakken from the PEAR projects f
 undertstanding PEAR, solving problems and trusting me enough.
 Furthermore I would like to thank for Alex Black for being so enthusiastic about this project and offering
 binarycloud as a test bed for this project.
-Christian Dickmann for being the first to put MDb to some real use and making MDb use PEAR Error.
+Christian Dickmann for being the first to put MDB to some real use, making MDB use PEAR Error and working on the XMl schema manager.
 Finally Peter Bowyer for starting the discussion that made people pick up this project again after the first versions
 of what was then called "metapear" have been ideling without much feedback.
 I guess I should also thank DybNet (my company :-)  ) for providing the necessary means to develop this on
