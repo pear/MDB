@@ -245,9 +245,11 @@ class MDB_ibase extends MDB_Common
                 }
             } else {
                 $error_regexps = array(
+                    '/[tT]able not found/' => MDB_ERROR_NOSUCHTABLE,
                     '/[tT]able .* already exists/' => MDB_ERROR_ALREADY_EXISTS,
                     '/violation of FOREIGN KEY constraint/' => MDB_ERROR_CONSTRAINT,
                     '/conversion error from string/' => MDB_ERROR_INVALID_NUMBER,
+                    '/no permission for/' => MDB_ERROR_ACCESS_VIOLATION,
                     '/arithmetic exception, numeric overflow, or string truncation/' => MDB_ERROR_DIVZERO
                 );
                 foreach ($error_regexps as $regexp => $code) {
