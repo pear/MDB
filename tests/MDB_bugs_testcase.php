@@ -312,7 +312,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
         $result = $this->db->limitQuery('SELECT * FROM users', null, 1, 3);
         $numrows = $this->db->numRows($result);
-        while ($row = $this->db->fetchInto($result)) {
+        while ($row = $this->db->fetchInto($result, MDB_FETCHMODE_ORDERED)) {
             if (MDB::isError($row)) {
                 $this->assertTrue(false, 'Error fetching a row'.$row->getMessage());
             }
@@ -321,7 +321,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         $this->db->freeResult($result);
         $result = $this->db->query('SELECT * FROM users');
         $numrows = $this->db->numRows($result);
-        while ($row = $this->db->fetchInto($result)) {
+        while ($row = $this->db->fetchInto($result, MDB_FETCHMODE_ORDERED)) {
             if (MDB::isError($row)) {
                 $this->assertTrue(false, 'Error fetching a row with limit'.$row->getMessage());
             }

@@ -570,7 +570,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         }
         $field_column = $columns['field'];
         $type_column = $columns['type'];
-        while (is_array($row = $db->fetchInto($result))) {
+        while (is_array($row = $db->fetchInto($result, MDB_FETCHMODE_ORDERED))) {
             if ($field_name == $row[$field_column]) {
                 $db_type = strtolower($row[$type_column]);
                 $db_type = strtok($db_type, '(), ');

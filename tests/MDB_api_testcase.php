@@ -184,7 +184,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
             return;
         }
         $result = $this->standardQuery();
-        $err = $this->db->fetchInto($result);
+        $err = $this->db->fetchInto($result, MDB_FETCHMODE_ORDERED);
         if(MDB::isError($err)) {
             $this->assertTrue(false, 'Error testFetch: '.$err->getMessage().' - '.$err->getUserInfo());
         }
