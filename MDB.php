@@ -236,14 +236,7 @@ class MDB
                                     NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
 
-        @$db =& new $classname;
-        
-        global $databases;
-        $database = count($databases)+1;
-        $databases[$database] = &$db;
-        $db->database = $database;
-        
-        return $db;
+        return new $classname;
     }
 
     /**
@@ -345,14 +338,7 @@ class MDB
             return PEAR::raiseError(NULL, DB_ERROR_NOT_FOUND,
                 NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
-        $db = new $class_name($dsninfo, $options);
-        
-        global $databases;
-        $database = count($databases)+1;
-        $databases[$database] = &$db;
-        $db->database = $database;
-        
-        return $db;
+        return new $class_name($dsninfo, $options);
     }
 
     /**
