@@ -101,8 +101,10 @@ class MDB_mssql extends MDB_Common
         $this->supported['Replace'] = 0;
         $this->supported['SubSelects'] = 1;
 
-        // XXX Add here error codes ie: 'S100E' => DB_ERROR_SYNTAX
-        $this->errorcode_map = array();
+        $this->errorcode_map = array(
+            208   => MDB_ERROR_NOSUCHTABLE,
+            3701  => MDB_ERROR_NOSUCHTABLE
+        );
     }
 
     // }}}
@@ -118,14 +120,12 @@ class MDB_mssql extends MDB_Common
      */
     function errorCode()
     {
-        $this->pushErrorHandling(PEAR_ERROR_RETURN);
-        $error_code = $this->queryOne('select @@ERROR as ErrorCode');
-        $this->popErrorHandling();
-        // XXX Debug
-        if (!isset($this->errorcode_map[$error_code])) {
-            return MDB_ERROR;
-        }
-        return $error_code;
+       $res = mssql_query('select @@ERROR as ErrorCode', $this->connection);
+       if (!$res) {
+           return DB_ERROR;
+       }
+       $row = mssql_fetch_row($res);
+       return $row[0];
     }
 
     // }}}
@@ -141,15 +141,18 @@ class MDB_mssql extends MDB_Common
      * @access public
      * @see PEAR_Error
      */
-    function mssqlRaiseError($code = NULL)
+    function mssqlRaiseError($code = null)
     {
-        if ($code !== NULL) {
-            $code = $this->errorCode();
-            if (DB::isError($code)) {
-                return $this->raiseError($code);
+        $native_msg = mssql_get_last_message();
+        $native_code = $this->errorCode();
+        if ($code === null) {
+            if (isset($this->errorcode_map[$native_code])) {
+                $code = $this->errorcode_map[$native_code];
+            } else {
+                $code = DB_ERROR;
             }
         }
-        return $this->raiseError($code, NULL, NULL, NULL, mssql_get_last_message());
+        return $this->raiseError($code, null, null, null, $native_code . ' - ' . $native_msg);
     }
 
     // }}}
