@@ -969,16 +969,17 @@ class MDB_ibase extends MDB_Common
                 $this->results[$result_value]['current_row']++;
                 $row = @ibase_fetch_assoc($result);
                 if (!is_array($row)) {
-                    return null;
+                    break;
                 }
                 foreach ($row as $key => $value_with_space) {
                     $row[strtolower($key)] = rtrim($value_with_space);
                 }
                 $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
             }
-            if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                //$row = $row; //WHAT IS THIS???
-            } else {
+            if (!is_array($row)) {
+                return null;
+            }
+            if ($fetchmode !== MDB_FETCHMODE_ASSOC) {
                 $row = array_values($row);
             }
             $this->results[$result_value]['highest_fetched_row'] =
