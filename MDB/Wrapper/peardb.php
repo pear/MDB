@@ -45,6 +45,14 @@
 // $Id$
 //
 
+/**
+ * Wrapper that makes MDB behave like PEAR DB
+ *
+ * @package MDB
+ * @category Database
+ * @author  Lukas Smith <smith@backendmedia.com>
+ */
+
 /*
  * The method mapErrorCode in each MDB_dbtype implementation maps
  * native error codes to one of these.
@@ -85,13 +93,13 @@ define('DB_ERROR_NOSUCHDB',             MDB_ERROR_NOSUCHDB);
 define('DB_WARNING',           -1000);
 define('DB_WARNING_READ_ONLY', -1001);
 
-define('DB_PARAM_SCALAR',   MDB_PARAM_SCALAR);
-define('DB_PARAM_OPAQUE',   MDB_PARAM_OPAQUE);
-define('DB_PARAM_MISC',     MDB_PARAM_MISC);
+define('DB_PARAM_SCALAR',   1);
+define('DB_PARAM_OPAQUE',   2);
+define('DB_PARAM_MISC',     3);
 
-define('DB_BINMODE_PASSTHRU',   MDB_BINMODE_PASSTHRU);
-define('DB_BINMODE_RETURN',     MDB_BINMODE_RETURN);
-define('DB_BINMODE_CONVERT',    MDB_BINMODE_CONVERT);
+define('DB_BINMODE_PASSTHRU',   1);
+define('DB_BINMODE_RETURN',     2);
+define('DB_BINMODE_CONVERT',    3);
 
 define('DB_FETCHMODE_DEFAULT',      MDB_FETCHMODE_DEFAULT);
 define('DB_FETCHMODE_ORDERED',      MDB_FETCHMODE_ORDERED);
@@ -103,12 +111,8 @@ define('DB_GETMODE_ORDERED', DB_FETCHMODE_ORDERED);
 define('DB_GETMODE_ASSOC',   DB_FETCHMODE_ASSOC);
 define('DB_GETMODE_FLIPPED', DB_FETCHMODE_FLIPPED);
 
-define('DB_TABLEINFO_ORDER',        MDB_TABLEINFO_ORDER);
-define('DB_TABLEINFO_ORDERTABLE',   MDB_TABLEINFO_ORDERTABLE);
-define('DB_TABLEINFO_FULL',         MDB_TABLEINFO_FULL);
-
-define('DB_AUTOQUERY_INSERT', 1);
-define('DB_AUTOQUERY_UPDATE', 2);
+define('DB_AUTOQUERY_INSERT', MDB_AUTOQUERY_INSERT);
+define('DB_AUTOQUERY_UPDATE', MDB_AUTOQUERY_UPDATE);
 
 /**
  * Wrapper that makes MDB behave like PEAR DB
@@ -302,7 +306,7 @@ class MDB_PEAR_PROXY
 
     function connect($dsninfo, $persistent = false)
     {
-        return $this->MDB_object->connect($dsninfo, $persistent);
+        return $this->MDB_object->connect();
     }
 
     function disconnect()
@@ -321,7 +325,7 @@ class MDB_PEAR_PROXY
 
     function quote($string)
     {
-        if ($string === null) {
+        if (is_null($string)) {
             return 'NULL';
         }
         return "'".$this->MDB_object->quote($string)."'";
@@ -365,77 +369,49 @@ class MDB_PEAR_PROXY
 
     function prepare($query)
     {
-        return $this->MDB_object->prepareQuery($query);
+        return $this->MDB_object->prepare($query);
     }
 
     function autoPrepare($table, $table_fields, $mode = DB_AUTOQUERY_INSERT, $where = false)
     {
-        $query = $this->buildManipSQL($table, $table_fields, $mode, $where);
-        return $this->prepare($query);
+        $this->MDB_object->loadManager('extended');
+        return $this->MDB_object->extended->autoPrepare($table, $table_fields, $mode, $where)
     }
 
-    function autoExecute($table, $fields_values, $mode = DB_AUTOQUERY_INSERT, $where = false)
+    function &autoExecute($table, $fields_values, $mode, $where)
     {
-        $sth = $this->autoPrepare($table, array_keys($fields_values), $mode, $where);
-        return $this->execute($sth, array_values($fields_values));
+        $this->MDB_object->loadManager('extended');
+        $result =& $this->MDB_object->extended->autoExecute($table, $fields_values, null, null, $mode, $where, false)
+        if (MDB::isError($result) || $result === MDB_OK) {
+            return $result;
+        } else {
+            $result_obj =& new DB_result($this->MDB_object, $result);
+            return $result_obj;
+        }
     }
 
     function buildManipSQL($table, $table_fields, $mode, $where = false)
     {
-        if (count($table_fields) == 0) {
-            $this->raiseError(DB_ERROR_NEED_MORE_DATA);
-        }
-        $first = true;
-        switch ($mode) {
-            case DB_AUTOQUERY_INSERT:
-                $values = '';
-                $names = '';
-                while (list(, $value) = each($table_fields)) {
-                    if ($first) {
-                        $first = false;
-                    } else {
-                        $names .= ',';
-                        $values .= ',';
-                    }
-                    $names .= $value;
-                    $values .= '?';
-                }
-                return "INSERT INTO $table ($names) VALUES ($values)";
-                break;
-            case DB_AUTOQUERY_UPDATE:
-                $set = '';
-                while (list(, $value) = each($table_fields)) {
-                    if ($first) {
-                        $first = false;
-                    } else {
-                        $set .= ',';
-                    }
-                    $set .= "$value = ?";
-                }
-                $sql = "UPDATE $table SET $set";
-                if ($where) {
-                    $sql .= " WHERE $where";
-                }
-                return $sql;
-                break;
-            default:
-                $this->raiseError(DB_ERROR_SYNTAX);
-        }
+        $this->MDB_object->loadManager('extended');
+        return $this->MDB_object->extended->buildManipSQL($table, $table_fields, null, null, $mode, $where)
     }
 
-    function execute($stmt, $data = false)
+    function &execute($stmt, $data = false)
     {
-        $result = $this->MDB_object->execute($stmt, null, $data);
-        if (MDB::isError($result) || $result === DB_OK) {
+        $this->MDB_object->setParamArray($stmt, $data, null);
+        $result = $this->MDB_object->execute($stmt, null, false);
+        if (MDB::isError($result) || $result === MDB_OK) {
             return $result;
         } else {
-            return new DB_result($this->MDB_object, $result);
+            $result_obj =& new DB_result($this->MDB_object, $result);
+            return $result_obj;
         }
     }
 
-    function executeMultiple( $stmt, &$data )
+    function executeMultiple($stmt, &$data)
     {
-        return $this->MDB_object->executeMultiple($stmt, null, $data);
+        $this->MDB_object->loadManager('extended');
+        return $this->MDB_object->extended->executeMultiple($stmt, null, $data);
     }
 
     function &query($query, $params = array()) {
@@ -447,10 +423,11 @@ class MDB_PEAR_PROXY
             return $this->MDB_object->execute($sth, $params);
         } else {
             $result = $this->MDB_object->query($query);
-            if (MDB::isError($result) || $result === DB_OK) {
+            if (MDB::isError($result) || $result === MDB_OK) {
                 return $result;
             } else {
-                return new DB_result($this->MDB_object, $result);
+                $result_obj =& new DB_result($this->MDB_object, $result);
+                return $result_obj;
             }
         }
     }
@@ -462,41 +439,47 @@ class MDB_PEAR_PROXY
     function limitQuery($query, $from, $count)
     {
         $result = $this->MDB_object->limitQuery($query, null, $from, $count);
-        if (MDB::isError($result) || $result === DB_OK) {
+        if (MDB::isError($result) || $result === MDB_OK) {
             return $result;
         } else {
-            return new DB_result($this->MDB_object, $result);
+            $result_obj =& new DB_result($this->MDB_object, $result);
+            return $result_obj;
         }
     }
 
     function &getOne($query, $params = array())
     {
-        return $this->MDB_object->getOne($query, null, $params);
+        $this->MDB_object->loadManager('extended');
+        return $this->MDB_object->extended->getOne($query, null, $params);
     }
 
     function &getRow($query,
                      $params = null,
                      $fetchmode = DB_FETCHMODE_DEFAULT)
     {
-        return $this->MDB_object->getRow($query, null, $params, null, $fetchmode);
+        $this->MDB_object->loadManager('extended');
+        return $this->MDB_object->extended->getRow($query, null, $params, null, $fetchmode);
     }
 
     function &getCol($query, $col = 0, $params = array())
     {
-        return $this->MDB_object->getCol($query, null, $params, null, $col);
+        $this->MDB_object->loadManager('extended');
+        return $this->MDB_object->extended->getCol($query, null, $params, null, $col);
     }
 
     function &getAssoc($query, $force_array = false, $params = array(),
                        $fetchmode = DB_FETCHMODE_ORDERED, $group = false)
     {
-        return $this->MDB_object->getAssoc($query, null, $params, null, $fetchmode, $force_array, $group);
+        $this->MDB_object->loadManager('extended');
+        return $this->MDB_object->extended->getAssoc($query, null, $params, null, $fetchmode, $force_array, $group);
     }
 
     function &getAll($query,
                      $params = null,
                      $fetchmode = DB_FETCHMODE_DEFAULT)
     {
-        return $this->MDB_object->getAll($query, null, $params, null, $fetchmode);
+        $this->MDB_object->loadManager('extended');
+        return $this->MDB_object->extended->getAll($query, null, $params, null, $fetchmode);
     }
 
     function autoCommit($onoff = false)
@@ -536,17 +519,23 @@ class MDB_PEAR_PROXY
 
     function createSequence($seq_name)
     {
-        return $this->MDB_object->createSequence($seq_name, 1);
+        $this->MDB_object->loadManager('manager');
+        return $this->MDB_object->manager->createSequence($seq_name, 1);
     }
 
     function dropSequence($seq_name)
     {
-        return $this->MDB_object->dropSequence($seq_name);
+        $this->MDB_object->loadManager('manager');
+        return $this->MDB_object->manager->dropSequence($seq_name);
     }
 
     function tableInfo($result, $mode = null)
     {
-        return $this->MDB_object->tableInfo($result, $mode);
+        $this->MDB_object->loadManager('reverse');
+        define('DB_TABLEINFO_ORDER',        MDB_TABLEINFO_ORDER);
+        define('DB_TABLEINFO_ORDERTABLE',   MDB_TABLEINFO_ORDERTABLE);
+        define('DB_TABLEINFO_FULL',         MDB_TABLEINFO_FULL);
+        return $this->MDB_object->reverse->tableInfo($result, $mode);
     }
 
     function getTables()
@@ -556,17 +545,18 @@ class MDB_PEAR_PROXY
 
     function getListOf($type)
     {
+        $this->MDB_object->loadManager('manager');
         switch ($type) {
             case 'tables':
-                return $this->MDB_object->listTables();
+                return $this->MDB_object->manager->listTables();
             case 'views':
-                return $this->MDB_object->listViews();
+                return $this->MDB_object->manager->listViews();
             case 'users':
-                return $this->MDB_object->listUsers();
+                return $this->MDB_object->manager->listUsers();
             case 'functions':
-                return $this->MDB_object->listFunctions();
+                return $this->MDB_object->manager->listFunctions();
             case 'databases':
-                return $this->MDB_object->listDatabases();
+                return $this->MDB_object->manager->listDatabases();
             default:
                 return $this->raiseError(DB_ERROR_UNSUPPORTED);
         }
