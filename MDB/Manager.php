@@ -45,7 +45,6 @@
 // $Id$
 //
 
-require_once 'MDB.php';
 require_once 'MDB/Parser.php';
 
 define('MDB_MANAGER_DUMP_ALL',          0);
@@ -276,7 +275,7 @@ class MDB_Manager extends PEAR
         }
         if (isset($options['debug'])) {
             $this->options['debug'] = $options['debug'];
-        }
+        } 
         return (MDB_OK);
     }
 
