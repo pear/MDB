@@ -50,8 +50,8 @@
 require_once 'PHPUnit.php';
 require_once 'test_setup.php';
 require_once 'testUtils.php';
-require_once '../MDB.php';
-require_once '../MDB/Date.php';
+require_once 'MDB/Manager.php';
+require_once 'MDB/Date.php';
 
 foreach ($testcases as $testcase) {
     include_once $testcase . '.php';
@@ -66,7 +66,6 @@ if (!is_array($testmethods)) {
         $testmethods[$testcase] = array_flip(getTests($testcase));
     }
 }
-
 
 $suite = new PHPUnit_TestSuite();
 
