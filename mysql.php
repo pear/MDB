@@ -720,12 +720,9 @@ class MDB_driver_mysql extends MDB_common
     function fetch($result, $row, $field)
     {
         $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
-        $res = mysql_result($result, $row, $field);
-        if (!$res && $res != NULL) {
-            $errno = @mysql_errno($this->connection);
-            if($errno) {
-                return $this->mysqlRaiseError($errno);
-            }
+        $res = @mysql_result($result, $row, $field);
+        if ($res === FALSE && $res != NULL) {
+            return $this->mysqlRaiseError($errno);
         }
         return ($res);
     }
@@ -1322,14 +1319,12 @@ class MDB_driver_mysql extends MDB_common
     function currId($seq_name)
     {
         $sequence_name = $this->getSequenceName($seq_name);
-        $result = $this->query("SELECT MAX(sequence) FROM $sequence_name");
+        $result = $this->query("SELECT MAX(sequence) FROM $sequence_name", 'integer');
         if (MDB::isError($result)) {
             return $result;
         }
 
-        $value = intval($this->fetch($result,0,0));
-        $this->freeResult($result);
-        return ($value);
+        return ($this->fetchOne($result));
     }
 
     // }}}
