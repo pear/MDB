@@ -12,7 +12,7 @@ if(!defined('PATH_SEPARATOR')) {
         define('PATH_SEPARATOR', ':');
     }
 }
-ini_set('include_path', '../'.PATH_SEPARATOR.ini_get('include_path'));
+ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
 
     // MDB.php doesnt have to be included since manager.php does that
     // manager.php is only necessary for handling xml schema files

@@ -12,7 +12,7 @@ if(!defined('PATH_SEPARATOR')) {
         define('PATH_SEPARATOR', ':');
     }
 }
-ini_set('include_path', '../'.PATH_SEPARATOR.ini_get('include_path'));
+ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
 
     require_once 'MDB.php';
     MDB::loadFile('peardb_wrapper');
