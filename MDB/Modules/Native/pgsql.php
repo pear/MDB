@@ -73,12 +73,16 @@ class MDB_Native_pgsql extends MDB_Native_common
      * delete an OID
      *
      * @param integer    $OID
+     * @return mixed MDB_OK on success or MDB Error Object on failure
      * @access public
      */
     function deleteOID($OID)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        pg_lounlink($db->connection, $OID);
+        if (!@pg_lounlink($db->connection, $OID)) {
+            return $db->pgsqlRaiseError();
+        }
+        return MDB_OK;
     }
 
 }
