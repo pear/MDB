@@ -1497,10 +1497,6 @@ class MDB_manager extends PEAR
      * may optionally dump the database definition with initialization
      * commands that specify the data that is currently present in the tables.
      *
-     * @param mixed $dsninfo "data source name", see the MDB::parseDSN method
-     * for a description of the dsn format. Can also be specified as
-     * an array of the format returned by MDB::parseDSN.
-     *
      * @param array $arguments an associative array that takes pairs of tag
      * names and values that define dump options.
      *
@@ -1508,9 +1504,6 @@ class MDB_manager extends PEAR
      *                      MDB_MANAGER_DUMP_ALL       : the entire db
      *                      MDB_MANAGER_DUMP_STRUCTURE : only the structure of the db
      *                      MDB_MANAGER_DUMP_CONTANT   : only the content of the db
-     *
-     * @param array $options (optional) an associative array that is passed to the
-     * argument of the same name to the connect function. (there second param)
      *
      * @return mixed DB_OK on success, or a MDB error object
      *
@@ -1779,9 +1772,6 @@ class MDB_manager extends PEAR
      * @param array $variables an associative array that is passed to the argument
      * of the same name to the _parseDatabaseDefinitionFile function. (there third
      * param)
-     *
-     * @param array $options (optional) an associative array that is passed to the
-     * argument of the same name to the connect function. (there second param)
      *
      * @return mixed DB_OK on success, or a MDB error object
      *
