@@ -184,7 +184,7 @@
         echo Var_Dump::display($manager->dumpDatabase(
             array(
                 'Output' => 'Dump',
-                'EndOfLine' => '\n',
+                'EndOfLine' => "\n",
                 'Output_Mode' => 'file',
                 'Output_File' => $manager->database->database_name.'2.schema'
             )
