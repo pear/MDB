@@ -139,7 +139,7 @@ function setupDatabaseObject($arguments, &$db)
     if (strcmp($error=setupInterface($arguments,$db),"")) {
         unset($databases[$database]);
     } else {
-        eval("\$databases[\$database]= &\$db;");        
+        eval("\$databases[\$database]= &\$db;");
         $db->database=$database;
     }
     return($error);
@@ -357,19 +357,21 @@ class MDB
         $arguments["User"] = $dsninfo["username"];
         $arguments["Password"] = $dsninfo["password"];
         $arguments["Host"] = $dsninfo["hostspec"];
-        if ((is_array($options) && $options["persistent"]) || $options) {
+        if (!is_array($options) && $options) {
             $arguments["Persistent"] = true;
         }
-        $error = setupDatabaseObject($arguments, &$obj);
-    
-        $obj->setDatabase($dsninfo["database"]);
-        $err = $obj->Connect();
-
-        if (MDB::isError($err)) {
-            $err->addUserInfo($dsn);
-            return $err;
+        if ($options["IncludePath"]) {
+            $arguments["IncludePath"] = $options["IncludePath"];
         }
-
+        $error = setupDatabaseObject($arguments, &$obj);
+        if(isset($dsninfo["database"])) {
+            $obj->setDatabase($dsninfo["database"]);
+            $err = $obj->connect();
+            if (MDB::isError($err)) {
+                $err->addUserInfo($dsn);
+                return $err;
+            }
+        }
         return $obj;
     }
 
