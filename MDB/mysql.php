@@ -44,14 +44,19 @@
 //
 // $Id$
 //
-// MDB mysql driver.
-//
 
-if (!defined("MDB_MYSQL_INCLUDED")) {
-    define("MDB_MYSQL_INCLUDED", 1);
+/**
+* MDB MySQL driver
+*
+* @package MDB
+* @author  Lukas Smith <smith@dybnet.de>
+*/
 
-require_once (dirname(__FILE__)."/common.php");
- 
+if (!defined('MDB_MYSQL_INCLUDED')) {
+    define('MDB_MYSQL_INCLUDED', 1);
+
+require_once (dirname(__FILE__).'/common.php');
+
 class MDB_driver_mysql extends MDB_common
 {
     var $connection = 0;
@@ -59,17 +64,17 @@ class MDB_driver_mysql extends MDB_common
     var $connected_user;
     var $connected_password;
     var $connected_port;
-    var $opened_persistent = "";
+    var $opened_persistent = '';
     var $decimal_factor = 1.0;
     var $highest_fetched_row = array();
     var $columns = array();
     var $fixed_float = 0;
     var $escape_quotes = "\\";
-    var $dummy_primary_key = "dummy_primary_key";
-    var $manager_class_name = "MDB_manager_mysql_class";
-    var $manager_include = "manager_mysql.php";
-    var $manager_included_constant = "MDB_MANAGER_MYSQL_INCLUDED"; 
-    var $default_table_type = "";
+    var $dummy_primary_key = 'dummy_primary_key';
+    var $manager_class_name = 'MDB_manager_mysql_class';
+    var $manager_include = 'manager_mysql.php';
+    var $manager_included_constant = 'MDB_MANAGER_MYSQL_INCLUDED'; 
+    var $default_table_type = '';
 
     // }}}
     // {{{ constructor
@@ -84,54 +89,54 @@ class MDB_driver_mysql extends MDB_common
         $this->phptype = 'mysql';
         $this->dbsyntax = 'mysql';
 
-        $this->supported["Sequences"] = 1;
-        $this->supported["Indexes"] = 1;
-        $this->supported["AffectedRows"] = 1;
-        $this->supported["Summaryfunctions"] = 1;
-        $this->supported["OrderByText"] = 1;
-        $this->supported["CurrId"] = 1;
-        $this->supported["SelectRowRanges"] = 1;
-        $this->supported["LOBs"] = 1;
-        $this->supported["Replace"] = 1;
-        $this->supported["SubSelects"] = 0;
-        if ($this->options["UseTransactions"]) {
-            $this->supported["Transactions"] = 1;
+        $this->supported['Sequences'] = 1;
+        $this->supported['Indexes'] = 1;
+        $this->supported['AffectedRows'] = 1;
+        $this->supported['Summaryfunctions'] = 1;
+        $this->supported['OrderByText'] = 1;
+        $this->supported['CurrId'] = 1;
+        $this->supported['SelectRowRanges'] = 1;
+        $this->supported['LOBs'] = 1;
+        $this->supported['Replace'] = 1;
+        $this->supported['SubSelects'] = 0;
+        if ($this->options['UseTransactions']) {
+            $this->supported['Transactions'] = 1;
         }
-        if(isset($this->options["UseTransactions"])
-            && $this->options["UseTransactions"])
+        if(isset($this->options['UseTransactions'])
+            && $this->options['UseTransactions'])
         {
-            $this->supported["Transactions"] = 1;
-            $this->default_table_type = "BDB";
+            $this->supported['Transactions'] = 1;
+            $this->default_table_type = 'BDB';
         } else {
-            $this->default_table_type="";
+            $this->default_table_type='';
         }
-        if(isset($this->options["DefaultTableType"]))
+        if(isset($this->options['DefaultTableType']))
         {
-            switch($this->default_table_type = strtoupper($this->options["DefaultTableType"])) {
-                case "BERKELEYDB":
-                    $this->default_table_type = "BDB";
-                case "BDB":
-                case "INNODB":
-                case "GEMINI":
+            switch($this->default_table_type = strtoupper($this->options['DefaultTableType'])) {
+                case 'BERKELEYDB':
+                    $this->default_table_type = 'BDB';
+                case 'BDB':
+                case 'INNODB':
+                case 'GEMINI':
                     break;
-                case "HEAP":
-                case "ISAM":
-                case "MERGE":
-                case "MRG_MYISAM":
-                case "MYISAM":
-                    if(isset($this->supported["Transactions"])) {
-                        $this->warnings[] = $this->options["DefaultTableType"]
-                            ." is not a transaction-safe default table type";
+                case 'HEAP':
+                case 'ISAM':
+                case 'MERGE':
+                case 'MRG_MYISAM':
+                case 'MYISAM':
+                    if(isset($this->supported['Transactions'])) {
+                        $this->warnings[] = $this->options['DefaultTableType']
+                            .' is not a transaction-safe default table type';
                     }
                     break;
                 default:
-                    $this->warnings[] = $this->options["DefaultTableType"]
-                        ." is not a supported default table type";
+                    $this->warnings[] = $this->options['DefaultTableType']
+                        .' is not a supported default table type';
             }
         }
 
         $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
-        
+
         $this->errorcode_map = array(
             1004 => DB_ERROR_CANNOT_CREATE,
             1005 => DB_ERROR_CANNOT_CREATE,
@@ -153,7 +158,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ errorNative()
-
     /**
      * Get the native error code of the last error (if any) that
      * occured on the current connection.
@@ -167,7 +171,7 @@ class MDB_driver_mysql extends MDB_common
     {
         return mysql_errno($this->connection);
     }
-    
+
     function mysqlRaiseError($errno = NULL)
     {
         if ($errno == NULL) {
@@ -178,7 +182,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ autoCommit()
-
     /**
      * Define whether database changes done on the database be automatically
      * committed. This function may also implicitly start or end a transaction.
@@ -197,8 +200,9 @@ class MDB_driver_mysql extends MDB_common
      */ 
     function autoCommit($auto_commit)
     {
-        if (!isset($this->supported["Transactions"])) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+        $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
+        if (!isset($this->supported['Transactions'])) {
+            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 
                 'Auto-commit transactions: transactions are not in use');
         }
         if (((!$this->auto_commit) == (!$auto_commit))) {
@@ -227,7 +231,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ commit()
-
     /**
      * Commit the database changes done during a transaction that is in
      * progress. This function may only be called when auto-committing is
@@ -240,20 +243,20 @@ class MDB_driver_mysql extends MDB_common
      */ 
     function commit()
     {
-        if (!isset($this->supported["Transactions"])) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+        $this->debug("Commit Transaction");
+        if (!isset($this->supported['Transactions'])) {
+            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 
                 'Commit transactions: transactions are not in use');
         }
         if ($this->auto_commit) {
-            return $this->raiseError(DB_ERROR, "", "", 
+            return $this->raiseError(DB_ERROR, '', '', 
             'Commit transactions: transaction changes are being auto commited');
         }
-        return ($this->query("COMMIT"));
+        return ($this->query('COMMIT'));
     }
 
     // }}}
     // {{{ rollback()
-
     /**
      * Cancel any database changes done during a transaction that is in
      * progress. This function may only be called when auto-committing is
@@ -266,15 +269,16 @@ class MDB_driver_mysql extends MDB_common
      */ 
     function rollback()
     {
-        if (!isset($this->supported["Transactions"])) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+        $this->debug("Rollback Transaction");
+        if (!isset($this->supported['Transactions'])) {
+            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 
                 'Rollback transactions: transactions are not in use');
         }
         if ($this->auto_commit) {
-            return $this->raiseError(DB_ERROR, "", "", 
+            return $this->raiseError(DB_ERROR, '', '', 
                 'Rollback transactions: transactions can not be rolled back when changes are auto commited');
         }
-        return ($this->query("ROLLBACK"));
+        return ($this->query('ROLLBACK'));
     }
 
     // }}} 
@@ -286,7 +290,7 @@ class MDB_driver_mysql extends MDB_common
      **/
     function connect()
     {
-        $port = (isset($this->options["port"]) ? $this->options["port"] : "");
+        $port = (isset($this->options['port']) ? $this->options['port'] : '');
         if ($this->connection != 0) {
             if (!strcmp($this->connected_host, $this->host)
                 && !strcmp($this->connected_user, $this->user)
@@ -301,26 +305,26 @@ class MDB_driver_mysql extends MDB_common
             $this->affected_rows = -1;
         }
         $this->fixed_float = 30;
-        $function = ($this->options['persistent'] ? "mysql_pconnect" : "mysql_connect");
+        $function = ($this->options['persistent'] ? 'mysql_pconnect' : 'mysql_connect');
         if (!function_exists($function)) {
             return ($this->raiseError(DB_ERROR_UNSUPPORTED));
         }
-        
+
         @ini_set('track_errors', TRUE);
         $this->connection = @$function(
-            $this->host.(!strcmp($port,"") ? "" : ":".$port), 
+            $this->host.(!strcmp($port,'') ? '' : ':'.$port), 
             $this->user, $this->password);
         @ini_restore('track_errors');
         if ($this->connection <= 0) {
             return ($this->raiseError(DB_ERROR_CONNECT_FAILED, '', '',
                     $php_errormsg));
         }
-        
-        if (isset($this->options["fixedfloat"])) {
-            $this->fixed_float = $this->options["fixedfloat"];
+
+        if (isset($this->options['fixedfloat'])) {
+            $this->fixed_float = $this->options['fixedfloat'];
         } else {
-            if (($result = mysql_query("SELECT VERSION()", $this->connection))) {
-                $version = explode(".",mysql_result($result,0,0));
+            if (($result = mysql_query('SELECT VERSION()', $this->connection))) {
+                $version = explode('.',mysql_result($result,0,0));
                 $major = intval($version[0]);
                 $minor = intval($version[1]);
                 $revision = intval($version[2]);
@@ -332,8 +336,8 @@ class MDB_driver_mysql extends MDB_common
                 mysql_free_result($result);
             }
         }
-        if (isset($this->supported["Transactions"]) && !$this->auto_commit) {
-            if (!mysql_query("SET AUTOCOMMIT = 0", $this->connection)) {
+        if (isset($this->supported['Transactions']) && !$this->auto_commit) {
+            if (!mysql_query('SET AUTOCOMMIT = 0', $this->connection)) {
                 mysql_close($this->connection);
                 $this->connection = 0;
                 $this->affected_rows = -1;
@@ -351,7 +355,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ _close()
-
     /**
      * all the RDBMS specific things needed close a DB connection
      * 
@@ -361,18 +364,18 @@ class MDB_driver_mysql extends MDB_common
     function _close()
     {
         if ($this->connection != 0) {
-            if (isset($this->supported["Transactions"]) && !$this->auto_commit) {
+            if (isset($this->supported['Transactions']) && !$this->auto_commit) {
                 $result = $this->autoCommit(TRUE);
             }
             mysql_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
-            
+
             if (isset($result) && MDB::isError($result)) {
                 return $result;
             }
             global $databases;
-            $databases[$database] = "";
+            $databases[$database] = '';
             return TRUE;
         }
         return FALSE;
@@ -380,7 +383,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ query()
-
     /**
      * Send a query to the database and return any results with a
      * DB_result object.
@@ -395,16 +397,17 @@ class MDB_driver_mysql extends MDB_common
      */
     function query($query, $types = NULL)
     {
+        $this->debug("Query: $query");
         $ismanip = MDB::isManip($query);
         $this->last_query = $query;
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;
         $this->first_selected_row = $this->selected_row_limit = 0;
 
-        if (!strcmp($this->database_name, "")) {
+        if (!strcmp($this->database_name, '')) {
             return $this->raiseError(DB_ERROR_NODBSELECTED);
         }
-        
+
         $result = $this->connect();
         if (MDB::isError($result)) {
             return $result;
@@ -412,7 +415,7 @@ class MDB_driver_mysql extends MDB_common
 
         if (!$ismanip && $limit > 0 &&
             substr(strtolower(ltrim($query)), 
-            0, 6) == "select")
+            0, 6) == 'select')
         {
             $query.=" LIMIT $first,$limit";
         }
@@ -441,7 +444,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ subSelect()
-
     /**
      * simple subselect emulation for Mysql
      *
@@ -456,7 +458,7 @@ class MDB_driver_mysql extends MDB_common
      */
     function subSelect($query, $quote = FALSE)
     {
-        if($this->supported["SubSelects"] == 1) {
+        if($this->supported['SubSelects'] == 1) {
             return($query);
         }
         $col = $this->queryCol($query, NULL, DB_FETCHMODE_ORDERED);
@@ -464,7 +466,7 @@ class MDB_driver_mysql extends MDB_common
             return $col;
         }
         if(!is_array($col) || count($col) == 0) {
-            return "NULL";
+            return 'NULL';
         }
         if($quote) {
             for($i = 0, $j = count($col); $i < $j; ++$i) {
@@ -476,7 +478,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ replace()
-
     /**
      * Execute a SQL REPLACE query. A REPLACE query is identical to a INSERT
      * query, except that if there is already a row in the table with the same
@@ -544,63 +545,63 @@ class MDB_driver_mysql extends MDB_common
     function replace($table, &$fields)
     {
         $count = count($fields);
-        for($keys = 0, $query = $values = "",reset($fields), $field = 0;
+        for($keys = 0, $query = $values = '',reset($fields), $field = 0;
         $field<$count;
         next($fields), $field++) {
             $name = key($fields);
             if ($field>0) {
-                $query .= ",";
-                $values .= ",";
+                $query .= ',';
+                $values .= ',';
             }
             $query .= $name;
-            if (isset($fields[$name]["Null"]) && $fields[$name]["Null"]) {
-                $value = "NULL";
+            if (isset($fields[$name]['Null']) && $fields[$name]['Null']) {
+                $value = 'NULL';
             } else {
-                if (!isset($fields[$name]["Value"])) {
-                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "", 
+                if (!isset($fields[$name]['Value'])) {
+                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '', 
                         'no value for field "'.$name.'" specified');
                 }
-                switch(isset($fields[$name]["Type"]) ? $fields[$name]["Type"] : "text") {
-                    case "text":
-                        $value = $this->getTextValue($fields[$name]["Value"]);
+                switch(isset($fields[$name]['Type']) ? $fields[$name]['Type'] : 'text') {
+                    case 'text':
+                        $value = $this->getTextValue($fields[$name]['Value']);
                         break;
-                    case "boolean":
-                        $value = $this->getBooleanValue($fields[$name]["Value"]);
+                    case 'boolean':
+                        $value = $this->getBooleanValue($fields[$name]['Value']);
                         break;
-                    case "integer":
-                        $value = strval($fields[$name]["Value"]);
+                    case 'integer':
+                        $value = strval($fields[$name]['Value']);
                         break;
-                    case "decimal":
-                        $value = $this->getDecimalValue($fields[$name]["Value"]);
+                    case 'decimal':
+                        $value = $this->getDecimalValue($fields[$name]['Value']);
                         break;
-                    case "float":
-                        $value = $this->getFloatValue($fields[$name]["Value"]);
+                    case 'float':
+                        $value = $this->getFloatValue($fields[$name]['Value']);
                         break;
-                    case "date":
-                        $value = $this->getDateValue($fields[$name]["Value"]);
+                    case 'date':
+                        $value = $this->getDateValue($fields[$name]['Value']);
                         break;
-                    case "time":
-                        $value = $this->getTimeValue($fields[$name]["Value"]);
+                    case 'time':
+                        $value = $this->getTimeValue($fields[$name]['Value']);
                         break;
-                    case "timestamp":
-                        $value = $this->getTimestampValue($fields[$name]["Value"]);
+                    case 'timestamp':
+                        $value = $this->getTimestampValue($fields[$name]['Value']);
                         break;
                     default:
-                        return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "", 
+                        return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '', 
                             'no supported type for field "'.$name.'" specified');
                 }
             }
             $values .= $value;
-            if (isset($fields[$name]["Key"]) && $fields[$name]["Key"]) {
-                if ($value == "NULL") {
-                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "", 
+            if (isset($fields[$name]['Key']) && $fields[$name]['Key']) {
+                if ($value == 'NULL') {
+                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '', 
                         'key values may not be NULL');
                 }
                 $keys++;
             }
         }
         if ($keys == 0) {
-            return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "", 
+            return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '', 
                 'not specified which fields are keys');
         }
         return ($this->query("REPLACE INTO $table ($query) VALUES ($values)"));
@@ -608,7 +609,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getColumnNames()
-
     /**
      * Retrieve the names of columns returned by the DBMS in a query result.
      * 
@@ -631,7 +631,7 @@ class MDB_driver_mysql extends MDB_common
     {
         $result_value = intval($result);
         if (!isset($this->highest_fetched_row[$result_value])) {
-            return $this->raiseError(DB_ERROR_INVALID, "", "", 
+            return $this->raiseError(DB_ERROR_INVALID, '', '', 
                 'Get column names: it was specified an inexisting result set');
         }
         if (!isset($this->columns[$result_value])) {
@@ -646,7 +646,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ numCols()
-
     /**
      * Count the number of columns returned by the DBMS in a query result.
      * 
@@ -660,7 +659,7 @@ class MDB_driver_mysql extends MDB_common
     function numCols($result)
     {
         if (!isset($this->highest_fetched_row[intval($result)])) {
-            return $this->raiseError(DB_ERROR_INVALID, "", "", 
+            return $this->raiseError(DB_ERROR_INVALID, '', '', 
                 'numCols: it was specified an inexisting result set');
         }
         return (mysql_num_fields($result));
@@ -680,7 +679,7 @@ class MDB_driver_mysql extends MDB_common
     function endOfResult($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return $this->raiseError(DB_ERROR, "", "", 
+            return $this->raiseError(DB_ERROR, '', '', 
                 'End of result: attempted to check the end of an unknown result');
         }
         return ($this->highest_fetched_row[$result] >= $this->numRows($result)-1);
@@ -765,9 +764,9 @@ class MDB_driver_mysql extends MDB_common
     {
         switch($type) {
             case MDB_TYPE_BOOLEAN:
-                return (strcmp($value, "Y") ? 0 : 1);
+                return (strcmp($value, 'Y') ? 0 : 1);
             case MDB_TYPE_DECIMAL:
-                return (sprintf("%.".$this->options['decimal_places']."f",doubleval($value)/$this->decimal_factor));
+                return (sprintf('%.'.$this->options['decimal_places'].'f',doubleval($value)/$this->decimal_factor));
             case MDB_TYPE_FLOAT:
                 return (doubleval($value));
             case MDB_TYPE_DATE:
@@ -799,7 +798,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ freeResult()
-
     /**
      * Free the internal resources associated with $result.
      *
@@ -825,7 +823,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getIntegerDeclaration()
-
     /**
      * Obtain DBMS specific SQL code portion needed to declare an integer type
      * field to be used in statements like CREATE TABLE.
@@ -865,7 +862,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getCLOBDeclaration()
-
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
      * large object type field to be used in statements like CREATE TABLE.
@@ -917,7 +913,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getBLOBDeclaration()
-
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
      * object type field to be used in statements like CREATE TABLE.
@@ -970,7 +965,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getDateDeclaration()
-
     /**
      * Obtain DBMS specific SQL code portion needed to declare an date type
      * field to be used in statements like CREATE TABLE.
@@ -1003,7 +997,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getTimestampDeclaration()
-
     /**
      * Obtain DBMS specific SQL code portion needed to declare an timestamp
      * type field to be used in statements like CREATE TABLE.
@@ -1030,14 +1023,13 @@ class MDB_driver_mysql extends MDB_common
     function getTimestampDeclaration($name, &$field)
     {
         return ("$name DATETIME".
-                (isset($field['default']) ? " DEFAULT '".$field['default']."'" : "").
+                (isset($field['default']) ? " DEFAULT '".$field['default']."'" : '').
                 (isset($field['notnull']) ? ' NOT NULL' : '')
                );
     }
 
     // }}}
     // {{{ getTimeDeclaration()
-
     /**
      * Obtain DBMS specific SQL code portion needed to declare an time type
      * field to be used in statements like CREATE TABLE.
@@ -1070,7 +1062,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getFloatDeclaration()
-
     /**
      * Obtain DBMS specific SQL code portion needed to declare an float type
      * field to be used in statements like CREATE TABLE.
@@ -1115,7 +1106,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getDecimalDeclaration()
-
     /**
      * Obtain DBMS specific SQL code portion needed to declare an decimal type
      * field to be used in statements like CREATE TABLE.
@@ -1150,7 +1140,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getClobValue()
-
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -1169,8 +1158,8 @@ class MDB_driver_mysql extends MDB_common
         $value = "'";
         while(!endOfLob($clob)) {
             if (readLob($clob, $data, $this->options['lob_buffer_length']) < 0) {
-                $value = "";
-                return $this->raiseError(DB_ERROR, "", "", 
+                $value = '';
+                return $this->raiseError(DB_ERROR, '', '', 
                     'Get CLOB field value: '.LobError($clob));
             }
             $value .= $this->_quote($data);
@@ -1181,14 +1170,13 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ freeClobValue()
-
     /**
      * free a chracter large object
      * 
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $clob             
      * @param string    $value             
-     
+
      * 
      * @access public
      */
@@ -1200,7 +1188,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getBlobValue()
-
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -1219,8 +1206,8 @@ class MDB_driver_mysql extends MDB_common
         $value = "'";
         while(!endOfLob($blob)) {
             if (!readLob($blob, $data, $this->options['lob_buffer_length'])) {
-                $value = "";
-                return $this->raiseError(DB_ERROR, "", "", 
+                $value = '';
+                return $this->raiseError(DB_ERROR, '', '', 
                     'Get BLOB field value: '.LobError($blob));
             }
             $value .= addslashes($data);
@@ -1231,13 +1218,12 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ freeBlobValue()
-
     /**
      * free a binary large object
      * 
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob             
-     
+
      * 
      * @access public
      */
@@ -1249,7 +1235,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ getFloatValue()
-
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -1263,7 +1248,7 @@ class MDB_driver_mysql extends MDB_common
      */
     function getFloatValue($value)
     {
-        return (!strcmp($value, "NULL") ? "NULL" : "$value");
+        return (!strcmp($value, 'NULL') ? 'NULL' : "$value");
     }
 
     // }}}
@@ -1281,7 +1266,7 @@ class MDB_driver_mysql extends MDB_common
      */
     function getDecimalValue($value)
     {
-        return (!strcmp($value, "NULL") ? "NULL" : strval(round(doubleval($value)*$this->decimal_factor)));
+        return (!strcmp($value, 'NULL') ? 'NULL' : strval(round(doubleval($value)*$this->decimal_factor)));
     }
 
     // }}}
@@ -1307,7 +1292,7 @@ class MDB_driver_mysql extends MDB_common
             // Since createSequence initializes the ID to be 1,
             // we do not need to retrieve the ID again (or we will get 2)
             if (MDB::isError($result)) {
-                return $this->raiseError(DB_ERROR, "", "", 
+                return $this->raiseError(DB_ERROR, '', '', 
                     'Next ID: on demand sequence could not be created');
             } else {
                 // First ID of a newly created sequence is 1
@@ -1321,7 +1306,7 @@ class MDB_driver_mysql extends MDB_common
         }
         return ($value);
     }
-    
+
 
     // }}}
     // {{{ currId()
@@ -1339,7 +1324,7 @@ class MDB_driver_mysql extends MDB_common
         if (MDB::isError($result)) {
             return $result;
         }
-        
+
         $value = intval($this->fetch($result,0,0));
         $this->freeResult($result);
         return ($value);
@@ -1347,7 +1332,6 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ fetchInto()
-
     /**
      * Fetch a row and insert the data into an existing array.
      *
@@ -1390,6 +1374,8 @@ class MDB_driver_mysql extends MDB_common
         return ($array);
     }
 
+    // }}}
+    // {{{ nextResult()
     /**
      * Move the internal mysql result pointer to the next available result
      * Currently not supported
@@ -1400,7 +1386,7 @@ class MDB_driver_mysql extends MDB_common
      *
      * @return true if a result is available otherwise return false
      */
-     
+
     function nextResult($result)
     {
         return FALSE;
@@ -1428,28 +1414,28 @@ class MDB_driver_mysql extends MDB_common
          *
          * - mode is false (default):
          * $result[]:
-         *   [0]["table"]  table name
-         *   [0]["name"]   field name
-         *   [0]["type"]   field type
-         *   [0]["len"]    field length
-         *   [0]["flags"]  field flags
+         *   [0]['table']  table name
+         *   [0]['name']   field name
+         *   [0]['type']   field type
+         *   [0]['len']    field length
+         *   [0]['flags']  field flags
          *
          * - mode is DB_TABLEINFO_ORDER
          * $result[]:
-         *   ["num_fields"] number of metadata records
-         *   [0]["table"]  table name
-         *   [0]["name"]   field name
-         *   [0]["type"]   field type
-         *   [0]["len"]    field length
-         *   [0]["flags"]  field flags
-         *   ["order"][field name]  index of field named "field name"
+         *   ['num_fields'] number of metadata records
+         *   [0]['table']  table name
+         *   [0]['name']   field name
+         *   [0]['type']   field type
+         *   [0]['len']    field length
+         *   [0]['flags']  field flags
+         *   ['order'][field name]  index of field named "field name"
          *   The last one is used, if you have a field name, but no index.
          *   Test:  if (isset($result['meta']['myfield'])) { ...
          *
          * - mode is DB_TABLEINFO_ORDERTABLE
          *    the same as above. but additionally
-         *   ["ordertable"][table name][field name] index of field
-         *      named "field name"
+         *   ['ordertable'][table name][field name] index of field
+         *      named 'field name'
          *
          *      this is, because if you have fields from different
          *      tables with the same field name * they override each
