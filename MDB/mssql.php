@@ -68,7 +68,6 @@ class MDB_mssql extends MDB_Common
     var $opened_persistent = '';
 
     var $escape_quotes = "'";
-    var $decimal_factor = 1.0;
 
     var $highest_fetched_row = array();
     var $columns = array();
@@ -89,12 +88,13 @@ class MDB_mssql extends MDB_Common
         $this->supported['indexes'] = 1;
         $this->supported['affected_rows'] = 1;
         $this->supported['summary_functions'] = 1;
-        $this->supported['order_by_text'] = 0;
+        $this->supported['order_by_text'] = 1;
         $this->supported['current_id'] = 1;
-        $this->supported['limit_querys'] = 0;
+        $this->supported['limit_querys'] = 1;
         $this->supported['LOBs'] = 1;
-        $this->supported['replace'] = 0;
+        $this->supported['replace'] = 1;
         $this->supported['sub_selects'] = 1;
+        $this->supported['transactions'] = 1;
 
         $this->errorcode_map = array(
             208   => MDB_ERROR_NOSUCHTABLE,
@@ -380,13 +380,13 @@ class MDB_mssql extends MDB_Common
      * @param string  $query  the SQL query
      * @param array   $types  array that contains the types of the columns in
      *                        the result set
-     * @param mixed $return_obj boolean or string which specifies which class to use
+     * @param mixed $result_mode boolean or string which specifies which class to use
      *
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      *
      * @access public
      */
-    function &query($query, $types = null, $return_obj = false)
+    function &query($query, $types = null, $result_mode = false)
     {
         $this->debug($query, 'query');
         if ($this->database_name) {
@@ -429,12 +429,12 @@ class MDB_mssql extends MDB_Common
                             return $err;
                         }
                     }
-                    $result =& $this->_return_result($result, $return_obj);
+                    $result =& $this->_return_result($result, $result_mode);
                     return $result;
                 }
             }
         }
-        $error =& $this->mysqlRaiseError();
+        $error =& $this->mssqlRaiseError();
         return $error;
     }
 
@@ -586,7 +586,7 @@ class MDB_mssql extends MDB_Common
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
-        $result = $this->query("INSERT INTO $sequence_name (sequence) DEFAULT VALUES");
+        $result = $this->query("INSERT INTO $sequence_name DEFAULT VALUES");
         $this->popExpect();
         if (MDB::isError($result)) {
             if ($ondemand && $result->getCode() == MDB_ERROR_NOSUCHTABLE) {
@@ -605,7 +605,7 @@ class MDB_mssql extends MDB_Common
             }
             return $result;
         }
-        $result = $this->query("SELECT @@IDENTITY FROM $sequence_name", 'integer');
+        $result = $this->query("SELECT @@IDENTITY FROM $sequence_name", 'integer', false);
         $value = $this->fetchOne($result);
         $this->freeResult($result);
         $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
@@ -628,7 +628,7 @@ class MDB_mssql extends MDB_Common
     function currId($seq_name)
     {
         $sequence_name = $this->getSequenceName($seq_name);
-        $result = $this->query("SELECT MAX(sequence) FROM $sequence_name", 'integer');
+        $result = $this->query("SELECT MAX(sequence) FROM $sequence_name", 'integer', false);
         if (MDB::isError($result)) {
             return $result;
         }
