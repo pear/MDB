@@ -60,6 +60,9 @@
 <p>This property may have to be set to <tt>0</tt> if you are splitting your database definition in multiple schema description files and only the installation of the first description file is supposed to lead to the actual database creation operation.</p>
 <p>Another circumstance on which this property may have to be set to <tt>0</tt> is when the <i>DBMS</i> driver does not support database creation or if this operation requires special database administrator permissions that may not be available to the database user.</p>
 <p><b>Default:</b> <tt>0</tt></p>
+<p><li><tt>overwrite</tt></li></p>
+<p>Boolean flag that indicates whether the database manager class should overwrite previously created structures.</p>
+<p><b>Default:</b> <tt>0</tt></p>
 </ul>
 <h4><a name="219.3.1"><li><tt>table</tt></li></a></h4>
 <p>The <tt>table</tt> is one of the main database schema objects.  It may be used in a schema description multiple times, once per each table that is contained the database being described.</p>

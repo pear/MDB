@@ -96,6 +96,7 @@ class MDB_parser extends PEAR
     var $database_properties = array(
         'name' => 1,
         'create' => 1,
+        'overwrite' => 1,
         'table' => 0,
         'sequence' => 0
     );
@@ -393,6 +394,7 @@ class MDB_parser extends PEAR
             $this->database = array(
                 'name' => '',
                 'create' => 0,
+                'overwrite' => 0,
                 'TABLES' => array()
             );
         }
@@ -427,7 +429,7 @@ class MDB_parser extends PEAR
                     );
                 }
                 $this->database['name'] = $database_values['name'];
-                if (isset($database_tags['create']))    {
+                if (isset($database_tags['create'])) {
                     switch($database_values['create']) {
                         case '0':
                         case '1':
@@ -436,6 +438,19 @@ class MDB_parser extends PEAR
                         default:
                             $this->setParserError($database_tags['create'],
                                 'it was not defined a valid database create boolean flag value'
+                            );
+                            break;
+                    }
+                }
+                if (isset($database_tags['overwrite'])) {
+                    switch($database_values['overwrite']) {
+                        case '0':
+                        case '1':
+                            $this->database['overwrite'] = $database_values['overwrite'];
+                            break;
+                        default:
+                            $this->setParserError($database_tags['overwrite'],
+                                'it was not defined a valid overwrite boolean flag value'
                             );
                             break;
                     }
