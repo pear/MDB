@@ -100,7 +100,7 @@ class MDB_manager extends PEAR
         return array_reverse($this->warnings);
     }
 
-    function setupDatabase($dsninfo, $options = FALSE)
+    function connect($dsninfo, $options = FALSE)
     {
         if (isset($options["debug"])) {
             $this->debug = $options["debug"];
@@ -116,119 +116,11 @@ class MDB_manager extends PEAR
         return (DB_OK);
     }
 
-    function closeSetup()
+    function _close()
     {
         if (is_object($this->database) && !MDB::isError($this->database)) {
             $this->database->_close();
         }
-    }
-
-    function getFieldDeclaration(&$field, $field_name, $declaration, &$query)
-    {
-        if (!strcmp($field_name, "")) {
-            return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
-                'no valid field name ("'.$field_name.'") specified', 'MDB_Error', TRUE);
-        }
-        switch($field["type"]) {
-            case "integer":
-                if ($declaration) {
-                    $query = $this->database->getIntegerDeclaration($field_name, $field);
-                } else {
-                    $query = $field_name;
-                }
-                break;
-            case "text":
-                if ($declaration) {
-                    $query = $this->database->getTextDeclaration($field_name, $field);
-                } else {
-                    $query = $field_name;
-                }
-                break;
-            case "clob":
-                if ($declaration) {
-                    $query = $this->database->getClobDeclaration($field_name, $field);
-                } else {
-                    $query = $field_name;
-                }
-                break;
-            case "blob":
-                if ($declaration) {
-                    $query = $this->database->getBlobDeclaration($field_name, $field);
-                } else {
-                    $query = $field_name;
-                }
-                break;
-            case "boolean":
-                if ($declaration) {
-                    $query = $this->database->getBooleanDeclaration(field_name, $field);
-                } else {
-                    $query = $field_name;
-                }
-                break;
-            case "date":
-                if ($declaration) {
-                    $query = $this->database->getDateDeclaration($field_name, $field);
-                } else {
-                    $query = $field_name;
-                }
-                break;
-            case "timestamp":
-                if ($declaration) {
-                    $query = $this->database->getTimestampDeclaration($field_name, $field);
-                } else {
-                    $query = $field_name;
-                }
-                break;
-            case "time":
-                if ($declaration) {
-                    $query = $this->database->getTimeDeclaration($field_name, $field);
-                } else {
-                    $query = $field_name;
-                }
-                break;
-            case "float":
-                if ($declaration) {
-                    $query = $this->database->getFloatDeclaration($field_name, $field);
-                } else {
-                    $query = $field_name;
-                }
-                break;
-            case "decimal":
-                if ($declaration) {
-                    $query = $this->database->getDecimalDeclaration($field_name, $field);
-                } else {
-                    $query = $field_name;
-                }
-                break;
-            default:
-                return PEAR::raiseError(NULL, DB_ERROR_UNSUPPORTED, NULL, NULL, 
-                    'type "'.$field["type"].'" is not yet supported', 'MDB_Error', TRUE);
-        }
-        return (DB_OK);
-    }
-
-    function getFieldList($fields, $declaration, &$query_fields)
-    {
-        for($query_fields = "", reset($fields), $field_number = 0;
-            $field_number < count($fields);
-            $field_number++, next($fields))
-        {
-            if ($field_number>0) {
-                $query_fields .= ", ";
-            }
-            $field_name = key($fields);
-            $result = $this->getFieldDeclaration($fields[$field_name], $field_name, $declaration, $query);
-            if (MDB::isError($result)) {
-                return $result;
-            }
-            $query_fields .= $query;
-        }
-        return (DB_OK);
-    }
-
-    function getFields($table, &$fields)
-    {
-        return($this->getFieldList($this->database_definition["TABLES"][$table]["FIELDS"], 0, $fields));
     }
 
     function createTable($table_name, $table)
@@ -237,117 +129,100 @@ class MDB_manager extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
-        if (isset($table["initialization"])) {
-            $instructions = $table["initialization"];
-            for(reset($instructions), $instruction = 0;
-                $instruction < count($instructions);
-                $instruction++, next($instructions))
-            {
-                switch($instructions[$instruction]["type"]) {
+        if (is_array($table["initialization"])) {
+            foreach($table["initialization"] as $instruction) {
+                switch($instruction["type"]) {
                     case "insert":
-                        $fields = $instructions[$instruction]["FIELDS"];
-                        for($query_fields = $query_values = "", reset($fields), $field_number = 0;
-                            $field_number < count($fields);
-                            $field_number++, next($fields))
-                        {
-                            if ($field_number > 0) {
-                                $query_fields .= ",";
-                                $query_values .= ",";
+                        $query_fields = $query_values = array();
+                        if(is_array($instruction["FIELDS"])) {
+                            foreach($instruction["FIELDS"] as $field_name => $field) {
+                                $query_fields[] = $field_name;
+                                $query_values[] = "?";
                             }
-                            $field_name = key($fields);
-                            $field = $table["FIELDS"][$field_name];
-                            $result = $this->getFieldDeclaration($field, $field_name, 0, $query);
-                            if (MDB::isError($result)) {
-                                return $result;
-                            }
-                            $query_fields .= $query;
-                            $query_values .= "?";
+                            $query_fields = implode(',',$query_fields);
+                            $query_values = implode(',',$query_values);
+                            $result = $prepared_query = $this->database->prepareQuery(
+                                "INSERT INTO $table_name ($query_fields) VALUES ($query_values)");
                         }
-                        $result = $prepared_query = $this->database->prepareQuery(
-                            "INSERT INTO $table_name ($query_fields) VALUES ($query_values)");
-                        if (!MDB::isError($prepared_query))
-                        {
-                            for($lobs = array(), reset($fields), $field_number = 0;
-                                $field_number < count($fields);
-                                $field_number++, next($fields))
-                            {
-                                $field_name = key($fields);
-                                $field = $table["FIELDS"][$field_name];
-                                $result = $this->getFieldDeclaration($field, $field_name, 0, $query);
-                                if (MDB::isError($result)) {
-                                    return $result;
-                                }
-                                switch($field["type"]) {
-                                    case "integer":
-                                        $result = $this->database->setParamInteger($prepared_query,
-                                            $field_number+1,intval($fields[$field_name]));
-                                        break;
-                                    case "text":
-                                        $result = $this->database->setParamText($prepared_query, 
-                                            $field_number+1, $fields[$field_name]);
-                                        break;
-                                    case "clob":
-                                        $lob_definition = array(
-                                            "Database" =>$this,
-                                            "Error" =>"",
-                                            "Data" =>$fields[$field_name]
-                                        );
-                                        $lob = count($lobs);
-                                        if (!createLOB($lob_definition, $lobs[$lob]))
-                                        {
-                                            $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
-                                                $lob_definition["Error"], 'MDB_Error', TRUE);
+                        if (!MDB::isError($prepared_query)) {
+                            if(is_array($instruction["FIELDS"])) {
+                                $lobs = array();
+                                $field_number = 0;
+                                foreach($instruction["FIELDS"] as $field_name => $field) {
+                                    $field_number++;
+                                    $query = $field_name;
+                                    switch($field["type"]) {
+                                        case "integer":
+                                            $result = $this->database->setParamInteger($prepared_query,
+                                                $field_number, intval($field));
                                             break;
-                                        }
-                                        $result = $this->database->setParamCLOB($prepared_query, 
-                                            $field_number+1, $lobs[$lob], $field_name);
-                                        break;
-                                    case "blob":
-                                        $lob_definition = array(
-                                            "Database" =>$this,
-                                            "Error" =>"",
-                                            "Data" =>$fields[$field_name]
-                                        );
-                                        $lob = count($lobs);
-                                        if (!createLOB($lob_definition, $lobs[$lob])) {
-                                            $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
-                                                $lob_definition["Error"], 'MDB_Error', TRUE);
+                                        case "text":
+                                            $result = $this->database->setParamText($prepared_query, 
+                                                $field_number, $field);
                                             break;
-                                        }
-                                        $result = $this->database->setParamBLOB($prepared_query, 
-                                            $field_number+1, $lobs[$lob], $field_name);
+                                        case "clob":
+                                            $lob_definition = array(
+                                                "Database" =>$this,
+                                                "Error" =>"",
+                                                "Data" =>$field
+                                            );
+                                            $lob = count($lobs);
+                                            if (!createLOB($lob_definition, $lobs[$lob]))
+                                            {
+                                                $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
+                                                    $lob_definition["Error"], 'MDB_Error', TRUE);
+                                                break;
+                                            }
+                                            $result = $this->database->setParamCLOB($prepared_query, 
+                                                $field_number, $lobs[$lob], $field_name);
+                                            break;
+                                        case "blob":
+                                            $lob_definition = array(
+                                                "Database" =>$this,
+                                                "Error" =>"",
+                                                "Data" =>$field
+                                            );
+                                            $lob = count($lobs);
+                                            if (!createLOB($lob_definition, $lobs[$lob])) {
+                                                $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
+                                                    $lob_definition["Error"], 'MDB_Error', TRUE);
+                                                break;
+                                            }
+                                            $result = $this->database->setParamBLOB($prepared_query, 
+                                                $field_number, $lobs[$lob], $field_name);
+                                            break;
+                                        case "boolean":
+                                            $result = $this->database->setParamBoolean($prepared_query, 
+                                                $field_number, intval($field));
+                                            break;
+                                        case "date":
+                                            $result = $this->database->setParamDate($prepared_query, 
+                                                $field_number, $field);
+                                            break;
+                                        case "timestamp":
+                                            $result = $this->database->setParamTimestamp($prepared_query, 
+                                                $field_number, $field);
+                                            break;
+                                        case "time":
+                                            $result = $this->database->setParamTime($prepared_query, 
+                                                $field_number, $field);
+                                            break;
+                                        case "float":
+                                            $result = $this->database->setParamFloat($prepared_query, 
+                                                $field_number,doubleval($field));
+                                            break;
+                                        case "decimal":
+                                            $result = $this->database->setParamDecimal($prepared_query, 
+                                                $field_number, $field);
+                                            break;
+                                        default:
+                                            $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
+                                                'type "'.$field["type"].'" is not yet supported', 'MDB_Error', TRUE);
+                                            break;
+                                    }
+                                    if (MDB::isError($result)) {
                                         break;
-                                    case "boolean":
-                                        $result = $this->database->setParamBoolean($prepared_query, 
-                                            $field_number+1,intval($fields[$field_name]));
-                                        break;
-                                    case "date":
-                                        $result = $this->database->setParamDate($prepared_query, 
-                                            $field_number+1, $fields[$field_name]);
-                                        break;
-                                    case "timestamp":
-                                        $result = $this->database->setParamTimestamp($prepared_query, 
-                                            $field_number+1, $fields[$field_name]);
-                                        break;
-                                    case "time":
-                                        $result = $this->database->setParamTime($prepared_query, 
-                                            $field_number+1, $fields[$field_name]);
-                                        break;
-                                    case "float":
-                                        $result = $this->database->setParamFloat($prepared_query, 
-                                            $field_number+1,doubleval($fields[$field_name]));
-                                        break;
-                                    case "decimal":
-                                        $result = $this->database->setParamDecimal($prepared_query, 
-                                            $field_number+1, $fields[$field_name]);
-                                        break;
-                                    default:
-                                        $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
-                                            'type "'.$field["type"].'" is not yet supported', 'MDB_Error', TRUE);
-                                        break;
-                                }
-                                if (MDB::isError($result)) {
-                                    break;
+                                    }
                                 }
                             }
                             if (!MDB::isError($result)) {
@@ -362,17 +237,13 @@ class MDB_manager extends PEAR
                 }
             }
         };
-        if (!MDB::isError($result) && isset($table["INDEXES"])) {
+        if (!MDB::isError($result) && is_array($table["INDEXES"])) {
             if (!$this->database->support("Indexes")) {
                 return PEAR::raiseError(NULL, DB_ERROR_UNSUPPORTED, NULL, NULL, 
                     'indexes are not supported', 'MDB_Error', TRUE);
             }
-            $indexes = $table["INDEXES"];
-            for($index = 0, reset($indexes);
-                $index < count($indexes);
-                next($indexes), $index++)
-            {
-                $result = $this->database->createIndex($table_name, key($indexes), $indexes[key($indexes)]);
+            foreach($table["INDEXES"] as $index_name => $index) {
+                $result = $this->database->createIndex($table_name, $index_name, $index);
                 if (MDB::isError($result)) {
                     break;
                 }
@@ -476,29 +347,18 @@ class MDB_manager extends PEAR
             return $result;
         }
         $created_objects = 0;
-        for(reset($this->database_definition["TABLES"]), $table = 0;
-            $table < count($this->database_definition["TABLES"]);
-            next($this->database_definition["TABLES"]), $table++)
-        {
-            $table_name = key($this->database_definition["TABLES"]);
-            
-            $result = $this->createTable($table_name, $this->database_definition["TABLES"][$table_name]);
-            if (MDB::isError($result)) {
-                break;
+        if(is_array($this->database_definition["TABLES"])) {
+            foreach($this->database_definition["TABLES"] as $table_name => $table) {
+                $result = $this->createTable($table_name, $table);
+                if (MDB::isError($result)) {
+                    break;
+                }
+                $created_objects++;
             }
-            $created_objects++;
         }
-        if (!MDB::isError($result) 
-            && isset($this->database_definition["SEQUENCES"]))
-        {
-            for(reset($this->database_definition["SEQUENCES"]), $sequence = 0;
-                $sequence < count($this->database_definition["SEQUENCES"]);
-                next($this->database_definition["SEQUENCES"]), $sequence++)
-            {
-                $sequence_name = key($this->database_definition["SEQUENCES"]);
-                
-                $result = $this->createSequence($sequence_name, 
-                    $this->database_definition["SEQUENCES"][$sequence_name], 1);
+        if (!MDB::isError($result) && is_array($this->database_definition["SEQUENCES"])) {
+            foreach($this->database_definition["SEQUENCES"] as $sequence_name => $sequence) {
+                $result = $this->createSequence($sequence_name, $sequence, 1);
                 
                 if (MDB::isError($result)) {
                     break;
@@ -551,376 +411,341 @@ class MDB_manager extends PEAR
 
     function addDefinitionChange(&$changes, $definition, $item, $change)
     {
-        if (!isset($changes[$definition][$item])) {
+        if(!isset($changes[$definition][$item])) {
             $changes[$definition][$item] = array();
         }
-        for($change_number = 0, reset($change);
-            $change_number < count($change);
-            next($change), $change_number++)
-        {
-            $name = key($change);
-            if (!strcmp(gettype($change[$name]), "array")) {
-                if (!isset($changes[$definition][$item][$name])) {
-                    $changes[$definition][$item][$name] = array();
+        foreach($change as $change_data_name => $change_data) {
+            if(is_array($change_data)) {
+                if(!isset($changes[$definition][$item][$change_data_name])) {
+                    $changes[$definition][$item][$change_data_name] = array();
                 }
-                $change_parts = $change[$name];
-                for($change_part = 0, reset($change_parts);
-                    $change_part < count($change_parts);
-                    next($change_parts), $change_part++)
-                {
-                    $changes[$definition][$item][$name][key($change_parts)] = $change_parts[key($change_parts)];
+                foreach($change_data as $change_part_name => $change_part) {
+                    $changes[$definition][$item][$change_data_name][$change_part_name] = $change_part;
                 }
             } else {
-                $changes[$definition][$item][key($change)] = $change[key($change)];
-            }
-        }
-    }
-
-    function compareDefinitions(&$previous_definition, &$changes)
-    {
-        $changes = array();
-        for($defined_tables = array(), reset($this->database_definition["TABLES"]), $table = 0;
-            $table < count($this->database_definition["TABLES"]);
-            next($this->database_definition["TABLES"]), $table++)
-        {
-            $table_name = key($this->database_definition["TABLES"]);
-            $was_table_name = $this->database_definition["TABLES"][$table_name]["was"];
-            if (isset($previous_definition["TABLES"][$table_name])
-                && isset($previous_definition["TABLES"][$table_name]["was"])
-                && !strcmp($previous_definition["TABLES"][$table_name]["was"], $was_table_name))
-            {
-                $was_table_name = $table_name;
-            }
-            if (isset($previous_definition["TABLES"][$was_table_name])) {
-                if (strcmp($was_table_name, $table_name)) {
-                    $this->addDefinitionChange($changes, "TABLES", $was_table_name,array("name" =>$table_name));
-                    $this->database->debug("Renamed table '$was_table_name' to '$table_name'");
-                }
-                if (isset($defined_tables[$was_table_name])) {
-                    return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
-                        'the table "'.$was_table_name.'" was specified as base of more than of table of the database',
-                        'MDB_Error', TRUE);
-                }
-                $defined_tables[$was_table_name] = 1;
-
-                $fields = $this->database_definition["TABLES"][$table_name]["FIELDS"];
-                $previous_fields = $previous_definition["TABLES"][$was_table_name]["FIELDS"];
-                for($defined_fields = array(), reset($fields), $field = 0;
-                    $field < count($fields);
-                    next($fields), $field++)
-                {
-                    $field_name = key($fields);
-                    $was_field_name = $fields[$field_name]["was"];
-                    if (isset($previous_fields[$field_name])
-                        && isset($previous_fields[$field_name]["was"])
-                        && !strcmp($previous_fields[$field_name]["was"], $was_field_name))
-                    {
-                        $was_field_name = $field_name;
-                    }
-                    if (isset($previous_fields[$was_field_name])) {
-                        if (strcmp($was_field_name, $field_name)) {
-                            $field_declaration = $fields[$field_name];
-                            $result = $this->getFieldDeclaration($field_declaration, $field_name, 1, $query);
-                            if (MDB::isError($result)) {
-                                return $result;
-                            }
-                            $this->addDefinitionChange($changes, "TABLES", $was_table_name,
-                                array("RenamedFields" =>array($was_field_name =>array(
-                                    "name" =>$field_name,
-                                    "Declaration" =>$query
-                                )))
-                            );
-                            $this->database->debug("Renamed field '$was_field_name' to '$field_name' in table '$table_name'");
-                        }
-                        if (isset($defined_fields[$was_field_name])) {
-                            return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
-                                'the field "'.$was_table_name.'" was specified as base of more than one field of table',
-                                'MDB_Error', TRUE);
-                        }
-                        $defined_fields[$was_field_name] = 1;
-                        $change = array();
-                        if (!strcmp($fields[$field_name]["type"], $previous_fields[$was_field_name]["type"])) {
-                            switch($fields[$field_name]["type"]) {
-                                case "integer":
-                                    $previous_unsigned = isset($previous_fields[$was_field_name]["unsigned"]);
-                                    $unsigned = isset($fields[$field_name]["unsigned"]);
-                                    if (strcmp($previous_unsigned, $unsigned)) {
-                                        $change["unsigned"] = $unsigned;
-                                        $this->database->debug("Changed field '$field_name' type from '".($previous_unsigned ? "unsigned " : "").$previous_fields[$was_field_name]["type"]."' to '".($unsigned ? "unsigned " : "").$fields[$field_name]["type"]."' in table '$table_name'");
-                                    }
-                                    break;
-                                case "text":
-                                case "clob":
-                                case "blob":
-                                    $previous_length = (isset($previous_fields[$was_field_name]["length"]) ? $previous_fields[$was_field_name]["length"] : 0);
-                                    $length = (isset($fields[$field_name]["length"]) ? $fields[$field_name]["length"] : 0);
-                                    if (strcmp($previous_length, $length)) {
-                                        $change["length"] = $length;
-                                        $this->database->debug("Changed field '$field_name' length from '".$previous_fields[$was_field_name]["type"].($previous_length == 0 ? " no length" : "($previous_length)")."' to '".$fields[$field_name]["type"].($length == 0 ? " no length" : "($length)")."' in table '$table_name'");
-                                    }
-                                    break;
-                                case "date":
-                                case "timestamp":
-                                case "time":
-                                case "boolean":
-                                case "float":
-                                case "decimal":
-                                    break;
-                                default:
-                                    return PEAR::raiseError(NULL, DB_ERROR_UNSUPPORTED, NULL, NULL, 
-                                        'type "'.$fields[$field_name]["type"].'" is not yet supported',
-                                        'MDB_Error', TRUE);
-                            }
-
-                            $previous_notnull = isset($previous_fields[$was_field_name]["notnull"]);
-                            $notnull = isset($fields[$field_name]["notnull"]);
-                            if ($previous_notnull != $notnull) {
-                                $change["ChangedNotNull"] = 1;
-                                if ($notnull) {
-                                    $change["notnull"] = isset($fields[$field_name]["notnull"]);
-                                }
-                                $this->database->debug("Changed field '$field_name' notnull from $previous_notnull to $notnull in table '$table_name'");
-                            }
-
-                            $previous_default = isset($previous_fields[$was_field_name]["default"]);
-                            $default = isset($fields[$field_name]["default"]);
-                            if (strcmp($previous_default, $default)) {
-                                $change["ChangedDefault"] = 1;
-                                if ($default) {
-                                    $change["default"] = $fields[$field_name]["default"];
-                                }
-                                $this->database->debug("Changed field '$field_name' default from ".($previous_default ? "'".$previous_fields[$was_field_name]["default"]."'" : "NULL")." TO ".($default ? "'".$fields[$field_name]["default"]."'" : "NULL")." IN TABLE '$table_name'");
-                            } else {
-                                if ($default
-                                    && strcmp($previous_fields[$was_field_name]["default"], $fields[$field_name]["default"]))
-                                {
-                                    $change["ChangedDefault"] = 1;
-                                    $change["default"] = $fields[$field_name]["default"];
-                                    $this->database->debug("Changed field '$field_name' default from '".$previous_fields[$was_field_name]["default"]."' to '".$fields[$field_name]["default"]."' in table '$table_name'");
-                                }
-                            }
-                        } else {
-                            $change["type"] = $fields[$field_name]["type"];
-                            $this->database->debug("Changed field '$field_name' type from '".$previous_fields[$was_field_name]["type"]."' to '".$fields[$field_name]["type"]."' in table '$table_name'");
-                        }
-                        if (count($change)) {
-                            $field_declaration = $fields[$field_name];
-                            $result = $this->getFieldDeclaration($field_declaration, $field_name, 1, $query);
-                            if (MDB::isError($result)) {
-                                return $result;
-                            }
-                            $change["Declaration"] = $query;
-                            $change["Definition"] = $field_declaration;
-                            $this->addDefinitionChange($changes, "TABLES", $was_table_name,array("ChangedFields" =>array($field_name =>$change)));
-                        }
-                    } else {
-                        if (strcmp($field_name, $was_field_name)) {
-                            return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
-                                'it was specified a previous field name ("'
-                                .$was_field_name.'") for field "'.$field_name.'" of table "'
-                                .$table_name.'" that does not exist',
-                                'MDB_Error', TRUE);
-                        }
-                        $field_declaration = $fields[$field_name];
-                        $result = $this->getFieldDeclaration($field_declaration, $field_name, 1, $query);
-                        if (MDB::isError($result)) {
-                            return $result;
-                        }
-                        $field_declaration["Declaration"] = $query;
-                        $this->addDefinitionChange($changes, "TABLES", $table_name,array("AddedFields" =>array($field_name =>$field_declaration)));
-                        $this->database->debug("Added field '$field_name' to table '$table_name'");
-                    }
-                }
-                for(reset($previous_fields), $field = 0;
-                    $field < count($previous_fields);
-                    next($previous_fields), $field++)
-                {
-                    $field_name = key($previous_fields);
-                    if (!isset($defined_fields[$field_name])) {
-                        $this->addDefinitionChange($changes, "TABLES", $table_name,array("RemovedFields" =>array($field_name =>array())));
-                        $this->database->debug("Removed field '$field_name' from table '$table_name'");
-                    }
-                }
-
-                $indexes = (isset($this->database_definition["TABLES"][$table_name]["INDEXES"]) ? $this->database_definition["TABLES"][$table_name]["INDEXES"] : array());
-                $previous_indexes = (isset($previous_definition["TABLES"][$was_table_name]["INDEXES"]) ? $previous_definition["TABLES"][$was_table_name]["INDEXES"] : array());
-                for($defined_indexes = array(), reset($indexes), $index = 0;
-                    $index < count($indexes);
-                    next($indexes), $index++)
-                {
-                    $index_name = key($indexes);
-                    $was_index_name = $indexes[$index_name]["was"];
-                    if (isset($previous_indexes[$index_name])
-                        && isset($previous_indexes[$index_name]["was"])
-                        && !strcmp($previous_indexes[$index_name]["was"], $was_index_name))
-                    {
-                        $was_index_name = $index_name;
-                    }
-                    if (isset($previous_indexes[$was_index_name])) {
-                        $change = array();
-
-                        if (strcmp($was_index_name, $index_name)) {
-                            $change["name"] = $was_index_name;
-                            $this->database->debug("Changed index '$was_index_name' name to '$index_name' in table '$table_name'");
-                        }
-                        if (isset($defined_indexes[$was_index_name])) {
-                            return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
-                                'the index "'.$was_index_name.'" was specified as base of'
-                                .' more than one index of table "'.$table_name.'"',
-                                'MDB_Error', TRUE);
-                        }
-                        $defined_indexes[$was_index_name] = 1;
-
-                        $previous_unique = isset($previous_indexes[$was_index_name]["unique"]);
-                        $unique = isset($indexes[$index_name]["unique"]);
-                        if ($previous_unique != $unique) {
-                            $change["ChangedUnique"] = 1;
-                            if ($unique) {
-                                $change["unique"] = $unique;
-                            }
-                            $this->database->debug("Changed index '$index_name' unique from $previous_unique to $unique in table '$table_name'");
-                        }
-
-                        $fields = $indexes[$index_name]["FIELDS"];
-                        $previous_fields = $previous_indexes[$was_index_name]["FIELDS"];
-                        for($defined_fields = array(), reset($fields), $field = 0;
-                            $field < count($fields);
-                            next($fields), $field++)
-                        {
-                            $field_name = key($fields);
-                            if (isset($previous_fields[$field_name])) {
-                                $defined_fields[$field_name] = 1;
-                                $sorting = (isset($fields[$field_name]["sorting"]) ? $fields[$field_name]["sorting"] : "");
-                                $previous_sorting = (isset($previous_fields[$field_name]["sorting"]) ? $previous_fields[$field_name]["sorting"] : "");
-                                if (strcmp($sorting, $previous_sorting)) {
-                                    $this->database->debug("Changed index field '$field_name' sorting default from '$previous_sorting' to '$sorting' in table '$table_name'");
-                                    $change["ChangedFields"] = 1;
-                                }
-                            } else {
-                                $change["ChangedFields"] = 1;
-                                $this->database->debug("Added field '$field_name' to index '$index_name' of table '$table_name'");
-                            }
-                        }
-                        for(reset($previous_fields), $field = 0;
-                            $field < count($previous_fields);
-                            next($previous_fields), $field++)
-                        {
-                            $field_name = key($previous_fields);
-                            if (!isset($defined_fields[$field_name])) {
-                                $change["ChangedFields"] = 1;
-                                $this->database->debug("Removed field '$field_name' from index '$index_name' of table '$table_name'");
-                            }
-                        }
-
-                        if (count($change)) {
-                            $this->addDefinitionChange($changes, "INDEXES", $table_name,array("ChangedIndexes" =>array($index_name =>$change)));
-                        }
-                    } else {
-                        if (strcmp($index_name, $was_index_name)) {
-                            return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
-                                'it was specified a previous index name ("'.$was_index_name
-                                .') for index "'.$index_name.'" of table "'.$table_name.'" that does not exist',
-                                'MDB_Error', TRUE);
-                        }
-                        $this->addDefinitionChange($changes, "INDEXES", $table_name,array("AddedIndexes" =>array($index_name =>$indexes[$index_name])));
-                        $this->database->debug("Added index '$index_name' to table '$table_name'");
-                    }
-                }
-                for(reset($previous_indexes), $index = 0;
-                    $index < count($previous_indexes);
-                    next($previous_indexes), $index++)
-                {
-                    $index_name = key($previous_indexes);
-                    if (!isset($defined_indexes[$index_name])) {
-                        $this->addDefinitionChange($changes, "INDEXES", $table_name,array("RemovedIndexes" =>array($index_name =>1)));
-                        $this->database->debug("Removed index '$index_name' from table '$table_name'");
-                    }
-                }
-            } else {
-                if (strcmp($table_name, $was_table_name)) {
-                    return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
-                        'it was specified a previous table name ("'
-                        .$was_table_name.'") for table "'.$table_name.'" that does not exist',
-                        'MDB_Error', TRUE);
-                }
-                $this->addDefinitionChange($changes, "TABLES", $table_name,array("Add" =>1));
-                $this->database->debug("Added table '$table_name'");
-            }
-        }
-        for(reset($previous_definition["TABLES"]), $table = 0;
-            $table < count($previous_definition["TABLES"]);
-            next($previous_definition["TABLES"]), $table++)
-        {
-            $table_name = key($previous_definition["TABLES"]);
-            if (!isset($defined_tables[$table_name])) {
-                $this->addDefinitionChange($changes, "TABLES", $table_name,array("Remove" =>1));
-                $this->database->debug("Removed table '$table_name'");
-            }
-        }
-        if (isset($this->database_definition["SEQUENCES"])) {
-            for($defined_sequences = array(), reset($this->database_definition["SEQUENCES"]), $sequence = 0;
-                $sequence < count($this->database_definition["SEQUENCES"]);
-                next($this->database_definition["SEQUENCES"]), $sequence++)
-            {
-                $sequence_name = key($this->database_definition["SEQUENCES"]);
-                $was_sequence_name = $this->database_definition["SEQUENCES"][$sequence_name]["was"];
-                if (isset($previous_definition["SEQUENCES"][$sequence_name])
-                    && isset($previous_definition["SEQUENCES"][$sequence_name]["was"])
-                    && !strcmp($previous_definition["SEQUENCES"][$sequence_name]["was"], $was_sequence_name))
-                {
-                    $was_sequence_name = $sequence_name;
-                }
-                if (isset($previous_definition["SEQUENCES"][$was_sequence_name])) {
-                    if (strcmp($was_sequence_name, $sequence_name)) {
-                        $this->addDefinitionChange($changes, "SEQUENCES", $was_sequence_name,array("name" =>$sequence_name));
-                        $this->database->debug("Renamed sequence '$was_sequence_name' to '$sequence_name'");
-                    }
-                    if (isset($defined_sequences[$was_sequence_name])) {
-                        return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
-                            'the sequence "'.$was_sequence_name.'" was specified as base'
-                            .' of more than of sequence of the database',
-                            'MDB_Error', TRUE);
-                    }
-                    $defined_sequences[$was_sequence_name] = 1;
-                    $change = array();
-                    if (strcmp($this->database_definition["SEQUENCES"][$sequence_name]["start"], $previous_definition["SEQUENCES"][$was_sequence_name]["start"])) {
-                        $change["start"] = $this->database_definition["SEQUENCES"][$sequence_name]["start"];
-                        $this->database->debug("Changed sequence '$sequence_name' start from '".$previous_definition["SEQUENCES"][$was_sequence_name]["start"]."' to '".$this->database_definition["SEQUENCES"][$sequence_name]["start"]."'");
-                    }
-                    if (strcmp($this->database_definition["SEQUENCES"][$sequence_name]["on"]["table"], $previous_definition["SEQUENCES"][$was_sequence_name]["on"]["table"])
-                        || strcmp($this->database_definition["SEQUENCES"][$sequence_name]["on"]["field"], $previous_definition["SEQUENCES"][$was_sequence_name]["on"]["field"]))
-                    {
-                        $change["on"] = $this->database_definition["SEQUENCES"][$sequence_name]["on"];
-                        $this->database->debug("Changed sequence '$sequence_name' on table field from '".$previous_definition["SEQUENCES"][$was_sequence_name]["on"]["table"].".".$previous_definition["SEQUENCES"][$was_sequence_name]["on"]["field"]."' to '".$this->database_definition["SEQUENCES"][$sequence_name]["on"]["table"].".".$this->database_definition["SEQUENCES"][$sequence_name]["on"]["field"]."'");
-                    }
-                    if (count($change)) {
-                        $this->addDefinitionChange($changes, "SEQUENCES", $was_sequence_name,array("Change" =>array($sequence_name =>array($change))));
-                    }
-                } else {
-                    if (strcmp($sequence_name, $was_sequence_name)) {
-                        return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
-                            'it was specified a previous sequence name ("'.$was_sequence_name
-                            .'") for sequence "'.$sequence_name.'" that does not exist',
-                            'MDB_Error', TRUE);
-                    }
-                    $this->addDefinitionChange($changes, "SEQUENCES", $sequence_name,array("Add" =>1));
-                    $this->database->debug("Added sequence '$sequence_name'");
-                }
-            }
-        }
-        if (isset($previous_definition["SEQUENCES"])) {
-            for(reset($previous_definition["SEQUENCES"]), $sequence = 0;
-                $sequence < count($previous_definition["SEQUENCES"]);
-                next($previous_definition["SEQUENCES"]), $sequence++)
-            {
-                $sequence_name = key($previous_definition["SEQUENCES"]);
-                if (!isset($defined_sequences[$sequence_name])) {
-                    $this->addDefinitionChange($changes, "SEQUENCES", $sequence_name,array("Remove" =>1));
-                    $this->database->debug("Removed sequence '$sequence_name'");
-                }
+                $changes[$definition][$item][$change_data_name] = $change_data;
             }
         }
         return (DB_OK);
+    }
+
+    function compareDefinitions(&$previous_definition)
+    {
+        $defined_tables = $changes = array();
+        if(is_array($this->database_definition["TABLES"])) {
+            foreach($this->database_definition["TABLES"] as $table_name => $table) {
+                $was_table_name = $table["was"];
+                if (isset($previous_definition["TABLES"][$table_name])
+                    && isset($previous_definition["TABLES"][$table_name]["was"])
+                    && !strcmp($previous_definition["TABLES"][$table_name]["was"], $was_table_name))
+                {
+                    $was_table_name = $table_name;
+                }
+                if (isset($previous_definition["TABLES"][$was_table_name])) {
+                    if (strcmp($was_table_name, $table_name)) {
+                        $this->addDefinitionChange($changes, "TABLES", $was_table_name, array("name" => $table_name));
+                        $this->database->debug("Renamed table '$was_table_name' to '$table_name'");
+                    }
+                    if (isset($defined_tables[$was_table_name])) {
+                        return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
+                            'the table "'.$was_table_name.'" was specified as base of more than of table of the database',
+                            'MDB_Error', TRUE);
+                    }
+                    $defined_tables[$was_table_name] = 1;
+    
+                    $previous_fields = $previous_definition["TABLES"][$was_table_name]["FIELDS"];
+                    $defined_fields = array();
+                    if(is_array($table["FIELDS"])) {
+                        foreach($table["FIELDS"] as $field_name => $field) {
+                            $was_field_name = $field["was"];
+                            if (isset($previous_fields[$field_name])
+                                && isset($previous_fields[$field_name]["was"])
+                                && !strcmp($previous_fields[$field_name]["was"], $was_field_name))
+                            {
+                                $was_field_name = $field_name;
+                            }
+                            if (isset($previous_fields[$was_field_name])) {
+                                if (strcmp($was_field_name, $field_name)) {
+                                    $field_declaration = $field;
+                                    $query = $this->database->getFieldDeclaration($field_name, $field_declaration);
+                                    if (MDB::isError($query)) {
+                                        return $query;
+                                    }
+                                    $this->addDefinitionChange($changes, "TABLES", $was_table_name,
+                                        array("RenamedFields" => array($was_field_name => array(
+                                            "name" => $field_name,
+                                            "Declaration" => $query
+                                        )))
+                                    );
+                                    $this->database->debug("Renamed field '$was_field_name' to '$field_name' in table '$table_name'");
+                                }
+                                if (isset($defined_fields[$was_field_name])) {
+                                    return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
+                                        'the field "'.$was_table_name.'" was specified as base of more than one field of table',
+                                        'MDB_Error', TRUE);
+                                }
+                                $defined_fields[$was_field_name] = 1;
+                                $change = array();
+                                if (!strcmp($fields[$field_name]["type"], $previous_fields[$was_field_name]["type"])) {
+                                    switch($fields[$field_name]["type"]) {
+                                        case "integer":
+                                            $previous_unsigned = isset($previous_fields[$was_field_name]["unsigned"]);
+                                            $unsigned = isset($fields[$field_name]["unsigned"]);
+                                            if (strcmp($previous_unsigned, $unsigned)) {
+                                                $change["unsigned"] = $unsigned;
+                                                $this->database->debug("Changed field '$field_name' type from '".($previous_unsigned ? "unsigned " : "").$previous_fields[$was_field_name]["type"]."' to '".($unsigned ? "unsigned " : "").$fields[$field_name]["type"]."' in table '$table_name'");
+                                            }
+                                            break;
+                                        case "text":
+                                        case "clob":
+                                        case "blob":
+                                            $previous_length = (isset($previous_fields[$was_field_name]["length"]) ? $previous_fields[$was_field_name]["length"] : 0);
+                                            $length = (isset($field["length"]) ? $field["length"] : 0);
+                                            if (strcmp($previous_length, $length)) {
+                                                $change["length"] = $length;
+                                                $this->database->debug("Changed field '$field_name' length from '".$previous_fields[$was_field_name]["type"].($previous_length == 0 ? " no length" : "($previous_length)")."' to '".$fields[$field_name]["type"].($length == 0 ? " no length" : "($length)")."' in table '$table_name'");
+                                            }
+                                            break;
+                                        case "date":
+                                        case "timestamp":
+                                        case "time":
+                                        case "boolean":
+                                        case "float":
+                                        case "decimal":
+                                            break;
+                                        default:
+                                            return PEAR::raiseError(NULL, DB_ERROR_UNSUPPORTED, NULL, NULL, 
+                                                'type "'.$field["type"].'" is not yet supported',
+                                                'MDB_Error', TRUE);
+                                    }
+
+                                    $previous_notnull = isset($previous_fields[$was_field_name]["notnull"]);
+                                    $notnull = isset($field["notnull"]);
+                                    if ($previous_notnull != $notnull) {
+                                        $change["ChangedNotNull"] = 1;
+                                        if ($notnull) {
+                                            $change["notnull"] = isset($field["notnull"]);
+                                        }
+                                        $this->database->debug("Changed field '$field_name' notnull from $previous_notnull to $notnull in table '$table_name'");
+                                    }
+
+                                    $previous_default = isset($previous_fields[$was_field_name]["default"]);
+                                    $default = isset($field["default"]);
+                                    if (strcmp($previous_default, $default)) {
+                                        $change["ChangedDefault"] = 1;
+                                        if ($default) {
+                                            $change["default"] = $field["default"];
+                                        }
+                                        $this->database->debug("Changed field '$field_name' default from ".($previous_default ? "'".$previous_fields[$was_field_name]["default"]."'" : "NULL")." TO ".($default ? "'".$fields[$field_name]["default"]."'" : "NULL")." IN TABLE '$table_name'");
+                                    } else {
+                                        if ($default
+                                            && strcmp($previous_fields[$was_field_name]["default"], $field["default"]))
+                                        {
+                                            $change["ChangedDefault"] = 1;
+                                            $change["default"] = $field["default"];
+                                            $this->database->debug("Changed field '$field_name' default from '".$previous_fields[$was_field_name]["default"]."' to '".$fields[$field_name]["default"]."' in table '$table_name'");
+                                        }
+                                    }
+                                } else {
+                                    $change["type"] = $field["type"];
+                                    $this->database->debug("Changed field '$field_name' type from '".$previous_fields[$was_field_name]["type"]."' to '".$fields[$field_name]["type"]."' in table '$table_name'");
+                                }
+                                if (count($change)) {
+                                    $field_declaration = $field;
+                                    $query = $this->database->getFieldDeclaration($field_name, $field_declaration);
+                                    if (MDB::isError($query)) {
+                                        return $query;
+                                    }
+                                    $change["Declaration"] = $query;
+                                    $change["Definition"] = $field_declaration;
+                                    $this->addDefinitionChange($changes, "TABLES", $was_table_name, array("ChangedFields" => array($field_name => $change)));
+                                }
+                            } else {
+                                if (strcmp($field_name, $was_field_name)) {
+                                    return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
+                                        'it was specified a previous field name ("'
+                                        .$was_field_name.'") for field "'.$field_name.'" of table "'
+                                        .$table_name.'" that does not exist',
+                                        'MDB_Error', TRUE);
+                                }
+                                $field_declaration = $field;
+                                $query = $this->database->getFieldDeclaration($field_name, $field_declaration);
+                                if (MDB::isError($query)) {
+                                    return $query;
+                                }
+                                $field_declaration["Declaration"] = $query;
+                                $this->addDefinitionChange($changes, "TABLES", $table_name, array("AddedFields" => array($field_name => $field_declaration)));
+                                $this->database->debug("Added field '$field_name' to table '$table_name'");
+                            }
+                        }
+                    }
+                    if (is_array($previous_fields)) {
+                        foreach ($previous_fields as $field_previous_name => $field_previous) {
+                            if (!isset($defined_fields[$field_previous_name])) {
+                                $this->addDefinitionChange($changes, "TABLES", $table_name, array("RemovedFields" => array($field_previous_name => array())));
+                                $this->database->debug("Removed field '$field_name' from table '$table_name'");
+                            }
+                        }
+                    }
+
+                    $indexes = (is_array($this->database_definition["TABLES"][$table_name]["INDEXES"]) ? $this->database_definition["TABLES"][$table_name]["INDEXES"] : array());
+                    $previous_indexes = (is_array($previous_definition["TABLES"][$was_table_name]["INDEXES"]) ? $previous_definition["TABLES"][$was_table_name]["INDEXES"] : array());
+                    $defined_indexes = array();
+                    foreach($indexes as $index_name => $index) {
+                        $was_index_name = $index["was"];
+                        if (isset($previous_indexes[$index_name])
+                            && isset($previous_indexes[$index_name]["was"])
+                            && !strcmp($previous_indexes[$index_name]["was"], $was_index_name))
+                        {
+                            $was_index_name = $index_name;
+                        }
+                        if (isset($previous_indexes[$was_index_name])) {
+                            $change = array();
+
+                            if (strcmp($was_index_name, $index_name)) {
+                                $change["name"] = $was_index_name;
+                                $this->database->debug("Changed index '$was_index_name' name to '$index_name' in table '$table_name'");
+                            }
+                            if (isset($defined_indexes[$was_index_name])) {
+                                return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
+                                    'the index "'.$was_index_name.'" was specified as base of'
+                                    .' more than one index of table "'.$table_name.'"',
+                                    'MDB_Error', TRUE);
+                            }
+                            $defined_indexes[$was_index_name] = 1;
+
+                            $previous_unique = isset($previous_indexes[$was_index_name]["unique"]);
+                            $unique = isset($index["unique"]);
+                            if ($previous_unique != $unique) {
+                                $change["ChangedUnique"] = 1;
+                                if ($unique) {
+                                    $change["unique"] = $unique;
+                                }
+                                $this->database->debug("Changed index '$index_name' unique from $previous_unique to $unique in table '$table_name'");
+                            }
+                            $defined_fields = array();
+                            $previous_fields = $previous_indexes[$was_index_name]["FIELDS"];
+                            if(is_array($index["FIELDS"])) {
+                                foreach($index["FIELDS"] as $field_name => $field) {
+                                    if (isset($previous_fields[$field_name])) {
+                                        $defined_fields[$field_name] = 1;
+                                        $sorting = (isset($field["sorting"]) ? $field["sorting"] : "");
+                                        $previous_sorting = (isset($previous_fields[$field_name]["sorting"]) ? $previous_fields[$field_name]["sorting"] : "");
+                                        if (strcmp($sorting, $previous_sorting)) {
+                                            $this->database->debug("Changed index field '$field_name' sorting default from '$previous_sorting' to '$sorting' in table '$table_name'");
+                                            $change["ChangedFields"] = 1;
+                                        }
+                                    } else {
+                                        $change["ChangedFields"] = 1;
+                                        $this->database->debug("Added field '$field_name' to index '$index_name' of table '$table_name'");
+                                    }
+                                }
+                            }
+                            if(is_array($previous_fields)) {
+                                foreach($previous_fields as $field_name => $field) {
+                                    if (!isset($defined_fields[$field_name])) {
+                                        $change["ChangedFields"] = 1;
+                                        $this->database->debug("Removed field '$field_name' from index '$index_name' of table '$table_name'");
+                                    }
+                                }
+                            }
+
+                            if (count($change)) {
+                                $this->addDefinitionChange($changes, "INDEXES", $table_name,array("ChangedIndexes" =>array($index_name =>$change)));
+                            }
+                        } else {
+                            if (strcmp($index_name, $was_index_name)) {
+                                return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
+                                    'it was specified a previous index name ("'.$was_index_name
+                                    .') for index "'.$index_name.'" of table "'.$table_name.'" that does not exist',
+                                    'MDB_Error', TRUE);
+                            }
+                            $this->addDefinitionChange($changes, "INDEXES", $table_name,array("AddedIndexes" =>array($index_name =>$indexes[$index_name])));
+                            $this->database->debug("Added index '$index_name' to table '$table_name'");
+                        }
+                    }
+                    foreach($previous_indexes as $index_previous_name => $index_previous) {
+                        if (!isset($defined_indexes[$index_previous_name])) {
+                            $this->addDefinitionChange($changes, "INDEXES", $table_name, array("RemovedIndexes" =>array($index_previous_name => 1)));
+                            $this->database->debug("Removed index '$index_name' from table '$table_name'");
+                        }
+                    }
+                } else {
+                    if (strcmp($table_name, $was_table_name)) {
+                        return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
+                            'it was specified a previous table name ("'
+                            .$was_table_name.'") for table "'.$table_name.'" that does not exist',
+                            'MDB_Error', TRUE);
+                    }
+                    $this->addDefinitionChange($changes, "TABLES", $table_name,array("Add" =>1));
+                    $this->database->debug("Added table '$table_name'");
+                }
+            }
+            if(is_array($previous_definition["TABLES"])) {
+                foreach ($previous_definition["TABLES"] as $table_name => $table) {
+                    if (!isset($defined_tables[$table_name])) {
+                        $this->addDefinitionChange($changes, "TABLES", $table_name, array("Remove" => 1));
+                        $this->database->debug("Removed table '$table_name'");
+                    }
+                }
+            }
+            if (is_array($this->database_definition["SEQUENCES"])) {
+                foreach ($this->database_definition["SEQUENCES"] as $sequence_name => $sequence) {
+                    $was_sequence_name = $sequence["was"];
+                    if (isset($previous_definition["SEQUENCES"][$sequence_name])
+                        && isset($previous_definition["SEQUENCES"][$sequence_name]["was"])
+                        && !strcmp($previous_definition["SEQUENCES"][$sequence_name]["was"], $was_sequence_name))
+                    {
+                        $was_sequence_name = $sequence_name;
+                    }
+                    if (isset($previous_definition["SEQUENCES"][$was_sequence_name])) {
+                        if (strcmp($was_sequence_name, $sequence_name)) {
+                            $this->addDefinitionChange($changes, "SEQUENCES", $was_sequence_name,array("name" =>$sequence_name));
+                            $this->database->debug("Renamed sequence '$was_sequence_name' to '$sequence_name'");
+                        }
+                        if (isset($defined_sequences[$was_sequence_name])) {
+                            return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
+                                'the sequence "'.$was_sequence_name.'" was specified as base'
+                                .' of more than of sequence of the database',
+                                'MDB_Error', TRUE);
+                        }
+                        $defined_sequences[$was_sequence_name] = 1;
+                        $change = array();
+                        if (strcmp($sequence["start"], $previous_definition["SEQUENCES"][$was_sequence_name]["start"])) {
+                            $change["start"] = $this->database_definition["SEQUENCES"][$sequence_name]["start"];
+                            $this->database->debug("Changed sequence '$sequence_name' start from '".$previous_definition["SEQUENCES"][$was_sequence_name]["start"]."' to '".$this->database_definition["SEQUENCES"][$sequence_name]["start"]."'");
+                        }
+                        if (strcmp($sequence["on"]["table"], $previous_definition["SEQUENCES"][$was_sequence_name]["on"]["table"])
+                            || strcmp($sequence["on"]["field"], $previous_definition["SEQUENCES"][$was_sequence_name]["on"]["field"]))
+                        {
+                            $change["on"] = $sequence["on"];
+                            $this->database->debug("Changed sequence '$sequence_name' on table field from '".$previous_definition["SEQUENCES"][$was_sequence_name]["on"]["table"].".".$previous_definition["SEQUENCES"][$was_sequence_name]["on"]["field"]."' to '".$this->database_definition["SEQUENCES"][$sequence_name]["on"]["table"].".".$this->database_definition["SEQUENCES"][$sequence_name]["on"]["field"]."'");
+                        }
+                        if (count($change)) {
+                            $this->addDefinitionChange($changes, "SEQUENCES", $was_sequence_name,array("Change" => array($sequence_name => array($change))));
+                        }
+                    } else {
+                        if (strcmp($sequence_name, $was_sequence_name)) {
+                            return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL, 
+                                'it was specified a previous sequence name ("'.$was_sequence_name
+                                .'") for sequence "'.$sequence_name.'" that does not exist',
+                                'MDB_Error', TRUE);
+                        }
+                        $this->addDefinitionChange($changes, "SEQUENCES", $sequence_name, array("Add" => 1));
+                        $this->database->debug("Added sequence '$sequence_name'");
+                    }
+                }
+            }
+            if (is_array($previous_definition["SEQUENCES"])) {
+                foreach ($previous_definition["SEQUENCES"] as $sequence_name => $sequence) {
+                    if (!isset($defined_sequences[$sequence_name])) {
+                        $this->addDefinitionChange($changes, "SEQUENCES", $sequence_name, array("Remove" => 1));
+                        $this->database->debug("Removed sequence '$sequence_name'");
+                    }
+                }
+            }
+        }
+        return ($changes);
     }
 
     /**
@@ -942,36 +767,26 @@ class MDB_manager extends PEAR
 
     function alterDatabase(&$previous_definition, &$changes)
     {
-        if (isset($changes["TABLES"])) {
-            for($change = 0, reset($changes["TABLES"]);
-                $change < count($changes["TABLES"]);
-                next($changes["TABLES"]), $change++)
-            {
-                $table_name = key($changes["TABLES"]);
-                if (isset($changes["TABLES"][$table_name]["Add"])
-                    || isset($changes["TABLES"][$table_name]["Remove"]))
-                {
+        if (is_array($changes["TABLES"])) {
+            foreach($changes["TABLES"] as $table_name => $table) {
+                if (isset($table["Add"]) || isset($table["Remove"])) {
                     continue;
                 }
-                $result = $this->database->alterTable($table_name, $changes["TABLES"][$table_name], 1);
+                $result = $this->database->alterTable($table_name, $table, 1);
                 if (MDB::isError($result)) {
                     return $result;
                 }
             }
         }
-        if (isset($changes["SEQUENCES"])) {
+        if (is_array($changes["SEQUENCES"])) {
             if (!$this->database->support("Sequences")) {
                 return PEAR::raiseError(NULL, DB_ERROR_UNSUPPORTED, NULL, NULL, 
                     'sequences are not supported', 'MDB_Error', TRUE);
             }
-            for($change = 0, reset($changes["SEQUENCES"]);
-                $change < count($changes["SEQUENCES"]);
-                next($changes["SEQUENCES"]), $change++)
-            {
-                $sequence_name = key($changes["SEQUENCES"]);
-                if (isset($changes["SEQUENCES"][$sequence_name]["Add"])
-                    || isset($changes["SEQUENCES"][$sequence_name]["Remove"])
-                    || isset($changes["SEQUENCES"][$sequence_name]["Change"]))
+            foreach($changes["SEQUENCES"] as $sequence) {
+                if (isset($sequence["Add"])
+                    || isset($sequence["Remove"])
+                    || isset($sequence["Change"]))
                 {
                     continue;
                 }
@@ -979,24 +794,20 @@ class MDB_manager extends PEAR
                     'some sequences changes are not yet supported', 'MDB_Error', TRUE);
             }
         }
-        if (isset($changes["INDEXES"]))    {
+        if (is_array($changes["INDEXES"])) {
             if (!$this->database->support("Indexes")) {
                 return PEAR::raiseError(NULL, DB_ERROR_UNSUPPORTED, NULL, NULL, 
                     'indexes are not supported', 'MDB_Error', TRUE);
             }
-            for($change = 0, reset($changes["INDEXES"]);
-                $change < count($changes["INDEXES"]);
-                next($changes["INDEXES"]), $change++)
-            {
-                $table_name = key($changes["INDEXES"]);
-                $table_changes = count($changes["INDEXES"][$table_name]);
-                if (isset($changes["INDEXES"][$table_name]["AddedIndexes"])) {
+            foreach($changes["INDEXES"] as $index) {
+                $table_changes = count($index);
+                if (isset($index["AddedIndexes"])) {
                     $table_changes--;
                 }
-                if (isset($changes["INDEXES"][$table_name]["RemovedIndexes"])) {
+                if (isset($index["RemovedIndexes"])) {
                     $table_changes--;
                 }
-                if (isset($changes["INDEXES"][$table_name]["ChangedIndexes"])) {
+                if (isset($index["ChangedIndexes"])) {
                     $table_changes--;
                 }
                 if ($table_changes) {
@@ -1013,19 +824,11 @@ class MDB_manager extends PEAR
         }
         $error = "";
         $alterations = 0;
-        if (isset($changes["INDEXES"])) {
-            for($change = 0, reset($changes["INDEXES"]);
-                $change < count($changes["INDEXES"]);
-                next($changes["INDEXES"]), $change++)
-            {
-                $table_name = key($changes["INDEXES"]);
-                if (isset($changes["INDEXES"][$table_name]["RemovedIndexes"])) {
-                    $indexes = $changes["INDEXES"][$table_name]["RemovedIndexes"];
-                    for($index = 0, reset($indexes);
-                        $index < count($indexes);
-                        next($indexes), $index++)
-                    {
-                        $result = $this->database->dropIndex($table_name,key($indexes));
+        if (is_array($changes["INDEXES"])) {
+            foreach($changes["INDEXES"] as $index_name => $index) {
+                if (is_array($index["RemovedIndexes"])) {
+                    foreach($index["RemovedIndexes"] as $index_remove_name => $index_remove) {
+                        $result = $this->database->dropIndex($index_name,$index_remove_name);
                         if (MDB::isError($result)) {
                             break;
                         }
@@ -1033,16 +836,11 @@ class MDB_manager extends PEAR
                     }
                 }
                 if (!MDB::isError($result)
-                    && isset($changes["INDEXES"][$table_name]["ChangedIndexes"]))
+                    && is_array($index["ChangedIndexes"]))
                 {
-                    $indexes = $changes["INDEXES"][$table_name]["ChangedIndexes"];
-                    for($index = 0, reset($indexes);
-                        $index < count($indexes);
-                        next($indexes), $index++)
-                    {
-                        $name = key($indexes);
-                        $was_name = (isset($indexes[$name]["name"]) ? $indexes[$name]["name"] : $name);
-                        $result = $this->database->dropIndex($table_name, $was_name);
+                    foreach($index["ChangedIndexes"] as $index_changed_name => $index_changed) {
+                        $was_name = (isset($indexes[$name]["name"]) ? $indexes[$index_changed_name]["name"] : $index_changed_name);
+                        $result = $this->database->dropIndex($index_name, $was_name);
                         if (MDB::isError($result)) {
                             break;
                         }
@@ -1055,20 +853,16 @@ class MDB_manager extends PEAR
             }
         }
         if (!MDB::isError($result)
-            && isset($changes["TABLES"]))
+            && is_array($changes["TABLES"]))
         {
-            for($change = 0, reset($changes["TABLES"]);
-                $change < count($changes["TABLES"]);
-                next($changes["TABLES"]), $change++)
-            {
-                $table_name = key($changes["TABLES"]);
-                if (isset($changes["TABLES"][$table_name]["Remove"])) {
+            foreach($changes["TABLES"] as $table_name => $table) {
+                if (isset($table["Remove"])) {
                     $result = $this->dropTable($table_name);
                     if (!MDB::isError($result)) {
                         $alterations++;
                     }
                 } else {
-                    if (!isset($changes["TABLES"][$table_name]["Add"])) {
+                    if (!isset($table["Add"])) {
                         $result = $this->database->alterTable($table_name, $changes["TABLES"][$table_name], 0);
                         if (!MDB::isError($result)) {
                             $alterations++;
@@ -1079,12 +873,8 @@ class MDB_manager extends PEAR
                     break;
                 }
             }
-            for($change = 0, reset($changes["TABLES"]);
-                $change < count($changes["TABLES"]);
-                next($changes["TABLES"]), $change++)
-            {
-                $table_name = key($changes["TABLES"]);
-                if (isset($changes["TABLES"][$table_name]["Add"])) {
+            foreach($changes["TABLES"] as $table_name => $table) {
+                if (isset($table["Add"])) {
                     $result = $this->createTable($table_name, $this->database_definition["TABLES"][$table_name]);
                     if (!MDB::isError($result)) {
                         $alterations++;
@@ -1095,15 +885,9 @@ class MDB_manager extends PEAR
                 }
             }
         }
-        if (!MDB::isError($result)
-            && isset($changes["SEQUENCES"]))
-        {
-            for($change = 0, reset($changes["SEQUENCES"]);
-                $change < count($changes["SEQUENCES"]);
-                next($changes["SEQUENCES"]), $change++)
-            {
-                $sequence_name = key($changes["SEQUENCES"]);
-                if (isset($changes["SEQUENCES"][$sequence_name]["Add"])) {
+        if (!MDB::isError($result) && is_array($changes["SEQUENCES"])) {
+            foreach($changes["SEQUENCES"] as $sequence_name => $sequence) {
+                if (isset($sequence["Add"])) {
                     $created_on_table = 0;
                     if (isset($this->database_definition["SEQUENCES"][$sequence_name]["on"])) {
                         $table = $this->database_definition["SEQUENCES"][$sequence_name]["on"]["table"];
@@ -1121,12 +905,12 @@ class MDB_manager extends PEAR
                         $alterations++;
                     }
                 } else {
-                    if (isset($changes["SEQUENCES"][$sequence_name]["Remove"])) {
+                    if (isset($sequence["Remove"])) {
                         if (!strcmp($error = $this->dropSequence($sequence_name), "")) {
                             $alterations++;
                         }
                     } else {
-                        if (isset($changes["SEQUENCES"][$sequence_name]["Change"])) {
+                        if (isset($sequence["Change"])) {
                             $created_on_table = 0;
                             if (isset($this->database_definition["SEQUENCES"][$sequence_name]["on"])) {
                                 $table = $this->database_definition["SEQUENCES"][$sequence_name]["on"]["table"];
@@ -1155,23 +939,17 @@ class MDB_manager extends PEAR
                 }
             }
         }
-        if (!MDB::isError($result)
-            && isset($changes["INDEXES"]))
-        {
-            for($change = 0, reset($changes["INDEXES"]);
-                $change < count($changes["INDEXES"]);
-                next($changes["INDEXES"]), $change++)
-            {
-                $table_name = key($changes["INDEXES"]);
-                if (isset($changes["INDEXES"][$table_name]["ChangedIndexes"])) {
-                    $indexes = $changes["INDEXES"][$table_name]["ChangedIndexes"];
+        if (!MDB::isError($result) && is_array($changes["INDEXES"])) {
+            foreach($changes["INDEXES"] as $index_name => $index) {
+                if (isset($index["ChangedIndexes"])) {
+                    $indexes = $index["ChangedIndexes"];
                     for($index = 0, reset($indexes);
                         $index < count($indexes);
                         next($indexes), $index++)
                     {
-                        $result = $this->database->createIndex($table_name, 
+                        $result = $this->database->createIndex($index_name, 
                             key($indexes), 
-                            $this->database_definition["TABLES"][$table_name]["INDEXES"][key($indexes)]);
+                            $this->database_definition["TABLES"][$index_name]["INDEXES"][key($indexes)]);
                         if (MDB::isError($result)) {
                             break;
                         }
@@ -1179,16 +957,16 @@ class MDB_manager extends PEAR
                     }
                 }
                 if (!MDB::isError($result)
-                    && isset($changes["INDEXES"][$table_name]["AddedIndexes"]))
+                    && isset($index["AddedIndexes"]))
                 {
-                    $indexes = $changes["INDEXES"][$table_name]["AddedIndexes"];
+                    $indexes = $index["AddedIndexes"];
                     for($index = 0, reset($indexes);
                         $index < count($indexes);
                         next($indexes), $index++)
                     {
-                        $result = $this->database->createIndex($table_name, 
+                        $result = $this->database->createIndex($index_name, 
                             key($indexes), 
-                            $this->database_definition["TABLES"][$table_name]["INDEXES"][key($indexes)]);
+                            $this->database_definition["TABLES"][$index_name]["INDEXES"][key($indexes)]);
                         if (MDB::isError($result)) {
                             break;
                         }
@@ -1200,9 +978,7 @@ class MDB_manager extends PEAR
                 }
             }
         }
-        if ($alterations
-            && MDB::isError($result))
-        {
+        if ($alterations && MDB::isError($result)) {
             if ($support_transactions) {
                 $res = $this->database->rollback();
                 if (MDB::isError($res)) 
@@ -1295,11 +1071,9 @@ class MDB_manager extends PEAR
     function dumpDatabase($arguments)
     {
         $fp = 0;
-        if (isset($arguments["Output_Mode"]) && $arguments["Output_Mode"] == 'file')
-        {
+        if (isset($arguments["Output_Mode"]) && $arguments["Output_Mode"] == 'file') {
             $fp = fopen($arguments["Output_File"], "w");
-        }
-        elseif (!isset($arguments["Output"])) {
+        } elseif (!isset($arguments["Output"])) {
             return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
                 'no valid output function specified', 'MDB_Error', TRUE);
         }
@@ -1313,14 +1087,10 @@ class MDB_manager extends PEAR
         }
         
         $sequences = array();
-        if (isset($this->database_definition["SEQUENCES"])) {
-            for($error = "", reset($this->database_definition["SEQUENCES"]), $sequence = 0;
-                $sequence < count($this->database_definition["SEQUENCES"]);
-                next($this->database_definition["SEQUENCES"]), $sequence++)
-            {
-                $sequence_name = key($this->database_definition["SEQUENCES"]);
-                if (isset($this->database_definition["SEQUENCES"][$sequence_name]["on"])) {
-                    $table = $this->database_definition["SEQUENCES"][$sequence_name]["on"]["table"];
+        if (is_array($this->database_definition["SEQUENCES"])) {
+            foreach($this->database_definition["SEQUENCES"] as $sequence_name => $sequence) {
+                if (isset($sequence["on"])) {
+                    $table = $sequence["on"]["table"];
                 } else {
                     $table = "";
                 }
@@ -1336,190 +1106,159 @@ class MDB_manager extends PEAR
         } else {
             $output($buffer);
         }
-
-        for($error = "", reset($this->database_definition["TABLES"]), $table = 0;
-            $table < count($this->database_definition["TABLES"]);
-            next($this->database_definition["TABLES"]), $table++)
-        {
-            $table_name = key($this->database_definition["TABLES"]);
-            $buffer = ("$eol <table>$eol$eol  <name>$table_name</name>$eol");
-            $buffer .= ("$eol  <declaration>$eol");
-            $fields = $this->database_definition["TABLES"][$table_name]["FIELDS"];
-            for(reset($fields), $field_number = 0;
-                $field_number < count($fields);
-                $field_number++, next($fields))
-            {
-                $field_name = key($fields);
-                $field = $fields[$field_name];
-                if (!isset($field["type"])) {
-                    return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
-                        'it was not specified the type of the field "'.$field_name.'" of the table "'.$table_name, 'MDB_Error', TRUE);
-                }
-                $buffer .=("$eol   <field>$eol    <name>$field_name</name>$eol    <type>".$field["type"]."</type>$eol");
-                switch($field["type"]) {
-                    case "integer":
-                        if (isset($field["unsigned"])) {
-                            $buffer .=("    <unsigned>1</unsigned>$eol");
+        if(is_array($this->database_definition["TABLES"])) {
+            foreach($this->database_definition["TABLES"] as $table_name => $table) {
+                $buffer = ("$eol <table>$eol$eol  <name>$table_name</name>$eol");
+                $buffer .= ("$eol  <declaration>$eol");
+                if(is_array($table["FIELDS"])) {
+                    foreach($table["FIELDS"] as $field_name => $field) {
+                        if (!isset($field["type"])) {
+                            return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
+                                'it was not specified the type of the field "'.$field_name.'" of the table "'.$table_name, 'MDB_Error', TRUE);
                         }
-                        break;
-                    case "text":
-                    case "clob":
-                    case "blob":
-                        if (isset($field["length"])) {
-                            $buffer .=("    <length>".$field["length"]."</length>$eol");
-                        }
-                        break;
-                    case "boolean":
-                    case "date":
-                    case "timestamp":
-                    case "time":
-                    case "float":
-                    case "decimal":
-                        break;
-                    default:
-                        return("type \"".$field["type"]."\" is not yet supported");
-                }
-                if (isset($field["notnull"])) {
-                    $buffer .=("    <notnull>1</notnull>$eol");
-                }
-                if (isset($field["default"])) {
-                    $buffer .=("    <default>".$this->escapeSpecialCharacters($field["default"])."</default>$eol");
-                }
-                $buffer .=("   </field>$eol");
-            }
-
-            if (isset($this->database_definition["TABLES"][$table_name]["INDEXES"])) {
-                $indexes = $this->database_definition["TABLES"][$table_name]["INDEXES"];
-                for(reset($indexes), $index_number = 0;
-                    $index_number < count($indexes);
-                    $index_number++, next($indexes))
-                {
-                    $index_name = key($indexes);
-                    $index = $indexes[$index_name];
-                    $buffer .=("$eol   <index>$eol    <name>$index_name</name>$eol");
-                    if (isset($indexes[$index_name]["unique"])) {
-                        $buffer .=("    <unique>1</unique>$eol");
-                    }
-                    for(reset($index["FIELDS"]), $field_number = 0;
-                        $field_number < count($index["FIELDS"]);
-                        $field_number++, next($index["FIELDS"]))
-                    {
-                        $field_name = key($index["FIELDS"]);
-                        $field = $index["FIELDS"][$field_name];
-                        $buffer .=("    <field>$eol     <name>$field_name</name>$eol");
-                        if (isset($field["sorting"])) {
-                            $buffer .=("     <sorting>".$field["sorting"]."</sorting>$eol");
-                        }
-                        $buffer .=("    </field>$eol");
-                    }
-                    $buffer .=("   </index>$eol");
-                }
-            }
-            $buffer .= ("$eol  </declaration>$eol");
-
-            if ($fp) {
-                fwrite($fp, $buffer);
-            } else {
-                $output($buffer);
-            }
-
-            if ($dump_definition) {
-                if (isset($this->database_definition["TABLES"][$table_name]["initialization"])) {
-                    $buffer = ("$eol  <initialization>$eol");
-                    $instructions = $this->database_definition["TABLES"][$table_name]["initialization"];
-                    for(reset($instructions), $instruction = 0; 
-                        $instruction < count($instructions);
-                        $instruction++, next($instructions))
-                    {
-                        switch($instructions[$instruction]["type"]) {
-                            case "insert":
-                                $buffer .= ("$eol   <insert>$eol");
-                                $fields = $instructions[$instruction]["FIELDS"];
-                                for(reset($fields), $field_number = 0;
-                                    $field_number < count($fields);
-                                    $field_number++, next($fields))
-                                {
-                                    $field_name = key($fields);
-                                    $buffer .= ("$eol    <field>$eol     <name>$field_name</name>$eol     <value>".$this->escapeSpecialCharacters($fields[$field_name])."</value>$eol   </field>$eol");
+                        $buffer .=("$eol   <field>$eol    <name>$field_name</name>$eol    <type>".$field["type"]."</type>$eol");
+                        switch($field["type"]) {
+                            case "integer":
+                                if (isset($field["unsigned"])) {
+                                    $buffer .=("    <unsigned>1</unsigned>$eol");
                                 }
-                                $buffer .= ("$eol   </insert>$eol");
                                 break;
+                            case "text":
+                            case "clob":
+                            case "blob":
+                                if (isset($field["length"])) {
+                                    $buffer .=("    <length>".$field["length"]."</length>$eol");
+                                }
+                                break;
+                            case "boolean":
+                            case "date":
+                            case "timestamp":
+                            case "time":
+                            case "float":
+                            case "decimal":
+                                break;
+                            default:
+                                return("type \"".$field["type"]."\" is not yet supported");
                         }
-                    }
-                    $buffer .= ("$eol  </initialization>$eol");
-                }
-            } else {
-                if (count($this->database_definition["TABLES"][$table_name]["FIELDS"]) == 0) {
-                    return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
-                        'the definition of the table "'.$table_name.'" does not contain any fields', 'MDB_Error', TRUE);
-                }
-                $result = $this->getFields($table_name, $query_fields);
-                if (MDB::isError($result)) {
-                    return $result;
-                }
-                
-                $result = $this->database->query("SELECT $query_fields FROM $table_name");
-                if (MDB::isError($result)) {
-                    return $result;
-                }
-                
-                $rows = $this->database->numRows($result);
-
-                if ($rows>0) {
-                    $buffer = ("$eol  <initialization>$eol");
-                    
-                    if ($fp) {
-                        fwrite($fp, $buffer);
-                    } else {
-                        $output($buffer);
-                    }
-
-                    for($row = 0; $row < $rows; $row++) {
-                        $buffer = ("$eol   <insert>$eol");
-                        $values = $this->database->fetchInto($result, DB_FETCHMODE_ASSOC);
-                        foreach($fields as $field_name => $field) {
-                                $buffer .= ("$eol   <field>$eol     <name>$field_name</name>$eol     <value>");
-                                $buffer .= $this->escapeSpecialCharacters($values[$field_name]);
-                                $buffer .= ("</value>$eol   </field>$eol");
+                        if (isset($field["notnull"])) {
+                            $buffer .=("    <notnull>1</notnull>$eol");
                         }
-                        $buffer .= ("$eol   </insert>$eol");
-                        
-                        if ($fp)
-                            fwrite($fp, $buffer);
-                        else
-                            $output($buffer);
-                    }
-                    $buffer = ("$eol  </initialization>$eol");
-                    if ($fp) {
-                        fwrite($fp, $buffer);
-                    } else {
-                        $output($buffer);
+                        if (isset($field["default"])) {
+                            $buffer .=("    <default>".$this->escapeSpecialCharacters($field["default"])."</default>$eol");
+                        }
+                        $buffer .=("   </field>$eol");
                     }
                 }
-
-                $buffer = '';
-                $this->database->freeResult($result);
-            }
-            $buffer .= ("$eol </table>$eol");
-            if ($fp) {
-                fwrite($fp, $buffer);
-            } else {
-                $output($buffer);
-            }
-
-            if (isset($sequences[$table_name])) {
-                for($sequence = 0;
-                    $sequence < count($sequences[$table_name]);
-                    $sequence++)
-                {
-                    $result = $this->dumpSequence($sequences[$table_name][$sequence], $eol, $dump_definition);
+    
+                if (is_array($table["INDEXES"])) {
+                    foreach($table["INDEXES"] as $index_name => $index) {
+                        $buffer .=("$eol   <index>$eol    <name>$index_name</name>$eol");
+                        if (isset($indexes[$index_name]["unique"])) {
+                            $buffer .=("    <unique>1</unique>$eol");
+                        }
+                        foreach($index["FIELDS"] as $field_name => $field) {
+                            $buffer .=("    <field>$eol     <name>$field_name</name>$eol");
+                            if (isset($field["sorting"])) {
+                                $buffer .=("     <sorting>".$field["sorting"]."</sorting>$eol");
+                            }
+                            $buffer .=("    </field>$eol");
+                        }
+                        $buffer .=("   </index>$eol");
+                    }
+                }
+                $buffer .= ("$eol  </declaration>$eol");
+    
+                if ($fp) {
+                    fwrite($fp, $buffer);
+                } else {
+                    $output($buffer);
+                }
+    
+                if ($dump_definition) {
+                    if (is_array($table["initialization"])) {
+                        $buffer = ("$eol  <initialization>$eol");
+                        if(is_array($table["initialization"])) {
+                            foreach($table["initialization"] as $instruction_name => $instruction) {
+                                switch($instruction["type"]) {
+                                    case "insert":
+                                        $buffer .= ("$eol   <insert>$eol");
+                                        foreach($instruction["FIELDS"] as $field_name => $field) {
+                                            $buffer .= ("$eol    <field>$eol     <name>$field_name</name>$eol     <value>".$this->escapeSpecialCharacters($field)."</value>$eol   </field>$eol");
+                                        }
+                                        $buffer .= ("$eol   </insert>$eol");
+                                        break;
+                                }
+                            }
+                        }
+                        $buffer .= ("$eol  </initialization>$eol");
+                    }
+                } else {
+                    $query = "SELECT ".implode(',',array_keys($table["FIELDS"]))." FROM $table_name";
+                    $result = $this->database->query($query);
                     if (MDB::isError($result)) {
                         return $result;
                     }
-                    if ($fp) {
-                        fwrite($fp, $result);
-                    } else {
-                        $output($result);
+                    
+                    $rows = $this->database->numRows($result);
+    
+                    if ($rows > 0) {
+                        $buffer = ("$eol  <initialization>$eol");
+                        
+                        if ($fp) {
+                            fwrite($fp, $buffer);
+                        } else {
+                            $output($buffer);
+                        }
+    
+                        for($row = 0; $row < $rows; $row++) {
+                            $buffer = ("$eol   <insert>$eol");
+                            $values = $this->database->fetchInto($result, DB_FETCHMODE_ASSOC);
+                            if(is_array($values)) {
+                                foreach($values as $field_name => $field) {
+                                        $buffer .= ("$eol   <field>$eol     <name>$field_name</name>$eol     <value>");
+                                        $buffer .= $this->escapeSpecialCharacters($values[$field_name]);
+                                        $buffer .= ("</value>$eol   </field>$eol");
+                                }
+                            }
+                            $buffer .= ("$eol   </insert>$eol");
+                            
+                            if ($fp)
+                                fwrite($fp, $buffer);
+                            else
+                                $output($buffer);
+                        }
+                        $buffer = ("$eol  </initialization>$eol");
+                        if ($fp) {
+                            fwrite($fp, $buffer);
+                        } else {
+                            $output($buffer);
+                        }
+                    }
+    
+                    $buffer = '';
+                    $this->database->freeResult($result);
+                }
+                $buffer .= ("$eol </table>$eol");
+                if ($fp) {
+                    fwrite($fp, $buffer);
+                } else {
+                    $output($buffer);
+                }
+    
+                if (isset($sequences[$table_name])) {
+                    for($sequence = 0, $j = count($sequences[$table_name]);
+                        $sequence < $j;
+                        $sequence++)
+                    {
+                        $result = $this->dumpSequence($sequences[$table_name][$sequence], $eol, $dump_definition);
+                        if (MDB::isError($result)) {
+                            return $result;
+                        }
+                        if ($fp) {
+                            fwrite($fp, $result);
+                        } else {
+                            $output($result);
+                        }
                     }
                 }
             }
@@ -1552,7 +1291,7 @@ class MDB_manager extends PEAR
         if (strcmp($previous_database_name, "")) {
             $this->database->setDatabase($previous_database_name);
         }
-        return($error);
+        return(DB_OK);
     }
 
 
@@ -1578,7 +1317,7 @@ class MDB_manager extends PEAR
      * @return mixed true on success, or a MDB error object
      */
 
-    function parseDatabaseDefinitionFile($input_file, &$database_definition, &$variables, $fail_on_invalid_names = 1)
+    function parseDatabaseDefinitionFile($input_file, &$variables, $fail_on_invalid_names = 1)
     {
         if (!($file = fopen($input_file, "r"))) {
             return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
@@ -1588,25 +1327,26 @@ class MDB_manager extends PEAR
         $parser->variables = $variables;
         $parser->fail_on_invalid_names = $fail_on_invalid_names;
         if (strcmp($error = $parser->parseStream($file), "")) {
-            $error .= " Line ".$parser->error_line." column ".$parser->error_column." Byte index ".$parser->error_byte_index;
-            return PEAR::raiseError(NULL, DB_ERROR_MANAGER_PARSE, NULL, NULL, 
-                $error, 'MDB_Error', TRUE);
+            $error_msg .= " Line ".$parser->error_line." column ".$parser->error_column." Byte index ".$parser->error_byte_index;
+            $error = PEAR::raiseError(NULL, DB_ERROR_MANAGER_PARSE, NULL, NULL, 
+                $error_msg, 'MDB_Error', TRUE);
         } else {
             $database_definition = $parser->database;
         }
         fclose($file);
         
-        if (MDB::isError($error))
+        if (MDB::isError($error)) {
             return $error;
-        
-        return (DB_OK);
+        }
+
+        return ($database_definition);
     }
 
     /**
      * Dump the changes between two database definitions.
      *
      * @param array &$changes an associative array that specifies the list 
-     * of database definitions changes as returned by the CompareDefinitions 
+     * of database definitions changes as returned by the compareDefinitions 
      * manager class function.
      *
      * @access public
@@ -1732,6 +1472,7 @@ class MDB_manager extends PEAR
                 }
             }
         }
+        return (DB_OK);
     }
 
 
@@ -1762,11 +1503,11 @@ class MDB_manager extends PEAR
      * an array of the format returned by MDB::parseDSN.
      *
      * @param array &$variables an associative array that is passed to the argument 
-     * of the same name to the ParseDatabaseDefinitionFile function. (there third 
+     * of the same name to the parseDatabaseDefinitionFile function. (there third 
      * param)
      *
      * @param array $options (optional) an associative array that is passed to the 
-     * argument of the same name to the setupDatabase function. (there second param)
+     * argument of the same name to the connect function. (there second param)
      *
      * @access public
      * 
@@ -1774,29 +1515,29 @@ class MDB_manager extends PEAR
      */
     function updateDatabase($current_schema_file, $previous_schema_file, &$dsninfo, &$variables, $options = FALSE)
     {
-        $result = $this->parseDatabaseDefinitionFile($current_schema_file, 
+        $database_definition = $this->parseDatabaseDefinitionFile($current_schema_file, 
             $this->database_definition, $variables, $this->fail_on_invalid_names);
-        if (MDB::isError($result)) {
-            return $result;
+        if (MDB::isError($database_definition)) {
+            return $database_definition;
         }
+        $this->database_definition = $database_definition;
 
-        $result = $this->setupDatabase($dsninfo, $options);
+        $result = $this->connect($dsninfo, $options);
         if (MDB::isError($result)) {
             return $result;
         }
         $copy = 0;
         if (file_exists($previous_schema_file)) {
-            $result = $this->parseDatabaseDefinitionFile($previous_schema_file, $database_definition, $variables, 0);
-            if (MDB::isError($result)) {
-                return $result;
+            $database_definition = $this->parseDatabaseDefinitionFile($previous_schema_file, $variables, 0);
+            if (MDB::isError($database_definition)) {
+                return $database_definition;
             }
             
-            $result = $this->compareDefinitions($database_definition, $changes);
-            if (MDB::isError($result)) {
-                return $result;
+            $changes = $this->compareDefinitions($database_definition);
+            if (MDB::isError($changes)) {
+                return $changes;
             }
-            
-            if (count($changes)) {
+            if (is_array($changes)) {
                 $result = $this->alterDatabase($database_definition, $changes);
                 if (MDB::isError($result)) {
                     return $result;
@@ -1833,7 +1574,7 @@ class MDB_manager extends PEAR
      *
      * @param mixed &$setup_arguments an associative array that takes pairs of tag names and values 
      * that define the setup arguments that are passed to the 
-     * MDB_manager::SetupDatabase function.
+     * MDB_manager::connect function.
      *
      * @param array &$dump_arguments an associative array that takes pairs of tag names and values 
      * that define dump options as defined for the MDB_manager::DumpDatabase 
@@ -1842,7 +1583,7 @@ class MDB_manager extends PEAR
      * @param array &$variables an associative array that the defines the text string values 
      * that are meant to be used to replace the variables that are used in the 
      * schema description as defined for the 
-     * MDB_manager::ParseDatabaseDefinitionFile function.
+     * MDB_manager::parseDatabaseDefinitionFile function.
      *
      * @access public
      * 
@@ -1851,15 +1592,15 @@ class MDB_manager extends PEAR
 
     function dumpDatabaseContents($schema_file, &$setup_arguments, &$dump_arguments, &$variables)
     {
-        $result = $this->parseDatabaseDefinitionFile($schema_file, 
-            $database_definition, $variables, $this->fail_on_invalid_names);
-        if (MDB::isError($result)) {
-            return $result;
+        $database_definition = $this->parseDatabaseDefinitionFile($schema_file, 
+            $variables, $this->fail_on_invalid_names);
+        if (MDB::isError($database_definition)) {
+            return $database_definition;
         }
 
         $this->database_definition = $database_definition;
         
-        $result = $this->setupDatabase($setup_arguments);
+        $result = $this->connect($setup_arguments);
         if (MDB::isError($result)) {
             return $result;
         }
