@@ -64,6 +64,7 @@ class MDB_mssql extends MDB_Common
     var $connected_user;
     var $connected_password;
     var $connected_port;
+    var $selected_database = '';
     var $opened_persistent = '';
 
     var $escape_quotes = "'";
