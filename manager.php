@@ -47,7 +47,7 @@
 
 require_once 'PEAR.php';
 require_once dirname(__FILE__).'/MDB.php';
-require_once dirname(__FILE__).'/myparser.php';
+require_once dirname(__FILE__).'/parser.php';
 /*
 require_once(dirname(__FILE__).'/parser.php');
 require_once(dirname(__FILE__).'/xml_parser.php');
