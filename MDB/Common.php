@@ -549,11 +549,11 @@ class MDB_Common extends PEAR
     {
         if (strlen($included_constant) == 0 || !defined($included_constant)) {
             $separator = (defined('MDB_DIRECTORY_SEPARATOR') ? MDB_DIRECTORY_SEPARATOR : '/');
-            $include_path = $this->include_path.$separator.'MDB'.$separator.$extension.$seperator;
+            $include_path = $this->include_path.$separator.'MDB'.$separator.$extension.$separator;
             if($extension == 'LOB') {
                 $include_path = $this->include_path.$separator.'MDB'.$separator;
             }
-            if (!file_exists($include_path.$separator.$include)) {
+            if (!file_exists($include_path.$include)) {
                 $directory = @opendir($include_path);
                 if ($directory) {
                     @closedir($directory);
@@ -563,7 +563,7 @@ class MDB_Common extends PEAR
                 return $this->raiseError(MDB_ERROR_LOADEXTENSION, '', '',
                     $scope . ': it was not specified a valid ' . $extension . ' include path');
             }
-            @include_once($include_path.$separator.$include);
+            @include_once($include_path.$include);
         }
         return (MDB_OK);
     }
