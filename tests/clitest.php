@@ -51,8 +51,8 @@
 
  php -q clitest.php
 
- This will run through all tests in all testcases (as defined in 
- test_setup.php). To run individual tests add their names to the command 
+ This will run through all tests in all testcases (as defined in
+ test_setup.php). To run individual tests add their names to the command
  line and all testcases will be searched for matching test names, e.g.
 
  php -q clitest.php teststorage testreplace
@@ -94,6 +94,8 @@ $database = 'driver_test';
 $inputMethods = $argv;
 array_shift($inputMethods);
 
+$testmethods = NULL;
+
 if ($argc > 1) {
     foreach ($testcases as $testcase) {
         $possibleMethods = getTests($testcase);
@@ -101,7 +103,7 @@ if ($argc > 1) {
         if (count($intersect) > 0) {
             $testmethods[$testcase] = array_flip($intersect);
         }
-    }    
+    }
 }
 
 if (!is_array($testmethods)) {
@@ -114,7 +116,7 @@ foreach ($dbarray as $db) {
     $dsn = $db['dsn'];
     $options = $db['options'];
 
-    $display_dsn = $dsn['phptype'] . "://" . $dsn['username'] . ":" . $dsn['password'] . "@" . $dsn['hostspec'] . "/" . $dsn['database'];
+    $display_dsn = $dsn['phptype'] . "://" . $dsn['username'] . ":" . $dsn['password'] . "@" . $dsn['hostspec'] . "/" . $database;
     echo "=== Start test of $display_dsn ===\n";
 
     $suite = new PHPUnit_TestSuite();
@@ -130,7 +132,7 @@ foreach ($dbarray as $db) {
 
     $result = new PHPUnit_TestResult;
     $result->addListener(new Console_TestListener);
-    
+
     $suite->run($result);
 
     echo "=== End test of $display_dsn ===\n\n";
