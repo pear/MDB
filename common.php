@@ -3523,7 +3523,7 @@ class MDB_common extends PEAR
      */
     function fetchOne($result)
     {
-        $this->fetchInto($result, MDB_FETCHMODE_ORDERED);
+        $res = $this->fetchInto($result, MDB_FETCHMODE_ORDERED);
         if (!$this->options['autofree'] && $res != NULL) {
             $this->freeResult($result);
         }
