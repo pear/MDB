@@ -363,7 +363,7 @@ class MDB_Parser extends XML_Parser {
             };
             break;
         case 'blob':
-            if (!eregi("^([0-9a-f]{2})*\$", $field_value)) {
+            if (!preg_match('/^([0-9a-f]{2})*$/i', $field_value)) {
                 return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
             $field_value = pack('H*', $field_value);
@@ -386,12 +386,12 @@ class MDB_Parser extends XML_Parser {
             }
             break;
         case 'date':
-            if (!ereg("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})$", $field_value)) {
+            if (!preg_match('/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})$', $field_value)) {
                 return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
             break;
         case 'timestamp':
-            if (!ereg("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})$", $field_value)) {
+            if (!preg_match('/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})$/', $field_value)) {
                 return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
             break;
@@ -468,84 +468,84 @@ class MDB_Parser extends XML_Parser {
         switch($this->element) {
         /* Initialization */
         case 'database-table-initialization-insert-field-name':
-            $this->init_name .= $data;
+            @$this->init_name .= $data;
             break;
         case 'database-table-initialization-insert-field-value':
-            $this->init_value .= $data;
+            @$this->init_value .= $data;
             break;
             
         /* Database */
         case 'database-name': 
-            $this->database_definition['name'] = $data;
+            @$this->database_definition['name'] .= $data;
             break;
         case 'database-create':
-            $this->database_definition['create'] = $data;
+            @$this->database_definition['create'] .= $data;
             break;
-        case 'database-override':
-            $this->database_definition['override'] = $data;
+        case 'database-overwrite':
+            @$this->database_definition['overwrite'] .= $data;
             break;
         case 'database-table-name':
-            $this->table_name = $data;
+            @$this->table_name .= $data;
             break;
         case 'database-table-was':
-            $this->table['was'] = $data;
+            @$this->table['was'] .= $data;
             break;
             
         /* Field declaration */
         case 'database-table-declaration-field-name':
-            $this->field_name = $data;
+            @$this->field_name .= $data;
             break;
         case 'database-table-declaration-field-type':
-            $this->field['type'] = $data;
+            @$this->field['type'] .= $data;
             break;
         case 'database-table-declaration-field-was':
-            $this->field['was'] = $data;
+            @$this->field['was'] .= $data;
             break;
         case 'database-table-declaration-field-notnull':
-            $this->field['notnull'] = $data;
+            @$this->field['notnull'] .= $data;
             break;
         case 'database-table-declaration-field-unsigned':
-            $this->field['unsigned'] = $data;
+            @$this->field['unsigned'] .= $data;
             break;
         case 'database-table-declaration-field-default':
-            $this->field['default'] = $data;
+            @$this->field['default'] .= $data;
             break;
         case 'database-table-declaration-field-length':
-            $this->field['length'] = $data;
+            @$this->field['length'] .= $data;
             break;
             
         /* Index declaration */
         case 'database-table-declaration-index-name':
-            $this->index_name = $data;
+            @$this->index_name .= $data;
             break;
         case 'database-table-declaration-index-unique':
-            $this->index['unique'] = $data;
+            @$this->index['unique'] .= $data;
             break;
         case 'database-table-declaration-index-was':
-            $this->index['was'] = $data;
+            @$this->index['was'] .= $data;
             break;
         case 'database-table-declaration-index-field-name':
-            $this->field_name = $data;
+            @$this->field_name .= $data;
             break;
         case 'database-table-declaration-index-field-sorting':
-            $this->field['sorting'] = $data;
+            @$this->field['sorting'] .= $data;
             break;
             
         /* Sequence declaration */
         case 'database-sequence-name':
-            $this->seq_name = $data;
+            @$this->seq_name .= $data;
             break;
         case 'database-sequence-was':
-            $this->seq['was'] = $data;
+            @$this->seq['was'] .= $data;
             break;
         case 'database-sequence-start':
-            $this->seq['start'] = $data;
+            @$this->seq['start'] .= $data;
             break;
         case 'database-sequence-on-table':
-            $this->seq['on']['table'] = $data;
+            @$this->seq['on']['table'] .= $data;
             break;
         case 'database-sequence-on-field':
-            $this->seq['on']['field'] = $data;
+            @$this->seq['on']['field'] .= $data;
             break;
         };
     }
