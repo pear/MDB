@@ -11,23 +11,24 @@ class DB
 {
     function &factory($type)
     {
-        $MDB_object = MDB::factory($type);
-        if(PEAR::isError($MDB_object))
+        $db = MDB::factory($type);
+        if(PEAR::isError($db))
         {
             return $MDB_object;
         }
-        $obj =& new MDB_PEAR_PROXY($MDB_object);
+        $obj =& new MDB_PEAR_PROXY($db);
         return $obj;
     }
 
     function &connect($dsn, $options = false)
     {
+        $db = MDB::connect($dsn, $options);
         $MDB_object = MDB::connect($dsn, $options);
         if(PEAR::isError($MDB_object))
         {
             return $MDB_object;
         }
-        $obj =& new MDB_PEAR_PROXY($MDB_object);
+        $obj =& new MDB_PEAR_PROXY($db);
         return $obj;
     }
 
@@ -109,7 +110,7 @@ class DB_result
         $this->result = $result;
     }
 
-    function fetchRow($fetchmode = DB_FETCHMODE_DEFAULT, $rownum= 0)
+    function fetchRow($fetchmode = DB_FETCHMODE_DEFAULT, $rownum = null)
     {
 		$this->dbh->fetchInto($this->result, &$arr, $fetchmode, $rownum);
 		if(is_array($arr)) {
@@ -120,7 +121,7 @@ class DB_result
 		}
     }
 
-    function fetchInto(&$arr, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = 0)
+    function fetchInto(&$arr, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = null)
     {
 		$this->dbh->fetchInto($this->result, &$arr, $fetchmode, $rownum);
     }
