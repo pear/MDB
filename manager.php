@@ -19,7 +19,7 @@ require_once("xml_parser.php");
 * @author  Lukas Smith <smith@dybnet.de>
 */ 
 
-class MDB_manager
+class MDB_manager extends PEAR
 {
     var $fail_on_invalid_names = 1;
     var $error = "";
@@ -1048,7 +1048,7 @@ class MDB_manager
                     }
                     
                     $result = $this->createSequence($sequence_name, 
-                        $this->database_definition["SEQUENCES"][$sequence_name], $create_on_table);
+                        $this->database_definition["SEQUENCES"][$sequence_name], $created_on_table);
                     if (!MDB::isError($result)) {
                         $alterations++;
                     }
@@ -1235,10 +1235,16 @@ class MDB_manager
 
     function dumpDatabase($arguments)
     {
-        if (!isset($arguments["Output"])) {
+        $fp = 0;
+        if (isset($arguments["Output_Mode"]) && $arguments["Output_Mode"] == 'file')
+        {
+            $fp = fopen($arguments["Output_File"], "w");
+        }
+        elseif (!isset($arguments["Output"])) {
             return PEAR::raiseError(null, DB_ERROR_MANAGER, null, null, 
                 'no valid output function specified', 'MDB_Error', true);
         }
+        
         $output = $arguments["Output"];
         $eol = (isset($arguments["EndOfLine"]) ? $arguments["EndOfLine"] : "\n");
         $dump_definition = isset($arguments["Definition"]);
@@ -1258,15 +1264,22 @@ class MDB_manager
             }
         }
         $previous_database_name = (strcmp($this->database_definition["name"], "") ? $this->database->setDatabase($this->database_definition["name"]) : "");
-        $output('<?xml version="1.0" encoding="ISO-8859-1" ?>'.$eol);
-        $output("<database>$eol$eol <name>".$this->database_definition["name"]."</name>$eol <create>".$this->database_definition["create"]."</create>$eol");
+        $buffer = ('<?xml version="1.0" encoding="ISO-8859-1" ?>'.$eol);
+        $buffer .= ("<database>$eol$eol <name>".$this->database_definition["name"]."</name>$eol <create>".$this->database_definition["create"]."</create>$eol");
+        
+        if ($fp) {
+            fwrite($fp, $buffer);
+        } else {
+            $output($buffer);
+        }
+
         for($error = "", reset($this->database_definition["TABLES"]), $table = 0;
             $table < count($this->database_definition["TABLES"]);
             next($this->database_definition["TABLES"]), $table++)
         {
             $table_name = key($this->database_definition["TABLES"]);
-            $output("$eol <table>$eol$eol  <name>$table_name</name>$eol");
-            $output("$eol  <declaration>$eol");
+            $buffer = ("$eol <table>$eol$eol  <name>$table_name</name>$eol");
+            $buffer .= ("$eol  <declaration>$eol");
             $fields = $this->database_definition["TABLES"][$table_name]["FIELDS"];
             for(reset($fields), $field_number = 0;
                 $field_number < count($fields);
@@ -1274,18 +1287,22 @@ class MDB_manager
             {
                 $field_name = key($fields);
                 $field = $fields[$field_name];
-                $output("$eol   <field>$eol    <name>$field_name</name>$eol    <type>".$field["type"]."</type>$eol");
+                if (!isset($field["type"])) {
+                    return PEAR::raiseError(null, DB_ERROR_MANAGER, null, null, 
+                        'it was not specified the type of the field "'.$field_name.'" of the table "'.$table_name, 'MDB_Error', true);
+                }
+                $buffer .=("$eol   <field>$eol    <name>$field_name</name>$eol    <type>".$field["type"]."</type>$eol");
                 switch($field["type"]) {
                     case "integer":
                         if (isset($field["unsigned"])) {
-                            $output("    <unsigned>1</unsigned>$eol");
+                            $buffer .=("    <unsigned>1</unsigned>$eol");
                         }
                         break;
                     case "text":
                     case "clob":
                     case "blob":
                         if (isset($field["length"])) {
-                            $output("    <length>".$field["length"]."</length>$eol");
+                            $buffer .=("    <length>".$field["length"]."</length>$eol");
                         }
                         break;
                     case "boolean":
@@ -1299,12 +1316,12 @@ class MDB_manager
                         return("type \"".$field["type"]."\" is not yet supported");
                 }
                 if (isset($field["notnull"])) {
-                    $output("    <notnull>1</notnull>$eol");
+                    $buffer .=("    <notnull>1</notnull>$eol");
                 }
                 if (isset($field["default"])) {
-                    $output("    <default>".$this->escapeSpecialCharacters($field["default"])."</default>$eol");
+                    $buffer .=("    <default>".$this->escapeSpecialCharacters($field["default"])."</default>$eol");
                 }
-                $output("   </field>$eol");
+                $buffer .=("   </field>$eol");
             }
 
             if (isset($this->database_definition["TABLES"][$table_name]["INDEXES"])) {
@@ -1315,9 +1332,9 @@ class MDB_manager
                 {
                     $index_name = key($indexes);
                     $index = $indexes[$index_name];
-                    $output("$eol   <index>$eol    <name>$index_name</name>$eol");
+                    $buffer .=("$eol   <index>$eol    <name>$index_name</name>$eol");
                     if (isset($indexes[$index_name]["unique"])) {
-                        $output("    <unique>1</unique>$eol");
+                        $buffer .=("    <unique>1</unique>$eol");
                     }
                     for(reset($index["FIELDS"]), $field_number = 0;
                         $field_number < count($index["FIELDS"]);
@@ -1325,20 +1342,26 @@ class MDB_manager
                     {
                         $field_name = key($index["FIELDS"]);
                         $field = $index["FIELDS"][$field_name];
-                        $output("    <field>$eol     <name>$field_name</name>$eol");
+                        $buffer .=("    <field>$eol     <name>$field_name</name>$eol");
                         if (isset($field["sorting"])) {
-                            $output("     <sorting>".$field["sorting"]."</sorting>$eol");
+                            $buffer .=("     <sorting>".$field["sorting"]."</sorting>$eol");
                         }
-                        $output("    </field>$eol");
+                        $buffer .=("    </field>$eol");
                     }
-                    $output("   </index>$eol");
+                    $buffer .=("   </index>$eol");
                 }
             }
+            $buffer .= ("$eol  </declaration>$eol");
 
-            $output("$eol  </declaration>$eol");
+            if ($fp) {
+                fwrite($fp, $buffer);
+            } else {
+                $output($buffer);
+            }
+
             if ($dump_definition) {
                 if (isset($this->database_definition["TABLES"][$table_name]["initialization"])) {
-                    $output("$eol  <initialization>$eol");
+                    $buffer = ("$eol  <initialization>$eol");
                     $instructions = $this->database_definition["TABLES"][$table_name]["initialization"];
                     for(reset($instructions), $instruction = 0; 
                         $instruction < count($instructions);
@@ -1346,33 +1369,29 @@ class MDB_manager
                     {
                         switch($instructions[$instruction]["type"]) {
                             case "insert":
-                                $output("$eol   <insert>$eol");
+                                $buffer .= ("$eol   <insert>$eol");
                                 $fields = $instructions[$instruction]["FIELDS"];
                                 for(reset($fields), $field_number = 0;
                                     $field_number < count($fields);
                                     $field_number++, next($fields))
                                 {
                                     $field_name = key($fields);
-                                    $output("$eol    <field>$eol     <name>$field_name</name>$eol     <value>".$this->escapeSpecialCharacters($fields[$field_name])."</value>$eol    </field>$eol");
+                                    $buffer .= ("$eol    <field>$eol     <name>$field_name</name>$eol     <value>".$this->escapeSpecialCharacters($fields[$field_name])."</value>$eol    </field>$eol");
                                 }
-                                $output("$eol   </insert>$eol");
+                                $buffer .= ("$eol   </insert>$eol");
                                 break;
                         }
                     }
-                    $output("$eol  </initialization>$eol");
+                    $buffer .= ("$eol  </initialization>$eol");
                 }
             } else {
+                if (count($this->database_definition["TABLES"][$table_name]["FIELDS"]) == 0) {
+                    return PEAR::raiseError(null, DB_ERROR_MANAGER, null, null, 
+                        'the definition of the table "'.$table_name.'" does not contain any fields', 'MDB_Error', true);
+                }
                 $result = $this->getFields($table_name, $query_fields);
                 if (MDB::isError($result)) {
                     return $result;
-                }
-                if (($support_summary_functions = $this->database->support("Summaryfunctions"))) {
-                    $result = $this->database->query("SELECT COUNT(*) FROM $table_name");
-                    if (MDB::isError($result)) {
-                        return $result;
-                    }
-                    $rows = $this->database->fetch($result, 0, 0);
-                    $this->database->freeResult($result);
                 }
                 
                 $result = $this->database->query("SELECT $query_fields FROM $table_name");
@@ -1380,85 +1399,50 @@ class MDB_manager
                     return $result;
                 }
                 
-                // XXX query(SELECT COUNT(*)) faster than numRows() ???
-                if (!$support_summary_functions) {
-                    $rows = $this->database->numRows($result);
-                }
+                $rows = $this->database->numRows($result);
+
                 if ($rows>0) {
-                    $output("$eol  <initialization>$eol");
-                    for($row = 0; $row < $rows; $row++) {
-                        $output("$eol   <insert>$eol");
-                        for(reset($fields), $field_number = 0;
-                            $field_number < count($fields);
-                            $field_number++, next($fields))
-                        {
-                            $field_name = key($fields);
-                            if (!$this->database->resultIsNull($result, $row, $field_name)) {
-                                $field = $fields[$field_name];
-                                $output("$eol   <field>$eol     <name>$field_name</name>$eol     <value>");
-                                switch($field["type"]) {
-                                    case "integer":
-                                    case "text":
-                                        $output($this->escapeSpecialCharacters($this->database->fetch($result, $row, $field_name)));
-                                        break;
-                                    case "clob":
-                                        $lob = $this->database->fetchClobResult($result, $row, $field_name);
-                                        if (MDB::isError($lob)) {
-                                            return $lob;
-                                        }
-                                        while(!endOfLOB($lob)) {
-                                            if (readLOB($lob, $data, 8000) < 0) {
-                                                return(lobError($lob));
-                                            }
-                                            $output($this->escapeSpecialCharacters($data));
-                                        }
-                                        destroyLOB($lob);
-                                        break;
-                                    case "blob":
-                                        $lob = $this->database->fetchBlobResult($result, $row, $field_name);
-                                        if (MDB::isError($lob)) {
-                                            return $lob;
-                                        }
-                                        while(!endOfLOB($lob)) {
-                                            if (readLOB($lob, $data, 8000) < 0) {
-                                                return(lobError($lob));
-                                            }
-                                            $output(bin2hex($data));
-                                        }
-                                        destroyLOB($lob);
-                                        break;
-                                    case "float":
-                                        $output($this->escapeSpecialCharacters($this->database->fetchFloatResult($result, $row, $field_name)));
-                                        break;
-                                    case "decimal":
-                                        $output($this->escapeSpecialCharacters($this->database->fetchDecimalResult($result, $row, $field_name)));
-                                        break;
-                                    case "boolean":
-                                        $output($this->escapeSpecialCharacters($this->database->fetchBooleanResult($result, $row, $field_name)));
-                                        break;
-                                    case "date":
-                                        $output($this->escapeSpecialCharacters($this->database->fetchDateResult($result, $row, $field_name)));
-                                        break;
-                                    case "timestamp":
-                                        $output($this->escapeSpecialCharacters($this->database->fetchTimestampResult($result, $row, $field_name)));
-                                        break;
-                                    case "time":
-                                        $output($this->escapeSpecialCharacters($this->database->fetchTimeResult($result, $row, $field_name)));
-                                        break;
-                                    default:
-                                      return PEAR::raiseError(null, DB_ERROR_UNSUPPORTED, null, null, 
-                                          'type "'.$field["type"].'" is not yet supported', 'MDB_Error', true);
-                                }
-                                $output("</value>$eol    </field>$eol");
-                            }
-                        }
-                        $output("$eol   </insert>$eol");
+                    $buffer = ("$eol  <initialization>$eol");
+                    
+                    if ($fp) {
+                        fwrite($fp, $buffer);
+                    } else {
+                        $output($buffer);
                     }
-                    $output("$eol  </initialization>$eol");
+
+                    for($row = 0; $row < $rows; $row++) {
+                        $buffer = ("$eol   <insert>$eol");
+                        $this->database->fetchInto($result, $values, DB_FETCHMODE_ASSOC);
+                        foreach($fields as $field_name => $field) {
+                                $buffer .= ("$eol   <field>$eol     <name>$field_name</name>$eol     <value>");
+                                $buffer .= $this->escapeSpecialCharacters($values[$field_name]);
+                                $buffer .= ("</value>$eol    </field>$eol");
+                        }
+                        $buffer .= ("$eol   </insert>$eol");
+                        
+                        if ($fp)
+                            fwrite($fp, $buffer);
+                        else
+                            $output($buffer);
+                    }
+                    $buffer = ("$eol  </initialization>$eol");
+                    if ($fp) {
+                        fwrite($fp, $buffer);
+                    } else {
+                        $output($buffer);
+                    }
                 }
+
+                $buffer = '';
                 $this->database->freeResult($result);
             }
-            $output("$eol </table>$eol");
+            $buffer .= ("$eol </table>$eol");
+            if ($fp) {
+                fwrite($fp, $buffer);
+            } else {
+                $output($buffer);
+            }
+
             if (isset($sequences[$table_name])) {
                 for($sequence = 0;
                     $sequence < count($sequences[$table_name]);
@@ -1482,7 +1466,15 @@ class MDB_manager
                 }
             }
         }
-        $output("$eol</database>$eol");
+        $buffer = ("$eol</database>$eol");
+
+        if ($fp) {
+            fwrite($fp, $buffer);
+            fclose($fp);
+        } else {
+            $output($buffer);
+        }
+
         if (strcmp($previous_database_name, "")) {
             $this->database->setDatabase($previous_database_name);
         }
@@ -1717,7 +1709,7 @@ class MDB_manager
         $result = $this->setupDatabase($dsninfo, $options);
         if (MDB::isError($result))
             return $result;
-            
+        
         $copy = 0;
         if (file_exists($previous_schema_file)) {
             $result = $this->parseDatabaseDefinitionFile($previous_schema_file, $database_definition, $variables, 0);
@@ -1728,8 +1720,7 @@ class MDB_manager
             if (MDB::isError($result))
                 return $result;
                 
-            if (count($changes))
-            {
+            if (count($changes)) {
                 $result = $this->alterDatabase($database_definition, $changes);
                 if (MDB::isError($result))
                     return $result;
@@ -1795,6 +1786,39 @@ class MDB_manager
             return $result;
         
         return($this->dumpDatabase($dump_arguments));
+    }
+
+    function getDefinitionFromDatabase()
+    {
+        $database = $this->database->database_name;
+        if (strlen($database) == 0) {
+            return("it was not specified a valid database name");
+        }
+        $this->database_definition = array(
+            "name" => $database,
+            "create" => 1,
+            "TABLES" => array()
+        );
+
+        if (!$this->database->listTables($tables)) {
+            return($this->database->error());
+        }
+        for($table = 0; $table < count($tables); $table++) {
+            $table_name = $tables[$table];
+            if (!$this->database->listTableFields($table_name, $fields)) {
+                return($this->database->error());
+            }
+            $this->database_definition["TABLES"][$table_name] = array("FIELDS" => array());
+            for($field = 0; $field < count($fields); $field++)
+            {
+                $field_name = $fields[$field];
+                if (!$this->database->getTableFieldDefinition($table_name, $field_name, $definition)) {
+                    return($this->database->error());
+                }
+                $this->database_definition["TABLES"][$table_name]["FIELDS"][$field_name] = $definition[0];
+            }
+        }
+        return("");
     }
 };
 ?>
