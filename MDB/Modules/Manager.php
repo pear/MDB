@@ -1277,16 +1277,12 @@ class MDB_manager extends PEAR
             }
         }
         if (!MDB::isError($result) && isset($changes['INDEXES']) && is_array($changes['INDEXES'])) {
-            foreach($changes['INDEXES'] as $index_name => $index) {
-                if (isset($index['ChangedIndexes'])) {
-                    $indexes = $index['ChangedIndexes'];
-                    for($index = 0, reset($indexes);
-                        $index < count($indexes);
-                        next($indexes), $index++)
-                    {
-                        $result = $this->database->createIndex($index_name,
-                            key($indexes),
-                            $this->database_definition['TABLES'][$index_name]['INDEXES'][key($indexes)]);
+            foreach($changes['INDEXES'] as $table_name => $indexes) {
+                if (isset($indexes['ChangedIndexes'])) {
+                    $changedindexes = $indexes['ChangedIndexes'];
+                    foreach($changedindexes as $index_name => $index) {
+                        $result = $this->database->createIndex($table_name, $index_name,
+                            $this->database_definition['TABLES'][$table_name]['INDEXES'][$index_name]);
                         if (MDB::isError($result)) {
                             break;
                         }
@@ -1294,16 +1290,12 @@ class MDB_manager extends PEAR
                     }
                 }
                 if (!MDB::isError($result)
-                    && isset($index['AddedIndexes']))
+                    && isset($indexes['AddedIndexes']))
                 {
-                    $indexes = $index['AddedIndexes'];
-                    for($index = 0, reset($indexes);
-                        $index < count($indexes);
-                        next($indexes), $index++)
-                    {
-                        $result = $this->database->createIndex($index_name,
-                            key($indexes),
-                            $this->database_definition['TABLES'][$index_name]['INDEXES'][key($indexes)]);
+                    $addedindexes = $indexes['AddedIndexes'];
+                    foreach($addedindexes as $index_name => $index) {
+                        $result = $this->database->createIndex($table_name, $index_name,
+                            $this->database_definition['TABLES'][$table_name]['INDEXES'][$index_name]);
                         if (MDB::isError($result)) {
                             break;
                         }
@@ -1712,7 +1704,7 @@ class MDB_manager extends PEAR
             if(!isset($this->database_definition['TABLES'][$table_name]['INDEXES'])) {
                 $this->database_definition['TABLES'][$table_name]['INDEXES'] = array();
             }
-            for($index = 0; $index < count($indexes); $index++)
+            for($index = 0, $index_cnt = count($indexes); $index < $index_cnt; $index++)
             {
                 $index_name = $indexes[$index];
                 $definition = $this->database->getTableIndexDefinition($table_name, $index_name);

@@ -653,8 +653,10 @@ class MDB_manager_mysql_class extends MDB_manager_common
                     if(isset($default)) {
                         $field_choices[$datatype]['default'] = $default;
                     }
-                    if(strlen($length)) {
-                        $field_choices[$datatype]['length'] = $length;
+                    if($type[$datatype] != 'boolean') {
+                        if(strlen($length)) {
+                            $field_choices[$datatype]['length'] = $length;
+                        }
                     }
                 }
                 $definition[0] = $field_choices;
@@ -673,11 +675,24 @@ class MDB_manager_mysql_class extends MDB_manager_common
                     && isset($row[$columns['key']])
                     && $row[$columns['key']] == 'PRI')
                 {
-                    $implicit_index = array();
-                    $implicit_index['unique'] = 1;
-                    $implicit_index['FIELDS'][$field] = '';
-                    $definition[2]['name'] = $field_name;
-                    $definition[2]['definition'] = $implicit_index;
+                    // check that its not just a unique field
+                    if(MDB::isError($indexes = $db->queryAll("SHOW INDEX FROM $table", NULL, DB_FETCHMODE_ASSOC))) {
+                        return($indexes);
+                    }
+                    $is_primary = FALSE;
+                    foreach($indexes as $index) {
+                        if ($index['Key_name'] == 'PRIMARY' && $index['Column_name'] == $field_name) {
+                            $is_primary = TRUE;
+                            break;
+                        }
+                    }
+                    if($is_primary) {
+                        $implicit_index = array();
+                        $implicit_index['unique'] = 1;
+                        $implicit_index['FIELDS'][$field] = '';
+                        $definition[2]['name'] = $field_name;
+                        $definition[2]['definition'] = $implicit_index;
+                    }
                 }
                 $db->freeResult($result);
                 return ($definition);
@@ -736,7 +751,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
             $field < count($definition['FIELDS']);
             $field++, next($definition['FIELDS']))
         {
-            if ($field>0) {
+            if ($field > 0) {
                 $query .= ',';
             }
             $query .= key($definition['FIELDS']);
@@ -778,18 +793,10 @@ class MDB_manager_mysql_class extends MDB_manager_common
         if(MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
             return($result);
         }
-        if(MDB::isError($columns = $db->getColumnNames($result)))
-        {
-            $db->freeResult($result);
-            return($columns);
-        }
-        if(!isset($columns['key_name']))
-        {
-            $db->freeResult($result);
-            return $db->raiseError(DB_ERROR_MANAGER, '', '', 'List table indexes: show index does not return the table index names');
-        }
-        $indexes_all = $db->fetchCol($result, $columns['key_name']);
-        for($found = $indexes = array(), $index = 0; $index < count($indexes_all); $index++)
+        $indexes_all = $db->fetchCol($result, 'Key_name');
+        for($found = $indexes = array(), $index = 0, $indexes_all_cnt = count($indexes_all);
+            $index < $indexes_all_cnt;
+            $index++)
         {
             if ($indexes_all[$index] != 'PRIMARY'
                 && !isset($found[$indexes_all[$index]]))
@@ -823,36 +830,18 @@ class MDB_manager_mysql_class extends MDB_manager_common
         if(MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
             return($result);
         }
-        if(MDB::isError($columns = $db->getColumnNames($result)))
-        {
-            $db->freeResult($result);
-            return($columns);
-        }
-        if(!isset($columns['non_unique'])
-            || !isset($columns['key_name'])
-            || !isset($columns['column_name'])
-            || !isset($columns['collation']))
-        {
-            $db->freeResult($result);
-            return $db->raiseError(DB_ERROR_MANAGER, '', '', 'Get table index definition: show index does not return the column '.$column);
-        }
-        $non_unique_column = $columns['non_unique'];
-        $key_name_column = $columns['key_name'];
-        $column_name_column = $columns['column_name'];
-        $collation_column = $columns['collation'];
         $definition = array();
-        while (is_array($row = $db->fetchInto($result))) {
-            $key_name = strtolower($row[$key_name_column]);
+        while (is_array($row = $db->fetchInto($result, DB_FETCHMODE_ASSOC))) {
+            $key_name = strtolower($row['Key_name']);
             if(!strcmp($index_name, $key_name)) {
-                if(!$row[$non_unique_column]) {
+                if(!$row['Non_unique']) {
                     $definition['unique'] = 1;
                 }
-                $column_name = $row[$column_name_column];
+                $column_name = $row['Column_name'];
                 $definition['FIELDS'][$column_name] = array();
-                if(isset($row[$collation_column])) {
-                    $definition['FIELDS'][$column_name]['sorting'] = ($row[$collation_column] == 'A' ? 'ascending' : 'descending');
+                if(isset($row['Collation'])) {
+                    $definition['FIELDS'][$column_name]['sorting'] = ($row['Collation'] == 'A' ? 'ascending' : 'descending');
                 }
-                break;
             }
         }
         $db->freeResult($result);
