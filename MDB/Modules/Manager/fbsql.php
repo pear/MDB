@@ -221,7 +221,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         if (isset($db->supported['Transactions'])
             && $db->default_table_type=='BDB')
         {
-            $query_fields .= ', dummy_primary_key INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (dummy_primary_key)';
+            $query_fields .= ', dummy_primary_key INT DEFAULT UNIQUE, PRIMARY KEY (dummy_primary_key)';
         }
         $query = "CREATE TABLE $name ($query_fields)".(strlen($db->default_table_type) ? ' TYPE='.$db->default_table_type : '');
 
