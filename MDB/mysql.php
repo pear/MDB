@@ -75,8 +75,8 @@ class MDB_mysql extends MDB_common
                 $minor = intval($version[1]);
                 $revision = intval($version[2]);
                 if ($major > 3 || ($major == 3 && $minor >= 23
-					&& ($minor > 23 || $revision >= 6)))
-				{
+                    && ($minor > 23 || $revision >= 6)))
+                {
                     $this->fixed_float = 0;
                 }
                 mysql_free_result($result);
@@ -223,10 +223,12 @@ class MDB_mysql extends MDB_common
     // renamed for PEAR
     // used to be : fetchResultArray
     // added $fetchmode
-    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $row = 0)
+    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $row = null)
     {
-        if (!mysql_data_seek($result, $row)) {
-            return ($this->setError("Fetch result array", mysql_error($this->connection)));
+        if ($row !== null) {
+            if (!@mysql_data_seek($result, $row)) {
+                return ($this->setError("Fetch result array", mysql_error($this->connection)));
+            }
         }
         if ($fetchmode & DB_FETCHMODE_ASSOC) {
             if (!$array = mysql_fetch_array($result, MYSQL_ASSOC)) {
@@ -238,7 +240,12 @@ class MDB_mysql extends MDB_common
             }
         }
         $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
-        return ($this->ConvertResultRow($result, $array));
+        if (isset($this->result_types[$result])) {
+            if (!$this->convertResultRow($result, $array)) {
+                return $this->raiseError();
+            }
+        }
+        return DB_OK;
     }
 
     function fetchCLobResult($result, $row, $field)
@@ -268,7 +275,7 @@ class MDB_mysql extends MDB_common
             case MDB_TYPE_TIMESTAMP:
                 return (1);
             default:
-                return ($this->BaseConvertResult($value, $type));
+                return ($this->baseConvertResult($value, $type));
         }
     }
 
@@ -423,9 +430,9 @@ class MDB_mysql extends MDB_common
         return (1);            
     }
 
-    function FreeBLobValue($prepared_query, $blob, &$value, $success)
+    function freeBLobValue($prepared_query, $blob, &$value, $success)
     {
-        Unset($value);
+        unset($value);
     }
 
     function getFloatFieldValue($value)
@@ -717,6 +724,11 @@ class MDB_mysql extends MDB_common
     // new methods for PEAR
     // ********************
 
+    function nextResult($result)
+    {
+        return false;
+    }
+
    function mysqlRaiseError($errno = null)
    {
        if ($errno == null) {
@@ -725,6 +737,7 @@ class MDB_mysql extends MDB_common
        return $this->raiseError($errno, null, null, null, @mysql_error($this->connection));
    }
 
+   
     /**
      * Move the internal mysql result pointer to the next available result
      *
@@ -734,10 +747,6 @@ class MDB_mysql extends MDB_common
      *
      * @return true if a result is available otherwise return false
      */
-    function nextResult($result)
-    {
-        return false;
-    }
    
      function tableInfo($result, $mode = null) {
         $count = 0;
