@@ -236,7 +236,10 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      */
     function getDateDeclaration(&$db, $name, $field)
     {
-        return $name.' DATE'.(isset($field['default']) ? ' DEFAULT \''.$field['default'] . "'" : '').(isset($field['notnull']) ? ' NOT NULL' : '');
+        return $name.' DATE'
+            .(isset($field['default']) ? ' DEFAULT '
+            .$this->getDateValue($db, $field['default']) : '')
+            .(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -264,8 +267,41 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      */
     function getTimeDeclaration(&$db, $name, $field)
     {
-        return $name.' TIME'.(isset($field['default']) ? ' DEFAULT \''.$field['default'].'\'' : '').
-            (isset($field['notnull']) ? ' NOT NULL' : '');
+        return $name.' TIME without time zone'
+            .(isset($field['default']) ? ' DEFAULT '
+            .$this->getTimeValue($db, $field['default']) : '')
+            .(isset($field['notnull']) ? ' NOT NULL' : '');
+    }
+
+    // }}}
+    // {{{ getTimestampDeclaration()
+
+    /**
+     * Obtain DBMS specific SQL code portion needed to declare a timestamp
+     * field to be used in statements like CREATE TABLE.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param string $name name the field to be declared.
+     * @param string $field associative array with the name of the properties
+     *       of the field being declared as array indexes. Currently, the types
+     *       of supported field properties are as follows:
+     *
+     *       default
+     *           Timestamp value to be used as default for this field.
+     *
+     *       notnull
+     *           Boolean flag that indicates whether this field is constrained
+     *           to not be set to null.
+     * @return string DBMS specific SQL code portion that should be used to
+     *       declare the specified field.
+     * @access public
+     */
+    function getTimestampDeclaration(&$db, $name, $field)
+    {
+        return $name.' TIMESTAMP without time zone'
+            .(isset($field['default']) ? ' DEFAULT '
+            .$this->getTimestampValue($db, $field['default']) : '')
+            .(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
