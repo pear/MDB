@@ -386,6 +386,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $this->assertTrue($this->db->endOfResult($result), 'the query result did not seem to have reached the end of result as expected after testing only if columns are NULLs');
 
+            $this->db->freeResult($result);
         }
     }
 
