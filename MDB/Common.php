@@ -64,9 +64,9 @@ require_once 'PEAR.php';
  * if the error code was unknown
  * @access public
  */
-function MDB_defaultDebugOutput(&$db, $message)
+function MDB_defaultDebugOutput(&$db, $scope, $message)
 {
-    $db->debug_output .= $db->database.': '.$message.$db->getOption('log_line_break');
+    $db->debug_output .= $scope.'('.$db->database.'): '.$message.$db->getOption('log_line_break');
 }
 
 /**
@@ -464,10 +464,10 @@ class MDB_Common extends PEAR
      * @param string $message Message with information for the user.
      * @access public
      */
-    function debug($message)
+    function debug($scope, $message)
     {
         if ($this->debug && $this->option['debug_handler']) {
-            call_user_func($this->option['debug_handler'], $this, $message);
+            call_user_func($this->option['debug_handler'], $this, $scope, $message);
         }
     }
 
@@ -519,7 +519,7 @@ class MDB_Common extends PEAR
     {
         if ($include) {
             $include = 'MDB/Modules/'.$include;
-            if ($this->getOption('debug') > 2) {
+            if ($this->options['debug'] > 2) {
                 include_once $include;
             } else {
                 @include_once $include;
@@ -629,7 +629,7 @@ class MDB_Common extends PEAR
      */
     function autoCommit($auto_commit)
     {
-        $this->debug('AutoCommit: ' . ($auto_commit ? 'On' : 'Off'));
+        $this->debug('autoCommit', ($auto_commit ? 'On' : 'Off'));
         return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
             'Auto-commit transactions: transactions are not supported');
     }
@@ -648,7 +648,7 @@ class MDB_Common extends PEAR
      */
     function commit()
     {
-        $this->debug('Commit Transaction');
+        $this->debug('commit', 'commiting transaction');
         return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
             'Commit transaction: commiting transactions are not supported');
     }
@@ -667,7 +667,7 @@ class MDB_Common extends PEAR
      */
     function rollback()
     {
-        $this->debug('Rollback Transaction');
+        $this->debug('rollback', 'rolling back transaction');
         return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
             'Rollback transaction: rolling back transactions are not supported');
     }
@@ -798,7 +798,7 @@ class MDB_Common extends PEAR
      */
     function query($query, $types = null)
     {
-        $this->debug("Query: $query");
+        $this->debug('query', $query);
         return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Query: database queries are not implemented');
     }
 
@@ -1055,7 +1055,7 @@ class MDB_Common extends PEAR
      */
     function prepareQuery($query)
     {
-        $this->debug("PrepareQuery: $query");
+        $this->debug('prepareQuery', $query);
         $positions = array();
         for($position = 0;
             $position < strlen($query) && gettype($question = strpos($query, '?', $position)) == 'integer';) {

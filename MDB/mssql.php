@@ -170,7 +170,7 @@ class MDB_mssql extends MDB_Common
      */
     function autoCommit($auto_commit)
     {
-        $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
+        $this->debug('autoCommit', ($auto_commit ? "On" : "Off"));
         if (!isset($this->supported['Transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Auto-commit transactions: transactions are not in use');
@@ -210,7 +210,7 @@ class MDB_mssql extends MDB_Common
      */
     function commit()
     {
-        $this->debug("Commit Transaction");
+        $this->debug('commit', 'commit transaction');
         if (!isset($this->supported['Transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Commit transactions: transactions are not in use');
@@ -241,7 +241,7 @@ class MDB_mssql extends MDB_Common
      */
     function rollback()
     {
-        $this->debug("Rollback Transaction");
+        $this->debug('rollback', 'rolling back transaction');
         if (!isset($this->supported['Transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Rollback transactions: transactions are not in use');
@@ -386,7 +386,7 @@ class MDB_mssql extends MDB_Common
      */
     function query($query, $types = null)
     {
-        $this->debug("Query: $query");
+        $this->debug('query', $query);
         if ($this->database_name) {
             $ismanip = MDB::isManip($query);
             $this->last_query = $query;

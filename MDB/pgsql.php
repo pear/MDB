@@ -189,7 +189,7 @@ class MDB_pgsql extends MDB_Common
      */
     function autoCommit($auto_commit)
     {
-        $this->debug('AutoCommit: '.($auto_commit ? 'On' : 'Off'));
+        $this->debug('autoCommit', ($auto_commit ? "On" : "Off"));
         if (((!$this->auto_commit) == (!$auto_commit))) {
             return MDB_OK;
         }
@@ -216,7 +216,7 @@ class MDB_pgsql extends MDB_Common
      */
     function commit()
     {
-         $this->debug('Commit Transaction');
+         $this->debug('commit', 'commit transaction');
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null, 'Commit: transaction changes are being auto commited');
         }
@@ -237,7 +237,7 @@ class MDB_pgsql extends MDB_Common
      */
     function rollback()
     {
-         $this->debug('Rollback Transaction');
+         $this->debug('rollback', 'rolling back transaction');
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null, 'Rollback: transactions can not be rolled back when changes are auto commited');
         }
@@ -439,7 +439,7 @@ class MDB_pgsql extends MDB_Common
      **/
     function query($query, $types = null)
     {
-        $this->debug("Query: $query");
+        $this->debug('query', $query);
         $ismanip = MDB::isManip($query);
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;

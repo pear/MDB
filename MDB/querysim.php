@@ -402,7 +402,7 @@ class MDB_querysim extends MDB_Common
             $query = $this->_readFile();
         }
         
-        $this->debug("Query: $query");
+        $this->debug('query', $query);
         $ismanip = false;
         
         $first = $this->first_selected_row;
@@ -706,6 +706,7 @@ class MDB_querysim extends MDB_Common
 
         return $this->raiseError(MDB_ERROR, null, null,
             'Free result: attemped to free an unknown query result');
+    }
     // }}}
 
     // {{{ fetchRow()
