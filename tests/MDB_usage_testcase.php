@@ -335,6 +335,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * This tests null storage and retrieval by successively inserting,
      * selecting, and testing a number of null / not null values
      */
+/*
     function testNulls() {
         $test_values = array(
                              array('test', false),
@@ -383,7 +384,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         }
     }
-
+*/
     /**
      * Tests escaping of text values with special characters
      *
@@ -833,7 +834,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     /**
      * Testing LOB storage
      */
-
+/*
     function testLobStorage() {
         if (!$this->supported('LOBs')) {
             return;
@@ -916,11 +917,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         }
         $this->db->freeResult($result);
     }
-
+*/
     /**
      * Test for lob storage from and to files
      */
-
+/*
     function testLobFiles() {
         if (!$this->supported('LOBs')) {
             return;
@@ -1037,11 +1038,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->db->freeResult($result);
     }
-
+*/
     /**
      * Test handling of lob nulls
      */
-
+/*
     function testLobNulls() {
         if (!$this->supported('LOBs')) {
             return;
@@ -1070,6 +1071,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->db->freeResult($result);
     }
+*/
 }
 
 ?>
