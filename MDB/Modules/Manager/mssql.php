@@ -73,7 +73,6 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     /**
      * create a new database
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $name name of the database that should be created
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -92,7 +91,6 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     /**
      * drop an existing database
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $name name of the database that should be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -109,7 +107,6 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     /**
      * alter an existing table
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $name         name of the table that is intended to be changed.
      * @param array $changes     associative array that contains the details of each type
      *                             of change that is intended to be performed. The types of
@@ -260,7 +257,6 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     /**
      * create sequence
      *
-     * @param object    &$db reference to driver MDB object
      * @param string    $seq_name     name of the sequence to be created
      * @param string    $start         start value of the sequence; default is 1
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -279,7 +275,6 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     /**
      * drop existing sequence
      *
-     * @param object    &$db reference to driver MDB object
      * @param string    $seq_name     name of the sequence to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public

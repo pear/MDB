@@ -72,7 +72,6 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * create a new database
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $name name of the database that should be created
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -89,7 +88,6 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * drop an existing database
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $name name of the database that should be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -107,7 +105,6 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * create a new table
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $name Name of the database that should be created
      * @param array $fields Associative array that contains the definition of each field of the new table
      *                         The indexes of the array entries are the names of the fields of the table an
@@ -160,7 +157,6 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * alter an existing table
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $name name of the table that is intended to be changed.
      * @param array $changes associative array that contains the details of each type
      *                              of change that is intended to be performed. The types of
@@ -318,18 +314,19 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * list all databases
      *
-     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      **/
-    function listDatabases(&$db)
+    function listDatabases()
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query('SELECT datname FROM pg_database', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result);
+        $databases = $db->fetchCol($result);
+        $db->freeResult($result);
+        return $databases;
     }
 
     // }}}
@@ -338,18 +335,19 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * list all users
      *
-     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      **/
-    function listUsers(&$db)
+    function listUsers()
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query('SELECT usename FROM pg_user', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result);
+        $users = $db->fetchCol($result);
+        $db->freeResult($result);
+        return $users;
     }
 
     // }}}
@@ -358,11 +356,10 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * list all tables in the current database
      *
-     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      **/
-    function listTables(&$db)
+    function listTables()
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
@@ -384,7 +381,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result);
+        $tables = $db->fetchCol($result);
+        $db->freeResult($result);
+        return $tables;
     }
 
     // }}}
@@ -393,7 +392,6 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * list all fields in a tables in the current database
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $table name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
@@ -418,11 +416,10 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * list the views in the database
      *
-     * @param object    &$db reference to driver MDB object
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function listViews(&$db)
+    function listViews()
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
@@ -430,7 +427,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result);
+        $views = $db->fetchCol($result);
+        $db->freeResult($result);
+        return $views;
     }
 
     // }}}
@@ -439,7 +438,6 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * list all indexes in a table
      *
-     * @param object    &$db reference to driver MDB object
      * @param string    $table      name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
@@ -452,7 +450,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
                                   (SELECR indexrelid FROM pg_index, pg_class 
                                    WHERE (pg_class.relname='$table') 
                                    AND (pg_class.oid=pg_index.indrelid))", null, false);
-        return $db->fetchCol($result);
+        $indexes = $db->fetchCol($result);
+        $db->freeResult($result);
+        return $indexes;
     }
 
     // }}}
@@ -461,7 +461,6 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * create sequence
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $seq_name name of the sequence to be created
      * @param string $start start value of the sequence; default is 1
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -481,7 +480,6 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * drop existing sequence
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $seq_name name of the sequence to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -499,11 +497,10 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     /**
      * list all sequences in the current database
      *
-     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      **/
-    function listSequences(&$db)
+    function listSequences()
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // gratuitously stolen and adapted from PEAR DB _getSpecialQuery in pgsql.php
@@ -524,7 +521,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result);
+        $sequences = $db->fetchCol($result);
+        $db->freeResult($result);
+        return $sequences;
     }
 }
 ?>

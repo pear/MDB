@@ -346,18 +346,19 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
     /**
      * list all databases
      *
-     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listDatabases(&$db)
+    function listDatabases()
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query("SELECT table_name, tablespace_name FROM user_tables", null, false);
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result);
+        $databases = $db->fetchCol($result);
+        $db->freeResult($result);
+        return $databases;
     }
 
     // }}}

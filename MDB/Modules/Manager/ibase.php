@@ -72,7 +72,6 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * create a new database
      *
-     * @param object $db    database object that is extended by this class
      * @param string $name  name of the database that should be created
      * @return mixed        MDB_OK on success, a MDB error on failure
      * @access public
@@ -91,7 +90,6 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * drop an existing database
      *
-     * @param object $db    database object that is extended by this class
      * @param string $name  name of the database that should be dropped
      * @return mixed        MDB_OK on success, a MDB error on failure
      * @access public
@@ -110,7 +108,6 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * check if planned changes are supported
      *
-     * @param object $db        database object that is extended by this class
      * @param string $name name of the database that should be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -153,7 +150,6 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * alter an existing table
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $name name of the table that is intended to be changed.
      * @param array $changes associative array that contains the details of each type
      *                              of change that is intended to be performed. The types of
@@ -330,7 +326,6 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * list all fields in a tables in the current database
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $table name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
@@ -355,19 +350,20 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * list the views in the database
      *
-     * @param object    &$db reference to driver MDB object
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
 /*
-    function listViews(&$db)
+    function listViews()
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query('SELECT RDB$VIEW_NAME');
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result);
+        $views = $db->fetchCol($result);
+        $db->freeResult($result);
+        return $views;
     }
 */
 
@@ -377,7 +373,6 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * get the stucture of a field into an array
      *
-     * @param object    &$db reference to driver MDB object
      * @param string    $table         name of the table on which the index is to be created
      * @param string    $name         name of the index to be created
      * @param array     $definition        associative array that defines properties of the index to be created.
@@ -443,7 +438,6 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * create sequence
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $seq_name name of the sequence to be created
      * @param string $start start value of the sequence; default is 1
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -472,7 +466,6 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * drop existing sequence
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $seq_name name of the sequence to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -490,18 +483,19 @@ class MDB_Manager_ibase extends MDB_Manager_common
     /**
      * list all sequences in the current database
      *
-     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      **/
-    function listSequences(&$db)
+    function listSequences()
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query("SELECT RDB\$GENERATOR_NAME FROM RDB\$GENERATORS", null, false);
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result);
+        $sequences = $db->fetchCol($result);
+        $db->freeResult($result);
+        return $sequences;
     }
 }
 ?>
