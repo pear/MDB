@@ -109,7 +109,7 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
         <file role="php">pear_wrapper.php</file>
         <file role="php">reverse_engineer_xml_schema.php</file>
       </dir>
-      <dir name="unittest">
+      <dir name="tests">
         <file role="test">test.php</file>
         <file role="test">test_setup.php.dist</file>
         <file role="test">MDB_api_testcase.php</file>
@@ -118,7 +118,7 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
         <file role="test">driver_test.schema</file>
         <file role="test">lob_test.schema</file>
         <file role="doc">README</file>
-        <dir name="othertests">
+        <dir name="other">
           <file role="test">MDB_test.php</file>
           <file role="test">MDB_pear_wrapper_test.php</file>
           <file role="test">driver_test.php</file>
