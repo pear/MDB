@@ -36,6 +36,9 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     Currently supported RDBMS:
     MySQL
     PostGreSQL
+    Oracle
+    Frontbase
+    Querysim
     Other soon to follow.
   </description>
   <license>
@@ -86,17 +89,25 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version></version>
-    <state></state>
-    <date></date>
+    <version>1.1.2</version>
+    <state>stable</state>
+    <date>2003-03-21</date>
     <notes>
-# replace method does not default to datatype 'text' anymore
+- This is mainly a bug fix release
+- 3 new driver were added
+    Oracle (still Beta)
+    Frontbase (still Alpha)
+    Querysim
+- All get*Value() methods will convert a php NULL into an SQL NULL
+- REPLACE emulation now works more similar to how MySQLs REPLACE works
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
       <file role="doc">README</file>
       <dir name="MDB">
         <file role="php">Common.php</file>
+        <file role="php">querysim.php</file>
+        <file role="php">oci8.php</file>
         <file role="php">fbsql.php</file>
         <file role="php">mysql.php</file>
         <file role="php">pgsql.php</file>
@@ -110,6 +121,7 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
           <file role="php">LOB.php</file>
           <dir name="Manager">
             <file role="php">Common.php</file>
+            <file role="php">oci8.php</file>
             <file role="php">fbsql.php</file>
             <file role="php">mysql.php</file>
             <file role="php">pgsql.php</file>
