@@ -159,10 +159,10 @@ class MDB_date extends PEAR {
      * values necessary to pass to php's date() function
      *
      * @param integer $mdb_timestamp a valid MDB timestamp
-     * @return array with the time stored in the MDB format
+     * @return array with the time split
      * @access public
      */
-    function mdbstamp2Unix($mdb_timestamp)
+    function mdbstamp2Date($mdb_timestamp)
     {
         // 0123456789012345678
         // YYYY-MM-DD HH:MM:SS
