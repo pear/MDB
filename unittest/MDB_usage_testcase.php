@@ -178,6 +178,50 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         }
     }
 
+    function testPreparedQueries() {
+        if (MDB::isError($this->db->query('DELETE FROM users'))) {
+            $this->assertTrue(FALSE, 'Error deleting from table users');
+        }
+
+        $question_value = $this->db->getTextValue("Does this work?");
+
+        $prepared_query = $this->db->prepareQuery("INSERT INTO users (user_name, user_password, user_id) VALUES (?, $question_value, 1)");
+
+        $this->db->setParamText($prepared_query, 1, "Sure!");
+
+        $result = $this->db->executeQuery($prepared_query);
+
+        $this->db->freePreparedQuery($prepared_query);
+
+        if (MDB::isError($result)) {
+            $error = $result->getMessage();
+        }
+
+        $this->assertTrue(!MDB::isError($result), 'Could not execute prepared query with a text value with a question mark. Error: ');
+
+        $question_value = $this->db->getTextValue("Wouldn't it be great if this worked too?");
+
+        $prepared_query = $this->db->prepareQuery("INSERT INTO users (user_name, user_password, user_id) VALUES (?, $question_value, 2)");
+
+        $this->db->setParamText($prepared_query, 1, "Sure!");
+
+        $result = $this->db->executeQuery($prepared_query);
+
+        $this->db->freePreparedQuery($prepared_query);
+
+        if (MDB::isError($result)) {
+            $error = $result->getMessage();
+        }
+
+        $this->assertTrue(!MDB::isError($result), 'Could not execute prepared query with a text value with a quote character before a question mark. Error: ');
+
+        if (MDB::isError($this->db->query('DELETE FROM users'))) {
+            $this->assertTrue(FALSE, 'Error deleting from table users');
+        }
+        
+    }
+
+
 }
 
 ?>
