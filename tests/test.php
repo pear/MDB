@@ -57,21 +57,24 @@ if(!defined('PATH_SEPARATOR')) {
 }
 ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
 
-require_once 'PHPUnit.php';
-require_once 'test_setup.php';
-require_once 'testUtils.php';
-require_once 'MDB.php';
+require_once('PHPUnit.php');
+require_once('test_setup.php');
+require_once('testUtils.php');
+require_once('MDB.php');
+
+// you may need to uncomment the line and modify the multiplier as you see fit
+// set_time_limit(120*count($dbarray));
 
 MDB::loadFile('Manager');
 MDB::loadFile('Date');
 
 foreach ($testcases as $testcase) {
-    include_once $testcase . '.php';
+    include_once($testcase.'.php');
 }
 
 $database = 'driver_test';
 
-$testmethods = $_POST['testmethods'];
+$testmethods = isset($_POST['testmethods']) ? $_POST['testmethods'] : NULL;
 
 if (!is_array($testmethods)) {
     foreach ($testcases as $testcase) {
@@ -99,7 +102,7 @@ foreach ($dbarray as $db) {
     }
 }
 
-require_once 'HTML_TestListener.php';
+require_once('HTML_TestListener.php');
 $result = new PHPUnit_TestResult;
 $result->addListener(new HTML_TestListener);
 
