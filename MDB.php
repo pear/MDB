@@ -412,7 +412,7 @@ class MDB
     // {{{ loadClass()
     
     /**
-     * load a file (like 'Date.php')
+     * load a file (like 'Date')
      *
      * @return $module    name of the file to be included from the MDB modules dir
      * @access public
