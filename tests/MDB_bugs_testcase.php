@@ -162,9 +162,20 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
         $field = $this->db->fetchOne($result);
         $this->assertEquals($field, $data[0]['user_name'], "The data returned ($field) does not match that expected ($data[0]['user_name'])");
-
     }
 
+    /**
+     * http://bugs.php.net/bug.php?id=22328
+     */
+    function testBug22328() {
+        $result = $this->db->query('SELECT * FROM users');
+        $this->db->pushErrorHandling(PEAR_ERROR_RETURN);
+        $result2 = $this->db->query('SELECT * FROM foo');
+
+        $data = $this->db->fetchRow($result);
+        $this->db->popErrorHandling();
+        $this->assertEquals(false, MDB::isError($data), "Error messages for a query affect result reading of other queries");
+    }
 }
 
 ?>
