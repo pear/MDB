@@ -52,7 +52,7 @@ function shutdownTransactions($databases_array = '')
     {
         $database = key($databases_array);
         if ($databases_array[$database]->in_transaction
-            && $databases_array[$database]->rollbackTransaction($database))
+            && !MDB::is_Error($databases_array[$database]->rollbackTransaction($database)))
         {
             $databases_array[$database]->autoCommitTransactions($database,1);
         }
@@ -141,8 +141,8 @@ class MDB_common extends PEAR
     function disconnect()
     {
         if ($this->in_transaction
-        && $this->rollbackTransaction()
-        && $this->autoCommitTransactions(1)) {
+        && !MDB::isError($this->rollbackTransaction())
+        && !MDB::isError($this->autoCommitTransactions(1))) {
             $this->in_transaction = 0;
         }
         $this->close();
@@ -280,10 +280,10 @@ class MDB_common extends PEAR
     function createTable($name, &$fields)
     {
         if (!isset($name) || !strcmp($name, "")) {
-            return("it was not specified a valid table name");
+            return $this->raiseError(DB_ERROR_CANNOT_CREATE, "", "", "no valid table name specified");
         }
         if (count($fields) == 0) {
-            return("it were not specified any fields for table \"$name\"");
+            return $this->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'no fields specified for table "'.$name.'"');
         }
         $query_fields = "";
         if (!$this->getFieldList($fields, $query_fields)) {
@@ -299,19 +299,19 @@ class MDB_common extends PEAR
 
     function alterTable($name, &$changes, $check)
     {
-        return($this->setError("Alter table", "database table alterations are not supported"));
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Alter table: database table alterations are not supported");
     }
 
     function query($query)
     {
         $this->debug("Query: $query");
-        return($this->setError("Query", "database queries are not implemented"));
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Query: database queries are not implemented");
     }
 
     function replace($table, &$fields)
     {
         if (!$this->supported["Replace"]) {
-            return($this->setError("Replace", "replace query is not supported"));
+            return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Replace: replace query is not supported");
         }
         $count = count($fields);
         for($keys = 0, $condition = $update = $insert = $values = "", reset($fields), $field = 0;
@@ -331,7 +331,8 @@ class MDB_common extends PEAR
                 $value = "NULL";
             } else {
                 if (!isset($fields[$name]["Value"])) {
-                    return($this->setError("Replace", "it was not specified a value for the $name field"));
+                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "", 
+                        'no value for field "'.$name.'" specified');
                 }
                 switch(isset($fields[$name]["Type"]) ? $fields[$name]["Type"] : "text")    {
                     case "text":
@@ -359,31 +360,34 @@ class MDB_common extends PEAR
                         $value = $this->getTimestampFieldValue($fields[$name]["Value"]);
                         break;
                     default:
-                        return($this->setError("Replace", "it was not specified a supported type for the $name field"));
+                        return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "", 
+                            'no supported type for field "'.$name.'" specified');
                 }
             }
             $update .= "=".$value;
             $values.= $value;
             if (isset($fields[$name]["Key"]) && $fields[$name]["Key"]) {
                 if ($value == "NULL") {
-                    return($this->setError("Replace", "key values may not be NULL"));
+                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "", 
+                        'key values may not be NULL');
                 }
                 $condition.= ($keys ? " AND " : " WHERE ").$name."=".$value;
                 $keys++;
             }
         }
         if ($keys == 0) {
-            return($this->setError("Replace", "it were not specified which fields are keys"));
+            return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "", 
+                'not specified which fields are keys');
         }
         if (!($in_transaction = $this->in_transaction)
-            && !$this->autoCommitTransactions(0))
+            && MDB::isError($result = $this->autoCommitTransactions(0)))
         {
-            return(0);
+            return $result;
         }
-        if (($success = $this->queryField("SELECT COUNT(*) FROM $table$condition", $affected_rows, "integer"))) {
+        if (!MDB::isError($success = $this->queryField("SELECT COUNT(*) FROM $table$condition", $affected_rows, "integer"))) {
             switch($affected_rows) {
                 case 0:
-                    $success = $this->query("INSERT INTO $table ($insert) VALUES($values)");
+                    $success = $this->query("INSERT INTO $table ($insert) VALUES ($values)");
                     $affected_rows = 1;
                     break;
                 case 1:
@@ -391,21 +395,23 @@ class MDB_common extends PEAR
                     $affected_rows = $this->affected_rows*2;
                     break;
                 default:
-                    $success = $this->setError("Replace", "replace keys are not unique");
+                    $success = $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "", 
+                                   'replace keys are not unique');
                     break;
             }
         }
+
         if (!$in_transaction) {
-            if ($success) {
-                if (($success = ($this->CommitTransaction()
-                    && $this->AutoCommitTransactions(1)))
+            if (!MDB::isError($success)) {
+                if (($success = (!MDB::isError($this->commitTransaction())
+                    && !MDB::isError($this->autoCommitTransactions(1))))
                     && isset($this->supported["AffectedRows"]))
                 {
                     $this->affected_rows = $affected_rows;
                 }
             } else {
-                $this->RollbackTransaction();
-                $this->AutoCommitTransactions(1);
+                $this->rollbackTransaction();
+                $this->autoCommitTransactions(1);
             }
         }
         return($success);
@@ -422,7 +428,8 @@ class MDB_common extends PEAR
                 && $quote<$question)
             {
                 if (gettype($end_quote = strpos($query, "'", $quote+1))!= "integer") {
-                    return($this->setError("Prepare query", "it was specified a query with an unterminated text string"));
+                    return $this->raiseError(DB_ERROR_SYNTAX, "", "", 
+                        'Prepare query: query with an unterminated text string specified');
                 }
                 switch($this->escape_quotes) {
                     case "":
@@ -464,18 +471,21 @@ class MDB_common extends PEAR
     function validatePreparedQuery($prepared_query)
     {
         if ($prepared_query<1 || $prepared_query>count($this->prepared_queries)) {
-            return($this->setError("Validate prepared query", "invalid prepared query"));
+            return $this->raiseError(DB_ERROR_INVALID, "", "", 
+                'Validate prepared query: invalid prepared query');
         }
         if (gettype($this->prepared_queries[$prepared_query-1])!= "array") {
-            return($this->setError("Validate prepared query", "prepared query was already freed"));
+            return $this->raiseError(DB_ERROR_INVALID, "", "", 
+                'Validate prepared query: prepared query was already freed');
         }
         return(1);
     }
 
     function freePreparedQuery($prepared_query)
     {
-        if (!$this->validatePreparedQuery($prepared_query)) {
-            return(0);
+        $result = $this->validatePreparedQuery($prepared_query);
+        if (MDB::isError($result)) {
+            return $result;
         }
         $this->prepared_queries[$prepared_query-1] = "";
         return(1);
@@ -488,8 +498,9 @@ class MDB_common extends PEAR
 
     function executeQuery($prepared_query)
     {
-        if (!$this->ValidatePreparedQuery($prepared_query)) {
-            return(0);
+        $result = $this->validatePreparedQuery($prepared_query);
+        if (MDB::isError($result)) {
+            return $result;
         }
         $index = $prepared_query-1;
         for($this->clobs[$prepared_query] = $this->blobs[$prepared_query] = array(), $success = 1, $query = "", $last_position = $position = 0;
@@ -497,7 +508,8 @@ class MDB_common extends PEAR
             $position++)
         {
             if (!isset($this->prepared_queries[$index]["Values"][$position])) {
-                return($this->setError("Execute query", "it was not defined query argument ".($position+1)));
+                return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
+                    'Execute query: it was not defined query argument '.($position+1));
             }
             $current_position = $this->prepared_queries[$index]["Positions"][$position];
             $query .= substr($this->prepared_queries[$index]["Query"], $last_position, $current_position-$last_position);
@@ -507,14 +519,14 @@ class MDB_common extends PEAR
             } else {
                 switch($this->prepared_queries[$index]["Types"][$position]) {
                     case "clob":
-                        if (!($success = $this->getCLOBFieldValue($prepared_query, $position+1, $value, $this->clobs[$prepared_query][$position+1]))) {
+                        if (MDB::isError($success = $this->getCLOBFieldValue($prepared_query, $position+1, $value, $this->clobs[$prepared_query][$position+1]))) {
                             unset($this->clobs[$prepared_query][$position+1]);
                             break;
                         }
                         $query .= $this->clobs[$prepared_query][$position+1];
                         break;
                     case "blob":
-                        if (!($success = $this->getBLOBFieldValue($prepared_query, $position+1, $value, $this->blobs[$prepared_query][$position+1]))) {
+                        if (MDB::isError($success = $this->getBLOBFieldValue($prepared_query, $position+1, $value, $this->blobs[$prepared_query][$position+1]))) {
                             unset($this->blobs[$prepared_query][$position+1]);
                             break;
                         }
@@ -527,7 +539,7 @@ class MDB_common extends PEAR
             }
             $last_position = $current_position+1;
         }
-        if ($success) {
+        if (!MDB::isError($success)) {
             $query.= substr($this->prepared_queries[$index]["Query"], $last_position);
             if ($this->selected_row_limit>0) {
                 $this->prepared_queries[$index]["First"] = $this->first_selected_row;
@@ -561,14 +573,16 @@ class MDB_common extends PEAR
 
     function querySet($prepared_query, $parameter, $type, $value, $is_null = 0, $field = "")
     {
-        if (!$this->ValidatePreparedQuery($prepared_query)) {
-            return(0);
+        $result = $this->validatePreparedQuery($prepared_query);
+        if (MDB::isError($result)) {
+            return $result;
         }
         $index = $prepared_query-1;
         if ($parameter<1
             || $parameter>count($this->prepared_queries[$index]["Positions"]))
         {
-            return($this->setError("Query set", "it was not specified a valid argument number"));
+            return $this->raiseError(DB_ERROR_SYNTAX, "", "", 
+                'Query set: it was not specified a valid argument number');
         }
         $this->prepared_queries[$index]["Values"][$parameter-1] = $value;
         $this->prepared_queries[$index]["Types"][$parameter-1] = $type;
@@ -629,8 +643,8 @@ class MDB_common extends PEAR
                         $success = $this->QuerySet($prepared_query, $i+1, "text", $this->GetTextFieldValue($array[$i][1]));                    
                         break;
                 }
-                if (!$success) {
-                    return (0);
+                if (MDB::isError($success)) {
+                    return $success;
                 }
             }
         }
@@ -638,8 +652,8 @@ class MDB_common extends PEAR
         {
             for($i = 0, $j = count($array); $i<$j; ++$i) {
                 $success = $this->QuerySet($prepared_query, $i+1, "text", $this->GetTextFieldValue($array[$i]));
-                if (!$success) {
-                    return (0);
+                if (MDB::isError($success)) {
+                    return $success;
                 }
             }
         }
@@ -712,14 +726,15 @@ class MDB_common extends PEAR
 
     function endOfResult($result)
     {
-        $this->setError("End of result", "end of result method not implemented");
-        return(-1);
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+            'End of result: end of result method not implemented');
+        //return(-1);
     }
 
     function fetch($result, $row, $field)
     {
-        $this->warning = "fetch result method not implemented";
-        return("");
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+            'Fetch: fetch result method not implemented');
     }
 
     function fetchLobResult($result, $row, $field)
@@ -738,7 +753,8 @@ class MDB_common extends PEAR
             "ResultLOB" =>$lob
         );
         if (!createLob($character_lob, $clob)) {
-            return($this->setError("Fetch LOB result", $character_lob["Error"]));
+            return $this->raiseError(DB_ERROR, "", "", 
+                'Fetch LOB result: '. $character_lob["Error"]);
         }
         return($clob);
     }
@@ -746,7 +762,8 @@ class MDB_common extends PEAR
     function retrieveLob($lob)
     {
         if (!isset($this->lobs[$lob])) {
-            return($this->setError("Fetch LOB result", "it was not specified a valid lob"));
+            return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
+                'Fetch LOB result: it was not specified a valid lob');
         }
         if (!isset($this->lobs[$lob]["Value"])) {
             $this->lobs[$lob]["Value"] = $this->fetch($this->lobs[$lob]["Result"], $this->lobs[$lob]["Row"], $this->lobs[$lob]["Field"]);
@@ -756,16 +773,18 @@ class MDB_common extends PEAR
 
     function endOfResultLob($lob)
     {
-        if (!$this->retrieveLob($lob)) {
-            return(0);
+        $result = $this->retrieveLob($lob);
+        if (MDB::isError($result)) {
+            return $result;
         }
         return($this->lobs[$lob]["Position"] >= strlen($this->lobs[$lob]["Value"]));
     }
 
     function readResultLob($lob, &$data, $length)
     {
-        if (!$this->RetrieveLob($lob)) {
-            return(-1);
+        $result = $this->retrieveLob($lob);
+        if (MDB::isError($result)) {
+            return $result;
         }
         $length = min($length,strlen($this->lobs[$lob]["Value"])-$this->lobs[$lob]["Position"]);
         $data = substr($this->lobs[$lob]["Value"], $this->lobs[$lob]["Position"], $length);
@@ -782,12 +801,14 @@ class MDB_common extends PEAR
 
     function fetchClobResult($result, $row, $field)
     {
-        return($this->setError("Fetch CLOB result", "fetch clob result method is not implemented"));
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+            'fetch clob result method is not implemented');
     }
 
     function fetchBlobResult($result, $row, $field)
     {
-        return($this->setError("Fetch BLOB result", "fetch blob result method is not implemented"));
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+            'fetch blob result method is not implemented');
     }
 
     function resultIsNull($result, $row, $field)
@@ -819,10 +840,12 @@ class MDB_common extends PEAR
             case MDB_TYPE_CLOB:
             case MDB_TYPE_BLOB:
                 $value = "";
-                return($this->setError("BaseConvertResult", "attempt to convert result value to an unsupported type $type"));
+                return $this->raiseError(DB_ERROR_INVALID, "", "", 
+                    'BaseConvertResult: attempt to convert result value to an unsupported type '.$type);
             default:
                 $value = "";
-                return($this->setError("BaseConvertResult", "attempt to convert result value to an unknown type $type"));
+                return $this->raiseError(DB_ERROR_INVALID, "", "", 
+                    'BaseConvertResult: attempt to convert result value to an unknown type '.$type);
         }
     }
 
@@ -835,8 +858,9 @@ class MDB_common extends PEAR
     {
         if (isset($this->result_types[$result]))
         {
-            if (($columns = $this->numCols($result)) == -1) {
-                return(0);
+            $columns = $this->numCols($result);
+            if (MDB::isError($columns)) {
+                return $columns;
             }
             for($column = 0; $column<$columns; $column++) {
                 if (!isset($row[$column])) {
@@ -863,14 +887,12 @@ class MDB_common extends PEAR
     // used to be: NumberOfColumns
     function numRows($result)
     {
-        $this->warning = "number of rows method not implemented";
-        return(0);
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Num Rows: number of rows method not implemented");
     }
 
     function freeResult($result)
     {
-        $this->warning = "free result method not implemented";
-        return(0);
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Free Result: free result method not implemented");
     }
 
     function error()
@@ -887,6 +909,7 @@ class MDB_common extends PEAR
 
     function getIntegerDeclaration($name, &$field)
     {
+        // How should warnings be handled?
         if (isset($field["unsigned"])) {
             $this->warning = "unsigned integer field \"$name\" is being declared as signed integer";
         }
@@ -951,7 +974,8 @@ class MDB_common extends PEAR
     
     function getCLOBFieldValue($prepared_query, $parameter, $clob, &$value)
     {
-        return($this->setError("Get CLOB field value", "prepared queries with values of type \"clob\" are not yet supported"));
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+            'Get CLOB field value: prepared queries with values of type "clob" are not yet supported');
     }
 
     function freeCLOBValue($prepared_query, $clob, &$value, $success)
@@ -960,7 +984,8 @@ class MDB_common extends PEAR
 
     function getBLOBFieldValue($prepared_query, $parameter, $blob, &$value)
     {
-        return($this->setError("Get BLOB field value", "prepared queries with values of type \"blob\" are not yet supported"));
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+            'Get BLOB field value: prepared queries with values of type "blob" are not yet supported');
     }
 
     function freeBLOBValue($prepared_query, $blob, &$value, $success)
@@ -1027,44 +1052,51 @@ class MDB_common extends PEAR
 
     function createSequence($name, $start)
     {
-        return $this->raiseError(DB_ERROR_NOT_CAPABLE);
+        return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+            'Create Sequence: sequence creation not supported');
     }
 
     function dropSequence($name)
     {
-        return $this->raiseError(DB_ERROR_NOT_CAPABLE);
+        return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+            'Drop Sequence: sequence dropping not supported');
     }
     
     // renamed for PEAR
     // used to be: getSequencenextValue
     function nextId($name)
     {
-         return $this->raiseError(DB_ERROR_NOT_CAPABLE);
+         return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+            'Next Sequence: getting next sequence value not supported');
     }
     
     // renamed for PEAR
     // used to be: getSequenceCurrentValue
     function currId($name)
     {
-        return $this->raiseError(DB_ERROR_NOT_CAPABLE);
+        return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+            'Current Sequence: getting current sequence value not supported');
     }
 
     function autoCommitTransactions()
     {
-        $this->Debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
-        return($this->setError("Auto-commit transactions", "transactions are not supported"));
+        $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+            'Auto-commit transactions: transactions are not supported');
     }
 
     function commitTransaction()
     {
-         $this->Debug("Commit Transaction");
-        return($this->setError("Commit transaction", "commiting transactions are not supported"));
+        $this->debug("Commit Transaction");
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+            'Commit transaction: commiting transactions are not supported');
     }
 
     function rollbackTransaction()
     {
-         $this->Debug("Rollback Transaction");
-        return($this->setError("Rollback transaction", "rolling back transactions are not supported"));
+        $this->debug("Rollback Transaction");
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+            'Rollback transaction: rolling back transactions are not supported');
     }
 
     function createIndex($table, $name, $definition)
@@ -1108,13 +1140,16 @@ class MDB_common extends PEAR
     function setSelectedRowRange($first, $limit)
     {
         if (!isset($this->supported["SelectRowRanges"])) {
-            return($this->setError("Set selected row range", "selecting row ranges is not supported by this driver"));
+            return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+                'Set selected row range: selecting row ranges is not supported by this driver');
         }
         if (gettype($first)!= "integer" || $first<0) {
-            return($this->setError("Set selected row range", "it was not specified a valid first selected range row"));
+            return $this->raiseError(DB_ERROR_SYNTAX, "", "", 
+                'Set selected row range: it was not specified a valid first selected range row');
         }
         if (gettype($limit)!= "integer" || $limit<1) {
-            return($this->setError("Set selected row range", "it was not specified a valid selected range row limit"));
+            return $this->raiseError(DB_ERROR_SYNTAX, "", "", 
+                'Set selected row range: it was not specified a valid selected range row limit');
         }
         $this->first_selected_row = $first;
         $this->selected_row_limit = $limit;
@@ -1124,27 +1159,31 @@ class MDB_common extends PEAR
     function getColumnNames($result, &$columns)
     {
         $columns = array();
-        return($this->setError("Get column names", "obtaining result column names is not implemented"));
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+            'Get column names: obtaining result column names is not implemented');
     }
     
     // renamed for PEAR
     // used to be: NumberOfColumns
     function numCols($result)
     {
-        $this->setError("Number of columns", "obtaining the number of result columns is not implemented");
-        return(-1);
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+            'Number of columns: obtaining the number of result columns is not implemented');
     }
 
     function setResultTypes($result, &$types)
     {
         if (isset($this->result_types[$result])) {
-            return($this->setError("Set result types", "attempted to redefine the types of the columns of a result set"));
+            return $this->raiseError(DB_ERROR_INVALID, "", "", 
+                'Set result types: attempted to redefine the types of the columns of a result set');
         }
-        if (($columns = $this->numCols($result)) == -1) {
-            return(0);
+        $columns = $this->numCols($result);
+        if (MDB::isError($columns)) {
+            return $columns;
         }
         if ($columns<count($types)) {
-            return($this->setError("Set result types", "it were specified more result types (".count($types).") than result columns ($columns)"));
+            return $this->raiseError(DB_ERROR_SYNTAX, "", "", 
+                'Set result types: it were specified more result types ('.count($types).') than result columns ('.$columns.')');
         }
         $valid_types = array(
             "text" =>      MDB_TYPE_TEXT,
@@ -1160,7 +1199,8 @@ class MDB_common extends PEAR
         );
         for($column = 0; $column<count($types); $column++) {
             if (!isset($valid_types[$types[$column]])) {
-                return($this->setError("Set result types", $types[$column]." is not a supported column type"));
+                return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
+                    'Set result types: '.$types[$column].' is not a supported column type');
             }
             $this->result_types[$result][$column] = $valid_types[$types[$column]];
         }
@@ -1172,18 +1212,20 @@ class MDB_common extends PEAR
 
     function baseFetchArray($result, &$array, $row)
     {
-        if (($columns = $this->numCols($result)) == -1) {
-            return null;
+        $columns = $this->numCols($result);
+        if (MDB::isError($columns)) {
+            return $columns;
         }
         for($array = array(), $column = 0; $column<$columns; $column++) {
             if (!$this->resultIsNull($result, $row, $column)) {
                 $array[$column] = $this->fetch($result, $row, $column);
             }
         }
-        if ($this->convertResultRow($result, $array)) {
+        $result = $this->convertResultRow($result, $array);
+        if (!MDB::isError($result)) {
             return DB_OK;
         } else {
-            return $this->raiseError();
+            return $result;
         }
     }
     
@@ -1274,6 +1316,8 @@ class MDB_common extends PEAR
         }
         if($rekey) {
             $cols = $this->numCols($result);
+            if (MDB::isError($cols))
+                return $cols;
             if ($cols < 2) {
                 return $this->raiseError(DB_ERROR_TRUNCATED);
             }
@@ -1308,14 +1352,15 @@ class MDB_common extends PEAR
     
     function queryField($query, &$field, $type = "text")
     {
-        if (!($result = $this->Query($query))) {
-            return (0);
+        $result = $this->Query($query);
+        if (MDB::isError($result)) {
+            return $result;
         }
         if (strcmp($type, "text")) {
             $types = array($type);
-            if (!($success = $this->setResultTypes($result, $types))) {
+            if (MDB::isError($success = $this->setResultTypes($result, $types))) {
                 $this->freeResult($result);
-                return (0);
+                return $success;
             }
         }
         return ($this->fetchField($result, $field));
@@ -1323,13 +1368,14 @@ class MDB_common extends PEAR
 
     function queryRow($query, &$row, $types = "")
     {
-        if (!($result = $this->Query($query))) {
-            return (0);
+        $result = $this->Query($query);
+        if (MDB::isError($result)) {
+            return $result;
         }
         if (gettype($types) == "array") {
-            if (!($success = $this->setResultTypes($result, $types))) {
+            if (MDB::isError($success = $this->setResultTypes($result, $types))) {
                 $this->freeResult($result);
-                return (0);
+                return $success;
             }
         }
         return ($this->fetchRow($result, $row));
@@ -1337,14 +1383,15 @@ class MDB_common extends PEAR
 
     function queryColumn($query, &$column, $type = "text")
     {
-        if (!($result = $this->Query($query))) {
-            return (0);
+        $result = $this->Query($query);
+        if (MDB::isError($result)) {
+            return $result;
         }
         if (strcmp($type, "text")) {
             $types = array($type);
-            if (!($success = $this->setResultTypes($result, $types))) {
+            if (MDB::isError($success = $this->setResultTypes($result, $types))) {
                 $this->freeResult($result);
-                return (0);
+                return $success;
             }
         }
         return ($this->fetchColumn($result, $column));
@@ -1352,13 +1399,13 @@ class MDB_common extends PEAR
 
     function queryAll($query, &$all, $types = "")
     {
-        if (!($result = $this->query($query))) {
-            return (0);
+        if (MDB::isError($result = $this->query($query))) {
+            return $result;
         }
         if (gettype($types) == "array") {
-            if (!($success = $this->setResultTypes($result, $types))) {
+            if (MDB::isError($success = $this->setResultTypes($result, $types))) {
                 $this->freeResult($result);
-                return (0);
+                return $success;
             }
         }
         return ($this->fetchAll($result, $all));
@@ -1370,7 +1417,9 @@ class MDB_common extends PEAR
     
     function limitQuery($query, $from, $count)
     {
-        $this->SetSelectedRowRange($from, $count);
+        $result = $this->SetSelectedRowRange($from, $count);
+        if (MDB::isError($result))
+            return $result;
         return $this->query($query);
     }
     
@@ -1483,7 +1532,9 @@ class MDB_common extends PEAR
         }
 
         if (isset($prepared_query)) {
-            $this->FreePreparedQuery($prepared_query);
+            $result = $this->FreePreparedQuery($prepared_query);
+            if (MDB::isError($result))
+                return $result;
         }
 
         return $value;
@@ -1513,7 +1564,9 @@ class MDB_common extends PEAR
             return $err;
         }
         if (isset($prepared_query)) {
-            $this->FreePreparedQuery($prepared_query);
+            $result = $this->FreePreparedQuery($prepared_query);
+            if (MDB::isError($result))
+                return $result;
         }
 
         return $row;
@@ -1545,7 +1598,9 @@ class MDB_common extends PEAR
             return $err;
         }
         if (isset($prepared_query)) {
-            $this->freePreparedQuery($prepared_query);
+            $result = $this->FreePreparedQuery($prepared_query);
+            if (MDB::isError($result))
+                return $result;
         }
 
         return $col;
@@ -1572,11 +1627,13 @@ class MDB_common extends PEAR
         }
 
         $err = $this->fetchAll($result, &$all, $fetchmode);
-        if ($err !== DB_OK) {
+        if (MDB::isError($err)) {
             return $err;
         }
         if (isset($prepared_query)) {
-            $this->freePreparedQuery($prepared_query);
+            $result = $this->FreePreparedQuery($prepared_query);
+            if (MDB::isError($result))
+                return $result;
         }
 
         return $all;
@@ -1604,11 +1661,13 @@ class MDB_common extends PEAR
         }
 
         $err = $this->fetchAll($result, &$all, $fetchmode, true, $force_array, $group);
-        if ($err !== DB_OK) {
+        if (MDB::isError($err)) {
             return $err;
         }
         if (isset($prepared_query)) {
-            $this->freePreparedQuery($prepared_query);
+            $result = $this->FreePreparedQuery($prepared_query);
+            if (MDB::isError($result))
+                return $result;
         }
 
         return $all;
