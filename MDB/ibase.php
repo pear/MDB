@@ -122,24 +122,28 @@ class MDB_ibase extends MDB_Common
         $this->phptype  = 'ibase';
         $this->dbsyntax = 'ibase';
 
-        $this->supported['Sequences'] = 1;
-        $this->supported['Indexes'] = 1;
+        $this->supported['Sequences']        = 1;
+        $this->supported['Indexes']          = 1;
         $this->supported['SummaryFunctions'] = 1;
-        $this->supported['OrderByText'] = 1;
-        $this->supported['Transactions'] = 1;
-        $this->supported['CurrId'] = 0;
-        $this->supported['AffectedRows'] = 0;
-        $this->supported['SelectRowRanges'] = 1;
-        $this->supported['LOBs'] = 1;
-        $this->supported['Replace'] = 1;
-        $this->supported['SubSelects'] = 1;
+        $this->supported['OrderByText']      = 1;
+        $this->supported['Transactions']     = 1;
+        $this->supported['CurrId']           = 0;
+        $this->supported['AffectedRows']     = 0;
+        $this->supported['SelectRowRanges']  = 1;
+        $this->supported['LOBs']             = 1;
+        $this->supported['Replace']          = 1;
+        $this->supported['SubSelects']       = 1;
 
         $this->decimal_factor = pow(10.0, $this->decimal_places);
 
-        $this->options['DatabasePath'] = '';
+        $this->options['DatabasePath']      = '';
         $this->options['DatabaseExtension'] = '.gdb';
-        $this->options['DBAUser'] = FALSE;
-        $this->options['DBAPassword'] = FALSE;
+        $this->options['DBAUser']           = false;
+        $this->options['DBAPassword']       = false;
+        $this->options['charset']           = false;
+        $this->options['buffers']           = false;
+        $this->options['dialect']           = false;
+        $this->options['role']              = false;
 
         $this->errorcode_map = array(
             -104 => MDB_ERROR_SYNTAX,
@@ -168,7 +172,6 @@ class MDB_ibase extends MDB_Common
             -923 => MDB_ERROR_CONNECT_FAILED,
             -924 => MDB_ERROR_CONNECT_FAILED
         );
-
     }
 
     // }}}
@@ -191,7 +194,7 @@ class MDB_ibase extends MDB_Common
         if (preg_match('/^([^0-9\-]+)([0-9\-]+)\s+(.*)$/', $errormsg, $match)) {
             $errno = (int)$match[2];
         } else {
-            $errno = NULL;
+            $errno = null;
         }
         switch ($errno) {
             case -204:
@@ -207,11 +210,11 @@ class MDB_ibase extends MDB_Common
                 if (empty($error_regexps)) {
                     $error_regexps = array(
                         '/[tT]able not found/' => MDB_ERROR_NOSUCHTABLE,
-                        '/[tT]able unknown/' => MDB_ERROR_NOSUCHTABLE,
+                        '/[tT]able unknown/'   => MDB_ERROR_NOSUCHTABLE,
                         '/[tT]able .* already exists/' => MDB_ERROR_ALREADY_EXISTS,
                         '/validation error for column .* value "\*\*\* null/' => MDB_ERROR_CONSTRAINT_NOT_NULL,
                         '/violation of [\w ]+ constraint/' => MDB_ERROR_CONSTRAINT,
-                        '/conversion error from string/' => MDB_ERROR_INVALID_NUMBER,
+                        '/conversion error from string/'   => MDB_ERROR_INVALID_NUMBER,
                         '/no permission for/' => MDB_ERROR_ACCESS_VIOLATION,
                         '/arithmetic exception, numeric overflow, or string truncation/' => MDB_ERROR_DIVZERO,
                         '/deadlock/' => MDB_ERROR_DEADLOCK,
@@ -400,7 +403,7 @@ class MDB_ibase extends MDB_Common
     {
         $function = ($persistent ? 'ibase_pconnect' : 'ibase_connect');
         if (!function_exists($function)) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+            return($this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'doConnect: FireBird/InterBase support is not available in this PHP configuration'));
         }
 
@@ -410,14 +413,18 @@ class MDB_ibase extends MDB_Common
 
         $params = array();
         $params[] = $dbhost;
-        $params[] = !empty($this->user) ? $this->user : NULL;
-        $params[] = !empty($this->password) ? $this->password : NULL;
+        $params[] = !empty($this->user)     ? $this->user     : null;
+        $params[] = !empty($this->password) ? $this->password : null;
+        $params[] = !empty($this->options['charset']) ? $this->options['charset'] : null;
+        $params[] = !empty($this->options['buffers']) ? $this->options['charset'] : null;
+        $params[] = !empty($this->options['dialect']) ? $this->options['charset'] : null;
+        $params[] = !empty($this->options['role'])    ? $this->options['charset'] : null;
 
         $connection = @call_user_func_array($function, $params);
         if ($connection > 0) {
             if (function_exists('ibase_timefmt')) {
                 @ibase_timefmt("%Y-%m-%d %H:%M:%S", IBASE_TIMESTAMP);
-                @ibase_timefmt("%Y-%m-%d", IBASE_DATE);
+                @ibase_timefmt("%Y-%m-%d",          IBASE_DATE);
             } else {
                 @ini_set("ibase.timestampformat", "%Y-%m-%d %H:%M:%S");
                 //@ini_set("ibase.timeformat", "%H:%M:%S");
