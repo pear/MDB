@@ -98,7 +98,7 @@ class MDB_mysql extends MDB_common
     {
         return mysql_errno($this->connection);
     }
-    
+	
     function mysqlRaiseError($errno = NULL)
     {
         if ($errno == NULL) {
@@ -111,14 +111,16 @@ class MDB_mysql extends MDB_common
     // {{{ autoCommit()
 
     /**
-     * Define whether database changes done on the database be automatically committed.
-     * This function may also implicitly start or end a transaction.
+     * Define whether database changes done on the database be automatically
+     * committed. This function may also implicitly start or end a transaction.
      * 
-     * @param boolean $auto_commit    flag that indicates whether the database changes should
-     *                                 be committed right after executing every query statement.
-     *                                 If this argument is 0 a transaction implicitly started.
-     *                                 Otherwise, if a transaction is in progress it is ended by
-     *                                 committing any database changes that were pending.
+     * @param boolean $auto_commit    flag that indicates whether the database
+     *                                changes should be committed right after
+     *                                executing every query statement. If this
+     *                                argument is 0 a transaction implicitly
+     *                                started. Otherwise, if a transaction is
+     *                                in progress it is ended by committing any 
+     *                                database changes that were pending.
      * 
      * @access public
      *
@@ -159,10 +161,10 @@ class MDB_mysql extends MDB_common
     // {{{ commit()
 
     /**
-     * Commit the database changes done during a transaction that is in progress.
-     * This function may only be called when auto-committing is disabled, otherwise
-     * it will fail. Therefore, a new transaction is implicitly started after
-     * committing the pending changes.
+     * Commit the database changes done during a transaction that is in
+     * progress. This function may only be called when auto-committing is
+     * disabled, otherwise it will fail. Therefore, a new transaction is
+     * implicitly started after committing the pending changes.
      * 
      * @access public
      * 
@@ -177,7 +179,7 @@ class MDB_mysql extends MDB_common
         }
         if ($this->auto_commit) {
             return $this->raiseError(DB_ERROR, "", "", 
-                'Commit transactions: transaction changes are being auto commited');
+            'Commit transactions: transaction changes are being auto commited');
         }
         return ($this->query("COMMIT"));
     }
@@ -186,10 +188,10 @@ class MDB_mysql extends MDB_common
     // {{{ rollback()
 
     /**
-     * Cancel any database changes done during a transaction that is in progress.
-     * This function may only be called when auto-committing is disabled, otherwise
-     * it will fail. Therefore, a new transaction is implicitly started after
-     * canceling the pending changes.
+     * Cancel any database changes done during a transaction that is in
+     * progress. This function may only be called when auto-committing is
+     * disabled, otherwise it will fail. Therefore, a new transaction is
+     * implicitly started after canceling the pending changes.
      * 
      * @access public
      * 
@@ -237,7 +239,8 @@ class MDB_mysql extends MDB_common
             $this->user, $this->password);
         @ini_restore('track_errors');
         if ($this->connection <= 0) {
-            return ($this->raiseError(DB_ERROR_CONNECT_FAILED, '', '', $php_errormsg));
+            return ($this->raiseError(DB_ERROR_CONNECT_FAILED, '', '',
+                    $php_errormsg));
         }
         
         if (isset($this->options["fixedfloat"])) {
@@ -256,7 +259,7 @@ class MDB_mysql extends MDB_common
                 mysql_free_result($result);
             }
         }
-        if (isset($this->supported["Transactions"]) && !$this->auto_commit)    {
+        if (isset($this->supported["Transactions"]) && !$this->auto_commit) {
             if (!mysql_query("SET AUTOCOMMIT = 0", $this->connection)) {
                 mysql_close($this->connection);
                 $this->connection = 0;
@@ -311,14 +314,16 @@ class MDB_mysql extends MDB_common
      *
      * @access public
      *
-     * @param string $query  the SQL query
-     * @param array    $types array that contains the types of the columns in the result set
+     * @param string  $query  the SQL query
+     * @param array   $types  array that contains the types of the columns in
+     *                        the result set
      * 
      * @return mixed a result handle or DB_OK on success, a DB error on failure
      */
     function query($query, $types = NULL)
     {
         $this->last_query = $query;
+        $this->debug("Query: $query");
         
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;
@@ -332,12 +337,19 @@ class MDB_mysql extends MDB_common
             return $result;
         }
         
-        if (gettype($space = strpos($query_string = strtolower(ltrim($query)), " ")) == "integer") {
-            $query_string = substr($query_string,0,$space);
+        $query_string = strtolower(ltrim($query));
+        $space = strpos($query_string , ' ');
+
+        // did strpos succeed?
+        if (is_int($space)) {
+            $query_string = substr($query_string, 0, $space);
         }
-        if (($select = ($query_string == "select" || $query_string == "show")) && $limit > 0) {
+
+        $select = ($query_string == 'select' || $query_string == 'show');
+        if ($select && $limit > 0) {
             $query.=" LIMIT $first,$limit";
         }
+
         if (mysql_select_db($this->database_name, $this->connection)
             && ($result = mysql_query($query, $this->connection)))
         {
@@ -372,8 +384,10 @@ class MDB_mysql extends MDB_common
      *
      * @access public
      *
-     * @param string $query the SQL query for the subselect that may only return a column
-     * @param string $quote    determines if the data needs to be quoted before being returned
+     * @param string $query the SQL query for the subselect that may only
+     *                      return a column
+     * @param string $quote determines if the data needs to be quoted before
+     *                      being returned
      * 
      * @return string the query
      */
@@ -401,49 +415,66 @@ class MDB_mysql extends MDB_common
     // {{{ replace()
 
     /**
-     * Execute a SQL REPLACE query. A REPLACE query is identical to a INSERT query, except
-     * that if there is already a row in the table with the same key field values, the
-     * REPLACE query just updates its values instead of inserting a new row.
+     * Execute a SQL REPLACE query. A REPLACE query is identical to a INSERT
+     * query, except that if there is already a row in the table with the same
+     * key field values, the REPLACE query just updates its values instead of
+     * inserting a new row.
      *
-     * The REPLACE type of query does not make part of the SQL standards. Since pratically
-     * only MySQL implements it natively, this type of query is emulated through this
-     * method for other DBMS using standard types of queries inside a transaction to
-     * assure the atomicity of the operation.
+     * The REPLACE type of query does not make part of the SQL standards. Since
+     * practically only MySQL implements it natively, this type of query is
+     * emulated through this method for other DBMS using standard types of
+     * queries inside a transaction to assure the atomicity of the operation.
      *
      * @access public
      *
-     * @param string $table name of the table on which the REPLACE query will be executed.
-     * @param array $fields associative array that describes the fields and the values
-     *                         that will be inserted or updated in the specified table. The
-     *                         indexes of the array are the names of all the fields of the
-     *                         table. The values of the array are also associative arrays that
-     *                         describe the values and other properties of the table fields.
-      *
-     *                         Here follows a list of field properties that need to be specified:
+     * @param string $table name of the table on which the REPLACE query will
+     *  be executed.
+     * @param array $fields associative array that describes the fields and the 
+     *  values that will be inserted or updated in the specified table. The
+     *  indexes of the array are the names of all the fields of the table. The
+     *  values of the array are also associative arrays that describe the
+     *  values and other properties of the table fields.
+     *
+     *  Here follows a list of field properties that need to be specified:
      *                        
-     *                        Value
-     *                        Value to be assigned to the specified field. This value may be of specified in database independent type format as this function can perform the necessary datatype conversions.
+     *    Value:
+     *          Value to be assigned to the specified field. This value may be
+     *          of specified in database independent type format as this
+     *          function can perform the necessary datatype conversions.
      *                        
-     *                        Default: this property is required unless the Null property is set to 1.
+     *    Default:
+     *          this property is required unless the Null property
+     *          is set to 1.
      *                        
-     *                        Type
-     *                        Name of the type of the field. Currently, all types Metabase are supported except for clob and blob.
+     *    Type
+     *          Name of the type of the field. Currently, all types Metabase
+     *          are supported except for clob and blob.
      *                        
-     *                        Default: text
+     *    Default: text
      *                        
-     *                        Null
-     *                        Boolean property that indicates that the value for this field should be set to NULL.
+     *    Null
+     *          Boolean property that indicates that the value for this field
+     *          should be set to NULL.
      *                        
-     *                        The default value for fields missing in INSERT queries may be specified the definition of a table. Often, the default value is already NULL, but since the REPLACE may be emulated using an UPDATE query, make sure that all fields of the table are listed in this function argument array.
+     *          The default value for fields missing in INSERT queries may be
+     *          specified the definition of a table. Often, the default value
+     *          is already NULL, but since the REPLACE may be emulated using
+     *          an UPDATE query, make sure that all fields of the table are
+     *          listed in this function argument array.
      *                        
-     *                        Default: 0
+     *    Default: 0
      *                        
-     *                        Key
-     *                        Boolean property that indicates that this field should be handled as a primary key or at least as part of the compound unique index of the table that will determine the row that will updated if it exists or inserted a new row otherwise.
+     *    Key
+     *          Boolean property that indicates that this field should be
+     *          handled as a primary key or at least as part of the compound
+     *          unique index of the table that will determine the row that will
+     *          updated if it exists or inserted a new row otherwise.
      *                        
-     *                        This function will fail if no key field is specified or if the value of a key field is set to NULL because fields that are part of unique index they may not be NULL.
+     *          This function will fail if no key field is specified or if the 
+     *          value of a key field is set to NULL because fields that are
+     *          part of unique index they may not be NULL.
      *                        
-     *                        Default: 0
+     *    Default: 0
      * 
      * @return mixed DB_OK on success, a DB error on failure
      */
@@ -518,12 +549,15 @@ class MDB_mysql extends MDB_common
     /**
      * Retrieve the names of columns returned by the DBMS in a query result.
      * 
-     * @param resource    $result        result identifier
-     * @param array        $columns    reference to an associative array variable that will hold the
-     *                                 names of columns. The indexes of the array are the column names
-     *                                 mapped to lower case and the values are the respective numbers
-     *                                 of the columns starting from 0. Some DBMS may not return any
-     *                                 columns when the result set does not contain any rows.
+     * @param resource   $result    result identifier
+     * @param array      $columns   reference to an associative array variable
+     *                              that will hold the names of columns. The
+     *                              indexes of the array are the column names
+     *                              mapped to lower case and the values are the
+     *                              respective numbers of the columns starting
+     *                              from 0. Some DBMS may not return any
+     *                              columns when the result set does not
+     *                              contain any rows.
      * 
      * @access public
      *
@@ -557,7 +591,8 @@ class MDB_mysql extends MDB_common
      *  
      * @access public
      *
-     * @return mixed integer value with the number of columns, a DB error on failure
+     * @return mixed integer value with the number of columns, a DB error
+     *                       on failure
      */ 
     function numCols($result)
     {
@@ -731,31 +766,32 @@ class MDB_mysql extends MDB_common
     // {{{ getIntegerDeclaration()
 
     /**
-     * Obtain DBMS specific SQL code portion needed to declare an integer type field to be
-     * used in statements like CREATE TABLE.
+     * Obtain DBMS specific SQL code portion needed to declare an integer type
+     * field to be used in statements like CREATE TABLE.
      * 
-     * @param string    $name          name the field to be declared.
-     * @param string    $field         associative array with the name of the properties of the
-     *                                 field being declared as array indexes. Currently, the
-     *                                 types of supported field properties are as follows:
+     * @param string  $name   name the field to be declared.
+     * @param string  $field  associative array with the name of the properties
+     *                        of the field being declared as array indexes.
+     *                        Currently, the types of supported field
+     *                        properties are as follows:
      *
-     *                                    unsigned
+     *                       unsigned
+     *                        Boolean flag that indicates whether the field
+     *                        should be declared as unsigned integer if
+     *                        possible.
      *
-     *                                        Boolean flag that indicates whether the field should
-     *                                        be declared as unsigned integer if possible.
+     *                       default
+     *                        Integer value to be used as default for this
+     *                        field.
      *
-     *                                    default
-     *
-     *                                        Integer value to be used as default for this field.
-     *
-     *                                    notnull
-     *
-     *                                        Boolean flag that indicates whether this field is
-     *                                        constrained to not be set to NULL.
+     *                       notnull
+     *                        Boolean flag that indicates whether this field is
+     *                        constrained to not be set to NULL.
      * 
      * @access public
      *
-     * @return string    DBMS specific SQL code portion that should be used to declare the specified field.
+     * @return string  DBMS specific SQL code portion that should be used to
+     *                 declare the specified field.
      */
     function getIntegerDeclaration($name, &$field)
     {
@@ -766,29 +802,29 @@ class MDB_mysql extends MDB_common
     // {{{ getCLOBDeclaration()
 
     /**
-     * Obtain DBMS specific SQL code portion needed to declare an character large object type
-     * field to be used in statements like CREATE TABLE.
+     * Obtain DBMS specific SQL code portion needed to declare an character
+     * large object type field to be used in statements like CREATE TABLE.
      * 
-     * @param string    $name          name the field to be declared.
-     * @param string    $field         associative array with the name of the properties of the
-     *                                 field being declared as array indexes. Currently, the
-     *                                 types of supported field properties are as follows:
+     * @param string  $name   name the field to be declared.
+     * @param string  $field  associative array with the name of the
+     *                        properties of the field being declared as array
+     *                        indexes. Currently, the types of supported field
+     *                        properties are as follows:
      *
-     *                                    length
+     *                       length
+     *                        Integer value that determines the maximum length
+     *                        of the large object field. If this argument is
+     *                        missing the field should be declared to have the
+     *                        longest length allowed by the DBMS.
      *
-     *                                        Integer value that determines the maximum length of
-     *                                         the large object field. If this argument is missing
-     *                                         the field should be declared to have the longest length
-     *                                         allowed by the DBMS.
-     *
-     *                                    notnull
-     *
-     *                                        Boolean flag that indicates whether this field is
-     *                                        constrained to not be set to NULL.
+     *                       notnull
+     *                        Boolean flag that indicates whether this field
+     *                        is constrained to not be set to NULL.
      * 
      * @access public
      *
-     * @return string    DBMS specific SQL code portion that should be used to declare the specified field.
+     * @return string  DBMS specific SQL code portion that should be used to
+     *                 declare the specified field.
      */
     function getClobDeclaration($name, &$field)
     {
@@ -817,29 +853,29 @@ class MDB_mysql extends MDB_common
     // {{{ getBLOBDeclaration()
 
     /**
-     * Obtain DBMS specific SQL code portion needed to declare an binary large object type
-     * field to be used in statements like CREATE TABLE.
+     * Obtain DBMS specific SQL code portion needed to declare an binary large
+     * object type field to be used in statements like CREATE TABLE.
      * 
-     * @param string    $name          name the field to be declared.
-     * @param string    $field         associative array with the name of the properties of the
-     *                                 field being declared as array indexes. Currently, the
-     *                                 types of supported field properties are as follows:
+     * @param string  $name   name the field to be declared.
+     * @param string  $field  associative array with the name of the properties
+     *                        of the field being declared as array indexes.
+     *                        Currently, the types of supported field
+     *                        properties are as follows:
      *
-     *                                    length
-     *
-     *                                        Integer value that determines the maximum length of
-     *                                         the large object field. If this argument is missing
-     *                                         the field should be declared to have the longest length
-     *                                         allowed by the DBMS.
+     *                       length
+     *                        Integer value that determines the maximum length
+     *                        of the large object field. If this argument is
+     *                        missing the field should be declared to have the
+     *                        longest length allowed by the DBMS.
      * 
-     *                                    notnull
-     *
-     *                                        Boolean flag that indicates whether this field is
-     *                                        constrained to not be set to NULL.
+     *                       notnull
+     *                        Boolean flag that indicates whether this field is
+     *                        constrained to not be set to NULL.
      * 
      * @access public
      *
-     * @return string    DBMS specific SQL code portion that should be used to declare the specified field.
+     * @return string  DBMS specific SQL code portion that should be used to
+     *                 declare the specified field.
      */
     function getBLobDeclaration($name, &$field)
     {
@@ -869,26 +905,26 @@ class MDB_mysql extends MDB_common
     // {{{ getDateDeclaration()
 
     /**
-     * Obtain DBMS specific SQL code portion needed to declare an date type field to be
-     * used in statements like CREATE TABLE.
+     * Obtain DBMS specific SQL code portion needed to declare an date type
+     * field to be used in statements like CREATE TABLE.
      * 
-     * @param string    $name          name the field to be declared.
-     * @param string    $field         associative array with the name of the properties of the
-     *                                 field being declared as array indexes. Currently, the
-     *                                 types of supported field properties are as follows:
+     * @param string  $name   name the field to be declared.
+     * @param string  $field  associative array with the name of the properties
+     *                        of the field being declared as array indexes.
+     *                        Currently, the types of supported field properties
+     *                        are as follows:
      *
-     *                                    default
+     *                       default
+     *                        Date value to be used as default for this field.
      *
-     *                                        Date value to be used as default for this field.
-     *
-     *                                    notnull
-     *
-     *                                        Boolean flag that indicates whether this field is
-     *                                        constrained to not be set to NULL.
+     *                       notnull
+     *                        Boolean flag that indicates whether this field is
+     *                        constrained to not be set to NULL.
      * 
      * @access public
      *
-     * @return string    DBMS specific SQL code portion that should be used to declare the specified field.
+     * @return string  DBMS specific SQL code portion that should be used to
+     *                 declare the specified field.
      */
     function getDateDeclaration($name, &$field)
     {
@@ -899,26 +935,27 @@ class MDB_mysql extends MDB_common
     // {{{ getTimestampDeclaration()
 
     /**
-     * Obtain DBMS specific SQL code portion needed to declare an timestamp type field to be
-     * used in statements like CREATE TABLE.
+     * Obtain DBMS specific SQL code portion needed to declare an timestamp
+     * type field to be used in statements like CREATE TABLE.
      * 
-     * @param string    $name          name the field to be declared.
-     * @param string    $field         associative array with the name of the properties of the
-     *                                 field being declared as array indexes. Currently, the
-     *                                 types of supported field properties are as follows:
+     * @param string  $name   name the field to be declared.
+     * @param string  $field  associative array with the name of the properties
+     *                        of the field being declared as array indexes.
+     *                        Currently, the types of supported field
+     *                        properties are as follows:
      *
-     *                                    default
+     *                       default
+     *                        Time stamp value to be used as default for this
+     *                        field.
      *
-     *                                        Time stamp value to be used as default for this field.
-     *
-     *                                    notnull
-     *
-     *                                        Boolean flag that indicates whether this field is
-     *                                        constrained to not be set to NULL.
+     *                       notnull
+     *                        Boolean flag that indicates whether this field is
+     *                        constrained to not be set to NULL.
      * 
      * @access public
      *
-     * @return string    DBMS specific SQL code portion that should be used to declare the specified field.
+     * @return string  DBMS specific SQL code portion that should be used to
+     *                 declare the specified field.
      */
     function getTimestampDeclaration($name, &$field)
     {
@@ -929,26 +966,26 @@ class MDB_mysql extends MDB_common
     // {{{ getTimeDeclaration()
 
     /**
-     * Obtain DBMS specific SQL code portion needed to declare an time type field to be
-     * used in statements like CREATE TABLE.
+     * Obtain DBMS specific SQL code portion needed to declare an time type
+     * field to be used in statements like CREATE TABLE.
      * 
-     * @param string    $name          name the field to be declared.
-     * @param string    $field         associative array with the name of the properties of the
-     *                                 field being declared as array indexes. Currently, the
-     *                                 types of supported field properties are as follows:
+     * @param string  $name   name the field to be declared.
+     * @param string  $field  associative array with the name of the properties
+     *                        of the field being declared as array indexes.
+     *                        Currently, the types of supported field
+     *                        properties are as follows:
      *
-     *                                    default
+     *                       default
+     *                        Time value to be used as default for this field.
      *
-     *                                        Time value to be used as default for this field.
-     *
-     *                                    notnull
-     *
-     *                                        Boolean flag that indicates whether this field is
-     *                                        constrained to not be set to NULL.
+     *                       notnull
+     *                        Boolean flag that indicates whether this field is
+     *                        constrained to not be set to NULL.
      * 
      * @access public
      *
-     * @return string    DBMS specific SQL code portion that should be used to declare the specified field.
+     * @return string  DBMS specific SQL code portion that should be used to
+     *                 declare the specified field.
      */
     function getTimeDeclaration($name, &$field)
     {
@@ -959,26 +996,27 @@ class MDB_mysql extends MDB_common
     // {{{ getFloatDeclaration()
 
     /**
-     * Obtain DBMS specific SQL code portion needed to declare an float type field to be
-     * used in statements like CREATE TABLE.
+     * Obtain DBMS specific SQL code portion needed to declare an float type
+     * field to be used in statements like CREATE TABLE.
      * 
-     * @param string    $name          name the field to be declared.
-     * @param string    $field         associative array with the name of the properties of the
-     *                                 field being declared as array indexes. Currently, the
-     *                                 types of supported field properties are as follows:
+     * @param string  $name   name the field to be declared.
+     * @param string  $field  associative array with the name of the properties
+     *                        of the field being declared as array indexes.
+     *                        Currently, the types of supported field
+     *                        properties are as follows:
      *
-     *                                    default
+     *                       default
+     *                        Integer value to be used as default for this
+     *                        field.
      *
-     *                                        Integer value to be used as default for this field.
-     *
-     *                                    notnull
-     *
-     *                                        Boolean flag that indicates whether this field is
-     *                                        constrained to not be set to NULL.
+     *                       notnull
+     *                        Boolean flag that indicates whether this field is
+     *                        constrained to not be set to NULL.
      * 
      * @access public
      *
-     * @return string    DBMS specific SQL code portion that should be used to declare the specified field.
+     * @return string  DBMS specific SQL code portion that should be used to
+     *                 declare the specified field.
      */
     function getFloatDeclaration($name, &$field)
     {
@@ -997,26 +1035,27 @@ class MDB_mysql extends MDB_common
     // {{{ getDecimalDeclaration()
 
     /**
-     * Obtain DBMS specific SQL code portion needed to declare an decimal type field to be
-     * used in statements like CREATE TABLE.
+     * Obtain DBMS specific SQL code portion needed to declare an decimal type
+     * field to be used in statements like CREATE TABLE.
      * 
-     * @param string    $name          name the field to be declared.
-     * @param string    $field         associative array with the name of the properties of the
-     *                                 field being declared as array indexes. Currently, the
-     *                                 types of supported field properties are as follows:
+     * @param string  $name   name the field to be declared.
+     * @param string  $field  associative array with the name of the properties
+     *                        of the field being declared as array indexes.
+     *                        Currently, the types of supported field
+     *                        properties are as follows:
      *
-     *                                    default
+     *                       default
+     *                        Integer value to be used as default for this
+     *                        field.
      *
-     *                                        Integer value to be used as default for this field.
-     *
-     *                                    notnull
-     *
-     *                                        Boolean flag that indicates whether this field is
-     *                                        constrained to not be set to NULL.
+     *                       notnull
+     *                        Boolean flag that indicates whether this field is
+     *                        constrained to not be set to NULL.
      * 
      * @access public
      *
-     * @return string    DBMS specific SQL code portion that should be used to declare the specified field.
+     * @return string  DBMS specific SQL code portion that should be used to
+     *                 declare the specified field.
      */
     function getDecimalDeclaration($name, &$field)
     {
@@ -1027,13 +1066,16 @@ class MDB_mysql extends MDB_common
     // {{{ getCLOBFieldValue()
 
     /**
-     * Convert a text value into a DBMS specific format that is suitable to compose query statements.
+     * Convert a text value into a DBMS specific format that is suitable to
+     * compose query statements.
      * 
-     * @param string    $value         text string value that is intended to be converted.
+     * @param string  $value  text string value that is intended to be
+     *                        converted.
      * 
      * @access public
      *
-     * @return string    text string that represents the given argument value in a DBMS specific format.
+     * @return string  text string that represents the given argument value in
+     *                 a DBMS specific format.
      */    
     function getClobFieldValue($prepared_query, $parameter, $clob, &$value)
     {
@@ -1072,13 +1114,15 @@ class MDB_mysql extends MDB_common
     // {{{ getBLOBFieldValue()
 
     /**
-     * Convert a text value into a DBMS specific format that is suitable to compose query statements.
+     * Convert a text value into a DBMS specific format that is suitable to
+     * compose query statements.
      * 
-     * @param string    $value         text string value that is intended to be converted.
+     * @param string  $value text string value that is intended to be converted.
      * 
      * @access public
      *
-     * @return string    text string that represents the given argument value in a DBMS specific format.
+     * @return string  text string that represents the given argument value in
+     *                 a DBMS specific format.
      */
     function getBLobFieldValue($prepared_query, $parameter, $blob, &$value)
     {
@@ -1100,7 +1144,7 @@ class MDB_mysql extends MDB_common
     /**
      * free a binary large object
      * 
-     * @param resource     $prepared_query query handle from prepare()
+     * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob             
      * @param string    $value             
      * @param string    $success         
@@ -1116,13 +1160,15 @@ class MDB_mysql extends MDB_common
     // {{{ getFloatFieldValue()
 
     /**
-     * Convert a text value into a DBMS specific format that is suitable to compose query statements.
+     * Convert a text value into a DBMS specific format that is suitable to
+     * compose query statements.
      * 
-     * @param string    $value         text string value that is intended to be converted.
+     * @param string  $value text string value that is intended to be converted.
      * 
      * @access public
      *
-     * @return string    text string that represents the given argument value in a DBMS specific format.
+     * @return string  text string that represents the given argument value in
+     *                 a DBMS specific format.
      */
     function getFloatFieldValue($value)
     {
@@ -1133,13 +1179,15 @@ class MDB_mysql extends MDB_common
     // {{{ getDecimalFieldValue()
 
     /**
-     * Convert a text value into a DBMS specific format that is suitable to compose query statements.
+     * Convert a text value into a DBMS specific format that is suitable to
+     * compose query statements.
      * 
-     * @param string    $value         text string value that is intended to be converted.
+     * @param string  $value text string value that is intended to be converted.
      * 
      * @access public
      *
-     * @return string    text string that represents the given argument value in a DBMS specific format.
+     * @return string  text string that represents the given argument value in
+     *                 a DBMS specific format.
      */
     function getDecimalFieldValue($value)
     {
@@ -1222,10 +1270,11 @@ class MDB_mysql extends MDB_common
      * renamed for PEAR
      * used to be fetchResultArray
      *
-     * @param resource    $result     result identifier
-     * @param array        $array         reference to an array where data from the row is stored
-     * @param int        $fetchmode     how the array data should be indexed
-     * @param int        $rownum        the row number to fetch
+     * @param resource  $result     result identifier
+     * @param array     $array      reference to an array where data from the
+     *                              row is stored
+     * @param int       $fetchmode  how the array data should be indexed
+     * @param int       $rownum     the row number to fetch
      * @access public
      *
      * @return int DB_OK on success, a DB error on failure
