@@ -81,46 +81,51 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     $result = $db->query($query);
     // lets just get row:0 column:0 and free the result
     $field = $db->fetchOne($result);
+    $db->freeResult($result);
     echo('<br>field:<br>'.$field.'<br>');
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get row:0 and free the result
     $array = $db->fetchRow($result);
+    $db->freeResult($result);
     echo('<br>row:<br>');
     echo(Var_Dump::display($array).'<br>');
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get column:0 and free the result
     $array = $db->fetchCol($result);
+    $db->freeResult($result);
     echo('<br>column:<br>');
     echo(Var_Dump::display($array).'<br>');
     // run the query and get a result handler
     $result = $db->query($query);
     // lets just get column:0 and free the result
     $array = $db->fetchCol($result, MDB_FETCHMODE_DEFAULT, 2);
+    $db->freeResult($result);
     echo('<br>get column #2 (counting from 0):<br>');
     echo(Var_Dump::display($array).'<br>');
     // run the query and get a result handler
     $result = $db->query($query);
     echo('tableInfo:<br>');
     echo(Var_Dump::display($db->tableInfo($result)).'<br>');
-    // lets just get everything and free the result
-    $result = $db->query($query);
     $types = array('integer', 'text', 'timestamp');
     $db->setResultTypes($result, $types);
     $array = $db->fetchAll($result, MDB_FETCHMODE_FLIPPED);
+    $db->freeResult($result);
     echo('<br>all with result set flipped:<br>');
     echo(Var_Dump::display($array).'<br>');
     // save some time with this function
     // lets just get all and free the result
     Var_Dump::display($db->loadExtended());
     $array = $db->extended->queryAll($db, $query);
+    $db->freeResult($result);
     echo('<br>all with just one call:<br>');
     echo(Var_Dump::display($array).'<br>');
     // run the query with the offset 1 and count 1 and get a result handler
     $result = $db->limitQuery($query, null, 1, 1);
     // lets just get everything but with an associative array and free the result
     $array = $db->fetchAll($result, MDB_FETCHMODE_ASSOC);
+    $db->freeResult($result);
     echo('<br>associative array with offset 1 and count 1:<br>');
     echo(Var_Dump::display($array).'<br>');
     // lets create a sequence
@@ -184,6 +189,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo($query_with_subselect.'<br>');
     $result = $db->query($query_with_subselect);
     $array = $db->fetchAll($result);
+    $db->freeResult($result);
     echo('<br>all with subselect:<br>');
     echo('<br>drop index (will fail if the index was never created):<br>');
     echo(Var_Dump::display($db->manager->dropIndex($db, 'test', 'test_id_index')).'<br>');
