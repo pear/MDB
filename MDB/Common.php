@@ -1727,7 +1727,10 @@ class MDB_Common extends PEAR
 
         if (!$in_transaction) {
             if (!MDB::isError($success)) {
-                if (($success = (!MDB::isError($this->commit()) && !MDB::isError($this->autoCommit(TRUE)))) && isset($this->supported['AffectedRows'])) {
+                if (!MDB::isError($success = $this->commit())
+                    && !MDB::isError($success = $this->autoCommit(TRUE))
+                    && isset($this->supported['AffectedRows'])
+                ) {
                     $this->affected_rows = $affected_rows;
                 }
             } else {
