@@ -1565,6 +1565,12 @@ class MDB_oci8 extends MDB_Common {
         } else {
             $row = array_values($row);
         }
+        if (!$row) {
+            if($this->options['autofree']) {
+                $this->freeResult($result);
+            }
+            return(NULL);
+        }
         if (isset($this->result_types[$result])) {
             $row = $this->convertResultRow($result, $row);
         }
