@@ -250,7 +250,7 @@ class MDB_pgsql extends MDB_common
     {
          $this->debug('Commit Transaction');
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, '', '', 'Commit: transaction changes are being auto commited'));
+            return($this->raiseError(MDB_ERROR, NULL, NULL, 'Commit: transaction changes are being auto commited'));
         }
         return($this->_doQuery('COMMIT') && $this->_doQuery('BEGIN'));
     }
@@ -271,7 +271,7 @@ class MDB_pgsql extends MDB_common
     {
          $this->debug('Rollback Transaction');
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, '', '', 'Rollback: transactions can not be rolled back when changes are auto commited'));
+            return($this->raiseError(MDB_ERROR, NULL, NULL, 'Rollback: transactions can not be rolled back when changes are auto commited'));
         }
         return($this->_doQuery('ROLLBACK') && $this->_doQuery('BEGIN'));
     }
@@ -316,7 +316,7 @@ class MDB_pgsql extends MDB_common
         } else {
             $error_msg = 'Could not connect to PostgreSQL server';
         }
-        return($this->raiseError(MDB_ERROR_CONNECT_FAILED, '', '', 'doConnect: '.$error_msg));
+        return($this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL, 'doConnect: '.$error_msg));
     }
 
     // }}}
@@ -568,7 +568,7 @@ class MDB_pgsql extends MDB_common
     function endOfResult($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return($this->RaiseError(MDB_ERROR, '', '', 'End of result attempted to check the end of an unknown result'));
+            return($this->RaiseError(MDB_ERROR, NULL, NULL, 'End of result attempted to check the end of an unknown result'));
         }
         return($this->highest_fetched_row[$result] >= $this->numRows($result) - 1);
     }

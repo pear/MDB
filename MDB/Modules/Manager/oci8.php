@@ -73,12 +73,12 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
 return(MDB_OK);
         $user = $db->getOption('DBAUser');
         if (MDB::isError($user)) {
-            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
+            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
                 'it was not specified the Oracle DBAUser option'));
         }
         $password = $db->getOption('DBAPassword');
         if (MDB::isError($password)) {
-            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
+            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
                 'it was not specified the Oracle DBAPassword option'));
         }
         if (!MDB::isError($result = $db->connect($user, $password, 0))) {
@@ -119,12 +119,12 @@ return(MDB_OK);
     {
         $user = $db->getOption('DBAUser');
         if (MDB::isError($user)) {
-            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
+            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
                 'it was not specified the Oracle DBAUser option'));
         }
         $password = $db->getOption('DBAPassword');
         if (MDB::isError($password)) {
-            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, '', '', 'Create database',
+            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
                 'it was not specified the Oracle DBAPassword option'));
         }
         if (MDB::isError($db->connect($user, $password, 0))) {
@@ -246,7 +246,7 @@ return(MDB_OK);
                         break;
                     case 'RenamedFields':
                     default:
-                        return($db->raiseError(MDB_ERROR, '', '', 'Alter table',
+                        return($db->raiseError(MDB_ERROR, NULL, NULL, 'Alter table',
                             'change type "'.key($changes).'" not yet supported'));
                 }
             }

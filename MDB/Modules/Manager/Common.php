@@ -84,7 +84,7 @@ class MDB_Manager_Common
     function getFieldDeclaration(&$db, $field_name, $field)
     {
         if (!strcmp($field_name, '')) {
-            return($db->raiseError(MDB_ERROR_NOSUCHFIELD, '', '',
+            return($db->raiseError(MDB_ERROR_NOSUCHFIELD, NULL, NULL,
                 'Get field: it was not specified a valid field name ("'.$field_name.'")'));
         }
         switch($field['type']) {
@@ -119,7 +119,7 @@ class MDB_Manager_Common
                 return($db->getDecimalDeclaration($field_name, $field));
                 break;
             default:
-                return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+                return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                     'Get field: type "'.$field['type'].'" is not yet supported'));
                 break;
         }
@@ -203,7 +203,7 @@ class MDB_Manager_Common
      */
     function createDatabase(&$db, $database)
     {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
             'Create database: database creation is not supported'));
     }
 
@@ -220,7 +220,7 @@ class MDB_Manager_Common
      */
     function dropDatabase(&$db, $database)
     {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
             'Drop database: database dropping is not supported'));
     }
 
@@ -261,10 +261,10 @@ class MDB_Manager_Common
     function createTable(&$db, $name, $fields)
     {
         if (!isset($name) || !strcmp($name, '')) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no valid table name specified'));
+            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no valid table name specified'));
         }
         if (count($fields) == 0) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "'.$name.'"'));
+            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no fields specified for table "'.$name.'"'));
         }
         if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
             return($query_fields);
@@ -388,7 +388,7 @@ class MDB_Manager_Common
      */
     function alterTable(&$db, $name, $changes, $check)
     {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
             'Alter table: database table alterations are not supported'));
     }
 
@@ -404,7 +404,7 @@ class MDB_Manager_Common
      */
     function listDatabases(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
+        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
             'List Databases: list databases is not supported'));
     }
 
@@ -420,7 +420,7 @@ class MDB_Manager_Common
      */
     function listUsers(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
+        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
             'List User: list user is not supported'));
     }
 
@@ -436,7 +436,7 @@ class MDB_Manager_Common
      */
     function listViews(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
+        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
             'List View: list view is not supported'));
     }
 
@@ -452,7 +452,7 @@ class MDB_Manager_Common
      */
     function listFunctions(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
+        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
             'List Function: list function is not supported'));
     }
 
@@ -468,7 +468,7 @@ class MDB_Manager_Common
      */
     function listTables(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
+        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
             'List tables: list tables is not supported'));
     }
 
@@ -485,7 +485,7 @@ class MDB_Manager_Common
      */
     function listTableFields(&$db, $table)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
+        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
             'List table fields: list table fields is not supported'));
     }
 
@@ -503,7 +503,7 @@ class MDB_Manager_Common
      */
     function getTableFieldDefinition(&$db, $table, $field)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
+        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
             'Get table field definition: table field definition is not supported'));
     }
 
@@ -603,7 +603,7 @@ class MDB_Manager_Common
      */
     function listTableIndexes(&$db, $table)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
+        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
             'List table indexes: List Indexes is not supported'));
     }
 
@@ -621,7 +621,7 @@ class MDB_Manager_Common
      */
     function getTableIndexDefinition(&$db, $table, $index)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
+        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
             'Get table index definition: getting index definition is not supported'));
     }
 
@@ -639,7 +639,7 @@ class MDB_Manager_Common
      */
     function createSequence(&$db, $name, $start)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
+        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
             'Create Sequence: sequence creation not supported'));
     }
 
@@ -656,7 +656,7 @@ class MDB_Manager_Common
      */
     function dropSequence(&$db, $name)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
+        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
             'Drop Sequence: sequence dropping not supported'));
     }
 
@@ -672,7 +672,7 @@ class MDB_Manager_Common
      */
     function listSequences(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
+        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
             'List sequences: List sequences is not supported'));
     }
 

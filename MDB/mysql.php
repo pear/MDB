@@ -220,7 +220,7 @@ class MDB_mysql extends MDB_Common
     {
         $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
         if (!isset($this->supported['Transactions'])) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Auto-commit transactions: transactions are not in use'));
         }
         if (((!$this->auto_commit) == (!$auto_commit))) {
@@ -264,11 +264,11 @@ class MDB_mysql extends MDB_Common
     {
         $this->debug("Commit Transaction");
         if (!isset($this->supported['Transactions'])) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Commit transactions: transactions are not in use'));
         }
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, '', '',
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
             'Commit transactions: transaction changes are being auto commited'));
         }
         return($this->query('COMMIT'));
@@ -291,11 +291,11 @@ class MDB_mysql extends MDB_Common
     {
         $this->debug("Rollback Transaction");
         if (!isset($this->supported['Transactions'])) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Rollback transactions: transactions are not in use'));
         }
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, '', '',
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'Rollback transactions: transactions can not be rolled back when changes are auto commited'));
         }
         return($this->query('ROLLBACK'));
@@ -337,7 +337,7 @@ class MDB_mysql extends MDB_Common
             $this->user, $this->password);
         @ini_restore('track_errors');
         if ($this->connection <= 0) {
-            return($this->raiseError(MDB_ERROR_CONNECT_FAILED, '', '',
+            return($this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL,
                     $php_errormsg));
         }
 
@@ -581,7 +581,7 @@ class MDB_mysql extends MDB_Common
                 $value = 'NULL';
             } else {
                 if (!isset($fields[$name]['Value'])) {
-                    return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
+                    return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, NULL, NULL,
                         'no value for field "'.$name.'" specified'));
                 }
                 if(isset($fields[$name]['Type'])) {
@@ -611,7 +611,7 @@ class MDB_mysql extends MDB_Common
                             $value = $this->getTimestampValue($fields[$name]['Value']);
                             break;
                         default:
-                            return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
+                            return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, NULL, NULL,
                                 'no supported type for field "' . $name . '" specified'));
                     }
                 } else {
@@ -621,14 +621,14 @@ class MDB_mysql extends MDB_Common
             $values .= $value;
             if (isset($fields[$name]['Key']) && $fields[$name]['Key']) {
                 if ($value == 'NULL') {
-                    return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
+                    return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, NULL, NULL,
                         'key values may not be NULL'));
                 }
                 $keys++;
             }
         }
         if ($keys == 0) {
-            return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
+            return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, NULL, NULL,
                 'not specified which fields are keys'));
         }
         return($this->query("REPLACE INTO $table ($query) VALUES ($values)"));
@@ -657,7 +657,7 @@ class MDB_mysql extends MDB_Common
     {
         $result_value = intval($result);
         if (!isset($this->highest_fetched_row[$result_value])) {
-            return($this->raiseError(MDB_ERROR_INVALID, '', '',
+            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
                 'Get column names: it was specified an inexisting result set'));
         }
         if (!isset($this->columns[$result_value])) {
@@ -684,7 +684,7 @@ class MDB_mysql extends MDB_Common
     function numCols($result)
     {
         if (!isset($this->highest_fetched_row[intval($result)])) {
-            return($this->raiseError(MDB_ERROR_INVALID, '', '',
+            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
                 'numCols: it was specified an inexisting result set'));
         }
         return(mysql_num_fields($result));
@@ -703,7 +703,7 @@ class MDB_mysql extends MDB_Common
     function endOfResult($result)
     {
         if (!isset($this->highest_fetched_row[$result])) {
-            return($this->raiseError(MDB_ERROR, '', '',
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'End of result: attempted to check the end of an unknown result'));
         }
         return($this->highest_fetched_row[$result] >= $this->numRows($result)-1);
@@ -1295,7 +1295,7 @@ class MDB_mysql extends MDB_Common
             // sequence at 2
             $result = $this->createSequence($seq_name, 2);
             if (MDB::isError($result)) {
-                return($this->raiseError(MDB_ERROR, '', '',
+                return($this->raiseError(MDB_ERROR, NULL, NULL,
                     'Next ID: on demand sequence could not be created'));
             } else {
                 // First ID of a newly created sequence is 1

@@ -218,7 +218,7 @@ class MDB_Manager extends PEAR
             $this->options[$option] = $value;
             return(MDB_OK);
         }
-        return($this->raiseError(MDB_ERROR_UNSUPPORTED, '', '', "unknown option $option"));
+        return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, "unknown option $option"));
     }
 
     // }}}
@@ -236,7 +236,7 @@ class MDB_Manager extends PEAR
         if (isset($this->options[$option])) {
             return($this->options[$option]);
         }
-        return($this->raiseError(MDB_ERROR_UNSUPPORTED, '', '', "unknown option $option"));
+        return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, "unknown option $option"));
     }
 
     // }}}
