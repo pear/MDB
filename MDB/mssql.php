@@ -1212,16 +1212,17 @@ class MDB_mssql extends MDB_Common
      */
     function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        if ($rownum == NULL) {
+        if (is_null($rownum)) {
             ++$this->highest_fetched_row[$result];
         } else {
+            $this->highest_fetched_row[$result] =
+                max($this->highest_fetched_row[$result], $rownum);
             if (isset($this->limits[$result])) {
-                $row = $rownum + $this->limits[$result][0];
+                $rownum = $rownum + $this->limits[$result][0];
             }
             if (!@mssql_data_seek($result, $rownum)) {
                 return(NULL);
             }
-            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
