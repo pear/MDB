@@ -3,7 +3,7 @@
 
  <name>metapear_test_db</name>
  <create>1</create>
-
+ 
  <table>
 
   <name>numbers</name>
@@ -74,17 +74,17 @@
    <field>
      <name>test_id</name>
      <value>1</value>
-    </field>
+   </field>
 
    <field>
      <name>test_name</name>
      <value>test0r</value>
-    </field>
+   </field>
 
    <field>
      <name>test_date</name>
      <value>2002-02-12 16:33:53</value>
-    </field>
+   </field>
 
    </insert>
 
@@ -93,17 +93,17 @@
    <field>
      <name>test_id</name>
      <value>2</value>
-    </field>
+   </field>
 
    <field>
      <name>test_name</name>
      <value>gummihuhn</value>
-    </field>
+   </field>
 
    <field>
      <name>test_date</name>
      <value>2001-02-12 16:34:03</value>
-    </field>
+   </field>
 
    </insert>
 
