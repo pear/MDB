@@ -455,8 +455,7 @@ class MDB
      */
     function isConnection($value)
     {
-        return (is_object($value)
-            && is_subclass_of($value, 'mdb_common')
+        return is_a($value, 'MDB_Common')
         );
     }
     
