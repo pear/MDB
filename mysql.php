@@ -120,9 +120,9 @@ class MDB_mysql extends MDB_common
         $limit = $this->selected_row_limit;
         $this->first_selected_row = $this->selected_row_limit = 0;
         if (!strcmp($this->database_name, "")) {
+            //return ($this->setError("Query","it was not specified a valid database name to select"));
             return $this->raiseError(DB_ERROR_NODBSELECTED);
         }
-            //return ($this->setError("Query","it was not specified a valid database name to select"));
         if (!$this->connect()) {
             return (0);
         }
@@ -138,9 +138,9 @@ class MDB_mysql extends MDB_common
                 $this->affected_rows = mysql_affected_rows($this->connection);
             }
         } else {
+            //return ($this->setError("Query",mysql_error($this->connection)));
             return $this->raiseError(DB_ERROR);
         }
-        //return ($this->setError("Query",mysql_error($this->connection)));
         return ($result);
     }
 
@@ -202,7 +202,7 @@ class MDB_mysql extends MDB_common
         if ($keys == 0) {
             return ($this->setError("Replace","it were not specified which fields are keys"));
         }
-        return ($this->Query("REPLACE INTO $table ($query) VALUES($values)"));
+        return ($this->Query("REPLACE INTO $table ($query) VALUES ($values)"));
     }
 
     function endOfResult($result)
@@ -724,31 +724,32 @@ class MDB_mysql extends MDB_common
     // new methods for PEAR
     // ********************
 
-    function nextResult($result)
-    {
-        return false;
-    }
 
-   function mysqlRaiseError($errno = null)
-   {
-       if ($errno == null) {
-           $errno = $this->errorCode(mysql_errno($this->connection));
-       }
-       return $this->raiseError($errno, null, null, null, @mysql_error($this->connection));
-   }
-
-   
     /**
      * Move the internal mysql result pointer to the next available result
+     * Currently not supported
      *
-     * @param a valid fbsql result resource
+     * @param a valid result resource
      *
      * @access public
      *
      * @return true if a result is available otherwise return false
      */
-   
-     function tableInfo($result, $mode = null) {
+     
+    function nextResult($result)
+    {
+        return false;
+    }
+
+    function mysqlRaiseError($errno = null)
+    {
+        if ($errno == null) {
+            $errno = $this->errorCode(mysql_errno($this->connection));
+        }
+        return $this->raiseError($errno, null, null, null, @mysql_error($this->connection));
+    }
+    
+    function tableInfo($result, $mode = null) {
         $count = 0;
         $id     = 0;
         $res  = array();
