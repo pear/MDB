@@ -44,6 +44,15 @@
 //
 // $Id$
 
+/**
+ * @package  MDB
+ * @category Database
+ * @author   Lukas Smith <smith@backendmedia.com>
+ */
+
+/**
+ * define contants for all datatypes
+ */
 define('MDB_TYPE_TEXT'      , 0);
 define('MDB_TYPE_BOOLEAN'   , 1);
 define('MDB_TYPE_INTEGER'   , 2);

@@ -45,6 +45,15 @@
 // $Id$
 //
 
+/**
+ * @package  MDB
+ * @category Database
+ * @author   Lukas Smith <smith@backendmedia.com>
+ */
+
+/**
+ * include the PEAR core
+ */
 require_once 'PEAR.php';
 
 /**
@@ -164,7 +173,6 @@ $GLOBALS['_MDB_databases'] = array();
  *              MDB timestamps.
  *
  * @package  MDB
- * @version  $Id$
  * @category Database
  * @author   Lukas Smith <smith@backendmedia.com>
  */

@@ -46,6 +46,12 @@
 //
 
 /**
+ * @package  MDB
+ * @category Database
+ * @author   Lukas Smith <smith@backendmedia.com>
+ */
+
+/**
  * Base class for the management modules that is extended by each MDB driver
  *
  * @package MDB

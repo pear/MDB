@@ -45,8 +45,15 @@
 // $Id$
 //
 
+
 /**
- * MDB Large Object (BLOB/CLOB) classes
+ * @package  MDB
+ * @category Database
+ * @author   Lukas Smith <smith@backendmedia.com>
+ */
+
+/**
+ * MDB Large Object (BLOB/CLOB) core class
  *
  * @package MDB
  * @category Database
@@ -96,7 +103,7 @@ class MDB_LOB
 };
 
 /**
- * MDB Large Object (BLOB/CLOB) classes
+ * MDB Large Object (BLOB/CLOB) class for reading results
  *
  * @package MDB
  * @category Database
@@ -144,7 +151,7 @@ class MDB_LOB_Result extends MDB_LOB
 };
 
 /**
- * MDB Large Object (BLOB/CLOB) classes
+ * MDB Large Object (BLOB/CLOB) class to read file into DB
  *
  * @package MDB
  * @category Database
@@ -215,7 +222,7 @@ class MDB_LOB_Input_File extends MDB_LOB
 };
 
 /**
- * MDB Large Object (BLOB/CLOB) classes
+ * MDB Large Object (BLOB/CLOB) class to read into a file from DB
  *
  * @package MDB
  * @category Database

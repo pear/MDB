@@ -45,6 +45,12 @@
 // $Id$
 
 /*
+ * @package  MDB
+ * @category Database
+ * @author   Lukas Smith <smith@backendmedia.com>
+ */
+
+/**
  * Used by autoPrepare()
  */
 define('MDB_AUTOQUERY_INSERT', 1);

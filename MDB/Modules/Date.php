@@ -46,6 +46,12 @@
 //
 
 /**
+ * @package  MDB
+ * @category Database
+ * @author   Lukas Smith <smith@backendmedia.com>
+ */
+
+/**
  * Several methods to convert the MDB native timestamp format (ISO based)
  * to and from data structures that are convienient to worth with in side of php.
  * For more complex date arithmetic please take a look at the Date package in PEAR

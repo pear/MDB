@@ -44,6 +44,15 @@
 //
 // $Id$
 
+/**
+ * @package  MDB
+ * @category Database
+ * @author   Lukas Smith <smith@backendmedia.com>
+ */
+
+/**
+ * include the PEAR core
+ */
 require_once 'PEAR.php';
 
 /**

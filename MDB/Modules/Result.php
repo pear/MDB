@@ -46,6 +46,12 @@
 // $Id$
 //
 
+/**
+ * @package  MDB
+ * @category Database
+ * @author   Lukas Smith <smith@backendmedia.com>
+ */
+
 // {{{ class MDB_Result
 /**
  * This class implements a wrapper for a MDB result set.
