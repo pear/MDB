@@ -1534,34 +1534,36 @@ class MDB_Common extends PEAR
                     return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
                         'no value for field "' . $name . '" specified');
                 }
-                switch (isset($fields[$name]['Type']) ? $fields[$name]['Type'] : 'text') {
-                    case 'text':
-                        $value = $this->getTextValue($fields[$name]['Value']);
-                        break;
-                    case 'boolean':
-                        $value = $this->getBooleanValue($fields[$name]['Value']);
-                        break;
-                    case 'integer':
-                        $value = strval($fields[$name]['Value']);
-                        break;
-                    case 'decimal':
-                        $value = $this->getDecimalValue($fields[$name]['Value']);
-                        break;
-                    case 'float':
-                        $value = $this->getFloatValue($fields[$name]['Value']);
-                        break;
-                    case 'date':
-                        $value = $this->getDateValue($fields[$name]['Value']);
-                        break;
-                    case 'time':
-                        $value = $this->getTimeValue($fields[$name]['Value']);
-                        break;
-                    case 'timestamp':
-                        $value = $this->getTimestampValue($fields[$name]['Value']);
-                        break;
-                    default:
-                        return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
-                            'no supported type for field "' . $name . '" specified');
+                if(isset($fields[$name]['Type'])) {
+                    switch ($fields[$name]['Type']) {
+                        case 'text':
+                            $value = $this->getTextValue($fields[$name]['Value']);
+                            break;
+                        case 'boolean':
+                            $value = $this->getBooleanValue($fields[$name]['Value']);
+                            break;
+                        case 'integer':
+                            $value = strval($fields[$name]['Value']);
+                            break;
+                        case 'decimal':
+                            $value = $this->getDecimalValue($fields[$name]['Value']);
+                            break;
+                        case 'float':
+                            $value = $this->getFloatValue($fields[$name]['Value']);
+                            break;
+                        case 'date':
+                            $value = $this->getDateValue($fields[$name]['Value']);
+                            break;
+                        case 'time':
+                            $value = $this->getTimeValue($fields[$name]['Value']);
+                            break;
+                        case 'timestamp':
+                            $value = $this->getTimestampValue($fields[$name]['Value']);
+                            break;
+                        default:
+                            return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
+                                'no supported type for field "' . $name . '" specified');
+                    }
                 }
             }
             $update .= '=' . $value;
