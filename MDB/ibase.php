@@ -88,7 +88,7 @@ class MDB_ibase extends MDB_Common
         $this->supported['transactions'] = 1;
         $this->supported['current_id'] = 1;
         // maybe this needs different handling for ibase and firebird?
-        $this->supported['limit_querys'] = 1;
+        $this->supported['limit_queries'] = 1;
         $this->supported['LOBs'] = 1;
         $this->supported['replace'] = 0;
         $this->supported['sub_selects'] = 1;
@@ -979,13 +979,14 @@ class MDB_ibase extends MDB_Common
                         $row[$key] = rtrim($value_with_space);
                     }
                 }
-                $this->results[$result_value][$this->results[$result_value]['current_row']+1] = $row;
                 if (!$row) {
                     if ($this->options['autofree']) {
                         $this->freeResult($result);
                     }
                     return null;
                 }
+                $this->results[$result_value]['current_row']++;
+                $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
             }
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                 $row = $this->results[$result_value][$rownum+1];
@@ -1001,10 +1002,11 @@ class MDB_ibase extends MDB_Common
             } else {
                 $row = @ibase_fetch_row($result);
             }
-            foreach ($row as $key => $value_with_space) {
-                $row[$key] = rtrim($value_with_space);
+            if (is_array($row)) {
+                foreach ($row as $key => $value_with_space) {
+                    $row[$key] = rtrim($value_with_space);
+                }
             }
-            $this->results[$result_value][$this->results[$result_value]['current_row']+1] = $row;
             if (!$row) {
                 if ($this->options['autofree']) {
                     $this->freeResult($result);

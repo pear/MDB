@@ -89,7 +89,7 @@ class MDB_oci8 extends MDB_Common
         $this->supported['order_by_text'] = 1;
         $this->supported['affected_rows']= 1;
         $this->supported['transactions'] = 1;
-        $this->supported['limit_querys'] = 1;
+        $this->supported['limit_queries'] = 1;
         $this->supported['LOBs'] = 1;
         $this->supported['replace'] = 1;
         $this->supported['sub_selects'] = 1;
@@ -965,19 +965,19 @@ class MDB_oci8 extends MDB_Common
                 } else {
                     $moredata = @OCIFetchInto($result, $row, OCI_RETURN_NULLS);
                 }
-                $this->results[$result_value]['current_row']++;
-                $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
                 if (!$moredata) {
                     if ($this->options['autofree']) {
                         $this->freeResult($result);
                     }
                     return null;
                 }
+                $this->results[$result_value]['current_row']++;
+                $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
             }
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                $row = $this->results[$result_value][$rownum];
+                $row = $this->results[$result_value][$rownum+1];
             } else {
-                $row = array_values($this->results[$result_value][$rownum]);
+                $row = array_values($this->results[$result_value][$rownum+1]);
             }
             $this->results[$result_value]['highest_fetched_row'] =
                 max($this->results[$result_value]['highest_fetched_row'], $rownum);
