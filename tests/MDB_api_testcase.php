@@ -125,8 +125,8 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         if (!$this->methodExists('getOption')) {
             return;
         }
-        $atc = $this->db->getOption('persistent');
-        $this->assertEquals($atc, $this->db->options['persistent']);
+        $option = $this->db->getOption('persistent');
+        $this->assertEquals($option, $this->db->options['persistent']);
     }
 
     function testSetOption() {
@@ -138,18 +138,6 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $this->assertEquals(!$option, $this->db->getOption('persistent'));
         $this->db->setOption('persistent', $option);
     }
-
-/*
-// incorrectly expects a specific escape character
-    function testGetTextValue() {
-        if (!$this->methodExists('getTextValue')) {
-            return;
-        }
-        $text = "Mr O'Leary";
-        $text = $this->db->getTextValue($text);
-        $this->assertEquals("'Mr O\'Leary'", $text);
-    }
-*/
 
     function testLoadModule() {
         if (!$this->methodExists('loadModule')) {
