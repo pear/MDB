@@ -78,7 +78,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         if (MDB::isError($result = $db->connect())) {
             return($result);
         }
-        if (!fbsql_create_db($name, $db->connection)) {
+        if (!@fbsql_create_db($name, $db->connection)) {
             return($db->fbsqlRaiseError());
         }
 
@@ -101,10 +101,10 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         if (MDB::isError($result = $db->connect())) {
             return($result);
         }
-        if (!fbsql_stop_db($name, $db->connection)) {
+        if (!@fbsql_stop_db($name, $db->connection)) {
             return($db->fbsqlRaiseError());
         }
-        if (!fbsql_drop_db($name, $db->connection)) {
+        if (!@fbsql_drop_db($name, $db->connection)) {
             return($db->fbsqlRaiseError());
         }
         return($db->disconnect());
