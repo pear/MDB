@@ -41,7 +41,7 @@
 // | Author: Paul Cooper <pgc@ucecom.com>                                 |
 // +----------------------------------------------------------------------+
 //
-// $Id;
+// $Id$
 
 require_once '../manager.php';
 require_once '../date.php';
