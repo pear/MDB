@@ -84,7 +84,7 @@ $suite = new PHPUnit_TestSuite();
 foreach ($dbarray as $db) {
     $dsn = $db['dsn'];
     // if the database name isn't set in the dsn use the default
-    if (empty($dsn['database']) {
+    if (empty($dsn['database'])) {
         $dsn['database'] = $database;
     }
     $options = $db['options'];
