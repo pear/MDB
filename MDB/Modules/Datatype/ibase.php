@@ -244,7 +244,8 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' '.$this->getTypeDeclaration($field).$notnull;    }
+        return $name.' '.$this->getTypeDeclaration($field).$notnull;
+    }
 
     // }}}
     // {{{ getDateDeclaration()
@@ -440,7 +441,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
                     $success = 0;
                     break;
                 }
-                if (!ibase_blob_add($lo, $data)) {
+                if (ibase_blob_add($lo, $data) === false) {
                     $result = $db->raiseError(MDB_ERROR, null, null,
                         'Could not add data to a large object: '.ibase_errmsg());
                     $success = 0;
@@ -504,6 +505,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     function freeLOBValue($lob,&$value)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+/*
         $prepared_query;
         $query_parameter = $db->query_parameter_values[$prepared_query][$lob];
 
@@ -513,6 +515,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
             unset($db->query_parameters[$prepared_query]);
             unset($db->query_parameter_values[$prepared_query]);
         }
+*/
         unset($value);
     }
 
