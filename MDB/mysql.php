@@ -428,7 +428,7 @@ class MDB_driver_mysql extends MDB_common
         if($this->supported["SubSelects"] == 1) {
             return($query);
         }
-        $col = $this->queryCol($query);
+        $col = $this->queryCol($query, NULL, DB_FETCHMODE_ORDERED);
         if (MDB::isError($col)) {
             return $col;
         }

@@ -361,7 +361,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      */ 
     function listDatabases(&$db)
     {
-        $result = $db->queryCol("SHOW DATABASES");
+        $result = $db->queryCol("SHOW DATABASES", NULL, DB_FETCHMODE_ORDERED);
         if(MDB::isError($result)) {
             return $result;
         }
@@ -382,7 +382,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      */ 
     function listUsers(&$db)
     {
-        $result = $db->queryCol("SELECT DISTINCT USER FROM USER");
+        $result = $db->queryCol("SELECT DISTINCT USER FROM USER", NULL, DB_FETCHMODE_ORDERED);
         if(MDB::isError($result)) {
             return $result;
         }
@@ -403,7 +403,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      */ 
     function listTables(&$db)
     {
-        $result = $db->queryCol("SHOW TABLES");
+        $result = $db->queryCol("SHOW TABLES", NULL, DB_FETCHMODE_ORDERED);
         if(MDB::isError($result)) {
             return $result;
         }
@@ -711,7 +711,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
             $db->freeResult($result);
             return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table indexes: show index does not return the table index names');
         }
-		$indexes_all = $db->fetchCol($result, DB_FETCHMODE_ORDERED, $columns["key_name"]);
+        $indexes_all = $db->fetchCol($result, DB_FETCHMODE_ORDERED, $columns["key_name"]);
         for($found = $indexes = array(), $index = 0; $index < count($indexes_all); $index++)
         {
             if ($indexes_all[$index] != "PRIMARY"
@@ -767,9 +767,9 @@ class MDB_manager_mysql_class extends MDB_manager_common
         $collation_column = $columns["collation"];
         $definition = array();
         while (is_array($row = $db->fetchInto($result))) {
-			$key_name = $row[$key_name_column];
-			if(!strcmp($index_name, $key_name)) {
-				if(!$row[$non_unique_column]) {
+            $key_name = $row[$key_name_column];
+            if(!strcmp($index_name, $key_name)) {
+                if(!$row[$non_unique_column]) {
                     $definition["unique"] = 1;
                 }
                 $column_name = $row[$column_name_column];
@@ -860,7 +860,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      */ 
     function listSequences(&$db)
     {
-        $result = $db->queryCol("SHOW TABLES");
+        $result = $db->queryCol("SHOW TABLES", NULL, DB_FETCHMODE_ORDERED);
         if(MDB::isError($result)) {
             return $result;
         }
@@ -887,7 +887,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
      */ 
     function getSequenceDefinition(&$db, $sequence)
     {
-        if(MDB::isError($table_names = $db->queryCol("SHOW TABLES"))) {
+        if(MDB::isError($table_names = $db->queryCol("SHOW TABLES", NULL, DB_FETCHMODE_ORDERED))) {
             return($table_names);
         }
         for($i = 0, $j = count($table_names); $i < $j; $i++) {

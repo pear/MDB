@@ -152,7 +152,7 @@ function MetabaseQueryRow($database, $query, &$row, $types = "")
 function MetabaseQueryColumn($database, $query, &$column, $type = "text")
 {
     global $databases;
-    $result = $databases[$database]->queryCol($query, $type);
+    $result = $databases[$database]->queryCol($query, $type, DB_FETCHMODE_ORDERED);
     if (MDB::isError($result)) {
         $databases[$database]->setError('', $result->getMessage());
         return(0);
@@ -578,7 +578,7 @@ function MetabaseFetchResultRow($database, $result, &$row)
 function MetabaseFetchResultColumn($database, $result, &$column)
 {
     global $databases;
-    $result = $databases[$database]->fetchCol($result);
+    $result = $databases[$database]->fetchCol($result, DB_FETCHMODE_ORDERED);
     if (MDB::isError($result)) {
         $databases[$database]->setError('', $result->getMessage());
         return(0);
