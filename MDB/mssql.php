@@ -106,8 +106,14 @@ class MDB_mssql extends MDB_Common
         $this->supported['SubSelects'] = 1;
 
         $this->errorcode_map = array(
+            207   => MDB_ERROR_NOSUCHFIELD,
             208   => MDB_ERROR_NOSUCHTABLE,
-            3701  => MDB_ERROR_NOSUCHTABLE
+            245   => MDB_ERROR_INVALID_NUMBER,
+            515   => MDB_ERROR_CONSTRAINT_NOT_NULL,
+            547   => MDB_ERROR_CONSTRAINT,
+            2627  => MDB_ERROR_CONSTRAINT,
+            2714  => MDB_ERROR_ALREADY_EXISTS,
+            3701  => MDB_ERROR_NOSUCHTABLE,
         );
     }
 
