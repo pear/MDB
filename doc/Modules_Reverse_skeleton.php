@@ -46,12 +46,12 @@
 //
 
 // This is just a skeleton MDB driver.
-// There may be methods missing as this skeleton is based on the methods
-// implemented by the MySQL and PostGreSQL drivers in MDB.
-// Some methods may not have to be implemented in the driver, because the
-// implementation in common.php is compatible with the given RDBMS.
+
 // In each of the listed methods I have added comments that tell you where
 // to look for a "reference" implementation.
+// Many of the methods below are taken from Metabase. Most of the methods
+// marked as "new in MDB" are actually taken from the latest beta files of
+// Metabase. However these beta files only include a version for MySQL.
 // Some of these methods have been expanded or changed slightly in MDB.
 // Looking in the relevant MDB Wrapper should give you some pointers, some
 // other difference you will only discover by looking at one of the existing
@@ -60,16 +60,16 @@
 // implementations of Metabase methods is the error handling.
 // Anyways don't worry if you are having problems: Lukas Smith is here to help!
 
-require_once 'MDB/Modules/Datatype/Common.php';
+require_once 'MDB/Modules/Reverse/Common.php';
 
 /**
- * MDB XXX driver
+ * MDB Xxx driver for the management modules
  *
  * @package MDB
  * @category Database
  * @author  YOUR NAME <YOUR EMAIL>
  */
-class MDB_Datatype_xxx extends MDB_Datatype_Common
+class MDB_Reverse_xxx extends MDB_Reverse_Common
 {
     // }}}
     // {{{ constructor
@@ -77,133 +77,59 @@ class MDB_Datatype_xxx extends MDB_Datatype_Common
     /**
      * Constructor
      */
-    function MDB_Datatype_xxx($db_index)
+    function MDB_Reverse_xxx($db_index)
     {
-        $this->MDB_Datatype_Common($db_index);
+        $this->MDB_Reverse_Common($db_index);
     }
 
     // }}}
-    // {{{ convertResult()
+    // {{{ getTableFieldDefinition()
 
     /**
-    * convert a value to a RDBMS indepdenant MDB type
-    *
-    * @param mixed  $value   value to be converted
-    * @param int    $type    constant that specifies which type to convert to
-    * @return mixed converted value
-    * @access public
-    */
-    function convertResult($value, $type)
-    {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        // take this from the corresponding Metabase driver: ConvertResult()
-    }
-
-    // }}}
-    // {{{ get*Declaration()
-
-    // take phpdoc comments from MDB common.php: get*Declaration()
-
-    function get*Declaration($name, $field)
-    {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        // take this from the corresponding Metabase driver: Get*FieldValue()
-    }
-
-    // }}}
-    // {{{ get*Value()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
+     * get the stucture of a field into an array
      *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
-     * @param           $clob
-     * @return string  text string that represents the given argument value in
-     *                 a DBMS specific format.
+     * @param string    $table         name of table that should be used in method
+     * @param string    $field_name     name of field that should be used in method
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function get*Value($prepared_query, $parameter, $clob)
+    function getTableFieldDefinition($table, $field_name)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        // take this from the corresponding Metabase driver: Get*FieldValue()
+        // new in MDB
     }
 
     // }}}
-    // {{{ getClobValue()
+    // {{{ getTableIndexDefinition()
 
     /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
+     * get the stucture of an index into an array
      *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
-     * @param           $clob
-     * @return string  text string that represents the given argument value in
-     *                 a DBMS specific format.
+     * @param string    $table      name of table that should be used in method
+     * @param string    $index_name name of index that should be used in method
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function getClobValue($prepared_query, $parameter, $clob)
+    function getTableIndexDefinition($table, $index_name)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        // take this from the corresponding Metabase driver: GetCLOBFieldValue()
+        // new in MDB
     }
 
     // }}}
-    // {{{ freeClobValue()
+    // {{{ getSequenceDefinition()
 
     /**
-     * free a chracter large object
+     * get the stucture of a sequence into an array
      *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param string    $clob
-     * @param string    $value
-     * @return MDB_OK
+     * @param string    $sequence   name of sequence that should be used in method
+     * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function freeClobValue($prepared_query, $clob, &$value)
+    function getSequenceDefinition($sequence)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        // take this from the corresponding Metabase driver: FreeClobValue()
-    }
-
-    // }}}
-    // {{{ getBlobValue()
-
-    /**
-     * Convert a text value into a DBMS specific format that is suitable to
-     * compose query statements.
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param           $parameter
-     * @param           $blob
-     * @return string  text string that represents the given argument value in
-     *                 a DBMS specific format.
-     * @access public
-     */
-    function getBlobValue($prepared_query, $parameter, $blob)
-    {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        // take this from the corresponding Metabase driver: GetBLOBFieldValue()
-    }
-
-    // }}}
-    // {{{ freeBlobValue()
-
-    /**
-     * free a binary large object
-     *
-     * @param resource  $prepared_query query handle from prepare()
-     * @param string    $blob
-     * @return MDB_OK
-     * @access public
-     */
-    function freeBlobValue($prepared_query, $blob)
-    {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        // take this from the corresponding Metabase driver: FreeBlobValue()
+        // new in MDB
     }
 }
-
 ?>

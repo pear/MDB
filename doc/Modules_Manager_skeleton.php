@@ -69,21 +69,32 @@ require_once 'MDB/Modules/Manager/Common.php';
  * @category Database
  * @author  YOUR NAME <YOUR EMAIL>
  */
-class MDB_Manager_xxx_ extends MDB_Manager_Common
+class MDB_Manager_xxx extends MDB_Manager_Common
 {
+    // }}}
+    // {{{ constructor
+
+    /**
+     * Constructor
+     */
+    function MDB_Datatype_xxx($db_index)
+    {
+        $this->MDB_Manager_Common($db_index);
+    }
+
     // }}}
     // {{{ createDatabase()
 
     /**
      * create a new database
      *
-     * @param object    $dbs        database object that is extended by this class
      * @param string $name name of the database that should be created
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createDatabase(&$db, $name)
+    function createDatabase($name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // take this from the corresponding Metabase driver: CreateDatabase()
     }
 
@@ -93,13 +104,13 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * drop an existing database
      *
-     * @param object    $dbs        database object that is extended by this class
      * @param string $name name of the database that should be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function dropDatabase(&$db, $name)
+    function dropDatabase($name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // take this from the corresponding Metabase driver: DropDatabase()
     }
 
@@ -109,7 +120,6 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * create a new table
      *
-     * @param object    $dbs        database object that is extended by this class
      * @param string $name     Name of the database that should be created
      * @param array $fields Associative array that contains the definition of each field of the new table
      *                        The indexes of the array entries are the names of the fields of the table an
@@ -137,8 +147,9 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createTable(&$db, $name, $fields)
+    function createTable($name, $fields)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // take this from the corresponding Metabase driver: CreateTable()
     }
 
@@ -148,7 +159,6 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * alter an existing table
      *
-     * @param object    $dbs        database object that is extended by this class
      * @param string $name         name of the table that is intended to be changed.
      * @param array $changes     associative array that contains the details of each type
      *                             of change that is intended to be performed. The types of
@@ -242,8 +252,9 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
      *
       * @return mixed MDB_OK on success, a MDB error on failure
      */
-    function alterTable(&$db, $name, $changes, $check)
+    function alterTable($name, $changes, $check)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // take this from the corresponding Metabase driver: AlterTable()
     }
 
@@ -253,12 +264,12 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * list all databases
      *
-     * @param object    $dbs        database object that is extended by this class
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listDatabases(&$db)
+    function listDatabases()
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // new in MDB
     }
 
@@ -268,12 +279,12 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * list all users
      *
-     * @param object    $dbs        database object that is extended by this class
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listUsers(&$db)
+    function listUsers()
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // new in MDB
     }
 
@@ -283,12 +294,12 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * list all tables in the current database
      *
-     * @param object    $dbs        database object that is extended by this class
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listTables(&$db)
+    function listTables()
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // new in MDB
     }
 
@@ -298,30 +309,13 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * list all fields in a tables in the current database
      *
-     * @param object    $dbs        database object that is extended by this class
      * @param string $table name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listTableFields(&$db, $table)
+    function listTableFields($table)
     {
-        // new in MDB
-    }
-
-    // }}}
-    // {{{ getTableFieldDefinition()
-
-    /**
-     * get the stucture of a field into an array
-     *
-     * @param object    $dbs        database object that is extended by this class
-     * @param string    $table         name of table that should be used in method
-     * @param string    $field_name     name of field that should be used in method
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     */
-    function getTableFieldDefinition(&$db, $table, $field_name)
-    {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // new in MDB
     }
 
@@ -331,7 +325,6 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * get the stucture of a field into an array
      *
-     * @param object    $dbs        database object that is extended by this class
      * @param string    $table         name of the table on which the index is to be created
      * @param string    $name         name of the index to be created
      * @param array     $definition        associative array that defines properties of the index to be created.
@@ -361,8 +354,9 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createIndex(&$db, $table, $name, $definition)
+    function createIndex($table, $name, $definition)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // take this from the corresponding Metabase driver: CreateIndex()
     }
 
@@ -372,14 +366,14 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * drop existing index
      *
-     * @param object    $dbs        database object that is extended by this class
      * @param string    $table         name of table that should be used in method
      * @param string    $name         name of the index to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function dropIndex(&$db, $table, $name)
+    function dropIndex($table, $name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // take this from the corresponding Metabase driver: DropIndex()
     }
 
@@ -389,32 +383,16 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * list all indexes in a table
      *
-     * @param object    $dbs        database object that is extended by this class
      * @param string    $table      name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listTableIndexes(&$db, $table)
+    function listTableIndexes($table)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // new in MDB
     }
 
-    // }}}
-    // {{{ getTableIndexDefinition()
-
-    /**
-     * get the stucture of an index into an array
-     *
-     * @param object    $dbs        database object that is extended by this class
-     * @param string    $table      name of table that should be used in method
-     * @param string    $index_name name of index that should be used in method
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     */
-    function getTableIndexDefinition(&$db, $table, $index_name)
-    {
-        // new in MDB
-    }
 
     // }}}
     // {{{ createSequence()
@@ -422,14 +400,14 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * create sequence
      *
-     * @param object    $dbs        database object that is extended by this class
      * @param string    $seq_name     name of the sequence to be created
      * @param string    $start         start value of the sequence; default is 1
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createSequence(&$db, $seq_name, $start)
+    function createSequence($seq_name, $start)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // take this from the corresponding Metabase driver: CreateSequence()
     }
 
@@ -439,13 +417,13 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * drop existing sequence
      *
-     * @param object    $dbs        database object that is extended by this class
      * @param string    $seq_name     name of the sequence to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function dropSequence(&$db, $seq_name)
+    function dropSequence($seq_name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // take this from the corresponding Metabase driver: DropSequence()
     }
 
@@ -455,28 +433,12 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     /**
      * list all sequences in the current database
      *
-     * @param object    $dbs        database object that is extended by this class
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listSequences(&$db)
+    function listSequences()
     {
-        // new in MDB
-    }
-
-    // }}}
-    // {{{ getSequenceDefinition()
-
-    /**
-     * get the stucture of a sequence into an array
-     *
-     * @param object    $dbs        database object that is extended by this class
-     * @param string    $sequence   name of sequence that should be used in method
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     */
-    function getSequenceDefinition(&$db, $sequence)
-    {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // new in MDB
     }
 }
