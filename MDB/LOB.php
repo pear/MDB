@@ -57,15 +57,14 @@ require_once 'PEAR.php';
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
  */
-
 class MDB_lob
 {
-
+    
     var $database;
     var $lob;
     var $data = '';
     var $position = 0;
-
+    
     function create(&$arguments)
     {
         if(isset($arguments['Data'])) {
@@ -73,17 +72,17 @@ class MDB_lob
         }
         return (MDB_OK);
     }
-
+    
     function destroy()
     {
         $this->data = '';
     }
-
+    
     function endOfLob()
     {
         return($this->position >= strlen($this->data));
     }
-
+    
     function readLob(&$data, $length)
     {
         $length = min($length, strlen($this->data) - $this->position);
@@ -95,8 +94,9 @@ class MDB_lob
 
 class MDB_lob_result extends MDB_lob
 {
+    
     var $result_lob = 0;
-
+    
     function create(&$arguments)
     {
         if(!isset($arguments['ResultLOB'])) {
@@ -107,17 +107,17 @@ class MDB_lob_result extends MDB_lob
         $this->result_lob = $arguments['ResultLOB'];
         return (MDB_OK);
     }
-
+    
     function destroy()
     {
         $this->database->_destroyResultLob($this->result_lob);
     }
-
+    
     function endOfLob()
     {
         return($this->database->endOfResultLob($this->result_lob));
     }
-
+    
     function readLob(&$data, $length)
     {
         $read_length = $this->database->_readResultLob($this->result_lob, $data, $length);
@@ -135,9 +135,10 @@ class MDB_lob_result extends MDB_lob
 
 class MDB_lob_input_file extends MDB_lob
 {
+    
     var $file = 0;
     var $opened_file = 0;
-
+    
     function create(&$arguments)
     {
         if(isset($arguments['File'])) {
@@ -165,7 +166,7 @@ class MDB_lob_input_file extends MDB_lob
         }
         return (MDB_OK);
     }
-
+    
     function destroy()
     {
         if($this->opened_file) {
@@ -174,11 +175,11 @@ class MDB_lob_input_file extends MDB_lob
             $this->opened_file = 0;
         }
     }
-
+    
     function endOfLob() {
         return(feof($this->file));
     }
-
+    
     function readLob(&$data, $length)
     {
         if(gettype($data = @fread($this->file, $length))!= 'string') {
@@ -192,12 +193,13 @@ class MDB_lob_input_file extends MDB_lob
 
 class MDB_lob_output_file extends MDB_lob
 {
+    
     var $file = 0;
     var $opened_file = 0;
     var $input_lob = 0;
     var $opened_lob = 0;
     var $buffer_length = 8000;
-
+    
     function create(&$arguments)
     {
         if(isset($arguments['BufferLength'])) {
@@ -267,7 +269,7 @@ class MDB_lob_output_file extends MDB_lob
         }
         return (MDB_OK);
     }
-
+    
     function destroy()
     {
         if($this->opened_file) {
@@ -281,32 +283,36 @@ class MDB_lob_output_file extends MDB_lob
             $this->opened_lob = 0;
         }
     }
-
+    
     function endOfLob()
     {
         return($this->database->endOfLob($this->input_lob));
     }
-
+    
     function readLob(&$data, $length) {
         $buffer_length = ($length == 0 ? $this->buffer_length : $length);
-        for($written = 0;
-            !$this->database->endOfLob($this->input_lob)
-            && $written < $buffer_length;
-            $written += $read)
-        {
-            if(MDB::isError($result = $this->database->
-                readLob($this->input_lob, $buffer, $buffer_length)))
+        $written_full = 0;
+        do {
+            for($written = 0;
+                !$this->database->endOfLob($this->input_lob)
+                && $written < $buffer_length;
+                $written += $read)
             {
-                return $result;
+                if(MDB::isError($result = $this->database->
+                    readLob($this->input_lob, $buffer, $buffer_length)))
+                {
+                    return $result;
+                }
+                $read = strlen($buffer);
+                if(@fwrite($this->file, $buffer, $read)!= $read) {
+                    return PEAR::raiseError(NULL, MDB_ERROR, NULL, NULL,
+                        'could not write to the output file',
+                        'MDB_Error', TRUE);
+                }
             }
-            $read = strlen($buffer);
-            if(@fwrite($this->file, $buffer, $read)!= $read) {
-                return PEAR::raiseError(NULL, MDB_ERROR, NULL, NULL,
-                    'could not write to the output file',
-                    'MDB_Error', TRUE);
-            }
-        }
-        return($written);
+            $written_full += $written;
+        } while($length == 0 && !$this->database->endOfLob($this->input_lob));
+        return($written_full);
     }
 };
 
