@@ -239,6 +239,9 @@ class MDB_PEAR_PROXY
 
     function quote($string)
     {
+        if ($string === NULL) {
+            return 'NULL';
+        }
         return $this->MDB_object->_quote($string);
     }
 
@@ -281,6 +284,61 @@ class MDB_PEAR_PROXY
     function prepare($query)
     {
         return $this->MDB_object->prepareQuery($query);
+    }
+
+    function autoPrepare($table, $table_fields, $mode = DB_AUTOQUERY_INSERT, $where = false)
+    {
+        $query = $this->buildManipSQL($table, $table_fields, $mode, $where);
+        return $this->prepare($query);
+    }
+
+    function autoExecute($table, $fields_values, $mode = DB_AUTOQUERY_INSERT, $where = false)
+    {
+        $sth = $this->autoPrepare($table, array_keys($fields_values), $mode, $where);
+        return $this->execute($sth, array_values($fields_values));
+    }
+
+    function buildManipSQL($table, $table_fields, $mode, $where = false)
+    {
+        if (count($table_fields) == 0) {
+            $this->raiseError(DB_ERROR_NEED_MORE_DATA);
+        }
+        $first = true;
+        switch ($mode) {
+            case DB_AUTOQUERY_INSERT:
+                $values = '';
+                $names = '';
+                while (list(, $value) = each($table_fields)) {
+                    if ($first) {
+                        $first = false;
+                    } else {
+                        $names .= ',';
+                        $values .= ',';
+                    }
+                    $names .= $value;
+                    $values .= '?';
+                }
+                return "INSERT INTO $table ($names) VALUES ($values)";
+                break;
+            case DB_AUTOQUERY_UPDATE:
+                $set = '';
+                while (list(, $value) = each($table_fields)) {
+                    if ($first) {
+                        $first = false;
+                    } else {
+                        $set .= ',';
+                    }
+                    $set .= "$value = ?";
+                }
+                $sql = "UPDATE $table SET $set";
+                if ($where) {
+                    $sql .= " WHERE $where";
+                }
+                return $sql;
+                break;
+            default:
+                $this->raiseError(DB_ERROR_SYNTAX);
+        }
     }
 
     function execute($stmt, $data = FALSE)
