@@ -320,7 +320,7 @@ class MDB_manager extends PEAR
      * @param array  $table       multi dimensional array that containts the
      *                            structure and optional data of the table
      * @param boolean $overwrite  determine if the table/index should be
-                                  overwritten if it allready exists
+                                  overwritten if it already exists
      * @return mixed MDB_OK on success, or a MDB error object
      * @access private
      */
@@ -331,7 +331,7 @@ class MDB_manager extends PEAR
         $this->popExpect(MDB_ERROR_ALREADY_EXISTS);
         if (MDB::isError($result)) {
             if($result->getCode() === MDB_ERROR_ALREADY_EXISTS) {
-                $this->warnings[] = 'Table allready exists: '.$table_name;
+                $this->warnings[] = 'Table already exists: '.$table_name;
                 if ($overwrite) {
                     $this->database->debug('Overwritting Table');
                     $result = $this->database->dropTable($table_name);
@@ -387,7 +387,7 @@ class MDB_manager extends PEAR
                                                 'Error' => '',
                                                 'Data' => $field
                                             );
-                                            if (MDB::isError($result = $this->database->reateLob($lob_definition)))
+                                            if (MDB::isError($result = $this->database->createLob($lob_definition)))
                                             {
                                                 break;
                                             }
@@ -467,7 +467,7 @@ class MDB_manager extends PEAR
                 $this->popExpect(MDB_ERROR_ALREADY_EXISTS);
                 if (MDB::isError($result)) {
                     if($result->getCode() === MDB_ERROR_ALREADY_EXISTS) {
-                        $this->warnings[] = 'Index allready exists: '.$index_name;
+                        $this->warnings[] = 'Index already exists: '.$index_name;
                         if ($overwrite) {
                             $this->database->debug('Overwritting Index');
                             $result = $this->database->dropIndex($table_name, $index_name);
@@ -527,7 +527,7 @@ class MDB_manager extends PEAR
      *                               structure and optional data of the table
      * @param string $created_on_table
      * @param boolean $overwrite    determine if the sequence should be overwritten
-                                    if it allready exists
+                                    if it already exists
      * @return mixed MDB_OK on success, or a MDB error object
      * @access private
      */
@@ -563,7 +563,7 @@ class MDB_manager extends PEAR
         $this->popExpect(MDB_ERROR_ALREADY_EXISTS);
         if (MDB::isError($result)) {
             if($result->getCode() === MDB_ERROR_ALREADY_EXISTS) {
-                $this->warnings[] = 'Sequence allready exists: '.$sequence_name;
+                $this->warnings[] = 'Sequence already exists: '.$sequence_name;
                 if ($overwrite) {
                     $this->database->debug('Overwritting Sequence');
                     $result = $this->database->dropSequence($sequence_name);
@@ -638,7 +638,7 @@ class MDB_manager extends PEAR
             $this->popExpect(MDB_ERROR_ALREADY_EXISTS);
             if (MDB::isError($result)) {
                 if($result->getCode() === MDB_ERROR_ALREADY_EXISTS) {
-                    $this->warnings[] = 'Database allready exists: '.$this->database_definition['name'];
+                    $this->warnings[] = 'Database already exists: '.$this->database_definition['name'];
             /*
                     if ($overwrite) {
                         $this->database->debug('Overwritting Database');
@@ -1627,11 +1627,10 @@ class MDB_manager extends PEAR
      * This method can be used if no xml schema file exists yet.
      * The resulting xml schema file may need some manual adjustments.
      *
-     * @param boolean $schema_file path of the database schema file.
      * @return mixed MDB_OK or array with all ambiguities on success, or a MDB error object
      * @access public
      */
-    function getDefinitionFromDatabase($ignore_ambiguity = TRUE)
+    function getDefinitionFromDatabase()
     {
         $database = $this->database->database_name;
         if (strlen($database) == 0) {
