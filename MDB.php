@@ -230,7 +230,7 @@ class MDB
             return PEAR::raiseError(NULL, DB_ERROR_NOT_FOUND,
                                     NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
-        $db =& new $class_name($dsninfo, $options);
+        $db =& new $class_name;
         return $db;
     }
 

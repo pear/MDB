@@ -81,7 +81,7 @@ class MDB_driver_mysql extends MDB_common
     /**
     * Constructor
     */
-    function MDB_driver_mysql($dsninfo, $options)
+    function MDB_driver_mysql($dsninfo = NULL, $options = NULL)
     {
         if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
             return $common_contructor;
@@ -130,9 +130,9 @@ class MDB_driver_mysql extends MDB_common
                         .' is not a supported default table type';
             }
         }
-
+        
         $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
-
+        
         $this->errorcode_map = array(
             1004 => DB_ERROR_CANNOT_CREATE,
             1005 => DB_ERROR_CANNOT_CREATE,
