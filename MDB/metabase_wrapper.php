@@ -197,6 +197,15 @@ function MetabaseQueryAll($database, $query, &$all, $types = '')
 function MetabaseReplace($database, $table, &$fields)
 {
     global $_MDB_databases;
+    for($keys = 0, $condition = $update = $insert = $values = '', reset($fields), $field = 0;
+        $field < $count;
+        next($fields), $field++)
+    {
+        $name = key($fields);
+        if(!isset($fields[$name]['Type'])) {
+            $fields[$name]['Type'] = 'text';
+        }
+    }
     $result = $_MDB_databases[$database]->replace($table, $fields);
     if (MDB::isError($result)) {
         $_MDB_databases[$database]->setError('Replace', $result->getMessage());
