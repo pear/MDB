@@ -98,9 +98,9 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.1.4-RC1</version>
+    <version>1.1.4-RC2</version>
     <state>devel</state>
-    <date>2003-10-16</date>
+    <date>2003-10-22</date>
     <notes>
       - added MDB::isConnection()
       - minor improvements to the test suite
@@ -112,6 +112,7 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
       - fixed bug in common implementation of currID() which would result in a fatal error
       - backported several fixes from HEAD to each of the drivers
       - interbase driver now also supports associative fetching
+      - interbase driver: added missing getTypeDeclaration() method
       - fixed bug in extension detection
     </notes>
     <filelist>
