@@ -302,13 +302,13 @@ class MDB
         
         if(is_array($options)) {
             foreach($options as $option => $value) {
-                $test = $obj->setOption($option, $value);
+                $test = $db->setOption($option, $value);
                 if (MDB::isError($test)) {
                     return $test;
                 }
             }
         } else {
-            $obj->setOption('persistent', $options);
+            $db->setOption('persistent', $options);
         }
         $include_lob = $db->getOption('includelob');
         if(!MDB::isError($include_lob) && $include_lob) {
