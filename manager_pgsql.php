@@ -125,7 +125,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "' . $name . '"');
         }
         $query_fields = '';
-        if (MDB::isError($query_fields = $this->getFieldDeclarationList($db, $fields))) {
+        if (MDB::isError($query_fields = $db->getFieldDeclarationList($db, $fields))) {
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'unkown error');
         }
         return ($db->query("CREATE TABLE $name ($query_fields)"));
@@ -227,7 +227,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      * @access public
      * @return mixed DB_OK on success, a DB error on failure
      **/
-    function alterTable($name, &$changes, $check)
+    function alterTable(&$db, $name, &$changes, $check)
     {
         if ($check) {
             for ($change = 0, reset($changes); $change < count($changes); next($changes), $change++) {
@@ -235,33 +235,33 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
                     case 'AddedFields':
                         break;
                     case 'RemovedFields':
-                        return($this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'database server does not support dropping table columns'));
+                        return($db->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'database server does not support dropping table columns'));
                     case 'name':
                     case 'RenamedFields':
                     case 'ChangedFields':
                     default:
-                        return($this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'change type "'.key($changes).'\" not yet supported'));
+                        return($db->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'change type "'.key($changes).'\" not yet supported'));
                 }
             }
             return (DB_OK);
         } else {
             if (isSet($changes[$change = 'name']) || isSet($changes[$change = 'RenamedFields']) || isSet($changes[$change = 'ChangedFields'])) {
-                return($this->raiseError(DB_ERROR_UNSUPPORTED, '', '', "change type \"$change\" not yet supported"));
+                return($db->raiseError(DB_ERROR_UNSUPPORTED, '', '', "change type \"$change\" not yet supported"));
             }
             $query = '';
             if (isSet($changes['AddedFields'])) {
                 $fields = $changes['AddedFields'];
                 for ($field = 0, reset($fields); $field < count($fields); next($fields), $field++) {
-                    if (!$this->db->query("ALTER TABLE $name ADD ".$fields[key($fields)]['Declaration'])) {
-                        $this->db->pgsqlError();
+                    if (!$db->query("ALTER TABLE $name ADD ".$fields[key($fields)]['Declaration'])) {
+                        $db->pgsqlError();
                     }
                 }
             }
             if (isSet($changes['RemovedFields'])) {
                 $fields = $changes['RemovedFields'];
                 for ($field = 0, reset($fields); $field < count($fields); next($fields), $field++) {
-                    if (!$this->query("ALTER TABLE $name DROP ".key($fields))) {
-                        $this->db->pgsqlError();
+                    if (!$db->query("ALTER TABLE $name DROP ".key($fields))) {
+                        $db->pgsqlError();
                     }
                 }
             }

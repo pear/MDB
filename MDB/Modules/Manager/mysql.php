@@ -157,7 +157,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
         if (MDB::isError($result = $db->connect())) {
             return $result;
         }
-        if (!mysql_drop_db($name, $this->connection)) {
+        if (!mysql_drop_db($name, $db->connection)) {
             return $db->mysqlRaiseError(DB_ERROR_CANNOT_DROP);
         }
         return (DB_OK);
@@ -922,7 +922,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
         }
         for($i = 0, $j = count($result), $sequences = array(); $i < $j; ++$i)
         {
-            if ($sqn = $this->_isSequenceName(&$db, $result[$i]))
+            if ($sqn = $db->_isSequenceName(&$db, $result[$i]))
                 $sequences[] = $sqn;
         }
         return ($sequences);
@@ -946,7 +946,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
             return($table_names);
         }
         for($i = 0, $j = count($table_names); $i < $j; $i++) {
-            if ($sqn = $this->_isSequenceName($db, $table_names[$i])) {
+            if ($sqn = $db->_isSequenceName($db, $table_names[$i])) {
                 $start = $db->currId($sqn);
                 if (MDB::isError($start)) {
                     return ($start);
@@ -954,7 +954,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
                 if ($db->support('CurrId')) {
                     $start++;
                 } else {
-                    $this->warnings[] = 'database does not support getting current sequence value, the sequence value was incremented';
+                    $db->warnings[] = 'database does not support getting current sequence value, the sequence value was incremented';
                 }
                 $definition = array('start' => $start);
                 return($definition);
