@@ -146,26 +146,64 @@ function mdbTime()
     return(strftime("%H:%M:%S"));
 }
 
-function date2Mdbstamp($hour, $minute, $second, $month, $say, $year)
+// }}}
+// {{{ date2Mdbstamp()
+/**
+ * convert a date into a MDB timestamp
+ *
+ * @param integer $hour        hour of the date
+ * @param integer $minute    minute of the date
+ * @param integer $second    second of the date
+ * @param integer $month    month of the date
+ * @param integer $day        day of the date
+ * @param integer $year        year of the date
+ * 
+*  * @return string a valid MDB timestamp
+ *
+ * @access public
+ */
+function date2Mdbstamp($hour = NULL, $minute = NULL, $second = NULL, $month = NULL, $day = NULL, $year = NULL)
 {
     return unix2Mdbstamp(mktime ($hour, $minute, $second, $month, $day, $year));
 }
-    
+
+// }}}
+// {{{ unix2Mdbstamp()
+/**
+ * convert a unix timestamp into a MDB timestamp
+ * 
+ * @param integer $unix_timestamp    a valid unix timestamp
+  *
+ * @return string a valid MDB timestamp
+ *
+ * @access public
+ */   
 function unix2Mdbstamp($unix_timestamp)
 {
     return date('Y-m-d H:i:s', $unix_timestamp);
 }
-    
+
+// }}}
+// {{{ mdbstamp2Unix()
+/**
+ * convert a MDB timestamp into a unix timestamp
+ * 
+ * @param integer $mdb_timestamp    a valid MDB timestamp
+ * 
+ * @return string current time in the MDB format
+ *
+ * @access public
+ */  
 function mdbstamp2Unix($mdb_timestamp)
 {
     // 0123456789012345678
     // YYYY-MM-DD HH:MM:SS
-    $year = substr($timestamp,0,4);
-    $month = substr($timestamp,5,2);
-    $day = substr($timestamp,8,2);
-    $hour = substr($timestamp,11,2);
-    $minute = substr($timestamp,14,2);
-    $second = substr($timestamp,17,2);
+    $year = substr($mdb_timestamp,0,4);
+    $month = substr($mdb_timestamp,5,2);
+    $day = substr($mdb_timestamp,8,2);
+    $hour = substr($mdb_timestamp,11,2);
+    $minute = substr($mdb_timestamp,14,2);
+    $second = substr($mdb_timestamp,17,2);
     return mktime ($hour, $minute, $second, $month, $day, $year);
 }
 
@@ -228,6 +266,11 @@ class MDB_common extends PEAR
         $this->supported = array();
         $this->errorcode_map = array();
         $this->fetchmode = DB_FETCHMODE_ORDERED;
+
+        global $databases;
+        $database = count($databases)+1;
+        $databases[$database] = &$this;
+        $this->database = $database;
 
         $this->include_path = $include_path;
         if (isset($dsninfo["hostspec"])) {
@@ -1255,6 +1298,51 @@ class MDB_common extends PEAR
     }
 
     // }}}
+    // {{{ listTableIndexes()
+
+    /**
+     * list all indexes in a table
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $table      name of table that should be used in method
+     *
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function listTableIndexes($table)
+    {
+        $result = $this->loadManager("List table index");
+        if (MDB::isError($result)) {
+            return ($result);
+        }
+        return ($this->manager->listTableIndexes($this, $table));
+    }
+
+    // }}}
+    // {{{ getTableIndexDefinition()
+
+    /**
+     * get the stucture of an index into an array
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $table      name of table that should be used in method
+     * @param string    $index      name of index that should be used in method
+      * 
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function getTableIndexDefinition($table, $index)
+    {
+        $result = $this->loadManager("Get table index definition");
+        if (MDB::isError($result)) {
+            return ($result);
+        }
+        return ($this->manager->getTableIndexDefinition($this, $table, $index));
+    }
+
+    // }}}
     // {{{ createSequence()
     /**
      * create sequence
@@ -1311,6 +1399,28 @@ class MDB_common extends PEAR
             return ($result);
         }
         return ($this->manager->listSequences($this));
+    }
+
+    // }}}
+    // {{{ getSequenceDefinition()
+
+    /**
+     * get the stucture of a sequence into an array
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $sequence   name of sequence that should be used in method
+      * 
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function getSequenceDefinition($sequence)
+    {
+        $result = $this->loadManager("Get sequence definition");
+        if (MDB::isError($result)) {
+            return ($result);
+        }
+        return ($this->manager->getSequenceDefinition($this, $sequence));
     }
 
     // }}}
@@ -2532,7 +2642,7 @@ class MDB_common extends PEAR
     }
 
     // }}}
-    // {{{ fetchLobResult()
+    // {{{ fetchLob()
     /**
      * fetch a lob value from a result set
      *
@@ -2544,7 +2654,7 @@ class MDB_common extends PEAR
      *
      * @access public
      */
-    function fetchLobResult($result, $row, $field)
+    function fetchLob($result, $row, $field)
     {
         $lob = count($this->lobs) + 1;
         $this->lobs[$lob] = array(
@@ -2655,7 +2765,7 @@ class MDB_common extends PEAR
     }
 
     // }}}
-    // {{{ fetchClobResult()
+    // {{{ fetchClob()
     /**
      * fetch a clob value from a result set
      *
@@ -2668,14 +2778,14 @@ class MDB_common extends PEAR
      *
      * @access public
      */
-    function fetchClobResult($result, $row, $field)
+    function fetchClob($result, $row, $field)
     {
         return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
             'fetch clob result method is not implemented');
     }
 
     // }}}
-    // {{{ fetchBlobResult()
+    // {{{ fetchBlob()
     /**
      * fetch a blob value from a result set
      *
@@ -2687,7 +2797,7 @@ class MDB_common extends PEAR
      *
      * @access public
      */
-    function fetchBlobResult($result, $row, $field)
+    function fetchBlob($result, $row, $field)
     {
         return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
             'fetch blob result method is not implemented');
@@ -2819,7 +2929,7 @@ class MDB_common extends PEAR
     }
 
     // }}}
-    // {{{ fetchDateResult()
+    // {{{ fetchDate()
     /**
      * fetch a date value from a result set
      *
@@ -2831,14 +2941,14 @@ class MDB_common extends PEAR
      *
      * @access public
      */
-    function fetchDateResult($result, $row, $field)
+    function fetchDate($result, $row, $field)
     {
         $value = $this->fetch($result,$row,$field);
         return ($this->convertResult($value, MDB_TYPE_DATE));
     }
 
     // }}}
-    // {{{ fetchTimestampResult()
+    // {{{ fetchTimestamp()
     /**
      * fetch a timestamp value from a result set
      *
@@ -2850,14 +2960,14 @@ class MDB_common extends PEAR
      *
      * @access public
      */
-    function fetchTimestampResult($result, $row, $field)
+    function fetchTimestamp($result, $row, $field)
     {
         $value = $this->fetch($result,$row,$field);
         return ($this->convertResult($value, MDB_TYPE_TIMESTAMP));
     }
 
     // }}}
-    // {{{ fetchTimeResult()
+    // {{{ fetchTime()
     /**
      * fetch a time value from a result set
      *
@@ -2869,14 +2979,14 @@ class MDB_common extends PEAR
      *
      * @access public
      */
-    function fetchTimeResult($result, $row, $field)
+    function fetchTime($result, $row, $field)
     {
         $value = $this->fetch($result, $row, $field);
         return ($this->convertResult($value, MDB_TYPE_TIME));
     }
 
     // }}}
-    // {{{ fetchBooleanResult()
+    // {{{ fetchBoolean()
     /**
      * fetch a boolean value from a result set
      *
@@ -2888,14 +2998,14 @@ class MDB_common extends PEAR
      *
      * @access public
      */
-    function fetchBooleanResult($result, $row, $field)
+    function fetchBoolean($result, $row, $field)
     {
         $value = $this->fetch($result, $row, $field);
         return ($this->convertResult($value, MDB_TYPE_BOOLEAN));
     }
 
     // }}}
-    // {{{ fetchFloatResult()
+    // {{{ fetchFloat()
     /**
      * fetch a float value from a result set
      *
@@ -2907,14 +3017,14 @@ class MDB_common extends PEAR
      *
      * @access public
      */
-    function fetchFloatResult($result, $row, $field)
+    function fetchFloat($result, $row, $field)
     {
         $value = $this->fetch($result, $row, $field);
         return ($this->convertResult($value, MDB_TYPE_FLOAT));
     }
 
     // }}}
-    // {{{ fetchDecimalResult()
+    // {{{ fetchDecimal()
     /**
      * fetch a decimal value from a result set
      *
@@ -2926,7 +3036,7 @@ class MDB_common extends PEAR
      *
      * @access public
      */
-    function fetchDecimalResult($result, $row, $field)
+    function fetchDecimal($result, $row, $field)
     {
         $value = $this->fetch($result, $row, $field);
         return ($this->convertResult($value, MDB_TYPE_DECIMAL));
