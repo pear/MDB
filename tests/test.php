@@ -47,14 +47,14 @@
  This is a small (at least to start with) test suite
 */
 
-require_once 'PHPUnit/PHPUnit.php';
+require_once 'PHPUnit.php';
 require_once 'HTML/IT.php';
 require_once 'test_setup.php';
 
 require_once 'MDB/Manager.php';
 require_once 'MDB/Date.php';
 
-$tpl = new IntegratedTemplate('./templates');
+$tpl = new IntegratedTemplate('templates');
 
 $tpl->loadTemplatefile('results.tpl', true, true);
 
