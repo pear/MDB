@@ -921,7 +921,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         if ($start == 1) {
             return(MDB_OK);
         }
-        $res = $db->query("INSERT INTO $sequence_name VALUES (".($start-1).')');
+        $res = $db->query("INSERT INTO $sequence_name (".$db->options['sequence_col_name'].") VALUES (".($start-1).')');
         if (!MDB::isError($res)) {
             return(MDB_OK);
         }

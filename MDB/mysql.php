@@ -1325,7 +1325,7 @@ class MDB_mysql extends MDB_Common
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
-        $result = $this->query("INSERT INTO $sequence_name VALUES (NULL)");
+        $result = $this->query("INSERT INTO $sequence_name (".$db->options['sequence_col_name'].") VALUES (NULL)");
         $this->popExpect();
         if ($ondemand && MDB::isError($result) &&
             $result->getCode() == MDB_ERROR_NOSUCHTABLE)
