@@ -1,6 +1,5 @@
 <?php
 
-require_once '../MDB.php';
 require_once '../manager.php';
 require_once '../date.php';
 require_once 'PHPUnit/PHPUnit.php';
@@ -67,12 +66,10 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
         global $includemanager;
         if ($includemanager) {
             $manager = new MDB_manager;
-            $input_file = 'metapear_test_db.schema';
-            $output_file = $input_file . '.before'; 
-            $database_variables = array();
-            $result = $manager->updateDatabase($input_file, $input_file.".before", $dsn, $database_variables);
-            $result = $manager->updateDatabase($input_file, $output_file, $this->dsn, $database_variables);
-        
+            $input_file = '../driver_test.schema';
+            $backup_file = $input_file . '.before';
+            $manager->connect($this->db);
+            $result = $manager->updateDatabase($input_file, $backup_file);
             $this->assertTrue(!MDB::isError($result), $result->toString());
         } else {
             $this->assertTrue(TRUE);
