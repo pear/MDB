@@ -606,15 +606,20 @@ class MDB_querysim extends MDB_Common
      */
     function getColumnNames($result)
     {
-        $result_link = $this->_querySimSignature($result);
-        if (!isset($this->highest_fetched_row[$result_link])) {
-            return $this->raiseError(MDB_ERROR_INVALID, null, null,
-                'Get column names: a non-existant result set was specified');
+        $result_value = $this->_querySimSignature($result);
+        if (!isset($this->highest_fetched_row[$result_value])) {
+            return($this->raiseError(MDB_ERROR, NULL, NULL,
+                'Get column names: it was specified an inexisting result set'));
         }
-        $this->columns[$result_link] = array_flip($result[0]);
-        $res = array_change_key_case($res, CASE_LOWER);
-        
-        return $res;
+        if (!isset($this->columns[$result_value])) {
+            $this->columns[$result_value] = array();
+            $columns = array_flip($result[0]);
+            if ($this->options['optimize'] == 'portability') {
+                $columns = array_change_key_case($columns, CASE_LOWER);
+            }
+            $this->columns[$result_value] = $columns;
+        }
+        return($this->columns[$result_value]);
     }
     // }}}
 
@@ -630,8 +635,8 @@ class MDB_querysim extends MDB_Common
      */
     function numCols($result)
     {
-        $result_link = $this->_querySimSignature($result);
-        if (!isset($this->highest_fetched_row[$result_link])) {
+        $result_value = $this->_querySimSignature($result);
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'numCols: a non-existant result set was specified');
         }
@@ -651,12 +656,12 @@ class MDB_querysim extends MDB_Common
     */
     function endOfResult($result)
     {
-        $result_link = $this->_querySimSignature($result);
-        if (!isset($this->highest_fetched_row[$result_link])) {
+        $result_value = $this->_querySimSignature($result);
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'endOfResult(): attempted to check the end of an unknown result');
         }
-        return ($this->highest_fetched_row[$result_link] >= $this->numRows($result)-1);
+        return ($this->highest_fetched_row[$result_value] >= $this->numRows($result)-1);
     }
     // }}}
 
@@ -673,8 +678,8 @@ class MDB_querysim extends MDB_Common
     */
     function fetch($result, $row, $field)
     {
-        $result_link = $this->_querySimSignature($result);
-        $this->highest_fetched_row[$result_link] = max($this->highest_fetched_row[$result_link], $row);
+        $result_value = $this->_querySimSignature($result);
+        $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $row);
         if (isset($result[1][$row][$field])) {
             $res = $result[1][$row][$field];
         } else {
@@ -696,8 +701,8 @@ class MDB_querysim extends MDB_Common
     */
     function numRows($result)
     {
-        $result_link = $this->_querySimSignature($result);
-        if (!isset($this->highest_fetched_row[$result_link])) {
+        $result_value = $this->_querySimSignature($result);
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'numRows(): a non-existant result set was specified');
         }
@@ -717,16 +722,16 @@ class MDB_querysim extends MDB_Common
      */
     function freeResult(&$result)
     {
-        $result_link = $this->_querySimSignature($result);
+        $result_value = $this->_querySimSignature($result);
         
-        if(isset($this->highest_fetched_row[$result_link])) {
-            unset($this->highest_fetched_row[$result_link]);
+        if(isset($this->highest_fetched_row[$result_value])) {
+            unset($this->highest_fetched_row[$result_value]);
         }
-        if(isset($this->columns[$result_link])) {
-            unset($this->columns[$result_link]);
+        if(isset($this->columns[$result_value])) {
+            unset($this->columns[$result_value]);
         }
-        if(isset($this->result_types[$result_link])) {
-            unset($this->result_types[$result_link]);
+        if(isset($this->result_types[$result_value])) {
+            unset($this->result_types[$result_value]);
         }
         if (isset($result)) {
             // can't unset() in caller, so this is the best we can do...
@@ -751,17 +756,17 @@ class MDB_querysim extends MDB_Common
      */
     function fetchInto(&$result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
-        $result_link = $this->_querySimSignature($result);
+        $result_value = $this->_querySimSignature($result);
         //if specific rownum request
         if ($rownum == null) {
-            ++$this->highest_fetched_row[$result_link];
-            $rownum = $this->highest_fetched_row[$result_link];
+            ++$this->highest_fetched_row[$result_value];
+            $rownum = $this->highest_fetched_row[$result_value];
         } else {
             if (!isset($result[1][$rownum])) {
                 return null;
             }
-            $this->highest_fetched_row[$result_link] =
-                max($this->highest_fetched_row[$result_link], $rownum);
+            $this->highest_fetched_row[$result_value] =
+                max($this->highest_fetched_row[$result_value], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
@@ -795,13 +800,13 @@ class MDB_querysim extends MDB_Common
      */
     function nextResult(&$result)
     {
-        $result_link = $this->_querySimSignature($result);
-        if (!isset($this->highest_fetched_row[$result_link])) {
+        $result_value = $this->_querySimSignature($result);
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'nextResult(): a non-existant result set was specified');
         }
-        $result_link = $this->_querySimSignature($result);
-        $setrow = ++$this->highest_fetched_row[$result_link];
+        $result_value = $this->_querySimSignature($result);
+        $setrow = ++$this->highest_fetched_row[$result_value];
         return isset($result[1][$setrow]) ? true : false;
     }
     // }}}
