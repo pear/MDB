@@ -60,11 +60,7 @@
 // implementations of Metabase methods is the error handling.
 // Anyways don't worry if you are having problems: Lukas Smith is here to help!
 
-if(!defined('MDB_MANAGER_XXX_INCLUDED'))
-{
-    define('MDB_MANAGER_XXX_INCLUDED',1);
-
-require_once('MDB/Modules/Manager/Common.php');
+require_once 'MDB/Modules/Manager/Common.php';
 
 /**
  * MDB Xxx driver for the management modules
@@ -483,7 +479,5 @@ class MDB_Manager_xxx_ extends MDB_Manager_Common
     {
         // new in MDB
     }
-}
-
 }
 ?>
