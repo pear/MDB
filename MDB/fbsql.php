@@ -521,7 +521,11 @@ class MDB_fbsql extends MDB_Common
     */
     function numRows($result)
     {
-        return fbsql_num_rows($result);
+        if ($this->options['result_buffering']) {
+            return fbsql_num_rows($result);
+        }
+        return $this->raiseError(MDB_ERROR, null, null,
+            'Number of rows: nut supported if option "result_buffering" is not enabled');
     }
 
     // }}}
@@ -612,6 +616,30 @@ class MDB_fbsql extends MDB_Common
         }
 
         return $this->fetchOne($result);
+    }
+
+    // }}}
+    // {{{ fetch()
+
+    /**
+    * fetch value from a result set
+    *
+    * @param resource    $result result identifier
+    * @param int    $rownum    number of the row where the data can be found
+    * @param int    $field    field number where the data can be found
+    * @return mixed string on success, a MDB error on failure
+    * @access public
+    */
+    function fetch($result, $rownum, $field)
+    {
+        $result_value = intval($result);
+        $this->results[$result_value]['highest_fetched_row'] =
+            max($this->results[$result_value]['highest_fetched_row'], $rownum);
+        $value = @@fbsql_result($result, $rownum, $field);
+        if ($value === FALSE && $value != NULL) {
+            return($this->mysqlRaiseError($errno));
+        }
+        return($value);
     }
 
     // }}}

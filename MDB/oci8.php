@@ -857,6 +857,30 @@ class MDB_oci8 extends MDB_Common
     }
 
     // }}}
+    // {{{ fetch()
+
+    /**
+     * fetch value from a result set
+     *
+     * @param resource $result result identifier
+     * @param int $rownum number of the row where the data can be found
+     * @param int $field field number where the data can be found
+     * @return mixed string on success, a MDB error on failure
+     * @access public
+     */
+    function fetch($result, $rownum, $field)
+    {
+        $result_value = intval($result);
+        if (MDB::isError($column = $this->_getColumn($result, $field))) {
+            return $column;
+        }
+        if (MDB::isError($row = $this->fetchRow($result, MDB_FETCHMODE_ORDERED, $rownum))) {
+            return $row;
+        }
+        return $row[$column]);
+    }
+
+    // }}}
     // {{{ fetchRow()
 
     /**
