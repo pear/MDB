@@ -234,7 +234,7 @@ class MDB_Manager_Common
      *
      *                                New name for the table.
      *
-     *                            AddedFields
+     *                            added_fields
      *
      *                                Associative array with the names of fields to be added as
      *                                 indexes of the array. The value of each entry of the array
@@ -246,13 +246,13 @@ class MDB_Manager_Common
      *                                 is expected to contain the portion of the field declaration already
      *                                 in DBMS specific SQL code as it is used in the CREATE TABLE statement.
      *
-     *                            RemovedFields
+     *                            removed_fields
      *
      *                                Associative array with the names of fields to be removed as indexes
      *                                 of the array. Currently the values assigned to each entry are ignored.
      *                                 An empty array should be used for future compatibility.
      *
-     *                            RenamedFields
+     *                            renamed_fields
      *
      *                                Associative array with the names of fields to be renamed as indexes
      *                                 of the array. The value of each entry of the array should be set to
@@ -261,11 +261,11 @@ class MDB_Manager_Common
      *                                 the portion of the field declaration already in DBMS specific SQL code
      *                                 as it is used in the CREATE TABLE statement.
      *
-     *                            ChangedFields
+     *                            changed_fields
      *
      *                                Associative array with the names of the fields to be changed as indexes
      *                                 of the array. Keep in mind that if it is intended to change either the
-     *                                 name of a field and any other properties, the ChangedFields array entries
+     *                                 name of a field and any other properties, the changed_fields array entries
      *                                 should have the new names of the fields as array indexes.
      *
      *                                The value of each entry of the array should be set to another associative
@@ -285,28 +285,28 @@ class MDB_Manager_Common
      *                            Example
      *                                array(
      *                                    'name' => 'userlist',
-     *                                    'AddedFields' => array(
+     *                                    'added_fields' => array(
      *                                        'quota' => array(
      *                                            'type' => 'integer',
      *                                            'unsigned' => 1
-     *                                            'Declaration' => 'quota INT'
+     *                                            'declaration' => 'quota INT'
      *                                        )
      *                                    ),
-     *                                    'RemovedFields' => array(
+     *                                    'removed_fields' => array(
      *                                        'file_limit' => array(),
      *                                        'time_limit' => array()
      *                                        ),
-     *                                    'ChangedFields' => array(
+     *                                    'changed_fields' => array(
      *                                        'gender' => array(
      *                                            'default' => 'M',
-     *                                            'ChangeDefault' => 1,
-     *                                            'Declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                            'change_default' => 1,
+     *                                            'declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                        )
      *                                    ),
-     *                                    'RenamedFields' => array(
+     *                                    'renamed_fields' => array(
      *                                        'sex' => array(
      *                                            'name' => 'gender',
-     *                                            'Declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                            'declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                        )
      *                                    )
      *                                )
@@ -463,7 +463,7 @@ class MDB_Manager_Common
 
      *                                 Example
      *                                    array(
-     *                                        'FIELDS' => array(
+     *                                        'fields' => array(
      *                                            'user_name' => array(
      *                                                'sorting' => 'ascending'
      *                                            ),
@@ -480,16 +480,16 @@ class MDB_Manager_Common
             $query .= ' UNIQUE';
         }
         $query .= " INDEX $name ON $table (";
-        for($field = 0,reset($definition['FIELDS']);
-            $field<count($definition['FIELDS']); $field++,next($definition['FIELDS']))
+        for($field = 0,reset($definition['fields']);
+            $field<count($definition['fields']); $field++,next($definition['fields']))
         {
             if ($field>0) {
                 $query.= ', ';
             }
-            $field_name = Key($definition['FIELDS']);
+            $field_name = key($definition['fields']);
             $query.= $field_name;
-            if ($db->support('IndexSorting') && isset($definition['FIELDS'][$field_name]['sorting'])) {
-                switch($definition['FIELDS'][$field_name]['sorting']) {
+            if ($db->support('index_sorting') && isset($definition['fields'][$field_name]['sorting'])) {
+                switch($definition['fields'][$field_name]['sorting']) {
                     case 'ascending':
                         $query.= ' ASC';
                         break;
@@ -635,7 +635,7 @@ class MDB_Manager_Common
         if (MDB::isError($start)) {
             return $start;
         }
-        if ($db->support('CurrId')) {
+        if ($db->support('current_id')) {
             $start++;
         } else {
             $db->warnings[] = 'database does not support getting current

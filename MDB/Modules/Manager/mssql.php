@@ -69,8 +69,8 @@ class MDB_Manager_mssql extends MDB_Manager_Common
      */
     function createDatabase(&$db, $name)
     {
-        $DatabaseDevice = isset($db->options["DatabaseDevice"]) ? $db->options["DatabaseDevice"] : "DEFAULT";
-        $DatabaseSize = isset($db->options["DatabaseSize"]) ? "=".$db->options["DatabaseSize"] : "";
+        $DatabaseDevice = isset($db->options['database_device']) ? $db->options['database_device'] : 'DEFAULT';
+        $DatabaseSize = isset($db->options['database_size']) ? "=".$db->options['database_size'] : '';
         return $db->standaloneQuery("CREATE DATABASE $name ON ".$DatabaseDevice.$DatabaseSize);
     }
 
@@ -106,7 +106,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
      *
      *                                New name for the table.
      *
-     *                            AddedFields
+     *                            added_fields
      *
      *                                Associative array with the names of fields to be added as
      *                                 indexes of the array. The value of each entry of the array
@@ -118,13 +118,13 @@ class MDB_Manager_mssql extends MDB_Manager_Common
      *                                 is expected to contain the portion of the field declaration already
      *                                 in DBMS specific SQL code as it is used in the CREATE TABLE statement.
      *
-     *                            RemovedFields
+     *                            removed_fields
      *
      *                                Associative array with the names of fields to be removed as indexes
      *                                 of the array. Currently the values assigned to each entry are ignored.
      *                                 An empty array should be used for future compatibility.
      *
-     *                            RenamedFields
+     *                            renamed_fields
      *
      *                                Associative array with the names of fields to be renamed as indexes
      *                                 of the array. The value of each entry of the array should be set to
@@ -133,11 +133,11 @@ class MDB_Manager_mssql extends MDB_Manager_Common
      *                                 the portion of the field declaration already in DBMS specific SQL code
      *                                 as it is used in the CREATE TABLE statement.
      *
-     *                            ChangedFields
+     *                            changed_fields
      *
      *                                Associative array with the names of the fields to be changed as indexes
      *                                 of the array. Keep in mind that if it is intended to change either the
-     *                                 name of a field and any other properties, the ChangedFields array entries
+     *                                 name of a field and any other properties, the changed_fields array entries
      *                                 should have the new names of the fields as array indexes.
      *
      *                                The value of each entry of the array should be set to another associative
@@ -157,28 +157,28 @@ class MDB_Manager_mssql extends MDB_Manager_Common
      *                            Example
      *                                array(
      *                                    'name' => 'userlist',
-     *                                    'AddedFields' => array(
+     *                                    'added_fields' => array(
      *                                        'quota' => array(
      *                                            'type' => 'integer',
      *                                            'unsigned' => 1
-     *                                            'Declaration' => 'quota INT'
+     *                                            'declaration' => 'quota INT'
      *                                        )
      *                                    ),
-     *                                    'RemovedFields' => array(
+     *                                    'removed_fields' => array(
      *                                        'file_limit' => array(),
      *                                        'time_limit' => array()
      *                                        ),
-     *                                    'ChangedFields' => array(
+     *                                    'changed_fields' => array(
      *                                        'gender' => array(
      *                                            'default' => 'M',
-     *                                            'ChangeDefault' => 1,
-     *                                            'Declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                            'change_default' => 1,
+     *                                            'declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                        )
      *                                    ),
-     *                                    'RenamedFields' => array(
+     *                                    'renamed_fields' => array(
      *                                        'sex' => array(
      *                                            'name' => 'gender',
-     *                                            'Declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                            'declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                        )
      *                                    )
      *                                )
@@ -198,12 +198,12 @@ class MDB_Manager_mssql extends MDB_Manager_Common
                 next($changes), $change++)
             {
                 switch (key($changes)) {
-                    case "AddedFields":
+                    case 'added_fields':
                         break;
-                    case "RemovedFields":
-                    case "name":
-                    case "RenamedFields":
-                    case "ChangedFields":
+                    case 'removed_fields':
+                    case 'name':
+                    case 'renamed_fields':
+                    case 'changed_fields':
                     default:
                         return $db->raiseError(MDB_ERROR_CANNOT_ALTER, null, null,
                             'Alter table: change type "'.key($changes).'" not yet supported');
@@ -211,21 +211,21 @@ class MDB_Manager_mssql extends MDB_Manager_Common
             }
             return MDB_OK;
         } else {
-            if (isset($changes[$change = 'RemovedFields'])
+            if (isset($changes[$change = 'removed_fields'])
                 || isset($changes[$change = 'name'])
-                || isset($changes[$change = 'RenamedFields'])
-                || isset($changes[$change = 'ChangedFields']))
+                || isset($changes[$change = 'renamed_fields'])
+                || isset($changes[$change = 'changed_fields']))
             {
                 return $db->raiseError(MDB_ERROR_CANNOT_ALTER, null, null,
                     'Alter table: change type "'.$change.'" is not supported by the server"');
             }
             $query='';
-            if (isset($changes['AddedFields'])) {
+            if (isset($changes['added_fields'])) {
                 if (strcmp($query, '')) {
                     $query.= ', ';
                 }
                 $query.= 'ADD ';
-                $fields = $changes['AddedFields'];
+                $fields = $changes['added_fields'];
                 for ($field = 0, reset($fields);
                     $field < count($fields);
                     next($fields), $field++)
@@ -233,7 +233,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
                     if (strcmp($query, '')) {
                         $query.= ', ';
                     }
-                    $query.= $fields[key($fields)]['Declaration'];
+                    $query.= $fields[key($fields)]['declaration'];
                 }
             }
             return strcmp($query, '') ? $db->query("ALTER TABLE $name $query") : MDB_OK;

@@ -152,7 +152,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      *
      *                                 New name for the table.
      *
-     *                             AddedFields
+     *                             added_fields
      *
      *                                 Associative array with the names of fields to be added as
      *                                  indexes of the array. The value of each entry of the array
@@ -164,13 +164,13 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      *                                  is expected to contain the portion of the field declaration already
      *                                  in DBMS specific SQL code as it is used in the CREATE TABLE statement.
      *
-     *                             RemovedFields
+     *                             removed_fields
      *
      *                                 Associative array with the names of fields to be removed as indexes
      *                                  of the array. Currently the values assigned to each entry are ignored.
      *                                  An empty array should be used for future compatibility.
      *
-     *                             RenamedFields
+     *                             renamed_fields
      *
      *                                 Associative array with the names of fields to be renamed as indexes
      *                                  of the array. The value of each entry of the array should be set to
@@ -179,11 +179,11 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      *                                  the portion of the field declaration already in DBMS specific SQL code
      *                                  as it is used in the CREATE TABLE statement.
      *
-     *                             ChangedFields
+     *                             changed_fields
      *
      *                                 Associative array with the names of the fields to be changed as indexes
      *                                  of the array. Keep in mind that if it is intended to change either the
-     *                                  name of a field and any other properties, the ChangedFields array entries
+     *                                  name of a field and any other properties, the changed_fields array entries
      *                                  should have the new names of the fields as array indexes.
      *
      *                                 The value of each entry of the array should be set to another associative
@@ -203,28 +203,28 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      *                             Example
      *                                 array(
      *                                     'name' => 'userlist',
-     *                                     'AddedFields' => array(
+     *                                     'added_fields' => array(
      *                                         'quota' => array(
      *                                             'type' => 'integer',
      *                                             'unsigned' => 1
-     *                                             'Declaration' => 'quota INT'
+     *                                             'declaration' => 'quota INT'
      *                                         )
      *                                     ),
-     *                                     'RemovedFields' => array(
+     *                                     'removed_fields' => array(
      *                                         'file_limit' => array(),
      *                                         'time_limit' => array()
      *                                         ),
-     *                                     'ChangedFields' => array(
+     *                                     'changed_fields' => array(
      *                                         'gender' => array(
      *                                             'default' => 'M',
-     *                                             'ChangeDefault' => 1,
-     *                                             'Declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                             'change_default' => 1,
+     *                                             'declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                         )
      *                                     ),
-     *                                     'RenamedFields' => array(
+     *                                     'renamed_fields' => array(
      *                                         'sex' => array(
      *                                             'name' => 'gender',
-     *                                             'Declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                             'declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                         )
      *                                     )
      *                                 )
@@ -239,33 +239,33 @@ class MDB_Manager_pgsql extends MDB_Manager_common
         if ($check) {
             for ($change = 0, reset($changes); $change < count($changes); next($changes), $change++) {
                 switch (key($changes)) {
-                    case 'AddedFields':
+                    case 'added_fields':
                         break;
-                    case 'RemovedFields':
+                    case 'removed_fields':
                         return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'database server does not support dropping table columns');
                     case 'name':
-                    case 'RenamedFields':
-                    case 'ChangedFields':
+                    case 'renamed_fields':
+                    case 'changed_fields':
                     default:
                         return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'change type "'.key($changes).'\" not yet supported');
                 }
             }
             return MDB_OK;
         } else {
-            if (isSet($changes[$change = 'name']) || isSet($changes[$change = 'RenamedFields']) || isSet($changes[$change = 'ChangedFields'])) {
+            if (isSet($changes[$change = 'name']) || isSet($changes[$change = 'renamed_fields']) || isSet($changes[$change = 'changed_fields'])) {
                 return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'change type "'.$change.'" not yet supported');
             }
             $query = '';
-            if (isSet($changes['AddedFields'])) {
-                $fields = $changes['AddedFields'];
+            if (isSet($changes['added_fields'])) {
+                $fields = $changes['added_fields'];
                 for ($field = 0, reset($fields); $field < count($fields); next($fields), $field++) {
-                    if (MDB::isError($result = $db->query("ALTER TABLE $name ADD ".$fields[key($fields)]['Declaration']))) {
+                    if (MDB::isError($result = $db->query("ALTER TABLE $name ADD ".$fields[key($fields)]['declaration']))) {
                         return $result;
                     }
                 }
             }
-            if (isSet($changes['RemovedFields'])) {
-                $fields = $changes['RemovedFields'];
+            if (isSet($changes['removed_fields'])) {
+                $fields = $changes['removed_fields'];
                 for ($field = 0, reset($fields); $field < count($fields); next($fields), $field++) {
                     if (MDB::isError($result = $db->query("ALTER TABLE $name DROP ".key($fields)))) {
                         return $result;

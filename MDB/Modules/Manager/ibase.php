@@ -110,21 +110,21 @@ class MDB_Manager_ibase extends MDB_Manager_common
             next($changes), $change++)
         {
             switch(key($changes)) {
-                case "ChangedNotNull":
-                case "notnull":
+                case 'changed_not_null':
+                case 'notnull':
                     return $this->raiseError(MDB_ERROR_MANAGER, '', '',
                         'Check supported changes: it is not supported changes to field not null constraint');
-                case "ChangedDefault":
-                case "default":
+                case 'ChangedDefault':
+                case 'default':
                     return $this->raiseError(MDB_ERROR_MANAGER, '', '',
                         'Check supported changes: it is not supported changes to field default value');
-                case "length":
+                case 'length':
                     return $this->raiseError(MDB_ERROR_MANAGER, '', '',
                         'Check supported changes: it is not supported changes to field default length');
-                case "unsigned":
-                case "type":
-                case "Declaration":
-                case "Definition":
+                case 'unsigned':
+                case 'type':
+                case 'declaration':
+                case 'definition':
                     break;
                 default:
                     return $this->raiseError(MDB_ERROR_MANAGER, '', '',
@@ -150,7 +150,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
      *
      *                                 New name for the table.
      *
-     *                             AddedFields
+     *                             added_fields
      *
      *                                 Associative array with the names of fields to be added as
      *                                  indexes of the array. The value of each entry of the array
@@ -162,13 +162,13 @@ class MDB_Manager_ibase extends MDB_Manager_common
      *                                  is expected to contain the portion of the field declaration already
      *                                  in DBMS specific SQL code as it is used in the CREATE TABLE statement.
      *
-     *                             RemovedFields
+     *                             removed_fields
      *
      *                                 Associative array with the names of fields to be removed as indexes
      *                                  of the array. Currently the values assigned to each entry are ignored.
      *                                  An empty array should be used for future compatibility.
      *
-     *                             RenamedFields
+     *                             renamed_fields
      *
      *                                 Associative array with the names of fields to be renamed as indexes
      *                                  of the array. The value of each entry of the array should be set to
@@ -177,11 +177,11 @@ class MDB_Manager_ibase extends MDB_Manager_common
      *                                  the portion of the field declaration already in DBMS specific SQL code
      *                                  as it is used in the CREATE TABLE statement.
      *
-     *                             ChangedFields
+     *                             changed_fields
      *
      *                                 Associative array with the names of the fields to be changed as indexes
      *                                  of the array. Keep in mind that if it is intended to change either the
-     *                                  name of a field and any other properties, the ChangedFields array entries
+     *                                  name of a field and any other properties, the changed_fields array entries
      *                                  should have the new names of the fields as array indexes.
      *
      *                                 The value of each entry of the array should be set to another associative
@@ -201,28 +201,28 @@ class MDB_Manager_ibase extends MDB_Manager_common
      *                             Example
      *                                 array(
      *                                     'name' => 'userlist',
-     *                                     'AddedFields' => array(
+     *                                     'added_fields' => array(
      *                                         'quota' => array(
      *                                             'type' => 'integer',
      *                                             'unsigned' => 1
-     *                                             'Declaration' => 'quota INT'
+     *                                             'declaration' => 'quota INT'
      *                                         )
      *                                     ),
-     *                                     'RemovedFields' => array(
+     *                                     'removed_fields' => array(
      *                                         'file_limit' => array(),
      *                                         'time_limit' => array()
      *                                         ),
-     *                                     'ChangedFields' => array(
+     *                                     'changed_fields' => array(
      *                                         'gender' => array(
      *                                             'default' => 'M',
-     *                                             'ChangeDefault' => 1,
-     *                                             'Declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                             'change_default' => 1,
+     *                                             'declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                         )
      *                                     ),
-     *                                     'RenamedFields' => array(
+     *                                     'renamed_fields' => array(
      *                                         'sex' => array(
      *                                             'name' => 'gender',
-     *                                             'Declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                             'declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                         )
      *                                     )
      *                                 )
@@ -240,17 +240,17 @@ class MDB_Manager_ibase extends MDB_Manager_common
                 next($changes), $change++)
             {
                 switch(key($changes)) {
-                    case "AddedFields":
-                    case "RemovedFields":
-                    case "RenamedFields":
+                    case 'added_fields':
+                    case 'removed_fields':
+                    case 'renamed_fields':
                         break;
-                    case "ChangedFields":
-                        $fields = $changes['ChangedFields'];
+                    case 'changed_fields':
+                        $fields = $changes['changed_fields'];
                         for($field=0, reset($fields);
                             $field<count($fields);
                             next($fields), $field++)
                         {
-                            if (MDB::isError($err = $this->checkSupportedChanges($fields[Key($fields)]))) {
+                            if (MDB::isError($err = $this->checkSupportedChanges($fields[key($fields)]))) {
                                 return $err;
                             }
                         }
@@ -263,44 +263,44 @@ class MDB_Manager_ibase extends MDB_Manager_common
             return MDB_OK;
         } else {
             $query = '';
-            if (isset($changes['AddedFields'])) {
-                $fields = $changes['AddedFields'];
+            if (isset($changes['added_fields'])) {
+                $fields = $changes['added_fields'];
                 for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
-                    if (strcmp($query, "")) {
+                    if (strcmp($query, '')) {
                         $query .= ', ';
                     }
-                    $query .= 'ADD ' . $fields[key($fields)]['Declaration'];
+                    $query .= 'ADD ' . $fields[key($fields)]['declaration'];
                 }
             }
-            if (isset($changes['RemovedFields'])) {
-                $fields = $changes['RemovedFields'];
+            if (isset($changes['removed_fields'])) {
+                $fields = $changes['removed_fields'];
                 for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
-                    if (strcmp($query, "")) {
+                    if (strcmp($query, '')) {
                         $query .= ', ';
                     }
                     $query .= 'DROP ' . key($fields);
                 }
             }
-            if (isset($changes['RenamedFields'])) {
-                $fields = $changes['RenamedFields'];
+            if (isset($changes['renamed_fields'])) {
+                $fields = $changes['renamed_fields'];
                 for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
-                    if (strcmp($query, "")) {
+                    if (strcmp($query, '')) {
                         $query .= ', ';
                     }
-                    $query .= 'ALTER ' . key($fields) . ' TO ' . $fields[Key($fields)]['name'];
+                    $query .= 'ALTER ' . key($fields) . ' TO ' . $fields[key($fields)]['name'];
                 }
             }
-            if (isset($changes['ChangedFields'])) {
-                $fields = $changes['ChangedFields'];
+            if (isset($changes['changed_fields'])) {
+                $fields = $changes['changed_fields'];
                 for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
                     $field_name = key($fields);
-                    if (MDB::isError($err = $this->CheckSupportedChanges($fields[Key($fields)]))) {
+                    if (MDB::isError($err = $this->checkSupportedChanges($fields[key($fields)]))) {
                         return $err;
                     }
-                    if (strcmp($query, "")) {
+                    if (strcmp($query, '')) {
                         $query .= ', ';
                     }
-                    $query .= 'ALTER '.$field_name.' TYPE '.$fields[$field_name]['Definition'];
+                    $query .= 'ALTER '.$field_name.' TYPE '.$fields[$field_name]['definition'];
                 }
             }
             if (MDB::isError($err = $db->query("ALTER TABLE $name $query"))) {
@@ -421,7 +421,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
 
      *                                 Example
      *                                    array(
-     *                                        'FIELDS' => array(
+     *                                        'fields' => array(
      *                                            'user_name' => array(
      *                                                'sorting' => 'ascending'
      *                                            ),
@@ -433,25 +433,25 @@ class MDB_Manager_ibase extends MDB_Manager_common
      */
     function createIndex(&$db, $table, $name, $definition)
     {
-        for($query_sort='', $query_fields='', $field=0, reset($definition['FIELDS']);
-            $field<count($definition['FIELDS']);
-            $field++, next($definition['FIELDS']))
+        for($query_sort='', $query_fields='', $field=0, reset($definition['fields']);
+            $field<count($definition['fields']);
+            $field++, next($definition['fields']))
         {
             if ($field > 0) {
                 $query_fields .= ',';
             }
-            $field_name = key($definition['FIELDS']);
+            $field_name = key($definition['fields']);
             $query_fields .= $field_name;
-            if (!strcmp($query_sort, "") 
-                && $db->support('IndexSorting')
-                && isset($definition['FIELDS'][$field_name]['sorting']))
+            if (!strcmp($query_sort, '') 
+                && $db->support('index_sorting')
+                && isset($definition['fields'][$field_name]['sorting']))
             {
-                switch($definition['FIELDS'][$field_name]['sorting']) {
-                    case "ascending":
-                        $query_sort = " ASC";
+                switch($definition['fields'][$field_name]['sorting']) {
+                    case 'ascending':
+                        $query_sort = ' ASC';
                         break;
-                    case "descending":
-                        $query_sort = " DESC";
+                    case 'descending':
+                        $query_sort = ' DESC';
                         break;
                 }
             }

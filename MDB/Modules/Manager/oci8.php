@@ -149,7 +149,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      * 
      *                                 New name for the table.
      * 
-     *                             AddedFields
+     *                             added_fields
      * 
      *                                 Associative array with the names of fields to be added as
      *                                  indexes of the array. The value of each entry of the array
@@ -161,13 +161,13 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      *                                  is expected to contain the portion of the field declaration already
      *                                  in DBMS specific SQL code as it is used in the CREATE TABLE statement.
      * 
-     *                             RemovedFields
+     *                             removed_fields
      * 
      *                                 Associative array with the names of fields to be removed as indexes
      *                                  of the array. Currently the values assigned to each entry are ignored.
      *                                  An empty array should be used for future compatibility.
      * 
-     *                             RenamedFields
+     *                             renamed_fields
      * 
      *                                 Associative array with the names of fields to be renamed as indexes
      *                                  of the array. The value of each entry of the array should be set to
@@ -176,11 +176,11 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      *                                  the portion of the field declaration already in DBMS specific SQL code
      *                                  as it is used in the CREATE TABLE statement.
      * 
-     *                             ChangedFields
+     *                             changed_fields
      * 
      *                                 Associative array with the names of the fields to be changed as indexes
      *                                  of the array. Keep in mind that if it is intended to change either the
-     *                                  name of a field and any other properties, the ChangedFields array entries
+     *                                  name of a field and any other properties, the changed_fields array entries
      *                                  should have the new names of the fields as array indexes.
      * 
      *                                 The value of each entry of the array should be set to another associative
@@ -200,28 +200,28 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      *                             Example
      *                                 array(
      *                                     'name' => 'userlist',
-     *                                     'AddedFields' => array(
+     *                                     'added_fields' => array(
      *                                         'quota' => array(
      *                                             'type' => 'integer',
      *                                             'unsigned' => 1
-     *                                             'Declaration' => 'quota INT'
+     *                                             'declaration' => 'quota INT'
      *                                         )
      *                                     ),
-     *                                     'RemovedFields' => array(
+     *                                     'removed_fields' => array(
      *                                         'file_limit' => array(),
      *                                         'time_limit' => array()
      *                                         ),
-     *                                     'ChangedFields' => array(
+     *                                     'changed_fields' => array(
      *                                         'gender' => array(
      *                                             'default' => 'M',
-     *                                             'ChangeDefault' => 1,
-     *                                             'Declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                             'change_default' => 1,
+     *                                             'declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                         )
      *                                     ),
-     *                                     'RenamedFields' => array(
+     *                                     'renamed_fields' => array(
      *                                         'sex' => array(
      *                                             'name' => 'gender',
-     *                                             'Declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                             'declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                         )
      *                                     )
      *                                 )
@@ -239,12 +239,12 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
                 next($changes), $change++)
             {
                 switch (key($changes)) {
-                    case 'AddedFields':
-                    case 'RemovedFields':
-                    case 'ChangedFields':
+                    case 'added_fields':
+                    case 'removed_fields':
+                    case 'changed_fields':
                     case 'name':
                         break;
-                    case 'RenamedFields':
+                    case 'renamed_fields':
                     default:
                         return $db->raiseError(MDB_ERROR, null, null, 'Alter table',
                             'change type "'.key($changes).'" not yet supported');
@@ -252,9 +252,9 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
             }
             return MDB_OK;
         } else {
-            if (isset($changes['RemovedFields'])) {
+            if (isset($changes['removed_fields'])) {
                 $query = ' DROP (';
-                $fields = $changes['RemovedFields'];
+                $fields = $changes['removed_fields'];
                 for($field = 0, reset($fields);
                     $field < count($fields);
                     next($fields), $field++)
@@ -271,17 +271,17 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
                 $query = '';
             }
             $query = (isset($changes['name']) ? 'RENAME TO '.$changes['name'] : '');
-            if (isset($changes['AddedFields'])) {
-                $fields = $changes['AddedFields'];
+            if (isset($changes['added_fields'])) {
+                $fields = $changes['added_fields'];
                 for($field = 0, reset($fields);
                     $field < count($fields);
                     next($fields), $field++)
                 {
-                    $query .= ' ADD ('.$fields[key($fields)]['Declaration'].')';
+                    $query .= ' ADD ('.$fields[key($fields)]['declaration'].')';
                 }
             }
-            if (isset($changes['ChangedFields'])) {
-                $fields = $changes['ChangedFields'];
+            if (isset($changes['changed_fields'])) {
+                $fields = $changes['changed_fields'];
                 for($field = 0, reset($fields);
                     $field < count($fields);
                     next($fields), $field++)
@@ -301,16 +301,16 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
                     if (isset($fields[$current_name]['length'])) {
                         $change_type = 1;
                     }
-                    if (isset($fields[$current_name]['ChangedDefault'])) {
+                    if (isset($fields[$current_name]['xhanged_default'])) {
                         $change_default = 1;
                     }
                     if ($change_type) {
-                        $change .= ' '.$db->getTypeDeclaration($fields[$current_name]['Definition']);
+                        $change .= ' '.$db->getTypeDeclaration($fields[$current_name]['definition']);
                     }
                     if ($change_default) {
-                        $change .= ' DEFAULT '.(isset($fields[$current_name]['Definition']['default']) ? $db->getValue($fields[$current_name]['Definition']['type'], $fields[$current_name]['Definition']['default']) : 'NULL');
+                        $change .= ' DEFAULT '.(isset($fields[$current_name]['definition']['default']) ? $db->getValue($fields[$current_name]['definition']['type'], $fields[$current_name]['definition']['default']) : 'NULL');
                     }
-                    if (isset($fields[$current_name]['ChangedNotNull'])) {
+                    if (isset($fields[$current_name]['changed_not_null'])) {
                         $change .= (isset($fields[$current_name]['notnull']) ? ' NOT' : '').' NULL';
                     }
                     if (strcmp($change, '')) {
@@ -341,9 +341,9 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
         $this->queryCol("SELECT table_name, tablespace_name FROM user_tables");
         $result = array();
         for ($i=0; $this->next_record(); $i++) {
-            $result[$i]["table_name"]      = $this->m_record["table_name"];
-            $result[$i]["tablespace_name"] = $this->m_record["tablespace_name"];
-            $result[$i]["database"]        = $this->m_database;
+            $result[$i]['table_name']      = $this->m_record['table_name'];
+            $result[$i]['tablespace_name'] = $this->m_record['tablespace_name'];
+            $result[$i]['database']        = $this->m_database;
         }
         return $result;
     }

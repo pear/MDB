@@ -214,7 +214,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         if (MDB::isError($query_fields = $this->getFieldDeclarationList($db, $fields))) {
             return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'unkown error');
         }
-        if (isset($db->supported['Transactions'])
+        if (isset($db->supported['transactions'])
             && $db->default_table_type=='BDB')
         {
             $query_fields .= ', dummy_primary_key INT DEFAULT UNIQUE, PRIMARY KEY (dummy_primary_key)';
@@ -240,7 +240,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      *
      *                                New name for the table.
      *
-     *                            AddedFields
+     *                            added_fields
      *
      *                                Associative array with the names of fields to be added as
      *                                 indexes of the array. The value of each entry of the array
@@ -252,13 +252,13 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      *                                 is expected to contain the portion of the field declaration already
      *                                 in DBMS specific SQL code as it is used in the CREATE TABLE statement.
      *
-     *                            RemovedFields
+     *                            removed_fields
      *
      *                                Associative array with the names of fields to be removed as indexes
      *                                 of the array. Currently the values assigned to each entry are ignored.
      *                                 An empty array should be used for future compatibility.
      *
-     *                            RenamedFields
+     *                            renamed_fields
      *
      *                                Associative array with the names of fields to be renamed as indexes
      *                                 of the array. The value of each entry of the array should be set to
@@ -267,11 +267,11 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      *                                 the portion of the field declaration already in DBMS specific SQL code
      *                                 as it is used in the CREATE TABLE statement.
      *
-     *                            ChangedFields
+     *                            changed_fields
      *
      *                                Associative array with the names of the fields to be changed as indexes
      *                                 of the array. Keep in mind that if it is intended to change either the
-     *                                 name of a field and any other properties, the ChangedFields array entries
+     *                                 name of a field and any other properties, the changed_fields array entries
      *                                 should have the new names of the fields as array indexes.
      *
      *                                The value of each entry of the array should be set to another associative
@@ -291,28 +291,28 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      *                            Example
      *                                array(
      *                                    'name' => 'userlist',
-     *                                    'AddedFields' => array(
+     *                                    'added_fields' => array(
      *                                        'quota' => array(
      *                                            'type' => 'integer',
      *                                            'unsigned' => 1
-     *                                            'Declaration' => 'quota INT'
+     *                                            'declaration' => 'quota INT'
      *                                        )
      *                                    ),
-     *                                    'RemovedFields' => array(
+     *                                    'removed_fields' => array(
      *                                        'file_limit' => array(),
      *                                        'time_limit' => array()
      *                                        ),
-     *                                    'ChangedFields' => array(
+     *                                    'changed_fields' => array(
      *                                        'gender' => array(
      *                                            'default' => 'M',
-     *                                            'ChangeDefault' => 1,
-     *                                            'Declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                            'change_default' => 1,
+     *                                            'declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                        )
      *                                    ),
-     *                                    'RenamedFields' => array(
+     *                                    'renamed_fields' => array(
      *                                        'sex' => array(
      *                                            'name' => 'gender',
-     *                                            'Declaration' => "gender CHAR(1) DEFAULT 'M'"
+     *                                            'declaration' => "gender CHAR(1) DEFAULT 'M'"
      *                                        )
      *                                    )
      *                                )
@@ -332,22 +332,22 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                 next($changes), $change++)
             {
                 switch(key($changes)) {
-                    case 'AddedFields':
-                    case 'RemovedFields':
-                    case 'ChangedFields':
-                    case 'RenamedFields':
+                    case 'added_fields':
+                    case 'removed_fields':
+                    case 'changed_fields':
+                    case 'renamed_fields':
                     case 'name':
                         break;
                     default:
                         return $db->raiseError(MDB_ERROR_CANNOT_ALTER, null, null,
-                            'Alter table: change type "'.Key($changes).'" not yet supported');
+                            'Alter table: change type "'.key($changes).'" not yet supported');
                 }
             }
             return MDB_OK;
         } else {
             $query = (isset($changes['name']) ? 'RENAME AS '.$changes['name'] : '');
-            if (isset($changes['AddedFields'])) {
-                $fields = $changes['AddedFields'];
+            if (isset($changes['added_fields'])) {
+                $fields = $changes['added_fields'];
                 for($field = 0, reset($fields);
                     $field<count($fields);
                     next($fields), $field++)
@@ -355,11 +355,11 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                     if (strcmp($query, '')) {
                         $query .= ',';
                     }
-                    $query .= 'ADD '.$fields[key($fields)]['Declaration'];
+                    $query .= 'ADD '.$fields[key($fields)]['declaration'];
                 }
             }
-            if (isset($changes['RemovedFields'])) {
-                $fields = $changes['RemovedFields'];
+            if (isset($changes['removed_fields'])) {
+                $fields = $changes['removed_fields'];
                 for($field = 0,reset($fields);
                     $field<count($fields);
                     next($fields), $field++)
@@ -371,8 +371,8 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                 }
             }
             $renamed_fields = array();
-            if (isset($changes['RenamedFields'])) {
-                $fields = $changes['RenamedFields'];
+            if (isset($changes['renamed_fields'])) {
+                $fields = $changes['renamed_fields'];
                 for($field = 0,reset($fields);
                     $field<count($fields);
                     next($fields), $field++)
@@ -380,8 +380,8 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                     $renamed_fields[$fields[key($fields)]['name']] = key($fields);
                 }
             }
-            if (isset($changes['ChangedFields'])) {
-                $fields = $changes['ChangedFields'];
+            if (isset($changes['changed_fields'])) {
+                $fields = $changes['changed_fields'];
                 for($field = 0,reset($fields);
                     $field<count($fields);
                     next($fields), $field++)
@@ -395,7 +395,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                     } else {
                         $field_name = key($fields);
                     }
-                    $query .= "CHANGE $field_name ".$fields[key($fields)]['Declaration'];
+                    $query .= "CHANGE $field_name ".$fields[key($fields)]['declaration'];
                 }
             }
             if (count($renamed_fields))
@@ -407,8 +407,8 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                     if (strcmp($query, '')) {
                         $query .= ',';
                     }
-                    $old_field_name = $renamed_fields[Key($renamed_fields)];
-                    $query .= "CHANGE $old_field_name ".$changes['RenamedFields'][$old_field_name]['Declaration'];
+                    $old_field_name = $renamed_fields[key($renamed_fields)];
+                    $query .= "CHANGE $old_field_name ".$changes['renamed_fields'][$old_field_name]['declaration'];
                 }
             }
             return $db->query("ALTER TABLE $name $query");
@@ -540,7 +540,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
 
      *                                 Example
      *                                    array(
-     *                                        'FIELDS' => array(
+     *                                        'fields' => array(
      *                                            'user_name' => array(
      *                                                'sorting' => 'ascending'
      *                                            ),
@@ -553,14 +553,14 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     function createIndex(&$db, $table, $name, $definition)
     {
         $query = "ALTER TABLE $table ADD ".(isset($definition['unique']) ? 'UNIQUE' : 'INDEX')." $name (";
-        for($field = 0, reset($definition['FIELDS']);
-            $field < count($definition['FIELDS']);
-            $field++, next($definition['FIELDS']))
+        for($field = 0, reset($definition['fields']);
+            $field < count($definition['fields']);
+            $field++, next($definition['fields']))
         {
             if ($field > 0) {
                 $query .= ',';
             }
-            $query .= key($definition['FIELDS']);
+            $query .= key($definition['fields']);
         }
         $query .= ')';
         return $db->query($query);
