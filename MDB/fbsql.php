@@ -194,14 +194,11 @@ class MDB_fbsql extends MDB_Common
                     return($result);
                 }
                 $result = $this->query('SET COMMIT TRUE');
-                if (MDB::isError($result)) {
-                    return($result);
-                }
             } else {
                 $result = $this->query('SET COMMIT FALSE');
-                if (MDB::isError($result)) {
-                    return($result);
-                }
+            }
+            if (MDB::isError($result)) {
+                return($result);
             }
         }
         $this->auto_commit = $auto_commit;
@@ -293,8 +290,6 @@ class MDB_fbsql extends MDB_Common
                 'MDB_Error', TRUE));
         }
 
-        $this->fixed_float = 30;
-
         $function = ($this->options['persistent'] ? 'fbsql_pconnect' : 'fbsql_connect');
         if(!function_exists($function)) {
             return($this->raiseError(MDB_ERROR_UNSUPPORTED));
@@ -323,7 +318,6 @@ class MDB_fbsql extends MDB_Common
         $this->connected_user = $this->user;
         $this->connected_password = $this->password;
         $this->connected_port = $port;
-        $this->selected_database = $this->database_name;
         $this->opened_persistent = $this->options['persistent'];
         return(MDB_OK);
     }
@@ -508,12 +502,13 @@ class MDB_fbsql extends MDB_Common
     {
         $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
         if (is_string($field)) {
-        	if (intval($field) != $field) {
-	        	$field = strtoupper($field);
-        	}
-        	else {
-        		$field = intval($field);
-        	}
+            if (intval($field) != $field) {
+                $field = strtoupper($field);
+            }
+            else
+            {
+                $field = intval($field);
+            }
         }
         $res = @fbsql_result($result, $row, $field);
         if ($res === FALSE && $res != NULL) {
@@ -580,11 +575,10 @@ class MDB_fbsql extends MDB_Common
             case MDB_TYPE_DATE:
                 return($value);
             case MDB_TYPE_TIME:
-            	if ($value[0] == '+') {
-            	    return (substr($value, 1));
-            	}
-            	else {
-                	return($value);
+                if ($value[0] == '+') {
+                    return (substr($value, 1));
+                } else {
+                    return($value);
                 }
             case MDB_TYPE_TIMESTAMP:
                 return($value);
@@ -913,17 +907,7 @@ class MDB_fbsql extends MDB_Common
      */
     function getFloatDeclaration($name, $field)
     {
-        if (isset($this->options['fixedfloat'])) {
-            $this->fixed_float = $this->options['fixedfloat'];
-        } else {
-            if ($this->connection == 0) {
-                // XXX needs more checking
-                $this->connect();
-            }
-        }
         return("$name FLOAT".
-//                ($this->fixed_float ?
-//                 '('.($this->fixed_float + 2).','.$this->fixed_float.')' : '').
                 (isset($field['default']) ?
                  ' DEFAULT '.$this->getFloatValue($field['default']) : '').
                 (isset($field['notnull']) ? ' NOT NULL' : '')

@@ -101,20 +101,13 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         if (MDB::isError($result = $db->connect())) {
             return($result);
         }
-        fbsql_stop_db($name, $db->connection);
-        fbsql_drop_db($name, $db->connection);
-        fbsql_close($db->connection);
-        $db->connection = 0;
-        $db->affected_rows = -1;
-        return(MDB_OK);
-
         if (!fbsql_stop_db($name, $db->connection)) {
             return($db->fbsqlRaiseError());
         }
         if (!fbsql_drop_db($name, $db->connection)) {
             return($db->fbsqlRaiseError());
         }
-        return(MDB_OK);
+        return($db->disconnect());
     }
 
     // }}}
