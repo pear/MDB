@@ -434,6 +434,60 @@ class MDB_Common extends PEAR
     }
 
     // }}}
+    // {{{ setResultClass()
+
+    /**
+     * set result class
+     *
+     * @param string $class name of the class (without the 'MDB_' prefix)
+     * @return mixed MDB_OK or MDB_Error
+     * @access public
+     */
+    function setResultClass($class)
+    {
+        MDB::loadClass($class);
+        $class_name = 'MDB_'.$class;
+        if (!class_exists($class_name)) {
+            return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
+                "result class ($class_name) does not exist");
+        }
+        $this->_result_class = $class;
+        return MDB_OK;
+    }
+
+    // }}}
+    // {{{ _return_result()
+
+    /**
+     * determine if the resource should be wrapped in a class
+     *
+     * @param resource $result result ressource
+     * @param mixed $return_obj boolean or string which specifies which class to use
+     * @return mixed resource or result object or MDB_Error
+     * @access private
+     */
+    function &_return_result($result, $return_obj)
+    {
+        if ($return_obj) {
+            if (is_string($return_obj)) {
+                MDB::loadClass($return_obj);
+                $class_name = 'MDB_'.$return_obj;
+                if (!class_exists($class_name)) {
+                    return $this->raiseError(MDB_ERROR, null, null,
+                        "result class ($class_name) does not exist");
+                }
+            } elseif (isset($this->_result_class)) {
+                $class_name = 'MDB_'.$this->_result_class;
+            } else {
+                return $this->raiseError(MDB_ERROR, null, null,
+                    "no result class defined");
+            }
+            return new $class_name($this, $result);
+        }
+        return $result;
+    }
+
+    // }}}
     // {{{ setOption()
 
     /**
@@ -738,10 +792,11 @@ class MDB_Common extends PEAR
      * @param string $query the SQL query
      * @param array   $types  array that contains the types of the columns in
      *                        the result set
+     * @param mixed $return_obj boolean or string which specifies which class to use
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function query($query, $types = null)
+    function &query($query, $types = null, $return_obj = false)
     {
         $this->debug($query, 'query');
         return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Query: database queries are not implemented');

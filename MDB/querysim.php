@@ -389,14 +389,15 @@ class MDB_querysim extends MDB_Common
      * @param string The QuerySim text
      * @param array   $types  array that contains the types of the columns in
      *                        the result set
-     *
-     * @access public
+     * @param mixed $return_obj boolean or string which specifies which class to use
      *
      * @return mixed Simulated result set as a multidimentional
      * array if valid QuerySim text was passed in.  A MDB error
      * is returned on failure.
+     *
+     * @access public
      */
-    function query($query, $types = null)
+    function &query($query, $types = null, $return_obj = false)
     {
         if ($this->database_name) {
             $query = $this->_readFile();
@@ -424,7 +425,7 @@ class MDB_querysim extends MDB_Common
             }
             $this->results[$this->_querySimSignature($result)]['highest_fetched_row'] = -1;
             
-            return $result;
+            return $this->_return_result($result, $return_obj);
         }
         return $this->raiseError();
     }

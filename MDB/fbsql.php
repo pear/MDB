@@ -376,15 +376,16 @@ class MDB_fbsql extends MDB_Common
     /**
      * Send a query to the database and return any results
      *
-     * @access public
-     *
      * @param string  $query  the SQL query
      * @param array   $types  array that contains the types of the columns in
      *                        the result set
+     * @param mixed $return_obj boolean or string which specifies which class to use
      *
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
+     *
+     * @access public
      */
-    function query($query, $types = null)
+    function &query($query, $types = null, $return_obj = false)
     {
         $this->debug($query, 'query');
         $ismanip = MDB::isManip($query);
@@ -426,7 +427,7 @@ class MDB_fbsql extends MDB_Common
                         return $err;
                     }
                 }
-                return $result;
+                return $this->_return_result($result, $return_obj);
             }
         }
         return $this->fbsqlRaiseError();
