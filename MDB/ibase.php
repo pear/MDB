@@ -61,6 +61,9 @@ class MDB_ibase extends MDB_Common
     var $transaction_id = 0;
     var $auto_commit = true;
 
+    var $database_path = '';
+    var $database_extension = '';
+
     var $escape_quotes = "'";
     var $decimal_factor = 1.0;
 
@@ -408,9 +411,8 @@ class MDB_ibase extends MDB_Common
             return $connection;
         }
         $this->connection = $connection;
-        $this->connection = $connection;
         $this->connected_dsn = $this->dsn;
-        $this->connected_database_name = $this->database_name;
+        $this->connected_database_name = $database_file;
         $this->opened_persistent = $this->options['persistent'];
 
         if (!$this->auto_commit && MDB::isError($trans_result = $this->_doQuery('BEGIN'))) {
