@@ -56,6 +56,7 @@ if (!defined('MDB_MANAGER_PGSQL_INCLUDED')) {
     define('MDB_MANAGER_PGSQL_INCLUDED', 1);
 
 class MDB_manager_pgsql_class extends MDB_manager_common {
+
     // }}}
     // {{{ createDatabase()
     /**
@@ -346,6 +347,8 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
         return $columns;
     }
 
+    // }}}
+    // {{{ getTableFieldDefinition()
 
     // }}}
     // {{{ listViews()
@@ -359,6 +362,18 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
         return $db->queryCol('SELECT viewname FROM pg_views', NULL, DB_FETCHMODE_ORDERED);
     }
+
+    // }}}
+    // {{{ createIndex()
+
+    // }}}
+    // {{{ dropIndex()
+
+    // }}}
+    // {{{ listTableIndexes()
+
+    // }}}
+    // {{{ getTableIndexDefinition()
 
     // }}}
     // {{{ createSequence()
@@ -416,6 +431,9 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
             AND c.relname !~ \'^pg_\'';
         return $db->queryCol($sql, NULL, DB_FETCHMODE_ORDERED);
     }
+
+    // }}}
+    // {{{ getSequenceDefinition()
 };
 
 }
