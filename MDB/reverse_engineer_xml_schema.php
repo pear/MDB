@@ -133,6 +133,9 @@ echo ('
                 <option value="mysql"');
                 if(isset($_REQUEST['type']) && $_REQUEST['type'] == 'mysql') {echo ('selected');}
                 echo ('>MySQL</option>
+                <option value="pgsql"');
+                if(isset($_REQUEST['type']) && $_REQUEST['type'] == 'mysql') {echo ('selected');}
+                echo ('>Postgres</option>
             </select>
             <br />
             Username:
