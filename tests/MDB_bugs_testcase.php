@@ -186,6 +186,24 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
         $numrows = $this->db->numRows($result);
         $this->assertEquals(0, $numrows, "Numrows is not returning 0 for empty result sets");
+
+        $data['user_name'] = "user_1";
+        $data['user_password'] = 'somepassword';
+        $data['subscribed'] = true;
+        $data['user_id'] = 1;
+        $data['quota'] = sprintf("%.2f",strval(3/100));
+        $data['weight'] = sqrt(1);
+        $data['access_date'] = MDB_Date::mdbToday();
+        $data['access_time'] = MDB_Date::mdbTime();
+        $data['approved'] = MDB_Date::mdbNow();
+
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $this->insertTestValues($prepared_query, $data);
+        $result = $this->db->executeQuery($prepared_query);
+
+        $result = $this->db->query('SELECT * FROM users');
+        $numrows = $this->db->numRows($result);
+        $this->assertEquals(1, $numrows, "Numrows is not returning proper value");
     }
 }
 
