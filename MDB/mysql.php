@@ -65,7 +65,6 @@ class MDB_mysql extends MDB_common
     var $columns = array();
     var $fixed_float = 0;
     var $escape_quotes = "\\";
-    var $sequence_prefix = "_sequence_";
     var $dummy_primary_key = "dummy_primary_key";
     var $manager_class_name = "MDB_manager_mysql_class";
     var $manager_include = "manager_mysql.php";
@@ -81,7 +80,7 @@ class MDB_mysql extends MDB_common
         $this->MDB_common();
         $this->phptype = 'mysql';
         $this->dbsyntax = 'mysql';
-        
+
         $this->supported["Sequences"] = 1;
         $this->supported["Indexes"] = 1;
         $this->supported["AffectedRows"] = 1;
@@ -92,13 +91,10 @@ class MDB_mysql extends MDB_common
         $this->supported["LOBs"] = 1;
         $this->supported["Replace"] = 1;
         $this->supported["SubSelects"] = 0;
-
-        if (isset($this->options["UseTransactions"])
-            && $this->options["UseTransactions"])
-        {
+        if (!MDB::isError($this->getOption("UseTransactions"))) {
             $this->supported["Transactions"] = 1;
         }
-        $this->decimal_factor = pow(10.0, $this->decimal_places);
+        $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
         
         $this->errorcode_map = array(
             1004 => DB_ERROR_CANNOT_CREATE,
@@ -256,7 +252,7 @@ class MDB_mysql extends MDB_common
                 && !strcmp($this->connected_user, $this->user)
                 && !strcmp($this->connected_password, $this->password)
                 && !strcmp($this->connected_port, $port)
-                && $this->opened_persistent == $this->persistent)
+                && $this->opened_persistent == $this->options['persistent'])
             {
                 return (DB_OK);
             }
@@ -265,7 +261,7 @@ class MDB_mysql extends MDB_common
             $this->affected_rows = -1;
         }
         $this->fixed_float = 30;
-        $function = ($this->persistent ? "mysql_pconnect" : "mysql_connect");
+        $function = ($this->options['persistent'] ? "mysql_pconnect" : "mysql_connect");
         if (!function_exists($function)) {
             return ($this->raiseError(DB_ERROR_UNSUPPORTED));
         }
@@ -301,7 +297,7 @@ class MDB_mysql extends MDB_common
                 mysql_close($this->connection);
                 $this->connection = 0;
                 $this->affected_rows = -1;
-                return (0);
+                return ($this->raiseError());
             }
             $this->registerTransactionShutdown(0);
         }
@@ -309,7 +305,7 @@ class MDB_mysql extends MDB_common
         $this->connected_user = $this->user;
         $this->connected_password = $this->password;
         $this->connected_port = $port;
-        $this->opened_persistent = $this->persistent;
+        $this->opened_persistent = $this->options['persistent'];
         return (DB_OK);
     }
 
@@ -732,7 +728,7 @@ class MDB_mysql extends MDB_common
                 $value = (strcmp($value, "Y") ? 0 : 1);
                 return (DB_OK);
             case MDB_TYPE_DECIMAL:
-                $value = sprintf("%.".$this->decimal_places."f",doubleval($value)/$this->decimal_factor);
+                $value = sprintf("%.".$this->options['decimal_places']."f",doubleval($value)/$this->decimal_factor);
                 return (DB_OK);
             case MDB_TYPE_FLOAT:
                 $value = doubleval($value);
@@ -1063,8 +1059,8 @@ class MDB_mysql extends MDB_common
      */
     function getFloatDeclaration($name, &$field)
     {
-        if (isset($this->options['FixedFloat'])) {
-            $this->fixed_float = $this->options['FixedFloat'];
+        if (isset($this->options['fixedfloat'])) {
+            $this->fixed_float = $this->options['fixedfloat'];
         } else {
             if ($this->connection == 0) {
                 // XXX needs more checking
@@ -1133,7 +1129,7 @@ class MDB_mysql extends MDB_common
     function getClobFieldValue($prepared_query, $parameter, $clob, &$value)
     {
         for($value = "'";!endOfLob($clob);) {
-            if (readLob($clob, $data, $this->lob_buffer_length) < 0) {
+            if (readLob($clob, $data, $this->options['lob_buffer_length']) < 0) {
                 $value = "";
                 return $this->raiseError(DB_ERROR, "", "", 
                     'Get CLOB field value: '.LobError($clob));
@@ -1180,7 +1176,7 @@ class MDB_mysql extends MDB_common
     function getBLobFieldValue($prepared_query, $parameter, $blob, &$value)
     {
         for($value = "'";!endOfLob($blob);) {
-            if (!readLob($blob, $data, $this->lob_buffer_length)) {
+            if (!readLob($blob, $data, $this->options['lob_buffer_length'])) {
                 $value = "";
                 return $this->raiseError(DB_ERROR, "", "", 
                     'Get BLOB field value: '.LobError($blob));
@@ -1230,7 +1226,6 @@ class MDB_mysql extends MDB_common
 
     // }}}
     // {{{ getDecimalFieldValue()
-
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -1250,20 +1245,22 @@ class MDB_mysql extends MDB_common
     // }}}
     // {{{ nextId()
     /**
-    * returns the next free id of a sequence
-    * renamed for PEAR
-    * used to be: getSequenceNextValue
-    *
-    * @param string  $name     name of the sequence
-    * @param boolean $ondemand when true the seqence is
-    *                          automatic created, if it
-    *                          not exists
-    *
-    * @return mixed DB_Error or id
-    */
-    function nextId($name, $ondemand = FALSE)
+     * returns the next free id of a sequence
+     * renamed for PEAR
+     * used to be: getSequenceNextValue
+     *
+     * @param string  $seq_name name of the sequence
+     * @param int     $value    reference to a var into
+     *                          which the Id will be stored
+     * @param boolean $ondemand when true the seqence is
+     *                          automatic created, if it
+     *                          not exists
+     *
+     * @return mixed DB_Error or id
+     */
+    function nextId($seq_name, &$value, $ondemand = FALSE)
     {
-        $sequence_name = $this->sequence_prefix.$name;
+		$sequence_name = $this->getSequenceName($seq_name);
         $res = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
         if ($ondemand && DB::isError($result) &&
             $result->getCode() == DB_ERROR_NOSUCHTABLE)
@@ -1287,32 +1284,34 @@ class MDB_mysql extends MDB_common
             return $this->raiseError(DB_ERROR, "", "", 
                 'Next ID: could not delete previous sequence table values');
         }
-        return ($value);
+        return (DB_OK);
     }
     
 
     // }}}
     // {{{ currId()
     /**
-    * returns the current id of a sequence
-    * renamed for PEAR
-    * used to be: getSequenceCurrentValue
-    *
-    * @param string  $name     name of the sequence
-    *
-    * @return mixed DB_Error or id
-    */
-    function currId($name)
+     * returns the current id of a sequence
+     * renamed for PEAR
+     * used to be: getSequenceCurrentValue
+     *
+     * @param string  $seq_name name of the sequence
+     * @param int     $value    reference to a var into
+     *                          which the Id will be stored
+     *
+     * @return mixed DB_Error or id
+     */
+    function currId($seq_name, &$value)
     {
-        $sequence_name = $this->sequence_prefix.$name;
-        $result = $this->Query("SELECT MAX(sequence) FROM $sequence_name");
+        $sequence_name = $this->getSequenceName($seq_name);
+        $result = $this->query("SELECT MAX(sequence) FROM $sequence_name");
         if (MDB::isError($result)) {
             return $result;
         }
         
         $value = intval($this->fetch($result,0,0));
         $this->freeResult($result);
-        return ($value);
+        return (DB_OK);
     }
 
     // }}}
@@ -1352,7 +1351,7 @@ class MDB_mysql extends MDB_common
         if (!$array) {
             $errno = @mysql_errno($this->connection);
             if (!$errno) {
-                if($this->autofree) {
+                if($this->options['autofree']) {
                     $this->freeResult($result);
                 }
                 return NULL;
