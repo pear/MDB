@@ -223,8 +223,8 @@ class MDB_mysql extends MDB_Common
      */
     function autoCommit($auto_commit)
     {
-        $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
-        if (!isset($this->supported['Transactions'])) {
+        $this->debug('AutoCommit: '.($auto_commit ? 'On' : 'Off'));
+        if (!$this->support('Transactions')) {
             return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Auto-commit transactions: transactions are not in use'));
         }
@@ -268,8 +268,8 @@ class MDB_mysql extends MDB_Common
      */
     function commit()
     {
-        $this->debug("Commit Transaction");
-        if (!isset($this->supported['Transactions'])) {
+        $this->debug('Commit Transaction');
+        if (!$this->support('Transactions')) {
             return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Commit transactions: transactions are not in use'));
         }
@@ -295,9 +295,9 @@ class MDB_mysql extends MDB_Common
      */
     function rollback()
     {
-        $this->debug("Rollback Transaction");
-        if (!isset($this->supported['Transactions'])) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+        $this->debug('Rollback Transaction');
+        if (!$this->support('Transactions')) {
+           return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Rollback transactions: transactions are not in use'));
         }
         if ($this->auto_commit) {
@@ -359,7 +359,7 @@ class MDB_mysql extends MDB_Common
                 case 'MERGE':
                 case 'MRG_MYISAM':
                 case 'MYISAM':
-                    if(isset($this->supported['Transactions'])) {
+                    if ($this->support('Transactions')) {
                         $this->warnings[] = $DefaultTableType
                             .' is not a transaction-safe default table type';
                     }
@@ -402,7 +402,7 @@ class MDB_mysql extends MDB_Common
                 @mysql_free_result($result);
             }
         }
-        if (isset($this->supported['Transactions']) && !$this->auto_commit) {
+        if ($this->support('Transactions') && !$this->auto_commit) {
             if (!@mysql_query('SET AUTOCOMMIT = 0', $this->connection)) {
                 @mysql_close($this->connection);
                 $this->connection = 0;
@@ -430,7 +430,7 @@ class MDB_mysql extends MDB_Common
     function _close()
     {
         if ($this->connection != 0) {
-            if (isset($this->supported['Transactions']) && !$this->auto_commit) {
+            if ($this->support('Transactions') && !$this->auto_commit) {
                 $result = $this->autoCommit(TRUE);
             }
             @mysql_close($this->connection);
@@ -1366,7 +1366,7 @@ class MDB_mysql extends MDB_Common
     function currId($seq_name)
     {
         $sequence_name = $this->getSequenceName($seq_name);
-        $result = $this->query("SELECT MAX(".$this->options['sequence_col_name'].") FROM $sequence_name", 'integer');
+        $result = $this->query('SELECT MAX('.$this->options['sequence_col_name'].") FROM $sequence_name", 'integer');
         if (MDB::isError($result)) {
             return($result);
         }
