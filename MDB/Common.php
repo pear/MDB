@@ -462,7 +462,7 @@ class MDB_Common extends PEAR
             } else {
                 $class_name = $mode;
             }
-            @MDB::loadClass($mode);
+            @MDB::loadFile($mode);
             if (class_exists($class_name)) {
                 $this->result_mode = $class_name;
                 return MDB_OK;
@@ -490,7 +490,7 @@ class MDB_Common extends PEAR
         if ($result_mode || ($result_mode !== false && $this->result_mode)) {
             if (is_string($result_mode)) {
                 $class_name = 'MDB_'.$result_mode;
-                @MDB::loadClass($result_mode);
+                @MDB::loadFile($result_mode);
                 if (!class_exists($class_name)) {
                     $error =& $this->raiseError(MDB_ERROR, null, null,
                         "result class ($class_name) does not exist");

@@ -66,7 +66,7 @@ require_once 'HTML_TestListener.php';
 // you may need to uncomment the line and modify the multiplier as you see fit
 set_time_limit(60*count($dbarray));
 
-MDB::loadClass('Date');
+MDB::loadFile('Date');
 
 foreach ($testcases as $testcase) {
     include_once $testcase.'.php';

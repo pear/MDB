@@ -936,7 +936,7 @@ class MDB_Datatype_Common
     function createLOB($arguments)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $result = MDB::loadClass('LOB');
+        $result = MDB::loadFile('LOB');
         if (MDB::isError($result)) {
             return $result;
         }

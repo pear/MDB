@@ -177,8 +177,7 @@ class MDB
      * set option array in an exiting database object
      *
      * @param   object  $db       MDB object
-     * @param   mixed   $options  An associative array of option names and
-     *                            their values.
+     * @param   array   $options  An associative array of option names and their values.
      * @access  public
      */
     function setOptions(&$db, $options)
@@ -195,12 +194,13 @@ class MDB
         }
         $include_lob = $db->getOption('include_lob');
         if (!MDB::isError($include_lob) && $include_lob) {
-            MDB::loadClass('LOB');
+            MDB::loadFile('LOB');
         }
         $include_manager = $db->getOption('include_manager');
         if (!MDB::isError($include_manager) && $include_manager) {
             $db->loadModule('manager');
         }
+        return MDB_OK;
     }
 
     // }}}
@@ -248,7 +248,7 @@ class MDB
      *                            method for a description of the dsn format.
      *                            Can also be specified as an array of the
      *                            format returned by MDB::parseDSN.
-     * @param   mixed   $options  An associative array of option names and
+     * @param   array   $options  An associative array of option names and
      *                            their values.
      * @return  mixed   a newly created MDB connection object, or a MDB
      *                  error object on error
@@ -328,7 +328,7 @@ class MDB
      *                            method for a description of the dsn format.
      *                            Can also be specified as an array of the
      *                            format returned by MDB::parseDSN.
-     * @param   mixed   $options  An associative array of option names and
+     * @param   array   $options  An associative array of option names and
      *                            their values.
      * @return  mixed   a newly created MDB connection object, or a MDB
      *                  error object on error
@@ -368,17 +368,18 @@ class MDB
     }
     
     // }}}
-    // {{{ loadClass()
+    // {{{ loadFile()
     
     /**
      * load a file (like 'Date')
      *
+     * @param  string     $file  name of the file in the Modules directory (without '.php')
      * @return $module    name of the file to be included from the MDB modules dir
      * @access public
      */
-    function loadClass($module)
+    function loadFile($file)
     {
-        include_once 'MDB/Modules/'.$module.'.php';
+        include_once 'MDB/Modules/'.$file.'.php';
     }
     
     // }}}
@@ -401,7 +402,7 @@ class MDB
     /**
      * Tell whether a result code from a MDB method is an error
      *
-     * @param   int       $value  result code
+     * @param   integer   $value  result code
      * @return  boolean   whether $value is an MDB_Error
      * @access public
      */
@@ -418,9 +419,7 @@ class MDB
      * Tell whether a value is a MDB connection
      *
      * @param mixed $value value to test
-     *
      * @return bool whether $value is a MDB connection
-     *
      * @access public
      */
     function isConnection($value)
