@@ -3562,7 +3562,7 @@ class MDB_Common extends PEAR
             sequence value, the sequence value was incremented';
         $this->expectError(MDB_ERROR_NOT_CAPABLE);
         $id = $this->nextId($seq_name);
-        $this->popExpectError(MDB_ERROR_NOT_CAPABLE);
+        $this->popExpect(MDB_ERROR_NOT_CAPABLE);
         if (MDB::isError($id)) {
             if ($id->getCode() == MDB_ERROR_NOT_CAPABLE) {
                 return($this->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
