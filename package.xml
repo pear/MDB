@@ -12,6 +12,8 @@
       MDB:
       - fixed PHP5 compatibility issue in MDB::isError()
       - added quoteIdentifier() method
+      - added sequence_col_name option to make the column name inside sequence
+        emulation tables configurable
       MDB_Manager_mysql:
       - fixed mysql 4.0.13 issue in createSequence()
       - fixed bug #963 ensuring the correct case is used when doing assoc fetches based on portability flag setting
@@ -38,6 +40,7 @@
       test suite:
       - added several test and applied PHP5 compatibility fixes
       - fixed a wrong assumption in the fetchmode bug test
+      - moved set_time_limit() call to the setup script to be easier to customize
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
