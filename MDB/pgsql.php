@@ -198,7 +198,7 @@ class MDB_pgsql extends MDB_common
                 return($result);
         }
         $this->auto_commit = $auto_commit;
-        return($this->_registerTransactionShutdown($auto_commit));
+        return(MDB_OK);
     }
 
     // }}}

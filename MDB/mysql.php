@@ -208,7 +208,7 @@ class MDB_mysql extends MDB_Common
             }
         }
         $this->auto_commit = $auto_commit;
-        return($this->_registerTransactionShutdown($auto_commit));
+        return(MDB_OK);
     }
 
     // }}}
@@ -367,7 +367,6 @@ class MDB_mysql extends MDB_Common
                 $this->affected_rows = -1;
                 return($this->raiseError());
             }
-            $this->_registerTransactionShutdown(0);
         }
         $this->connected_host = $this->host;
         $this->connected_user = $this->user;

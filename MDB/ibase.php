@@ -247,7 +247,7 @@ class MDB_ibase extends MDB_common
             return($commit);
         }
         $this->auto_commit = $auto_commit;
-        return($this->_registerTransactionShutdown($auto_commit));
+        return(MDB_OK);
     }
 
     // }}}
