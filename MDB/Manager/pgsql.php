@@ -63,7 +63,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     /**
      * create a new database
      *
-     * @param  $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $name name of the database that should be created
      * @return mixed DB_OK on success, a DB error on failure
      * @access public
@@ -79,7 +79,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     /**
      * drop an existing database
      *
-     * @param  $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $name name of the database that should be dropped
      * @return mixed DB_OK on success, a DB error on failure
      * @access public
@@ -95,7 +95,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     /**
      * create a new table
      *
-     * @param  $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $name Name of the database that should be created
      * @param array $fields Associative array that contains the definition of each field of the new table
      *                         The indexes of the array entries are the names of the fields of the table an
@@ -144,7 +144,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     /**
      * alter an existing table
      *
-     * @param  $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $name name of the table that is intended to be changed.
      * @param array $changes associative array that contains the details of each type
      *                              of change that is intended to be performed. The types of
@@ -284,7 +284,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     /**
      * list all databases
      *
-     * @param  $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @return mixed data array on success, a DB error on failure
      * @access public
      **/
@@ -299,7 +299,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     /**
      * list all users
      *
-     * @param  $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @return mixed data array on success, a DB error on failure
      * @access public
      **/
@@ -314,7 +314,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     /**
      * list all tables in the current database
      *
-     * @param  $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @return mixed data array on success, a DB error on failure
      * @access public
      **/
@@ -342,7 +342,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     /**
      * list all fields in a tables in the current database
      *
-     * @param $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $table name of table that should be used in method
      * @return mixed data array on success, a DB error on failure
      * @access public
@@ -369,7 +369,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     /**
      * list the views in the database
      *
-     * @param  $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @return mixed DB_OK on success, a DB error on failure
      * @access public
      **/
@@ -391,7 +391,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     /**
      * create sequence
      *
-     * @param  $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $seq_name name of the sequence to be created
      * @param string $start start value of the sequence; default is 1
      * @return mixed DB_OK on success, a DB error on failure
@@ -409,7 +409,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     /**
      * drop existing sequence
      *
-     * @param  $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @param string $seq_name name of the sequence to be dropped
      * @return mixed DB_OK on success, a DB error on failure
      * @access public
@@ -426,7 +426,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     /**
      * list all sequences in the current database
      *
-     * @param  $dbs (reference) array where database names will be stored
+     * @param object    $dbs        database object that is extended by this class
      * @return mixed data array on success, a DB error on failure
      * @access public
      **/
