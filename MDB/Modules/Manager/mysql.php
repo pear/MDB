@@ -70,7 +70,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * verify that chosen transactional table hanlder is available in the database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string $table_type name of the table handler
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access private
@@ -130,7 +130,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * create a new database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string $name name of the database that should be created
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -140,7 +140,8 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         if (MDB::isError($result = $db->connect())) {
             return $result;
         }
-        if (!mysql_create_db($name, $db->connection)) {
+        $query = "CREATE DATABASE " . $name;
+        if(MDB::isError($db->query($query))) {
             return $db->mysqlRaiseError();
         }
 
@@ -153,7 +154,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * drop an existing database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string $name name of the database that should be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -163,7 +164,8 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         if (MDB::isError($result = $db->connect())) {
             return $result;
         }
-        if (!mysql_drop_db($name, $db->connection)) {
+        $query = "DROP DATABASE " . $name;
+        if(MDB::isError($db->query($query))) {
             return $db->mysqlRaiseError();
         }
         return (MDB_OK);
@@ -175,7 +177,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * create a new table
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string $name     Name of the database that should be created
      * @param array $fields Associative array that contains the definition of each field of the new table
      *                        The indexes of the array entries are the names of the fields of the table an
@@ -233,7 +235,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * alter an existing table
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string $name         name of the table that is intended to be changed.
      * @param array $changes     associative array that contains the details of each type
      *                             of change that is intended to be performed. The types of
@@ -424,7 +426,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * list all databases
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
@@ -443,7 +445,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * list all users
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
@@ -462,7 +464,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * list all tables in the current database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
@@ -486,7 +488,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * list all fields in a tables in the current database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string $table name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
@@ -523,7 +525,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * get the stucture of a field into an array
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string    $table         name of table that should be used in method
      * @param string    $field_name     name of field that should be used in method
      * @return mixed data array on success, a MDB error on failure
@@ -728,7 +730,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * get the stucture of a field into an array
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string    $table         name of the table on which the index is to be created
      * @param string    $name         name of the index to be created
      * @param array     $definition        associative array that defines properties of the index to be created.
@@ -780,7 +782,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * drop existing index
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string    $table         name of table that should be used in method
      * @param string    $name         name of the index to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -797,7 +799,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * list all indexes in a table
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string    $table      name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
@@ -829,7 +831,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * get the stucture of an index into an array
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string    $table      name of table that should be used in method
      * @param string    $index_name name of index that should be used in method
      * @return mixed data array on success, a MDB error on failure
@@ -870,7 +872,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * create sequence
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string    $seq_name     name of the sequence to be created
      * @param string    $start         start value of the sequence; default is 1
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -909,7 +911,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * drop existing sequence
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @param string    $seq_name     name of the sequence to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -926,7 +928,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     /**
      * list all sequences in the current database
      *
-     * @param object    $dbs        database object that is extended by this class
+     * @param object    $db        database object that is extended by this class
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
