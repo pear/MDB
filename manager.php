@@ -97,7 +97,7 @@ class MDB_manager extends PEAR
         'float' => 0,
         'decimal' => 0,
         'text' => '',
-        'timestamp' => '0001-01-01 00:0:00',
+        'timestamp' => '0001-01-01 00:00:00',
         'date' => '0001-01-01',
         'time' => '00:00:00'
     );
@@ -1944,7 +1944,7 @@ class MDB_manager extends PEAR
                             $types[] = $field['type'];
                         }
                         $query = 'SELECT '.implode(',',array_keys($table['FIELDS']))." FROM $table_name";
-                        $result = $this->database->queryAll($query, $types);
+                        $result = $this->database->queryAll($query, $types, MDB_FETCHMODE_ASSOC);
                         if (MDB::isError($result)) {
                             return $result;
                         }
