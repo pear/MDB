@@ -916,6 +916,45 @@ function MetabaseAlterTable($database, $name, &$changes, $check = 0)
     }
 }
 
+function MetabaseListTables($database, &$tables)
+{
+    global $metabase_databases;
+    $result = $metabase_databases[$database]->listTables($tables);
+    if (MDB::isError($result)) {
+        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        return(0);
+    } else {
+        $tables = $result;
+        return(1);
+    }
+}
+
+function MetabaseListTableFields($database, $table, &$fields)
+{
+    global $metabase_databases;
+    $result = $metabase_databases[$database]->listTableFields($table,$fields);
+    if (MDB::isError($result)) {
+        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        return(0);
+    } else {
+        $fields = $result;
+        return(1);
+    }
+}
+
+function MetabaseGetTableFieldDefinition($database, $table, $field, &$definition)
+{
+    global $metabase_databases;
+    $result = $metabase_databases[$database]->getTableFieldDefinition($table, $field, $definition);
+    if (MDB::isError($result)) {
+        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        return(0);
+    } else {
+        $definition = $result;
+        return(1);
+    }
+}
+
 function MetabaseCreateSequence($database, $name, $start)
 {
     global $metabase_databases;
@@ -962,6 +1001,19 @@ function MetabaseGetSequenceCurrentValue($database, $name, &$value)
         return(0);
     } else {
         $value = $result;
+        return(1);
+    }
+}
+
+function MetabaseListSequences($database, &$sequences)
+{
+    global $metabase_databases;
+    $result = $metabase_databases[$database]->listSequences($sequence);
+    if (MDB::isError($result)) {
+        $metabase_databases[$database]->setError($result->getMessage(), $result->getCode());
+        return(0);
+    } else {
+        $sequences = $result;
         return(1);
     }
 }
