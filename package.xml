@@ -40,8 +40,7 @@ More information available at: http://www.backendmedia.com/MDB/docs/
     Oracle
     Frontbase
     Querysim
-    Interbase
-    Firebird
+    Interbase/Firebird
     MSSQL
     Other soon to follow.
   </description>
@@ -99,13 +98,39 @@ More information available at: http://www.backendmedia.com/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version></version>
-    <state></state>
-    <date></date>
+    <version>2.0devel1</version>
+    <state>devel</state>
+    <date>2003-09-24</date>
     <notes>
-      - added MDB::isConnection()
-      - fixed LOB handling in Interbase driver
-      - minor improvements to the test suite
+        This is the first preview release of MDB 2.0.
+        It will not be available through the pear installer.
+        
+        MDB 2.x breaks backwards compatibility in many ways in order to simplify
+        the API for both users and drivers developers.
+        
+        Here follows a short list of the most important changes:
+        - all code that is not necessary for basic operation is now separateed
+          into separate modules which can be loaded with the loadModule() method
+        - all datatype related methods have been moved to a dataype module with
+          the notable exception of getValue() and the newly introduced getDeclaration()
+        - all "higher level" methods like queryRow/getRow etc have been moved to
+          the extended module
+        - all manager method are no longer available in the core class and or
+          now only available in the manager module
+        - all reverse engineering methods have been taken from the manager class
+          and are now available through the reverse module
+        - a new module has been added to allow the addition of methods with
+          RDBMS specific functionality (like getting the last autoincrement ID)
+        - LOB handling has been greatly simplified
+        - several methods names have been shortend
+        - the fetch.+ methods do not free the result set anymore
+        - the Manager and the reverse_engineer_xml_schema script are no longer
+          part of MDB and will be moved into the yet to be created DB_Schema
+          package. However until then you can find MDB 2.x compatible versions
+          of these scripts in CVS.
+        - all parameters are now lowercased with underscores as separators
+        - all drivers now support all of the dsn options that PEAR DB supports
+        - several methods have been removed because they offered redundant functionality
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
@@ -121,15 +146,42 @@ More information available at: http://www.backendmedia.com/MDB/docs/
         <file role="php">fbsql.php</file>
         <file role="php">mysql.php</file>
         <file role="php">pgsql.php</file>
-        <file role="php">Date.php</file>
-        <file role="php">Manager.php</file>
-        <file role="php">Parser.php</file>
-        <file role="php">metabase_wrapper.php</file>
-        <file role="php">peardb_wrapper.php</file>
-        <file role="php">reverse_engineer_xml_schema.php</file>
+        <dir name="Wrapper">
+          <file role="php">metabase.php</file>
+          <file role="php">peardb.php</file>
+        </dir>
         <dir name="Modules">
+          <file role="php">Date.php</file>
           <file role="php">LOB.php</file>
+          <file role="php">Extended.php</file>
+          <file role="php">Result.php</file>
           <dir name="Manager">
+            <file role="php">Common.php</file>
+            <file role="php">mssql.php</file>
+            <file role="php">ibase.php</file>
+            <file role="php">oci8.php</file>
+            <file role="php">fbsql.php</file>
+            <file role="php">mysql.php</file>
+            <file role="php">pgsql.php</file>
+          </dir>
+          <dir name="Datatype">
+            <file role="php">Common.php</file>
+            <file role="php">mssql.php</file>
+            <file role="php">ibase.php</file>
+            <file role="php">oci8.php</file>
+            <file role="php">fbsql.php</file>
+            <file role="php">mysql.php</file>
+            <file role="php">pgsql.php</file>
+          </dir>
+          <dir name="Native">
+            <file role="php">mssql.php</file>
+            <file role="php">ibase.php</file>
+            <file role="php">oci8.php</file>
+            <file role="php">fbsql.php</file>
+            <file role="php">mysql.php</file>
+            <file role="php">pgsql.php</file>
+          </dir>
+          <dir name="Reverse">
             <file role="php">Common.php</file>
             <file role="php">mssql.php</file>
             <file role="php">ibase.php</file>
@@ -146,7 +198,16 @@ More information available at: http://www.backendmedia.com/MDB/docs/
         <file role="doc">xml_schema_documentation.html</file>
         <file role="doc">xml_schema.xsl</file>
         <file role="doc">skeleton.php</file>
+        <file role="doc">MDB.dtd</file>
         <file role="doc">Modules_Manager_skeleton.php</file>
+        <file role="doc">Modules_Datatype_skeleton.php</file>
+        <file role="doc">Modules_Reverse_skeleton.php</file>
+        <file role="doc">Modules_Native_skeleton.php</file>
+      </dir>
+      <dir name="examples">
+        <file role="test">example.php</file>
+        <file role="test">peardb_wrapper_example.php</file>
+        <file role="test">metapear_test_db.schema</file>
       </dir>
       <dir name="tests">
         <file role="test">README</file>
@@ -163,9 +224,6 @@ More information available at: http://www.backendmedia.com/MDB/docs/
         <file role="test">testUtils.php</file>
         <file role="test">test_setup.php.dist</file>
         <file role="test">test.schema</file>
-        <file role="test">MDB_test.php</file>
-        <file role="test">MDB_pear_wrapper_test.php</file>
-        <file role="test">metapear_test_db.schema</file>
         <file role="test">driver_test_config.php</file>
         <file role="test">driver_test.php</file>
         <file role="test">setup_test.php</file>
@@ -179,7 +237,6 @@ More information available at: http://www.backendmedia.com/MDB/docs/
     <deps>
         <dep type="php" rel="ge" version="4.1.0" />
         <dep type="pkg" rel="ge" version="1.0b1">PEAR</dep>
-        <dep type="pkg" rel="has">XML_Parser</dep>
     </deps>
   </release>
   <changelog>
