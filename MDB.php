@@ -329,7 +329,11 @@ class MDB
         @$db =& new $class_name();
 
         $db->setDSN($dsninfo);
-        MDB::setOptions($db, $options);
+        $err = MDB::setOptions($db, $options);
+        if (MDB::isError($err)) {
+            $db->disconnect();
+            return $err;
+        }
 
         if (isset($dsninfo['database'])) {
             $err = $db->connect();
