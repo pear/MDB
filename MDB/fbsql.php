@@ -219,7 +219,7 @@ class MDB_fbsql extends MDB_Common
      */
     function autoCommit($auto_commit)
     {
-        $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
+        $this->debug('AutoCommit: '.($auto_commit ? 'On' : 'Off'));
         if (!isset($this->supported['Transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
                 'Auto-commit transactions: transactions are not in use');
@@ -263,7 +263,7 @@ class MDB_fbsql extends MDB_Common
      */
     function commit()
     {
-        $this->debug("Commit Transaction");
+        $this->debug('Commit Transaction');
         if (!isset($this->supported['Transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
                 'Commit transactions: transactions are not in use');
@@ -290,7 +290,7 @@ class MDB_fbsql extends MDB_Common
      */
     function rollback()
     {
-        $this->debug("Rollback Transaction");
+        $this->debug('Rollback Transaction');
         if (!isset($this->supported['Transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
                 'Rollback transactions: transactions are not in use');
@@ -432,7 +432,7 @@ class MDB_fbsql extends MDB_Common
         }
         if($limit > 0) {
             if (!$ismanip) {
-                eregi_replace("SELECT", "SELECT TOP($first,$limit)", $query)";
+                eregi_replace('SELECT', "SELECT TOP($first,$limit)", $query);
             }
         }
 
@@ -442,8 +442,8 @@ class MDB_fbsql extends MDB_Common
             }
         }
 
-		// Add ; to the end of the query. This is required by FrontBase
-		$query .= ";";
+        // Add ; to the end of the query. This is required by FrontBase
+        $query .= ';';
         if ($result = fbsql_query($query, $this->connection)) {
             if ($ismanip) {
                 $this->affected_rows = fbsql_affected_rows($this->connection);
@@ -902,9 +902,9 @@ class MDB_fbsql extends MDB_Common
     {
         if (isset($field['length'])) {
             $length = $field['length'];
-            $type = "VAECHAR($length)";
+            $type = "VARCHAR($length)";
         } else {
-            $type = "VAECHAR(32768)";
+            $type = 'VARCHAR(32768)';
         }
         return ("$name $type".
                  (isset($field['notnull']) ? ' NOT NULL' : ''));
@@ -943,7 +943,7 @@ class MDB_fbsql extends MDB_Common
             $type = "BLOB($length)";
         }
         else {
-            $type = "BLOB(32768)";
+            $type = 'BLOB(32768)';
         }
         return ("$name $type".
                 (isset($field['notnull']) ? ' NOT NULL' : ''));
@@ -1401,7 +1401,7 @@ class MDB_fbsql extends MDB_Common
          *   [0]['type']   field type
          *   [0]['len']    field length
          *   [0]['flags']  field flags
-         *   ['order'][field name]  index of field named "field name"
+         *   ['order'][field name]  index of field named 'field name'
          *   The last one is used, if you have a field name, but no index.
          *   Test:  if (isset($result['meta']['myfield'])) { ...
          *
