@@ -55,7 +55,7 @@
  */
 class MDB_LOB
 {
-    var $database;
+    var $db;
     var $lob;
     var $data = '';
     var $position = 0;
@@ -104,17 +104,17 @@ class MDB_LOB_Result extends MDB_LOB
 
     function destroy()
     {
-        $this->database->datatype->_destroyResultLOB($this->database, $this->result_lob);
+        $this->db->datatype->_destroyResultLOB($this->db, $this->result_lob);
     }
 
     function endOfLOB()
     {
-        return $this->database->datatype->_endOfResultLOB($this->database, $this->result_lob);
+        return $this->db->datatype->_endOfResultLOB($this->db, $this->result_lob);
     }
 
     function readLOB(&$data, $length)
     {
-        $read_length = $this->database->datatype->_readResultLOB($this->database, $this->result_lob, $data, $length);
+        $read_length = $this->db->datatype->_readResultLOB($this->db, $this->result_lob, $data, $length);
         if (MDB::isError($read_length)) {
             return $read_length;
         }
@@ -218,7 +218,7 @@ class MDB_LOB_Output_File extends MDB_LOB
                 }
                 $this->opened_file = 1;
             } else {
-                returnPEAR::raiseError(null, MDB_ERROR_NEED_MORE_DATA, null, null,
+                return PEAR::raiseError(null, MDB_ERROR_NEED_MORE_DATA, null, null,
                     'it was not specified the output file',
                     'MDB_Error', true);
             }
@@ -238,7 +238,7 @@ class MDB_LOB_Output_File extends MDB_LOB
             $this->file = 0;
         }
         if ($this->opened_lob) {
-            $this->database->datatype->destroyLOB($this->database, $this->input_lob);
+            $this->db->datatype->destroyLOB($this->db, $this->input_lob);
             $this->input_lob = 0;
             $this->opened_lob = 0;
         }
@@ -246,7 +246,7 @@ class MDB_LOB_Output_File extends MDB_LOB
 
     function endOfLOB()
     {
-        return $this->database->datatype->endOfLOB($this->database, $this->input_lob);
+        return $this->db->datatype->endOfLOB($this->db, $this->input_lob);
     }
 
     function readLOB(&$data, $length) {
@@ -254,11 +254,11 @@ class MDB_LOB_Output_File extends MDB_LOB
         $written_full = 0;
         do {
             for($written = 0;
-                !$this->database->datatype->endOfLOB($this->database, $this->input_lob)
+                !$this->db->datatype->endOfLOB($this->db, $this->input_lob)
                 && $written < $buffer_length;
                 $written += $read)
             {
-                $result = $this->database->datatype->readLOB($this->database, $this->input_lob, $buffer, $buffer_length);
+                $result = $this->db->datatype->readLOB($this->db, $this->input_lob, $buffer, $buffer_length);
                 if (MDB::isError($result)) {
                     return $result;
                 }
@@ -270,7 +270,7 @@ class MDB_LOB_Output_File extends MDB_LOB
                 }
             }
             $written_full += $written;
-        } while($length == 0 && !$this->database->datatype->endOfLOB($this->database, $this->input_lob));
+        } while($length == 0 && !$this->db->datatype->endOfLOB($this->db, $this->input_lob));
         return $written_full;
     }
 }
