@@ -314,7 +314,7 @@ class MDB
      * object instead of a copy (this is a PHP4 quirk).
      *
      * For example:
-     *     $mdb =& MDB::sngleton($dsn);
+     *     $mdb =& MDB::singleton($dsn);
      *          ^^
      * And not:
      *     $mdb = MDB::singleton($dsn);
@@ -335,32 +335,36 @@ class MDB
     {
         if ($dsn) {
             $dsninfo = MDB::parseDSN($dsn);
-            $dsninfo = array_merge(
-                array(
-                    'phptype' => null,
-                    'username' => null,
-                    'password' => null,
-                    'hostspec' => null,
-                    'database' => null)
-                , $dsninfo);
-            for ($i=1, $j=count($GLOBALS['_MDB_databases'])+1; $i<$j; ++$i) {
-                $tmp_dsn = $GLOBALS['_MDB_databases'][$i]->getDSN('array');
-                if ($dsninfo['phptype'] == $tmp_dsn['phptype']
-                    && $dsninfo['username'] == $tmp_dsn['username']
-                    && $dsninfo['password'] == $tmp_dsn['password']
-                    && $dsninfo['hostspec'] == $tmp_dsn['hostspec']
-                    && $dsninfo['database'] == $tmp_dsn['database'])
-                {
-                    MDB::setOptions($GLOBALS['_MDB_databases'][$i], $options);
-                    return $GLOBALS['_MDB_databases'][$i];
+            $dsninfo_default = array(
+                'phptype'  => false,
+                'dbsyntax' => false,
+                'username' => false,
+                'password' => false,
+                'protocol' => false,
+                'hostspec' => false,
+                'port'     => false,
+                'socket'   => false,
+                'database' => false
+            );
+            $dsninfo = array_merge($dsninfo_default, $dsninfo);
+            $keys = array_keys($GLOBALS['_MDB_databases']);
+            for ($i=0, $j=count($keys); $i<$j; ++$i) {
+                $tmp_dsn = $GLOBALS['_MDB_databases'][$keys[$i]]->getDSN('array');
+                if (count(array_diff($dsninfo, $this->dsn)) == 0) {
+                    MDB::setOptions($GLOBALS['_MDB_databases'][$keys[$i]], $options);
+                    return $GLOBALS['_MDB_databases'][$keys[$i]];
                 }
             }
         } else {
-            if (isset($GLOBALS['_MDB_databases'][0])) {
-                return $GLOBALS['_MDB_databases'][0];
+            if (is_array($GLOBALS['_MDB_databases'])
+                && reset($GLOBALS['_MDB_databases'])
+            ) {
+                $db =& $GLOBALS['_MDB_databases'][key($GLOBALS['_MDB_databases'])];
+                return $db;
             }
         }
-        return MDB::connect($dsn, $options);
+        $db =& MDB::connect($dsn, $options);
+        return $db;
     }
     
     // }}}
