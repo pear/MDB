@@ -56,6 +56,7 @@ require_once 'MDB/Modules/Manager/Common.php';
  *
  * @package MDB
  * @category Database
+ * @access private
  * @author  Lukas Smith <smith@dybnet.de>
  */
 class MDB_Manager_mysql extends MDB_Manager_Common

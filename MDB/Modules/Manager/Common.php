@@ -54,6 +54,7 @@ if(!defined('MDB_MANAGER_COMMON_INCLUDED'))
  *
  * @package MDB
  * @category Database
+ * @access private
  * @author  Lukas Smith <smith@dybnet.de>
  */
 

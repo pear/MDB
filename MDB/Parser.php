@@ -52,6 +52,7 @@ require_once 'XML/Parser.php';
  *
  * @package MDB
  * @category Database
+ * @access private
  * @author  Christian Dickmann <dickmann@php.net>
  */
 class MDB_Parser extends XML_Parser
