@@ -412,7 +412,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
             if (!$this->_isSequenceName(&$db, $result[$i]))
                 $tables[] = $result[$i];
         }
-        return ($result);
+        return ($tables);
     }
 
     // }}}
@@ -471,7 +471,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     {
         $field_name = strtolower($field);
         if ($field_name == $db->dummy_primary_key) {
-            return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table fields: '.$db->dummy_primary_key.' is an hidden column');
+            return $db->raiseError(DB_ERROR_MANAGER, "", "", 'Gist table field definiton: '.$db->dummy_primary_key.' is an hidden column');
         }
         $result = $db->query("SHOW COLUMNS FROM $table");
         if(MDB::isError($result)) {
@@ -483,10 +483,10 @@ class MDB_manager_mysql_class extends MDB_manager_common
             return $columns;
         }
         if (!isset($columns[$column = "field"])
-            && !isset($columns[$column = "type"]))
+            || !isset($columns[$column = "type"]))
         {
             $db->freeResult($result);
-            return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table fields: show columns does not return the column '.$column);
+            return $db->raiseError(DB_ERROR_MANAGER, "", "", 'Get table field definition: show columns does not return the column '.$column);
         }
         $field_column = $columns["field"];
         $type_column = $columns["type"];
@@ -607,7 +607,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
         if(MDB::isError($row)) {
             return($row);
         }
-        return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table fields: it was not specified an existing table column');
+        return $db->raiseError(DB_ERROR_MANAGER, "", "", 'Get table field definition: it was not specified an existing table column');
     }
 
     // }}}
@@ -684,6 +684,109 @@ class MDB_manager_mysql_class extends MDB_manager_common
     }
 
     // }}}
+    // {{{ listTableIndexes()
+
+    /**
+     * list all indexes in a table
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $table      name of table that should be used in method
+     *
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function listTableIndexes(&$db, $table)
+    {
+        if(MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
+            return($result);
+        }
+        if(MDB::isError($columns = $db->getColumnNames($result)))
+        {
+            $db->freeResult($result);
+            return($columns);
+        }
+        if(!isset($columns["key_name"]))
+        {
+            $db->freeResult($result);
+            return $db->raiseError(DB_ERROR_MANAGER, "", "", 'List table indexes: show index does not return the table index names');
+        }
+		$indexes_all = $db->fetchCol($result, DB_FETCHMODE_ORDERED, $columns["key_name"]);
+        for($found = $indexes = array(), $index = 0; $index < count($indexes_all); $index++)
+        {
+            if ($indexes_all[$index] != "PRIMARY"
+                && !isset($found[$indexes_all[$index]]))
+            {
+                $indexes[] = $indexes_all[$index];
+                $found[$indexes_all[$index]] = 1;
+            }
+        }
+        $db->freeResult($result);
+        return($indexes);
+    }
+
+    // }}}
+    // {{{ getTableIndexDefinition()
+
+    /**
+     * get the stucture of an index into an array
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $table      name of table that should be used in method
+     * @param string    $index      name of index that should be used in method
+      * 
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function getTableIndexDefinition(&$db, $table, $index)
+    {
+        $index_name = strtolower($index);
+        if($index_name == "PRIMARY") {
+            return $db->raiseError(DB_ERROR_MANAGER, "", "", 'Get table index definition: PRIMARY is an hidden index');
+        }
+        if(MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
+            return($result);
+        }
+        if(MDB::isError($columns = $db->getColumnNames($result)))
+        {
+            $db->freeResult($result);
+            return($columns);
+        }
+        if(!isset($columns["non_unique"])
+            || !isset($columns["key_name"])
+            || !isset($columns["column_name"])
+            || !isset($columns["collation"]))
+        {
+            $db->freeResult($result);
+            return $db->raiseError(DB_ERROR_MANAGER, "", "", 'Get table index definition: show index does not return the column '.$column);
+        }
+        $non_unique_column = $columns["non_unique"];
+        $key_name_column = $columns["key_name"];
+        $column_name_column = $columns["column_name"];
+        $collation_column = $columns["collation"];
+        $definition = array();
+        while (is_array($row = $db->fetchInto($result))) {
+			$key_name = $row[$key_name_column];
+			if(!strcmp($index_name, $key_name)) {
+				if(!$row[$non_unique_column]) {
+                    $definition["unique"] = 1;
+                }
+                $column_name = $row[$column_name_column];
+                $definition["FIELDS"][$column_name] = array();
+                if(isset($row[$collation_column])) {
+                    $definition['FIELDS'][$column_name]['sorting']=($row[$collation_column]=="A" ? "ascending" : "descending");
+                }
+            }
+        }
+        $db->freeResult($result);
+        if (!isset($definition["FIELDS"])) {
+            return $db->raiseError(DB_ERROR_MANAGER, "", "", 'Get table index definition: it was not specified an existing table index');
+        }
+        return ($definition);
+    }
+
+    // }}}
     // {{{ createSequence()
 
     /**
@@ -757,18 +860,55 @@ class MDB_manager_mysql_class extends MDB_manager_common
      */ 
     function listSequences(&$db)
     {
-        $result = $db->queryCol("SHOW TABLES", $table_names);
+        $result = $db->queryCol("SHOW TABLES");
         if(MDB::isError($result)) {
             return $result;
         }
-        for($i = 0, $j = count($table_names), $sequences = array();$i < $j; ++$i) {
-            if ($sqn = $this->_isSequenceName(&$db, $table_names[$i])) {
+        for($i = 0, $j = count($result), $sequences = array(); $i < $j; ++$i)
+        {
+            if ($sqn = $this->_isSequenceName(&$db, $result[$i]))
                 $sequences[] = $sqn;
-            }
         }
         return ($sequences);
     }
-};
+
+    // }}}
+    // {{{ getSequenceDefinition()
+
+    /**
+     * get the stucture of a sequence into an array
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $sequence   name of sequence that should be used in method
+      * 
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function getSequenceDefinition(&$db, $sequence)
+    {
+        if(MDB::isError($table_names = $db->queryCol("SHOW TABLES"))) {
+            return($table_names);
+        }
+        for($i = 0, $j = count($table_names); $i < $j; $i++) {
+            if ($sqn = $this->_isSequenceName(&$db, $table_names[$i])) {
+                $start = $db->currId($sqn);
+                if (MDB::isError($start)) {
+                    return ($start);
+                }
+                if ($db->support("CurrId")) {
+                    $start++;
+                } else {
+                    $this->warnings[] = "database does not support getting current sequence value, the sequence value was incremented";
+                }
+                $definition = array("start"=>$start);
+                return($definition);
+            }
+        }
+        return $db->raiseError(DB_ERROR_MANAGER, "", "", 'Get sequence definition: it was not specified an existing sequence');
+    }
+}
 
 }
+
 ?>
