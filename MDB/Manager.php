@@ -144,23 +144,6 @@ class MDB_Manager extends PEAR
     }
 
     // }}}
-    // {{{ captureDebugOutput()
-
-    /**
-     * set a debug handler
-     *
-     * @param string $capture name of the function that should be used in
-     *     debug()
-     * @access public
-     * @see debug()
-     */
-    function captureDebugOutput($capture)
-    {
-        $this->options['debug'] = $capture;
-        $this->db->captureDebugOutput(1);
-    }
-
-    // }}}
     // {{{ debugOutput()
 
     /**
@@ -546,7 +529,7 @@ class MDB_Manager extends PEAR
             if(MDB::isError($result)) {
                 return($result);
             }
-            $start = $this->db->fetchOne($result);
+            $start = $this->db->fetch($result);
             $this->db->freeResult($result);
             if(MDB::isError($start)) {
                 return($start);
@@ -1641,6 +1624,7 @@ class MDB_Manager extends PEAR
      */
     function getDefinitionFromDatabase()
     {
+        $this->db->loadModule('reverse');
         $database = $this->db->database_name;
         if(strlen($database) == 0) {
             return('it was not specified a valid database name');
@@ -1654,6 +1638,7 @@ class MDB_Manager extends PEAR
         if(MDB::isError($tables)) {
             return($tables);
         }
+
         for($table = 0; $table < count($tables); $table++) {
             $table_name = $tables[$table];
             $fields = $this->db->manager->listTableFields($table_name);
@@ -1664,7 +1649,7 @@ class MDB_Manager extends PEAR
             for($field = 0; $field < count($fields); $field++)
             {
                 $field_name = $fields[$field];
-                $definition = $this->db->manager->getTableFieldDefinition($table_name, $field_name);
+                $definition = $this->db->reverse->getTableFieldDefinition($table_name, $field_name);
                 if(MDB::isError($definition)) {
                     return($definition);
                 }
@@ -1710,7 +1695,7 @@ class MDB_Manager extends PEAR
             for($index = 0, $index_cnt = count($indexes); $index < $index_cnt; $index++)
             {
                 $index_name = $indexes[$index];
-                $definition = $this->db->manager->getTableIndexDefinition($table_name, $index_name);
+                $definition = $this->db->reverse->getTableIndexDefinition($table_name, $index_name);
                 if(MDB::isError($definition)) {
                     return($definition);
                 }
@@ -1769,7 +1754,7 @@ class MDB_Manager extends PEAR
         }
         for($sequence = 0; $sequence < count($sequences); $sequence++) {
             $sequence_name = $sequences[$sequence];
-            $definition = $this->db->manager->getSequenceDefinition($sequence_name);
+            $definition = $this->db->reverse->getSequenceDefinition($sequence_name);
             if(MDB::isError($definition)) {
                 return($definition);
             }
@@ -1823,6 +1808,7 @@ class MDB_Manager extends PEAR
             $this->getDefinitionFromDatabase();
             $dump_definition = FALSE;
         }
+
         if(isset($arguments['output'])) {
             if(isset($arguments['output_mode']) && $arguments['output_mode'] == 'file') {
                 $fp = fopen($arguments['output'], 'w');
@@ -1964,12 +1950,12 @@ class MDB_Manager extends PEAR
                         if(MDB::isError($result)) {
                             return($result);
                         }
-                        $result = $this->db->fetchAll($result, MDB_FETCHMODE_ASSOC);
+                        $data = $this->db->fetchAll($result, MDB_FETCHMODE_ASSOC);
                         $this->db->freeResult($result);
-                        if(MDB::isError($result)) {
-                            return($result);
+                        if(MDB::isError($data)) {
+                            return($data);
                         }
-                        $rows = count($result);
+                        $rows = count($data);
                         if($rows > 0) {
                             $buffer = ("$eol  <initialization>$eol");
                             if($output) {
@@ -1980,7 +1966,7 @@ class MDB_Manager extends PEAR
                             
                             for($row = 0; $row < $rows; $row++) {
                                 $buffer = ("$eol   <insert>$eol");
-                                $values = $result[$row];
+                                $values = $data[$row];
                                 if(!is_array($values)) {
                                     break;
                                 } else {
