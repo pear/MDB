@@ -965,7 +965,7 @@ class MDB_Common extends PEAR
                 $value = 'NULL';
             } else {
                 if (isset($fields[$name]['type'])) {
-                    $value = $this->getValue('time', $fields[$name]['value']);
+                    $value = $this->getValue($fields[$name]['type'], $fields[$name]['value']);
                 } else {
                     $value = $fields[$name]['value'];
                 }
