@@ -1,8 +1,8 @@
 This is a test framework for MDB built using PHPUnit. Currently all
-the tests from the metabase driver_test.php have been ported and added
-to. These tests directly access the MDB API, unlike driver_test.php
+the tests from the metabase driver_test.php have been ported.
+These tests directly access the MDB API, unlike driver_test.php
 which uses the metabase wrapper - hopefully this framework should give
-better feedback as to where or what caused the error. The
+better feedback as to where or what caused when error are encountered. The
 driver_test.php is still very useful for testing the metabase
 compatability.
 
@@ -30,9 +30,9 @@ http://pear.php.net/manual/en/packages.phpunit.php
 
 There are currently 4 test cases in development,
 
-MDB_usage_testcase.php   - port of the driver_test.php from metabase
-MDB_api_testcase.php     - test(s) for each method in the driver api
-MDB_manager_testcase.php - test(s) for each method in the manager api
-MDB_bugs_testcase.php    - each time a MDB bug is found a test should
-			   be added here.
+MDB_usage_testcase.php      -   port of the driver_test.php from metabase
+MDB_api_testcase.php        -   test(s) for each method in the driver api
+MDB_manager_testcase.php    -   test(s) for each method in the manager api
+MDB_bugs_testcase.php       -   each time a MDB bug is found a test should
+                                be added here.
 
