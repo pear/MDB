@@ -206,9 +206,9 @@ It will automatically include the MDB.php file you.</p>
 <p><tt>);</tt></p>
 </ul>
 <ul>
-<p><tt>$manager->connect();</tt></p>
+<p><tt>$manager->connect($dsn, $options);</tt></p>
 <ul>
-<p>To setup a connection to the database server you need to pass some <i>DBMS</i> specific arguments that are passed to the <b>MDB</b> manager class <tt>connect</tt> method. The <tt>phptype</tt> argument will make the database interface class automatically include the respective database driver class that must be located in the current directory or else its path must be spceified with the <tt>IncludePath</tt> argument.</p>
+<p>To setup a connection to the database server you need to pass atleast a DSN in the same format as for MDB with some <i>DBMS</i> specific arguments that are passed to the <b>MDB</b> manager class <tt>connect</tt> method. The <tt>phptype</tt> argument will make the database interface class automatically include the respective database driver class that must be located in the current directory or else its path must be spceified with the <tt>IncludePath</tt> argument.</p>
 <ul>
 <p><tt>$success = $manager-&gt;updateDatabase($schema_file, $schema_file.&quot;.before&quot;);</tt></p>
 </ul>
