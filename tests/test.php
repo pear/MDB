@@ -47,7 +47,15 @@
  This is a small test suite for MDB using PHPUnit
  */
 
-ini_set('include_path', '../:'.ini_get('include_path'));
+// BC hack to define PATH_SEPARATOR for version of PHP prior 4.3
+if(!defined('PATH_SEPARATOR')) {
+    if(defined('DIRECTORY_SEPARATOR') && DIRECTORY_SEPARATOR == "\\") {
+        define('PATH_SEPARATOR', ';');
+    } else {
+        define('PATH_SEPARATOR', ':');
+    }
+}
+ini_set('include_path', '../'.PATH_SEPARATOR.ini_get('include_path'));
 
 require_once 'PHPUnit.php';
 require_once 'test_setup.php';

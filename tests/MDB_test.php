@@ -4,7 +4,15 @@
 // MDB test script.
 //
 
-ini_set('include_path', '../:'.ini_get('include_path'));
+// BC hack to define PATH_SEPARATOR for version of PHP prior 4.3
+if(!defined('PATH_SEPARATOR')) {
+    if(defined('DIRECTORY_SEPARATOR') && DIRECTORY_SEPARATOR == "\\") {
+        define('PATH_SEPARATOR', ';');
+    } else {
+        define('PATH_SEPARATOR', ':');
+    }
+}
+ini_set('include_path', '../'.PATH_SEPARATOR.ini_get('include_path'));
 
     // MDB.php doesnt have to be included since manager.php does that
     // manager.php is only necessary for handling xml schema files
