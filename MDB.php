@@ -86,7 +86,7 @@ define('MDB_ERROR_CANNOT_REPLACE',     -28);
 define('MDB_ERROR_CANNOT_ALTER',       -29);
 define('MDB_ERROR_MANAGER',            -30);
 define('MDB_ERROR_MANAGER_PARSE',      -31);
-define('MDB_ERROR_LOADEXTENSION',      -32);
+define('MDB_ERROR_LOADMODULE',      -32);
 
 /**
  * WARNING: not implemented
@@ -223,15 +223,13 @@ class MDB
      */
     function &factory($type)
     {
-        @include_once("${type}.php");
+        $type        = $dsninfo['phptype'];
+        $class_name = "MDB_$type";
         
-        $classname = "MDB_${type}";
+        @include_once "MDB/${type}.php";
         
-        if (!class_exists($classname)) {
-            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                                    NULL, NULL, NULL, 'MDB_Error', TRUE);
-        }
-        $db =& new $class_name;
+        @$db =& new $classname;
+        
         return $db;
     }
     
@@ -271,69 +269,32 @@ class MDB
         } else {
             $dsninfo = MDB::parseDSN($dsn);
         }
-        
-        switch(isset($dsninfo['phptype']) ? $dsninfo['phptype'] : '') {
-            case 'mysql':
-            case 'pgsql':
-                $ext        = $dsninfo['phptype'];
-                $include    = "$ext.php";
-                $class_name = "MDB_$ext";
-                break;
-            default:
-                if (!isset($options['include'])
-                    || !strcmp($include = $options['includepath'],''))
-                {
-                    if (isset($options['includepath'])) {
-                        return PEAR::raiseError(NULL, MDB_ERROR_INVALID_DSN,
-                            NULL, NULL,
-                            'no valid DBMS driver include path specified',
-                            'MDB_Error', TRUE);
-                    } else {
-                        return PEAR::raiseError(NULL, MDB_ERROR_INVALID_DSN,
-                            NULL, NULL, 'no existing DBMS driver specified',
-                            'MDB_Error', TRUE);
-                    }
-                }
-                if (!isset($options['classname'])
-                    || !strcmp($class_name = $options['classname'],''))
-                {
-                    return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                        NULL, NULL, 'no existing DBMS driver specified',
-                        'MDB_Error', TRUE);
-                }
-        }
-        if (PEAR::isError(PEAR::loadExtension($ext))) {
+        if(isset($dsninfo['phptype'])) {
+            $type          = $dsninfo['phptype'];
+            $class_name    = 'MDB_'.$type;
+            $include       = 'MDB/'.$type.'.php';
+        } else {
             return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                NULL, NULL, 'extension could not be loaded',
+                NULL, NULL, 'no RDBMS driver specified',
                 'MDB_Error', TRUE);
         }
-        if(isset($options['includepath'])) {
-            $include_path = $options['includepath'];
-        } else {
-            $include_path = '.';
-        }
-        $separator = (defined('MDB_DIRECTORY_SEPARATOR') ? MDB_DIRECTORY_SEPARATOR : '/');
         
-        if($include) {
-            if(!file_exists($include_path.$separator.'MDB'.$separator.$include)) {
-                $directory = @opendir($include_path.$separator.'MDB');
-                if ($directory) {
-                    closedir($directory);
-                    return PEAR::raiseError(NULL, MDB_ERROR_INVALID_DSN,
-                        NULL, NULL, 'no existing DBMS driver specified',
-                        'MDB_Error', TRUE);
-                }
-                return PEAR::raiseError(NULL, MDB_ERROR_INVALID_DSN,
-                    NULL, NULL, 'no valid DBMS driver include path specified'
-                    , 'MDB_Error', TRUE);
-            }
-            @include_once($include_path.$separator.'MDB'.$separator.$include);
+        if (is_array($options) && isset($options["debug"]) &&
+            $options["debug"] >= 2) {
+            // expose php errors with sufficient debug level
+            include_once $include;
+        } else {
+            @include_once $include;
         }
+        
         if (!class_exists($class_name)) {
-            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                NULL, NULL, NULL, 'MDB_Error', TRUE);
+            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND, NULL, NULL,
+                'Unable to include the '.$include.' file',
+                'MDB_Error', TRUE);
         }
-        $db =& new $class_name($dsninfo, $options);
+        
+        @$db =& new $class_name($dsninfo, $options);
+        
         if(!MDB::isError($db) && isset($dsninfo['database'])) {
             $db->setDatabase($dsninfo['database']);
             $err = $db->connect();
@@ -344,6 +305,21 @@ class MDB
             }
         }
         return $db;
+    }
+    
+    // }}}
+    // {{{ loadExtension()
+    
+    /**
+     * load a file containing the class source (like 'MDB_Date' or 'MDB_Manager')
+     *
+     * @return $file    the short name of the class (like 'Date' or 'Manager')
+     *                  without the 'MDB_' prefix
+     * @access public
+     */
+    function loadExtension($file)
+    {
+        @include_once 'MDB/'.$file.'.php';
     }
     
     // }}}
@@ -446,7 +422,7 @@ class MDB
                 MDB_ERROR_ACCESS_VIOLATION   => 'insufficient permissions',
                 MDB_ERROR_MANAGER            => 'MDB_manager error',
                 MDB_ERROR_MANAGER_PARSE      => 'MDB_manager schema parse error',
-                MDB_ERROR_LOADEXTENSION      => 'Error while including on demand extension'
+                MDB_ERROR_LOADMODULE      => 'Error while including on demand module'
             );
         }
         
