@@ -404,9 +404,8 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
     function createSequence(&$db, $seq_name, $start)
     {
         $sequence_name = $db->getSequenceName($seq_name);
-        $start = ($start < 1) ? " MINVALUE $start" : '';
-        $query = "CREATE SEQUENCE $sequence_name START WITH $start INCREMENT BY 1$start";
-        return($db->query($query));
+        return $db->query("CREATE SEQUENCE $sequence_name START WITH $start INCREMENT BY 1".
+            ($start < 1 ? " MINVALUE $start" : ''));
     }
 
     // }}}
