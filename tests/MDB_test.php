@@ -52,7 +52,7 @@
     echo Var_Dump::display($manager->updateDatabase($input_file, $input_file.'.before')).'<br>';
     echo 'updating database from xml schema file<br>';
 
-    $db->setDatabase('metapear_test_db');
+    $db->setDatabase($db_name);
     // happy query
     $query ='SELECT * FROM test';
     echo 'query for the following examples:'.$query.'<br>';
