@@ -682,7 +682,7 @@ class MDB_driver_mysql extends MDB_common
     }
 
     // }}}
-    // {{{ fetchClobResult()
+    // {{{ fetchClob()
     /**
     * fetch a clob value from a result set
     * 
@@ -695,13 +695,13 @@ class MDB_driver_mysql extends MDB_common
     *
     * @access public
     */
-    function fetchCLobResult($result, $row, $field)
+    function fetchClob($result, $row, $field)
     {
-        return ($this->fetchLobResult($result, $row, $field));
+        return ($this->fetchLob($result, $row, $field));
     }
 
     // }}}
-    // {{{ fetchBlobResult()
+    // {{{ fetchBlob()
     /**
     * fetch a blob value from a result set
     * 
@@ -713,9 +713,9 @@ class MDB_driver_mysql extends MDB_common
     *
     * @access public
     */
-    function fetchBlobResult($result, $row, $field)
+    function fetchBlob($result, $row, $field)
     {
-        return ($this->fetchLobResult($result, $row, $field));
+        return ($this->fetchLob($result, $row, $field));
     }
 
     // }}}

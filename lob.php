@@ -225,10 +225,10 @@ class MDB_lob_output_file extends MDB_lob
                 && isset($arguments["Binary"]))
             {
                 if($arguments["Binary"]) {
-                    $this->input_lob = $this->database->fetchBLobResult($arguments["Result"],
+                    $this->input_lob = $this->database->fetchBLob($arguments["Result"],
                         $arguments["Row"], $arguments["Field"]);
                 } else {
-                    $this->input_lob = $this->database->fetchClobResult($arguments["Result"],
+                    $this->input_lob = $this->database->fetchClob($arguments["Result"],
                         $arguments["Row"], $arguments["Field"]);
                 }
                 if($this->input_lob == 0) {

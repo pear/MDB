@@ -453,7 +453,7 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @access public
      */
-    function retrieveLOB($lob)
+    function retrieveLob($lob)
     {
         if (!isset($this->lobs[$lob])) {
             return ($this->raiseError(DB_ERROR_INVALID, NULL, NULL, "Retrieve LOB: did not specified a valid lob"));
@@ -490,9 +490,9 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @access public
      */
-    function endOfResultLOB($lob)
+    function endOfResultLob($lob)
     {
-        $lobresult = $this->retrieveLOB($lob);
+        $lobresult = $this->retrieveLob($lob);
         if (MDB::isError($lobresult)) {
             return ($lobresult);
         }
@@ -514,9 +514,9 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @access public
      */
-    function readResultLOB($lob, &$data, $length)
+    function readResultLob($lob, &$data, $length)
     {
-        $lobresult = $this->retrieveLOB($lob);
+        $lobresult = $this->retrieveLob($lob);
         if (MDB::isError($lobresult)) {
             return ($lobresult);
         }
@@ -540,7 +540,7 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @access public
      */
-    function destroyResultLOB($lob)
+    function destroyResultLob($lob)
     {
         if (isset($this->lobs[$lob])) {
             if (isset($this->lobs[$lob]["Value"])) {
@@ -554,7 +554,7 @@ class MDB_driver_pgsql extends MDB_common {
     }
 
     // }}}
-    // {{{ fetchClobResult()
+    // {{{ fetchClob()
     /**
      * fetch a clob value from a result set
      *
@@ -567,13 +567,13 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @access public
      */
-    function fetchClobResult($result, $row, $field)
+    function fetchClob($result, $row, $field)
     {
-        return ($this->fetchLOBResult($result, $row, $field));
+        return ($this->fetchLob($result, $row, $field));
     }
 
     // }}}
-    // {{{ fetchBlobResult()
+    // {{{ fetchBlob()
     /**
      * fetch a blob value from a result set
      *
@@ -585,9 +585,9 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @access public
      */
-    function fetchBLOBResult($result, $row, $field)
+    function fetchBlob($result, $row, $field)
     {
-        return ($this->FetchLOBResult($result, $row, $field));
+        return ($this->fetchLob($result, $row, $field));
     }
 
     // }}}
@@ -700,7 +700,7 @@ class MDB_driver_pgsql extends MDB_common {
     }
 
     // }}}
-    // {{{ getCLOBDeclaration()
+    // {{{ getClobDeclaration()
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
      * large object type field to be used in statements like CREATE TABLE.
@@ -724,13 +724,13 @@ class MDB_driver_pgsql extends MDB_common {
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getCLOBDeclaration($name, &$field)
+    function getClobDeclaration($name, &$field)
     {
         return ("$name OID" . (isset($field["notNULL"]) ? " NOT NULL" : ""));
     }
 
     // }}}
-    // {{{ getBLOBDeclaration()
+    // {{{ getBlobDeclaration()
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
      * object type field to be used in statements like CREATE TABLE.
@@ -754,7 +754,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
      */
-    function getBLOBDeclaration($name, &$field)
+    function getBlobDeclaration($name, &$field)
     {
         return ("$name OID" . (isset($field["notNULL"]) ? " NOT NULL" : ""));
     }
@@ -898,8 +898,8 @@ class MDB_driver_pgsql extends MDB_common {
         $success = 1;
         if (($lo = pg_locreate($this->connection))) {
             if (($handle = pg_loopen($this->connection, $lo, "w"))) {
-                while (!endOfLOB($lob)) {
-                    if (readLOB($lob, $data, $this->options['lob_buffer_length']) < 0) {
+                while (!endOfLob($lob)) {
+                    if (readLob($lob, $data, $this->options['lob_buffer_length']) < 0) {
                         $this->raiseError(DB_ERROR, NULL, NULL, "Get LOB field value: " . lobError($lob));
                         $success = 0;
                         break;
