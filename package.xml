@@ -98,9 +98,9 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.1.4RC2</version>
+    <version>1.1.4RC3</version>
     <state>devel</state>
-    <date>2003-10-22</date>
+    <date>2003-10-23</date>
     <notes>
       - added MDB::isConnection()
       - minor improvements to the test suite
@@ -114,6 +114,9 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
       - interbase driver now also supports associative fetching
       - interbase driver: added missing getTypeDeclaration() method
       - fixed bug in extension detection
+      - fixed bug in interbase driver LOB handling
+      - interbase/oci8 driver: fixed autofree in fetchInto()
+      - fixed bug 22328 in the mysql driver
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
