@@ -739,20 +739,28 @@ class MDB_ibase extends MDB_Common
     }
 
     // }}}
-    // {{{ getColumn()
+    // {{{ _getColumn()
 
-    function getColumn($result, $field)
+    /**
+     * Get key for a given field with a result set.
+     *
+     * @param resource $result
+     * @param mixed $field integer or string key for the column
+     * @return mixed column from the result handle or a MDB error on failure
+     * @access private
+     */
+    function _getColumn($result, $field)
     {
         $result_value = intval($result);
         $colNames = $this->getColumnNames($result);
         if (is_integer($field)) {
             if (($column = $field)<0 || $column>=count($colNames)) {
-                return $this->RaiseError(MDB_ERROR, '', '', 'getColumn attempted to fetch an query result column out of range');
+                return $this->raiseError(MDB_ERROR, '', '', 'getColumn attempted to fetch an query result column out of range');
             }
         } else {
             $name = strtolower($field);
             if (!isset($colNames[$name])) {
-                return $this->RaiseError(MDB_ERROR, '', '', 'getColumn attempted to fetch an unknown query result column');
+                return $this->raiseError(MDB_ERROR, '', '', 'getColumn attempted to fetch an unknown query result column');
             }
             $column = $this->results[$result_value]['columns'][$name];
         }
@@ -760,89 +768,29 @@ class MDB_ibase extends MDB_Common
     }
 
     // }}}
-    // {{{ fetchRow()
+    // {{{ resultIsNull()
 
     /**
-     * Fetch a row and return data in an array.
-     *
+     * Determine whether the value of a query result located in given row and
+     *    field is a null.
+     * 
      * @param resource $result result identifier
-     * @param int $fetchmode ignored
-     * @param int $rownum the row number to fetch
-     * @return mixed data array or null on success, a MDB error on failure
-     * @access public
+     * @param int $row number of the row where the data can be found
+     * @param int $field field number where the data can be found
+     * @return mixed true or false on success, a MDB error on failure
+     * @access public 
      */
-    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
+    function resultIsNull($result, $row, $field)
     {
         $result_value = intval($result);
-        if ($this->options['result_buffering']) {
-            if ($rownum == null) {
-                $rownum = $this->results[$result_value]['highest_fetched_row']+1;
-            }
-            if (isset($this->results[$result_value][$rownum])) {
-                return $this->results[$result_value][$rownum];
-            }
+        if (MDB::isError($column = $this->_getColumn($result, $field))) {
+            return $column;
         }
-        if (isset($this->limits[$result_value])) {
-            if ($rownum >= $this->limits[$result_value][1]) {
-                return null;
-            }
-            if (MDB::isError($this->_skipLimitOffset($result))) {
-                if ($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
-                return null;
-            }
+        if (MDB::isError($fetchrow = $this->fetchRow($result, MDB_FETCHMODE_ORDERED, $row))) {
+            return $fetchrow;
         }
-        if ($this->options['result_buffering']) {
-            if (isset($this->results[$result_value]['row_buffer'])) {
-                $this->results[$result_value]['current_row']++;
-                $this->results[$result_value][$this->results[$result_value]['current_row']] = $this->results[$result_value]['row_buffer'];
-                unset($this->results[$result_value]['row_buffer']);
-            }
-            for(;$this->results[$result_value]['current_row'] < $rownum;
-                $this->results[$result_value]['current_row']++
-            ) {
-                if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                    $row = @ibase_fetch_assoc($result);
-                } else {
-                    $row = @ibase_fetch_row($result);
-                }
-                //NOT SURE IF REALLY OK... basically it doesn't process $row if it's false
-                if($row) {
-                    foreach ($row as $key => $value_with_space) {
-                        $row[$key] = rtrim($value_with_space);
-                    }
-                }
-                $this->results[$result_value][$this->results[$result_value]['current_row']+1] = $row;
-                if (!$row) {
-                    if ($this->options['autofree']) {
-                        $this->freeResult($result);
-                    }
-                    return null;
-                }
-            }
-            $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
-        } else {
-            if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                $row = @ibase_fetch_assoc($result);
-            } else {
-                $row = @ibase_fetch_row($result);
-            }
-            foreach ($row as $key => $value_with_space) {
-                $row[$key] = rtrim($value_with_space);
-            }
-            $this->results[$result_value][$this->results[$result_value]['current_row']+1] = $row;
-            if (!$row) {
-                if ($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
-                return null;
-            }
-        }
-        if (isset($this->results[intval($result)]['types'])) {
-            $row = $this->datatype->convertResultRow($this, $result, $row);
-        }
-        return $row;
+        $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $row);
+        return !isset($this->results[$result_value][$row][$column]);
     }
 
     // }}}
@@ -970,6 +918,93 @@ class MDB_ibase extends MDB_Common
             return $this->raiseError(MDB_ERROR, null, null, 'currId: could not find value in sequence table');
         }
         return $result;
+    }
+
+
+    // }}}
+    // {{{ fetchRow()
+
+    /**
+     * Fetch a row and return data in an array.
+     *
+     * @param resource $result result identifier
+     * @param int $fetchmode ignored
+     * @param int $rownum the row number to fetch
+     * @return mixed data array or null on success, a MDB error on failure
+     * @access public
+     */
+    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
+    {
+        $result_value = intval($result);
+        if ($this->options['result_buffering']) {
+            if ($rownum == null) {
+                $rownum = $this->results[$result_value]['highest_fetched_row']+1;
+            }
+            if (isset($this->results[$result_value][$rownum])) {
+                return $this->results[$result_value][$rownum];
+            }
+        }
+        if (isset($this->limits[$result_value])) {
+            if ($rownum >= $this->limits[$result_value][1]) {
+                return null;
+            }
+            if (MDB::isError($this->_skipLimitOffset($result))) {
+                if ($this->options['autofree']) {
+                    $this->freeResult($result);
+                }
+                return null;
+            }
+        }
+        if ($this->options['result_buffering']) {
+            if (isset($this->results[$result_value]['row_buffer'])) {
+                $this->results[$result_value]['current_row']++;
+                $this->results[$result_value][$this->results[$result_value]['current_row']] = $this->results[$result_value]['row_buffer'];
+                unset($this->results[$result_value]['row_buffer']);
+            }
+            for(;$this->results[$result_value]['current_row'] < $rownum;
+                $this->results[$result_value]['current_row']++
+            ) {
+                if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+                    $row = @ibase_fetch_assoc($result);
+                } else {
+                    $row = @ibase_fetch_row($result);
+                }
+                //NOT SURE IF REALLY OK... basically it doesn't process $row if it's false
+                if($row) {
+                    foreach ($row as $key => $value_with_space) {
+                        $row[$key] = rtrim($value_with_space);
+                    }
+                }
+                $this->results[$result_value][$this->results[$result_value]['current_row']+1] = $row;
+                if (!$row) {
+                    if ($this->options['autofree']) {
+                        $this->freeResult($result);
+                    }
+                    return null;
+                }
+            }
+            $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
+        } else {
+            if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+                $row = @ibase_fetch_assoc($result);
+            } else {
+                $row = @ibase_fetch_row($result);
+            }
+            foreach ($row as $key => $value_with_space) {
+                $row[$key] = rtrim($value_with_space);
+            }
+            $this->results[$result_value][$this->results[$result_value]['current_row']+1] = $row;
+            if (!$row) {
+                if ($this->options['autofree']) {
+                    $this->freeResult($result);
+                }
+                return null;
+            }
+        }
+        if (isset($this->results[intval($result)]['types'])) {
+            $row = $this->datatype->convertResultRow($this, $result, $row);
+        }
+        return $row;
     }
 
     // }}}
