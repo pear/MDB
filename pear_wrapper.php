@@ -46,8 +46,8 @@
 //
 // PEAR DB Wrapper for MDB.
 //
- 
-require_once "MDB.php";
+
+require_once (dirname(__FILE__)."/MDB.php");
 
 class DB
 {
@@ -83,11 +83,6 @@ class DB
     function isManip($query)
     {
         return MDB::isManip($query);
-    }
-
-    function isWarning($value)
-    {
-        return MDB::isWarning($value);
     }
 
     function errorMessage($value)
@@ -137,7 +132,7 @@ class DB_result
 
     function fetchRow($fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        $this->dbh->fetchInto($this->result, &$arr, $fetchmode, $rownum);
+        $arr = $this->dbh->fetchInto($this->result, $fetchmode, $rownum);
         if(is_array($arr)) {
             return $arr;
         }
@@ -148,7 +143,11 @@ class DB_result
 
     function fetchInto(&$arr, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        return $this->dbh->fetchInto($this->result, &$arr, $fetchmode, $rownum);
+        $arr = $this->dbh->fetchInto($this->result, $fetchmode, $rownum);
+        if(MDB::isError($arr)) {
+            return $arr;
+        }
+        return (DB_OK);
     }
 
     function numCols()
@@ -228,8 +227,7 @@ class MDB_PEAR_PROXY
 
     function quote($string)
     {
-        $this->MDB_object->quote($string);
-        return $string;
+        return $this->MDB_object->quote($string);
     }
 
     function provides($feature)
@@ -381,11 +379,7 @@ class MDB_PEAR_PROXY
 
     function nextId($seq_name, $ondemand = TRUE)
     {
-        $return = $this->MDB_object->nextId($seq_name, $value, $ondemand);
-        if(MDB::isError($return)) {
-            return $return;
-        }
-        return $value;
+        return $this->MDB_object->nextId($seq_name, $ondemand);
     }
 
     function createSequence($seq_name)
@@ -412,24 +406,18 @@ class MDB_PEAR_PROXY
     {
         switch ($type) {
             case 'tables':
-                $this->MDB_object->listTables($result);
-                break;
+                return $this->MDB_object->listTables();
             case 'views':
-                $this->MDB_object->listViews($result);
-                break;
+                return $this->MDB_object->listViews();
             case 'users':
-                $this->MDB_object->listUsers($result);
-                break;
+                return $this->MDB_object->listUsers();
             case 'functions':
-                $this->MDB_object->listFunctions($result);
-                break;
+                return $this->MDB_object->listFunctions();
             case 'databases':
-                $this->MDB_object->listDatabases($result);
-                break;
+                return $this->MDB_object->listDatabases();
             default:
                 return $this->raiseError(DB_ERROR_UNSUPPORTED);
         }
-        return $result;
     }
 }
 ?>
