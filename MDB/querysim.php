@@ -205,9 +205,6 @@
 </fusedoc>
 */
 
-if (!defined('MDB_QUERYSIM_INCLUDED')) {
-    define('MDB_QUERYSIM_INCLUDED', 1);
-
 require_once 'MDB/Common.php';
 
 /**
@@ -822,5 +819,4 @@ class MDB_querysim extends MDB_Common
     //}
 }
 
-};
 ?>

@@ -44,9 +44,6 @@
 
 // $Id$
 
-if (!defined('MDB_OCI8_INCLUDED')) {
-    define('MDB_OCI8_INCLUDED', 1);
-
 require_once('MDB/Common.php');
 
 /**
@@ -274,7 +271,7 @@ class MDB_oci8 extends MDB_Common {
             $password = $this->password;
         }
         if($persistent === NULL) {
-            $persistent = $this->persistent;
+            $persistent = $this->getOption('persistent');
         }
         if (isset($this->host)) {
             $sid = $this->host;
