@@ -1222,7 +1222,7 @@ class MDB_mssql extends MDB_Common
             if (isset($this->limits[$result])) {
                 $row = $rownum + $this->limits[$result][0];
             }
-            if (!@mssql_data_seek($result, $row)) {
+            if (!@mssql_data_seek($result, $rownum)) {
                 return(NULL);
             }
             $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
