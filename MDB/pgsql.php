@@ -1243,7 +1243,7 @@ class MDB_pgsql extends MDB_common
         if (MDB::isError($result = $this->queryOne("SELECT last_value FROM $seqname"))) {
             return($this->raiseError(MDB_ERROR, NULL, NULL, 'currId: Unable to select from ' . $seqname) );
         }
-        if (!is_int($result)) {
+        if (!is_numeric($result)) {
             return($this->raiseError(MDB_ERROR, NULL, NULL, 'currId: could not find value in sequence table'));
         }
         return($result);
