@@ -35,6 +35,7 @@
     // $db = MDB::connect($dsn, TRUE);
     // you can alternatively build a dsn here
    //$dsn = "$db_type://$user:$pass@$host/$db_name";
+    Var_Dump::display($dsn);
     $db =& MDB::connect($dsn);
     // With MDB::isError you can differentiate between an error or
     // a valid connection.
@@ -52,6 +53,7 @@
     echo Var_Dump::display($manager->updateDatabase($input_file, $input_file.'.before')).'<br>';
     echo 'updating database from xml schema file<br>';
 
+    echo 'switching to database: '.$db_name.'<br>';
     $db->setDatabase($db_name);
     // happy query
     $query ='SELECT * FROM test';
@@ -96,7 +98,7 @@
     echo '<br>all with just one call:<br>';
     echo Var_Dump::display($array).'<br>';
     // run the query with the offset 1 and count 1 and get a result handler
-    $result = $db->limitQuery($query, 1, 1);
+    $result = $db->limitQuery($query, NULL, 1, 1);
     // lets just get everything but with an associative array and free the result
     $array = $db->fetchAll($result, MDB_FETCHMODE_ASSOC);
     echo '<br>associative array with offset 1 and count 1:<br>';
