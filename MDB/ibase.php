@@ -57,14 +57,13 @@ require_once 'MDB/Common.php';
 class MDB_ibase extends MDB_Common
 {
     // {{{ properties
+    var $escape_quotes = "'";
+    var $decimal_factor = 1.0;
+
     var $transaction_id = 0;
-    var $auto_commit = true;
 
     var $database_path = '';
     var $database_extension = '';
-
-    var $escape_quotes = "'";
-    var $decimal_factor = 1.0;
 
     var $query_parameters = array();
     var $query_parameter_values = array();
@@ -930,12 +929,12 @@ class MDB_ibase extends MDB_Common
             }
         }
         if (isset($this->results[$result_value][$rownum])) {
-            $this->results[$result_value]['highest_fetched_row'] =
-                max($this->results[$result_value]['highest_fetched_row'], $rownum);
             $row = $this->results[$result_value][$rownum];
         } else {
             return null;
         }
+        $this->results[$result_value]['highest_fetched_row'] =
+            max($this->results[$result_value]['highest_fetched_row'], $rownum);
         foreach ($row as $key => $value_with_space) {
             $row[$key] = rtrim($value_with_space);
         }

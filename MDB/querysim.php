@@ -666,12 +666,12 @@ class MDB_querysim extends MDB_Common
     function fetch($result, $rownum = 0, $field = 0)
     {
         $result_link = $this->_querySimSignature($result);
-        $this->highest_fetched_row[$result_link] =
-            max($this->highest_fetched_row[$result_link], $rownum);
         if (!isset($result[1][$rownum][$field])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 "fetch():  row $row, field $field is undefined in result set");
         }
+        $this->highest_fetched_row[$result_link] =
+            max($this->highest_fetched_row[$result_link], $rownum);
         $value = $result[1][$rownum][$field];
         if (isset($this->results[$result_value]['types'][$field])) {
             $value = $this->datatype->convertResult($value, $this->results[$result_value]['types'][$field]);
@@ -702,8 +702,6 @@ class MDB_querysim extends MDB_Common
             if (!isset($result[1][$rownum])) {
                 return null;
             }
-            $this->results[$result_value]['highest_fetched_row'] =
-                max($this->results[$result_value]['highest_fetched_row'], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
@@ -719,6 +717,8 @@ class MDB_querysim extends MDB_Common
             }
             $row = $arraytemp;
         }
+        $this->results[$result_value]['highest_fetched_row'] =
+            max($this->results[$result_value]['highest_fetched_row'], $rownum);
         if (isset($this->results[$result_value]['types'])) {
             $row = $this->datatype->convertResultRow($result, $row);
         }

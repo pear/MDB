@@ -58,7 +58,6 @@ class MDB_oci8 extends MDB_Common
     // {{{ properties
     var $escape_quotes = "'";
 
-    var $auto_commit = 1;
     var $uncommitedqueries = 0;
 
     // }}}
@@ -971,12 +970,12 @@ class MDB_oci8 extends MDB_Common
             }
         }
         if (isset($this->results[$result_value][$rownum])) {
-            $this->results[$result_value]['highest_fetched_row'] =
-                max($this->results[$result_value]['highest_fetched_row'], $rownum);
             $row = $this->results[$result_value][$rownum];
         } else {
             return null;
         }
+        $this->results[$result_value]['highest_fetched_row'] =
+            max($this->results[$result_value]['highest_fetched_row'], $rownum);
         if ($fetchmode == MDB_FETCHMODE_ASSOC) {
             $row = array_change_key_case($row);
         } else {

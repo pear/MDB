@@ -648,12 +648,12 @@ class MDB_mssql extends MDB_Common
     function fetch($result, $rownum = 0, $field = 0)
     {
         $result_value = intval($result);
-        $this->results[$result_value]['highest_fetched_row'] =
-            max($this->results[$result_value]['highest_fetched_row'], $rownum);
         $value = @mssql_result($result, $rownum, $field);
         if ($value === false && $value != null) {
             return $this->mssqlRaiseError();
         }
+        $this->results[$result_value]['highest_fetched_row'] =
+            max($this->results[$result_value]['highest_fetched_row'], $rownum);
         if (isset($this->results[$result_value]['types'][$field])) {
             $type = $this->results[$result_value]['types'][$field];
             $value = $this->datatype->convertResult($value, $type);
