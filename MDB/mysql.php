@@ -670,7 +670,10 @@ class MDB_mysql extends MDB_Common
             $this->columns[$result_value] = array();
             $columns = @mysql_num_fields($result);
             for($column = 0; $column < $columns; $column++) {
-                $field_name = strtolower(@mysql_field_name($result, $column));
+                $field_name = @mysql_field_name($result, $column);
+                if ($this->options['optimize'] == 'portability') {
+                    $field_name = strtolower($field_name);
+                }
                 $this->columns[$result_value][$field_name] = $column;
             }
         }

@@ -665,7 +665,11 @@ class MDB_ibase extends MDB_Common
             $columns = @ibase_num_fields($result);
             for ($column=0; $column < $columns; $column++) {
                 $column_info = @ibase_field_info($result, $column);
-                $this->columns[$result_value][strtolower($column_info['name'])] = $column;
+                $field_name = $column_info['name'];
+                if ($this->options['optimize'] == 'portability') {
+                    $field_name = strtolower($field_name);
+                }
+                $this->columns[$result_value][$field_name] = $column;
             }
         }
         return $this->columns[$result_value];
@@ -730,41 +734,6 @@ class MDB_ibase extends MDB_Common
     }
 
     // }}}
-    // {{{ _getColumn()
-
-    /**
-     * Get key for a given field with a result set.
-     *
-     * @param resource $result
-     * @param mixed $field integer or string key for the column
-     * @return mixed column from the result handle or a MDB error on failure
-     * @access private
-     */
-    function _getColumn($result, $field)
-    {
-        $result_value = intval($result);
-        if (MDB::isError($names = $this->getColumnNames($result))) {
-            return $names;
-        }
-        if (is_numeric($field)) {
-            if (($column = $field) < 0
-                || $column >= count($this->columns[$result_value]))
-            {
-                return($this->raiseError(MDB_ERROR, NULL, NULL,
-                    'Get column: attempted to fetch an query result column out of range'));
-            }
-        } else {
-            $name = strtolower($field);
-            if (!isset($this->columns[$result_value][$name])) {
-                return($this->raiseError(MDB_ERROR, NULL, NULL,
-                    'Get column: attempted to fetch an unknown query result column'));
-            }
-            $column = $this->columns[$result_value][$name];
-        }
-        return $column;
-    }
-
-    // }}}
     // {{{ fetch()
 
     /**
@@ -778,17 +747,15 @@ class MDB_ibase extends MDB_Common
      */
     function fetch($result, $rownum, $field)
     {
-        if (MDB::isError($column = $this->_getColumn($result, $field))) {
-            return $column;
-        }
-        $row = $this->fetchInto($result, MDB_FETCHMODE_ORDERED, $rownum);
+        $fetchmode = is_numeric($colnum) ? MDB_FETCHMODE_ORDERED : MDB_FETCHMODE_ASSOC;
+        $row = $this->fetchInto($result, $fetchmode, $rownum);
         if (MDB::isError($row)) {
-            return $row;
+            return($row);
         }
-        if (!isset($row[$column])) {
-            return null;
+        if (!array_key_exists($colnum, $row)) {
+            return(NULL);
         }
-        return $row[$column];
+        return($row[$colnum]);
     }
 
     // }}}
