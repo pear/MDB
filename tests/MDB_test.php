@@ -66,6 +66,12 @@
     echo Var_Dump::display($array)."<br>";
     // run the query and get a result handler
     $result = $db->query($query);
+    // lets just get column:0 and free the result
+    $db->fetchCol($result, $array, DB_FETCHMODE_DEFAULT, 2);
+    echo "<br>get column #2 (counting from 0):<br>";
+    echo Var_Dump::display($array)."<br>";
+    // run the query and get a result handler
+    $result = $db->query($query);
     echo "tableInfo:<br>";
     echo Var_Dump::display($db->tableInfo($result))."<br>";
     // lets just get everything and free the result
