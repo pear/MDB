@@ -166,7 +166,15 @@
     $array = $db->fetchAll($result);
     echo "<br>all with subselect:<br>";
     echo Var_Dump::display($array)."<br>";
-
+    echo Var_Dump::display($db->dropIndex('test', 'test_id_index'))."<br>";
+    $index_def = array(
+        "FIELDS" => array(
+            "test_id" => array(
+                "sorting" => "ascending"
+            )
+        )
+    );
+    echo Var_Dump::display($db->createIndex('test', 'test_id_index', $index_def))."<br>";
     if($db_type == "mysql") {
         // ok now lets create a new xml schema file from the existing DB
         // we will not use the 'metapear_test_db.schema' for this
