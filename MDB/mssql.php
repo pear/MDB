@@ -131,7 +131,12 @@ class MDB_mssql extends MDB_Common
            return MDB_ERROR;
        }
        $row = mssql_fetch_row($res);
-       return $row[0];
+       if ($row[0] > 0) {
+           return $row[0];
+       }
+       else {
+           return null;
+       }
     }
 
     // }}}
@@ -334,6 +339,7 @@ class MDB_mssql extends MDB_Common
         $this->connected_user = $this->user;
         $this->connected_password = $this->password;
         $this->connected_port = $port;
+//        $this->selected_database = $this->database_name;
         $this->opened_persistent = $this->getoption('persistent');
         return(MDB_OK);
     }
@@ -425,7 +431,7 @@ class MDB_mssql extends MDB_Common
             }
             if ($result = $this->_doQuery($query)) {
                 if ($ismanip) {
-                    $this->affected_rows = mssql_affected_rows($this->connection);
+                    $this->affected_rows = mssql_rows_affected($this->connection);
                     return(MDB_OK);
                 } else {
                     $this->highest_fetched_row[$result] = -1;
@@ -728,7 +734,7 @@ class MDB_mssql extends MDB_Common
      */
     function getTextDeclaration($name, $field)
     {
-        return((isset($field["length"]) ? "$name VARCHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->GetTextFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
+        return((isset($field["length"]) ? "$name VARCHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->GetTextValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
     }
 
     // }}}
@@ -1157,7 +1163,13 @@ class MDB_mssql extends MDB_Common
                 return(1);
             }
         }
-        $value = intval(mssql_insert_id($this->connection));
+//        $value = intval(mssql_insert_id($this->connection));
+        $res = mssql_query("select @@IDENTITY as 'Identity'", $this->connection);
+        if (!$res) {
+            return MDB_ERROR;
+        }
+        $row = mssql_fetch_row($res);
+        return $row[0];
         $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($res)) {
             $this->warnings[] = 'Next ID: could not delete previous sequence table values';
