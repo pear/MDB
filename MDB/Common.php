@@ -868,17 +868,17 @@ class MDB_Common extends PEAR
      *
      * @param string $query the SQL query for the subselect that may only
      *                      return a column
-     * @param string $quote determines if the data needs to be quoted before
-     *                      being returned
+     * @param string $type determines type of the field
      *
      * @return string the query
      */
-    function subSelect($query, $quote = false)
+    function subSelect($query, $type = false)
     {
         if ($this->supported['SubSelects'] == 1) {
             return $query;
         }
-        return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Subselect: subselect not implemented');
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+            'subselect: subselect not implemented');
     }
 
     // }}}
@@ -905,7 +905,7 @@ class MDB_Common extends PEAR
      *
      *       Here follows a list of field properties that need to be specified:
      *
-     *       Value
+     *       value
      *           Value to be assigned to the specified field. This value may be
      *           of specified in database independent type format as this
      *           function can perform the necessary datatype conversions.
@@ -913,13 +913,13 @@ class MDB_Common extends PEAR
      *           Default: this property is required unless the Null property is
      *           set to 1.
      *
-     *       Type
+     *       type
      *           Name of the type of the field. Currently, all types Metabase
      *           are supported except for clob and blob.
      *
      *           Default: no type conversion
      *
-     *       Null
+     *       null
      *           Boolean property that indicates that the value for this field
      *           should be set to null.
      *
@@ -931,7 +931,7 @@ class MDB_Common extends PEAR
      *
      *           Default: 0
      *
-     *       Key
+     *       key
      *           Boolean property that indicates that this field should be
      *           handled as a primary key or at least as part of the compound
      *           unique index of the table that will determine the row that will
@@ -961,45 +961,17 @@ class MDB_Common extends PEAR
                 $values .= ', ';
             }
             $insert .= $name;
-            if (isset($fields[$name]['Null']) && $fields[$name]['Null']) {
+            if (isset($fields[$name]['null']) && $fields[$name]['null']) {
                 $value = 'NULL';
             } else {
-                if (isset($fields[$name]['Type'])) {
-                    switch ($fields[$name]['Type']) {
-                        case 'text':
-                            $value = $this->getValue('text', $fields[$name]['Value']);
-                            break;
-                        case 'boolean':
-                            $value = $this->getValue('boolean', $fields[$name]['Value']);
-                            break;
-                        case 'integer':
-                            $value = $this->getValue('integer', $fields[$name]['Value']);
-                            break;
-                        case 'decimal':
-                            $value = $this->getValue('decimal', $fields[$name]['Value']);
-                            break;
-                        case 'float':
-                            $value = $this->getValue('float', $fields[$name]['Value']);
-                            break;
-                        case 'date':
-                            $value = $this->getValue('date', $fields[$name]['Value']);
-                            break;
-                        case 'time':
-                            $value = $this->getValue('time', $fields[$name]['Value']);
-                            break;
-                        case 'timestamp':
-                            $value = $this->getValue('timestamp', $fields[$name]['Value']);
-                            break;
-                        default:
-                            return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, null, null,
-                                'no supported type for field "' . $name . '" specified');
-                    }
+                if (isset($fields[$name]['type'])) {
+                    $value = $this->getValue('time', $fields[$name]['value']);
                 } else {
-                    $value = $fields[$name]['Value'];
+                    $value = $fields[$name]['value'];
                 }
             }
             $values .= $value;
-            if (isset($fields[$name]['Key']) && $fields[$name]['Key']) {
+            if (isset($fields[$name]['key']) && $fields[$name]['key']) {
                 if ($value === 'NULL') {
                     return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, null, null,
                         'key values may not be NULL');
@@ -1025,7 +997,8 @@ class MDB_Common extends PEAR
 
         if (!$in_transaction) {
             if (!MDB::isError($success)) {
-                if (($success = (!MDB::isError($this->commit()) && !MDB::isError($this->autoCommit(true))))
+                if (($success = (!MDB::isError($this->commit())
+                    && !MDB::isError($this->autoCommit(true))))
                     && $this->supported['AffectedRows']
                 ) {
                     $this->affected_rows = $affected_rows;
@@ -1845,6 +1818,21 @@ class MDB_Common extends PEAR
     }
 
     // }}}
+    // {{{ nextResult()
+
+    /**
+     * Move the internal result pointer to the next available result
+     *
+     * @param a valid result resource
+     * @return true on success or an error object on failure
+     * @access public
+     */
+    function nextResult($result)
+    {
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+            'nextResult: end of result method not implemented');    }
+
+    // }}}
     // {{{ tableInfo()
 
     /**
@@ -1857,7 +1845,8 @@ class MDB_Common extends PEAR
      */
     function tableInfo($result, $mode = null)
     {
-        return $this->raiseError(MDB_ERROR_NOT_CAPABLE);
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+            'tableInfo: end of result method not implemented');
     }
 
     // }}}
