@@ -51,7 +51,7 @@
 			$driver_arguments["Password"]="funky";
 			$driver_arguments["Options"]["UseTransactions"]=1;
 			break;
-		case "oci":
+		case "oci8":
 			$driver_arguments["User"]="drivertest";
 			$driver_arguments["Password"]="drivertest";
 			$driver_arguments["Options"]=array(
