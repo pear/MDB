@@ -87,6 +87,7 @@ define('MDB_ERROR_CANNOT_ALTER',       -29);
 define('MDB_ERROR_MANAGER',            -30);
 define('MDB_ERROR_MANAGER_PARSE',      -31);
 define('MDB_ERROR_LOADMODULE',         -32);
+define('MDB_ERROR_INSUFFICIENT_DATA',  -33);
 
 /**
  * WARNING: not implemented
