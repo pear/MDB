@@ -186,6 +186,23 @@ class MDB_driver_pgsql extends MDB_common {
     }
 
     // }}}
+    // {{{ errorNative()
+
+    /**
+     * Get the native error code of the last error (if any) that
+     * occured on the current connection.
+     *
+     * @access public
+     *
+     * @return int native pgsql error code
+     */
+    function errorNative()
+    {
+        return pg_ErrorMessage($this->connection);
+    }
+
+
+    // }}}
     // {{{ autoCommit()
 
     /**
@@ -382,7 +399,7 @@ class MDB_driver_pgsql extends MDB_common {
             $this->affected_rows = (isset($this->supported['AffectedRows']) ? pg_cmdTuples($result) : -1);
         } else {
             $error = pg_ErrorMessage($this->connection);
-            return $this->raiseError(NULL, NULL, NULL, 'query: '.$query.':'.$error, $error);
+            return $this->pgsqlRaiseError();
         }
         return ($result);
     }
