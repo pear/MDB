@@ -427,7 +427,8 @@ class MDB_mssql extends MDB_Common
                 || strcmp($this->selected_database, $this->database_name))
             {
                 if(!mssql_select_db($this->database_name, $this->connection)) {
-                return($this->mssqlRaiseError());
+	                return($this->mssqlRaiseError());
+	            }
             }
             if ($result = $this->_doQuery($query)) {
                 if ($ismanip) {
@@ -702,7 +703,6 @@ class MDB_mssql extends MDB_Common
                 declared as signed integer";
         }
         return("$name INT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL"));
-    }
     }
 
     // }}}
