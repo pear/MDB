@@ -66,6 +66,7 @@ class MDB_manager extends PEAR
 {
     var $fail_on_invalid_names = 1;
     var $warnings = array();
+    var $debug = FALSE;
     var $database;
     var $database_definition = array(
         'name' => '',
@@ -109,10 +110,12 @@ class MDB_manager extends PEAR
      *
      * @access  public
      *
-     * @param   mixed   $dsn      'data source name', see the MDB::parseDSN
+     * @param   mixed   $dsninfo  'data source name', see the MDB::parseDSN
      *                            method for a description of the dsn format.
      *                            Can also be specified as an array of the
      *                            format returned by MDB::parseDSN.
+     *                            Finally you can also pass an existing db
+     *                            object to be used.
      *
      * @param   mixed   $options  An associative array of option names and
      *                            their values.
@@ -127,11 +130,15 @@ class MDB_manager extends PEAR
             $this->debug = $options['debug'];
         }
         if($this->database) {
-            $this->close;
+            $this->disconnect;
         }
-        $database = MDB::connect($dsninfo, $options);
-        if (MDB::isError($database)) {
-            return $database;
+        if (is_object($dsninfo)) {
+             $database = $dsninfo;
+        } else {
+            $database = MDB::connect($dsninfo, $options);
+            if (MDB::isError($database)) {
+                return $database;
+            }
         }
         $this->database = $database;
         if (!isset($options['debug'])) {
@@ -141,17 +148,17 @@ class MDB_manager extends PEAR
     }
 
     // }}}
-    // {{{ close()
+    // {{{ disconnect()
     /**
-     * all the RDBMS specific things needed close a DB connection
+     * Log out and disconnect from the database.
      *
      * @access public
      *
      */
-    function close()
+    function disconnect()
     {
         if (is_object($this->database) && !MDB::isError($this->database)) {
-            $this->database->_close();
+            $this->database->disconnect();
             unset($this->database);
         }
     }
@@ -1199,7 +1206,6 @@ class MDB_manager extends PEAR
         }
         $buffer = "$eol <sequence>$eol  <name>$sequence_name</name>$eol";
         if($dump == MDB_MANAGER_DUMP_ALL || $dump == MDB_MANAGER_DUMP_CONTENT) {
-            echo "hui";
             $start = $sequence_definition['start'];
             $buffer .= "  <start>$start</start>$eol";
         }
@@ -1255,7 +1261,7 @@ class MDB_manager extends PEAR
     }
 
     // }}}
-    // {{{ _dumpDatabaseChanges()
+    // {{{ debugDatabaseChanges()
     /**
      * Dump the changes between two database definitions.
      *
@@ -1267,7 +1273,7 @@ class MDB_manager extends PEAR
      *
      * @access private
      */
-    function _dumpDatabaseChanges($changes)
+    function debugDatabaseChanges($changes)
     {
         if (isset($changes['TABLES'])) {
             foreach($changes['TABLES'] as $table_name => $table)
@@ -1515,6 +1521,21 @@ class MDB_manager extends PEAR
      *
      * @param array $arguments an associative array that takes pairs of tag
      * names and values that define dump options.
+     *                 array (
+     *                     'Definition'    =>    Boolean
+     *                         TRUE:     dump currently parsed definition
+     *                         default:  dump currently connected database
+     *                     'Output_Mode'    =>    String
+     *                         'file':     dump into a file
+     *                         default:    dump using a function
+     *                     'Output'        =>    String
+     *                         depending on the 'Output_Mode'
+     *                                  name of the file
+     *                                  name of the function
+     *                     'EndOfLine'        =>    String
+     *                         End of Line delimiter that should be used
+     *                         default: "\n"
+     *                 );
      *
      * @param integer $dump constant that determines what data to dump
      *                      MDB_MANAGER_DUMP_ALL       : the entire db
@@ -1538,15 +1559,18 @@ class MDB_manager extends PEAR
             $this->_getDefinitionFromDatabase();
             $dump_definition = FALSE;
         }
-        $fp = 0;
-        if (isset($arguments['Output_Mode']) && $arguments['Output_Mode'] == 'file') {
-            $fp = fopen($arguments['Output_File'], 'w');
-        } elseif (!isset($arguments['Output'])) {
+        if (isset($arguments['Output'])) {
+            if (isset($arguments['Output_Mode']) && $arguments['Output_Mode'] == 'file') {
+                $fp = fopen($arguments['Output'], 'w');
+            } elseif (function_exists($arguments['Output'])) {
+                $output = $arguments['Output'];
+               } else {
+                return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL,
+                        'no valid output function specified', 'MDB_Error', TRUE);
+            }
+        } else {
             return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL,
-                'no valid output function specified', 'MDB_Error', TRUE);
-        }
-        if(isset($arguments['Output']))
-            $output = $arguments['Output'];
+                'no output method specified', 'MDB_Error', TRUE);
         }
         $eol = (isset($arguments['EndOfLine']) ? $arguments['EndOfLine'] : "\n");
 
@@ -1565,10 +1589,10 @@ class MDB_manager extends PEAR
         $buffer = ('<?xml version="1.0" encoding="ISO-8859-1" ?>'.$eol);
         $buffer .= ("<database>$eol$eol <name>".$this->database_definition['name']."</name>$eol <create>".$this->database_definition['create']."</create>$eol");
 
-        if ($fp) {
-            fwrite($fp, $buffer);
-        } else {
+        if ($output) {
             $output($buffer);
+        } else {
+            fwrite($fp, $buffer);
         }
         unset($buffer);
         if(is_array($this->database_definition['TABLES'])) {
@@ -1633,10 +1657,10 @@ class MDB_manager extends PEAR
                     }
                     $buffer .= ("$eol  </declaration>$eol");
                 }
-                if ($fp) {
-                    fwrite($fp, $buffer);
-                } else {
+                if ($output) {
                     $output($buffer);
+                } else {
+                    fwrite($fp, $buffer);
                 }
                 unset($buffer);
                 if($dump == MDB_MANAGER_DUMP_ALL || $dump == MDB_MANAGER_DUMP_CONTENT) {
@@ -1667,10 +1691,10 @@ class MDB_manager extends PEAR
                         $rows = $this->database->numRows($result);
                         if ($rows > 0) {
                             $buffer = ("$eol  <initialization>$eol");
-                            if ($fp) {
-                                fwrite($fp, $buffer);
-                            } else {
+                            if ($output) {
                                 $output($buffer);
+                            } else {
+                                fwrite($fp, $buffer);
                             }
                             unset($buffer);
 
@@ -1685,18 +1709,18 @@ class MDB_manager extends PEAR
                                     }
                                 }
                                 $buffer .= ("$eol   </insert>$eol");
-                                if ($fp) {
-                                    fwrite($fp, $buffer);
-                                } else {
+                                if ($output) {
                                     $output($buffer);
+                                } else {
+                                    fwrite($fp, $buffer);
                                 }
                                 unset($buffer);
                             }
                             $buffer = ("$eol  </initialization>$eol");
-                            if ($fp) {
-                                fwrite($fp, $buffer);
-                            } else {
+                            if ($output) {
                                 $output($buffer);
+                            } else {
+                                fwrite($fp, $buffer);
                             }
                             unset($buffer);
                         }
@@ -1704,10 +1728,10 @@ class MDB_manager extends PEAR
                     $this->database->freeResult($result);
                 }
                 $buffer .= ("$eol </table>$eol");
-                if ($fp) {
-                    fwrite($fp, $buffer);
-                } else {
+                if ($output) {
                     $output($buffer);
+                } else {
+                    fwrite($fp, $buffer);
                 }
                 unset($buffer);
             }
@@ -1721,10 +1745,10 @@ class MDB_manager extends PEAR
                     if (MDB::isError($result)) {
                         return $result;
                     }
-                    if ($fp) {
-                        fwrite($fp, $result);
-                    } else {
+                    if ($output) {
                         $output($result);
+                    } else {
+                        fwrite($fp, $result);
                     }
                     unset($buffer);
                 }
@@ -1739,21 +1763,21 @@ class MDB_manager extends PEAR
                 if (MDB::isError($result)) {
                     return $result;
                 }
-                if ($fp) {
-                       fwrite($fp, $result);
-                   } else {
+                if ($output) {
                        $output($result);
+                   } else {
+                       fwrite($fp, $result);
                 }
                 unset($buffer);
             }
         }
         $buffer = ("$eol</database>$eol");
 
-        if ($fp) {
+        if ($output) {
+            $output($buffer);
+        } else {
             fwrite($fp, $buffer);
             fclose($fp);
-        } else {
-            $output($buffer);
         }
         unset($buffer);
 
@@ -1822,9 +1846,11 @@ class MDB_manager extends PEAR
                 }
 
                 $copy = 1;
-                $result = $this->_dumpDatabaseChanges($changes);
-                if (MDB::isError($result)) {
-                    return $result;
+                if($this->debug) {
+                    $result = $this->debugDatabaseChanges($changes);
+                    if (MDB::isError($result)) {
+                        return $result;
+                    }
                 }
             }
         } else {
@@ -1835,8 +1861,7 @@ class MDB_manager extends PEAR
             $copy = 1;
         }
 
-        if ($copy && !copy($current_schema_file, $previous_schema_file))
-        {
+        if ($copy && $previous_schema_file && !copy($current_schema_file, $previous_schema_file)) {
             return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL,
                 'Could not copy the new database definition file to the current file', 'MDB_Error', TRUE);
         }
