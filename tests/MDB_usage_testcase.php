@@ -135,7 +135,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $func = 'fetch' . $this->types[$i];
             }
             if ($this->types[$i] == 'float') {
-                $delta = 0.000000000001;
+                $delta = 0.0000000001;
             } else {
                 $delta = 0;
             }
@@ -513,7 +513,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         for ($start_value = 1; $start_value < 4; $start_value++) {
             $sequence_name = "test_sequence_$start_value";
-
+            
             $this->db->dropSequence($sequence_name);
 
             $result = $this->db->createSequence($sequence_name, $start_value);
@@ -823,6 +823,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     /**
      * Testing LOB storage
      */
+
     function testLobStorage() {
         if (!$this->supported('LOBs')) {
             return;
@@ -909,6 +910,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     /**
      * Test for lob storage from and to files
      */
+
     function testLobFiles() {
         if (!$this->supported('LOBs')) {
             return;
@@ -1028,6 +1030,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     /**
      * Test handling of lob nulls
      */
+
     function testLobNulls() {
         if (!$this->supported('LOBs')) {
             return;
@@ -1055,7 +1058,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->db->freeResult($result);
     }
-
 }
 
 ?>
