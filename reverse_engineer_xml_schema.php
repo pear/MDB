@@ -68,13 +68,13 @@
         if(MDB::isError($err)) {
             $error = $err->getMessage();
         } else {
-            $manager->dumpDatabase(
+            Var_Dump::display($manager->dumpDatabase(
                 array(
                     'Output_Mode' => 'file',
                     'Output' => $file
                 ),
                 MDB_MANAGER_DUMP_STRUCTURE
-            );
+            ));
             $warnings = $manager->getWarnings();
             if(count($warnings) > 0) {
                 Var_Dump::display($warnings);
@@ -84,7 +84,7 @@
         }
     }
     
-    if (!$submit || $error) {
+    if (!isset($submit) || isset($error)) {
         if ($error) {
             echo $error.'<br>';
         }
