@@ -105,107 +105,6 @@ function defaultDebugOutput($database, $message)
     $databases[$database]->debug_output .= $database . " $message" . $databases[$database]->getOption('log_line_break');
 }
 
-// }}}
-// {{{ mdbNow()
-
-/**
- * return the current datetime
- *
- * @return string current datetime in the MDB format
- * @access public
- */
-function mdbNow()
-{
-    return(strftime('%Y-%m-%d %H:%M:%S'));
-}
-
-// }}}
-// {{{ mdbToday()
-
-/**
- * return the current date
- *
- * @return string current date in the MDB format
- * @access public
- */
-function mdbToday()
-{
-    return(strftime('%Y-%m-%d'));
-}
-
-// }}}
-// {{{ mdbTime()
-
-/**
- * return the current time
- *
- * @return string current time in the MDB format
- * @access public
- */
-function mdbTime()
-{
-    return(strftime('%H:%M:%S'));
-}
-
-// }}}
-// {{{ date2Mdbstamp()
-
-/**
- * convert a date into a MDB timestamp
- *
- * @param integer $hour hour of the date
- * @param integer $minute minute of the date
- * @param integer $second second of the date
- * @param integer $month month of the date
- * @param integer $day day of the date
- * @param integer $year year of the date
- * @return string a valid MDB timestamp
- * @access public
- */
-function date2Mdbstamp($hour = NULL, $minute = NULL, $second = NULL,
-    $month = NULL, $day = NULL, $year = NULL)
-{
-    return unix2Mdbstamp(mktime($hour, $minute, $second, $month, $day, $year));
-}
-
-// }}}
-// {{{ unix2Mdbstamp()
-
-/**
- * convert a unix timestamp into a MDB timestamp
- *
- * @param integer $unix_timestamp a valid unix timestamp
- * @return string a valid MDB timestamp
- * @access public
- */
-function unix2Mdbstamp($unix_timestamp)
-{
-    return date('Y-m-d H:i:s', $unix_timestamp);
-}
-
-// }}}
-// {{{ mdbstamp2Unix()
-
-/**
- * convert a MDB timestamp into a unix timestamp
- *
- * @param integer $mdb_timestamp a valid MDB timestamp
- * @return string current time in the MDB format
- * @access public
- */
-function mdbstamp2Unix($mdb_timestamp)
-{
-    // 0123456789012345678
-    // YYYY-MM-DD HH:MM:SS
-    $year = substr($mdb_timestamp, 0, 4);
-    $month = substr($mdb_timestamp, 5, 2);
-    $day = substr($mdb_timestamp, 8, 2);
-    $hour = substr($mdb_timestamp, 11, 2);
-    $minute = substr($mdb_timestamp, 14, 2);
-    $second = substr($mdb_timestamp, 17, 2);
-    return mktime ($hour, $minute, $second, $month, $day, $year);
-}
-
 /**
  * MDB_common: Base class that is extended by each DB driver
  *
@@ -3809,7 +3708,7 @@ class MDB_common extends PEAR {
                 } else {
                     $key = array_shift($res);
                 }
-                if (!$force_array && sizeof($res) <= 1) {
+                if (!$force_array && count($res) == 1) {
                     $res = array_shift($res);
                 }
                 if ($group) {

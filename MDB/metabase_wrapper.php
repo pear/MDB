@@ -46,6 +46,7 @@
 //
 
 require_once(dirname(__FILE__).'/MDB.php');
+require_once(dirname(__FILE__).'/date.php');
 
 /**
 * Wrapper that makes MDB behave like Metabase
@@ -1202,17 +1203,17 @@ function MetabaseGetTableIndexDefinition($database, $table, $index, &$definition
 
 function MetabaseNow()
 {
-    return(mdbNow());
+    return(MDB_date::mdbNow());
 }
 
 function MetabaseToday()
 {
-    return(mdbToday());
+    return(MDB_date::mdbToday());
 }
 
 function MetabaseTime()
 {
-    return(mdbTime());
+    return(MDB_date::mdbTime());
 }
 
 function MetabaseSetSelectedRowRange($database, $first, $limit)
