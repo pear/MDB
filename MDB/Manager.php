@@ -272,8 +272,8 @@ class MDB_Manager extends PEAR
                 return($this->database);
             }
         }
-        if (isset($options['debug'])) {
-            $this->options['debug'] = $options['debug'];
+        if (is_array($options)) {
+            $this->options = array_merge($options, $this->options);
         }
         return(MDB_OK);
     }
