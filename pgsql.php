@@ -1250,7 +1250,7 @@ class MDB_driver_pgsql extends MDB_common {
     /**
      * returns meta data about the result set
      *
-     * @param resource    $result    result identifier
+     * @param  mixed $resource PostgreSQL result identifier or table name
      * @param mixed $mode depends on implementation
      * @return array an nested array, or a MDB error
      * @access public
@@ -1342,7 +1342,7 @@ class MDB_driver_pgsql extends MDB_common {
         }
         
         // free the result only if we were called on a table
-        if (is_resource($id)) {
+        if (is_string($result) && is_resource($id)) {
             @pg_freeresult($id);
         }
         return $res;
