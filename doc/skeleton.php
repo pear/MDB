@@ -93,9 +93,9 @@ class MDB_xxx extends MDB_Common
     /**
     * Constructor
     */
-    function MDB_xxx($dsninfo = NULL, $options = NULL)
+    function MDB_xxx()
     {
-        $this->MDB_common($dsninfo, $options);
+        $this->MDB_common();
         $this->phptype = 'xxx';
         $this->dbsyntax = 'xxx';
 
