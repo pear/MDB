@@ -27,8 +27,12 @@ discussion):
 
 ** Current State:
 
-Right now I am just working with mysql so this is all that you will find 
-in this package. The approach I have taken so far is to take DB.php from 
+MDB is based on Metabase but has been reworked severely to better match
+the PEAR DB API and PEAR CS. Currently the mysql driver is very reliable,
+while the pgsql driver is still under development but progressing steadily.
+Once the pgsql driver is done I will soon release MDB 1.0.
+
+The approach I have taken so far is to take DB.php from 
 PEAR DB and make it create a Metabase object. I have changed the 
 Metabase structure slightly. The formatting has been reworked 
 considerably to better fit the final structure (MDB standalone with a 
@@ -37,7 +41,6 @@ easier for other people to contribute.
 
 A word of warning: Since quite some time my testing has only comprised 
 of running the two test scripts (see below). Obviously those do not test 
-
 everything there is. All the more I encourage people to expand these 
 tests (especially the MDB_test.php) or just try out some stuff (MDB 
 should be able to do anything that Metabase can and most of what PEAR 
@@ -59,6 +62,7 @@ The files that make up MDB are:
   pgsql.php
   manager_common.php
   manager_mysql.php
+  manager_pgsql.php
   lob.php
   manager.php
   parser.php
@@ -74,23 +78,21 @@ The important pieces for testing right now are:
 Other Included Files
   xml_parser.php (this is actually a seperate project of Manuel Lemos 
                   that is used for the schema management)
-  Var_Dump.php (used in MDB_test.php to display test results)
+  Var_Dump.php (used in MDB_test.php and MDB_pear_wrapper_test.php
+                to display test results)
   Readme.txt (you are reading it currently)
 
 ** Documentation:
 
 There is currently work underway in terms of including phpdoc comments. 
 But this will probably take until early June to be considered half way 
-complete. Alot of the internal API is borrowed from PEAR DB. Since there 
-are a large number of new methods available thx to the Metabasebasis of 
-MDB you will also have to take a look in the Metabase documentation 
+complete. Most of the API is borrowed from PEAR DB. Since there 
+are a large number of new methods available thanks to the Metabase heritage
+of MDB you will also have to take a look in the Metabase documentation 
 (which can be found at the Url mentioned above, but does require that 
 you register with phpclasses). Alot of these Metabase functions have 
-been renamed, but this has been marked in the code for most of them. 
-Some methods have been shortend a bit and those are not all documented 
-in the code, but finding the method should not be all that hard in these 
-
-cases.
+been renamed. Looking at the metabase_wrapper.php file should help finding
+the new method name in MDB.
 
 For example ($db being an MDB object):
   $converted_value=MetabaseGetTimestampFieldValue($database, $value)
@@ -114,7 +116,8 @@ password = funky
 MDB_pear_wrapper_test.php makes use of the same DB settings as 
 MDB_test.php but uses the pear wrapper for its tests.
 
-How to write new Drivers:
+** How to write new Drivers:
+
 MDB is mostly based in Metabase. The method naming and formatting is 
 changed to better match the PEAR CS however. Therefore the best starting 
 point is to first take the mysql Metabase driver (metabase_mysql.php) 
@@ -123,6 +126,10 @@ get the Metabase code you will need to download it from phpclasses using
 the URl provided at the top). This will give a good idea what changes 
 you have to make to an existing Metabase driver in order to make it MDB 
 compatible.
+
+Alot of methods have been renamed from the original Metabase API. The best
+place to find the name to what a method has been renamed you should look
+at the metabase_wrapper.php file.
 
 The methods towards the bottom are taken from PEAR DB however. Those 
 have to be copied from the corresponding PEAR DB driver.
@@ -166,10 +173,10 @@ getting me involved in this and generally being around to ask questions.
 I would also like to thank Tomas Cox and Stig S. Bakken from the PEAR 
 projects for help in undertstanding PEAR, solving problems and trusting 
 me enough. Paul Cooper for the work on the pgsql driver. Furthermore I 
-would like to thank for Alex Black for being so enthusiastic about this 
+would like to thank Alex Black for being so enthusiastic about this 
 project and offering binarycloud as a test bed for this project. 
 Christian Dickmann for being the first to put MDB to some real use, 
-making MDB use PEAR Error and working on the XMl schema manager. 
+making MDB use PEAR Error and working on the XML schema manager. 
 
 Finally Peter Bowyer for starting the discussion that made people pick 
 up this project again after the first versions of what was then called
