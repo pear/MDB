@@ -266,9 +266,8 @@ class MDB_Manager_Common
         if (count($fields) == 0) {
             return($db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "'.$name.'"'));
         }
-        $query_fields = '';
-        if (!$db->getFieldDeclarationList($fields, $query_fields)) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, '', '', 'unkown error'));
+        if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
+            return($query_fields);
         }
         return($db->query("CREATE TABLE $name ($query_fields)"));
     }
@@ -406,7 +405,7 @@ class MDB_Manager_Common
     function listDatabases(&$db)
     {
         return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
-            'List Databses: list databases is not supported'));
+            'List Databases: list databases is not supported'));
     }
 
     // }}}
@@ -623,7 +622,7 @@ class MDB_Manager_Common
     function getTableIndexDefinition(&$db, $table, $index)
     {
         return($db->raiseError(MDB_ERROR_NOT_CAPABLE, '', '',
-            'get table index definition: getting index definition is not supported'));
+            'Get table index definition: getting index definition is not supported'));
     }
 
     // }}}
