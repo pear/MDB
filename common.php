@@ -182,7 +182,7 @@ class MDB_common extends PEAR
     {
         if (!strcmp($field_name, "")) {
             //return($this->setError("Get field", "it was not specified a valid field name (\"$field_name\")"));
-			return $this->raiseError(DB_ERROR_NOSUCHFIELD, "", "", "Get field: it was not specified a valid field name (\"$field_name\")");
+            return $this->raiseError(DB_ERROR_NOSUCHFIELD, "", "", "Get field: it was not specified a valid field name (\"$field_name\")");
         }
         switch($field["type"]) {
             case "integer":
@@ -217,7 +217,7 @@ class MDB_common extends PEAR
                 break;
             default:
                 //return($this->setError("Get field", "type \"".$field["type"]."\" is not yet supported"));
-				return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Get field: type \"".$field["type"]."\" is not yet supported");
+                return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Get field: type \"".$field["type"]."\" is not yet supported");
                 break;
         }
         return(1);
@@ -1099,7 +1099,7 @@ class MDB_common extends PEAR
         return(-1);
     }
 
-    function SetResultTypes($result, &$types)
+    function setResultTypes($result, &$types)
     {
         if (isset($this->result_types[$result])) {
             return($this->setError("Set result types", "attempted to redefine the types of the columns of a result set"));
@@ -1144,7 +1144,7 @@ class MDB_common extends PEAR
                 $array[$column] = $this->fetchResult($result, $row, $column);
             }
         }
-        if ($this->ConvertResultRow($result, $array)) {
+        if ($this->convertResultRow($result, $array)) {
             return DB_OK;
         } else {
             return $this->raiseError();
@@ -1154,9 +1154,9 @@ class MDB_common extends PEAR
     // renamed for PEAR
     // used to be fetchResultArray
     // added $fetchmode
-    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $row = 0)
+    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $row = null)
     {
-        return ($this->BaseFetchResultArray($result, &$array, $row));
+        return ($this->baseFetchResultArray($result, &$array, $row));
     }
     
     // $fetchmode added
@@ -1166,10 +1166,10 @@ class MDB_common extends PEAR
         if (!$result) {
             return ($this->setError("Fetch field", "it was not specified a valid result set"));
         }
-        if ($this->EndOfResult($result)) {
+        if ($this->endOfResult($result)) {
             $success = $this->setError("Fetch field", "result set is empty");
         } else {
-            if ($this->ResultIsNull($result, 0, 0)) {
+            if ($this->resultIsNull($result, 0, 0)) {
                 unset($value);
             } else {
                 $this->fetchInto($result, $value, $fetchmode, 0);
@@ -1177,7 +1177,7 @@ class MDB_common extends PEAR
             }
             $success = 1;
         }
-        $this->FreeResult($result);
+        $this->freeResult($result);
         return ($success);
     }
 
@@ -1187,12 +1187,12 @@ class MDB_common extends PEAR
         if (!$result) {
             return ($this->setError("Fetch field", "it was not specified a valid result set"));
         }
-        if ($this->EndOfResult($result)) {
+        if ($this->endOfResult($result)) {
             $success = $this->setError("Fetch field", "result set is empty");
         } else {
             $success = $this->fetchInto($result, $row, $fetchmode, 0);
         }
-        $this->FreeResult($result);
+        $this->freeResult($result);
         return ($success);
     }
 
@@ -1213,31 +1213,30 @@ class MDB_common extends PEAR
             }
             $column[$row] = $temp[0];
         }
-        $this->FreeResult($result);
+        $this->freeResult($result);
         return ($success);
     }
 
-    // $fetchmode added
+    // $fetchmode, $rekey, $force_array, $group added
     // this is basically a slightly modified version of fetchResultAll()
     // the only difference is that the first dimension in the 2 dimensional result set is pop-off each row
     // this is especially interesting if you need to fetch a large result set and
-    // then jump aroun din the result set based on some primary key
+    // then jump around in the result set based on some primary key
     // if the same key is pop-off for multiple rows then the second overwrites the first
-    // fetchResultAll new: 0.002962
-    // fetchResultAll old: 0.002920
     function fetchResultAll($result, &$all, $fetchmode = DB_FETCHMODE_DEFAULT, $rekey = false, $force_array = false, $group = false)
     {
         if (!$result) {
             return ($this->setError("Fetch field","it was not specified a valid result set"));
         }
-        $cols = $this->numCols($result);
-        if ($cols < 2) {
-            return $this->raiseError(DB_ERROR_TRUNCATED);
-        }
-        for($all = array(), $row = 0; !$this->endOfResult($result); $row++) {
-            if(!($success=$this->fetchInto($result, $array, $fetchmode, $row))) {
-                break;
+        if($rekey) {
+            $cols = $this->numCols($result);
+            if ($cols < 2) {
+                return $this->raiseError(DB_ERROR_TRUNCATED);
             }
+        }
+        $row = 0;
+        $all = array();
+        while (DB_OK === $this->fetchInto($result, &$array, $fetchmode, null)) {
             if ($rekey) {
                 if ($fetchmode == DB_FETCHMODE_ASSOC) {
                     reset($array);
@@ -1250,16 +1249,17 @@ class MDB_common extends PEAR
                     $array = $array[0];
                 }
                 if ($group) {
-                    $all[$key][] = $array;
+                    $all[$key][$row] = $array;
                 } else {
                     $all[$key] = $array;
                 }
             } else {
-                $all[] = $array;
+                $all[$row] = $array;
             }
+            $row++;
         }
-        $this->FreeResult($result);
-        return ($success);
+        $this->freeResult($result);
+        return (1);
     }
     
     function queryField($query, &$field, $type = "text")
@@ -1269,8 +1269,8 @@ class MDB_common extends PEAR
         }
         if (strcmp($type, "text")) {
             $types = array($type);
-            if (!($success = $this->SetResultTypes($result, $types))) {
-                $this->FreeResult($result);
+            if (!($success = $this->setResultTypes($result, $types))) {
+                $this->freeResult($result);
                 return (0);
             }
         }
@@ -1283,8 +1283,8 @@ class MDB_common extends PEAR
             return (0);
         }
         if (gettype($types) == "array") {
-            if (!($success = $this->SetResultTypes($result, $types))) {
-                $this->FreeResult($result);
+            if (!($success = $this->setResultTypes($result, $types))) {
+                $this->freeResult($result);
                 return (0);
             }
         }
@@ -1298,8 +1298,8 @@ class MDB_common extends PEAR
         }
         if (strcmp($type, "text")) {
             $types = array($type);
-            if (!($success = $this->SetResultTypes($result, $types))) {
-                $this->FreeResult($result);
+            if (!($success = $this->setResultTypes($result, $types))) {
+                $this->freeResult($result);
                 return (0);
             }
         }
@@ -1312,8 +1312,8 @@ class MDB_common extends PEAR
             return (0);
         }
         if (gettype($types) == "array") {
-            if (!($success = $this->SetResultTypes($result, $types))) {
-                $this->FreeResult($result);
+            if (!($success = $this->setResultTypes($result, $types))) {
+                $this->freeResult($result);
                 return (0);
             }
         }
@@ -1501,7 +1501,7 @@ class MDB_common extends PEAR
             return $err;
         }
         if (isset($prepared_query)) {
-            $this->FreePreparedQuery($prepared_query);
+            $this->freePreparedQuery($prepared_query);
         }
 
         return $col;
@@ -1528,8 +1528,7 @@ class MDB_common extends PEAR
             return $result;
         }
 
-        $err = $this->fetchResultAll($result, &$all, $fetchmode, $rekey = true, $force_array, $group);
-        
+        $err = $this->fetchResultAll($result, &$all, $fetchmode, true, $force_array, $group);
         if ($err !== DB_OK) {
             return $err;
         }        
