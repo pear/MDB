@@ -121,15 +121,13 @@ class MDB_Common extends PEAR
     var $supported = array();
 
     /**
-     * $options["result_buffering"] -> boolean should results be buffered or not?
+     * $options['result_buffering'] -> boolean should results be buffered or not?
      * $options['persistent'] -> boolean persistent connection?
      * $options['debug'] -> integer numeric debug level
      * $options['debug_handler'] -> string function/meothd that captures debug messages
      * $options['lob_buffer_length'] -> integer LOB buffer length
      * $options['log_line_break'] -> string line-break format
      * $options['seqname_format'] -> string pattern for sequence name
-     * $options['include_lob'] -> boolean
-     * $options['include_manager'] -> boolean
      * $options['use_transactions'] -> boolean
      * @var array
      * @access private
@@ -142,8 +140,6 @@ class MDB_Common extends PEAR
             'lob_buffer_length' => 8192,
             'log_line_break' => "\n",
             'seqname_format' => '%s_seq',
-            'include_lob' => false,
-            'include_manager' => false,
             'use_transactions' => false,
         );
 
@@ -223,7 +219,7 @@ class MDB_Common extends PEAR
 
     /**
      * @var string
-     * @access private
+     * @access public
      */
     var $last_query = '';
 
@@ -633,7 +629,7 @@ class MDB_Common extends PEAR
         if (!$property) {
             $property = $module;
         }
-        if (!isset($this->{$property}) || !is_object($this->{$property})) {
+        if (!isset($this->{$property})) {
             $include_dir = 'MDB/Modules/';
             if (@include_once($include_dir.ucfirst($module).'.php')) {
                 $class_name = 'MDB_'.ucfirst($module);
@@ -646,10 +642,14 @@ class MDB_Common extends PEAR
             }
             if (!class_exists($class_name)) {
                 $error =& $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
-                    'unable to load module: '.$module);
+                    'unable to load module: '.$module.' into property: '.$property);
                 return $error;
             }
             $this->{$property} =& new $class_name($this->db_index);
+        } else if(!is_object($this->{$property})) {
+            $error =& $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
+                'unable to load module: '.$module.' into property: '.$property);
+            return $error;
         }
         return $this->{$property};
     }
@@ -806,21 +806,23 @@ class MDB_Common extends PEAR
      */
     function getDSN($type = 'string')
     {
+        $dsn_default = array (
+            'phptype' => $this->phptype,
+            'username' => false,
+            'password' => false,
+            'protocol' => false,
+            'hostspec' => false,
+            'port'     => false,
+            'socket'   => false,
+            'database' => $this->database_name
+        );
+        $dsn = array_merge($dsn_default, $this->dsn);
         switch($type) {
-            case 'array':
-                $dsn = array(
-                    'phptype' => $this->phptype,
-                    'username' => $this->dsn['username'],
-                    'password' => $this->dsn['password'],
-                    'hostspec' => $this->dsn['hostspec'],
-                    'database' => $this->database_name
-                );
-                break;
-            default:
-                $dsn = $this->phptype.'://'.$this->dsn['username'];':'.
-                    $this->dsn['password'].'@'.$this->dsn['hostspec'].
-                    ($this->dsn['port'] ? (':'.$this->dsn['port']) : '').
-                    '/'.$this->database_name;
+            case 'string':
+                $dsn = $dsn['phptype'].'://'.$dsn['username'].':'
+                    .$dsn['password'].'@'.$dsn['hostspec']
+                    .($dsn['port'] ? (':'.$dsn['port']) : '')
+                    .'/'.$dsn['database'];
                 break;
         }
         return $dsn;
@@ -1040,7 +1042,7 @@ class MDB_Common extends PEAR
             if (!MDB::isError($success)) {
                 if (!MDB::isError($success = $this->commit())
                     && !MDB::isError($success = $this->autoCommit(TRUE))
-                    && isset($this->supported['AffectedRows'])
+                    && isset($this->supported['affected_rows'])
                 ) {
                     $this->affected_rows = $affected_rows;
                 }
@@ -1063,13 +1065,14 @@ class MDB_Common extends PEAR
      * Types of wildcards:
      *    ? - a quoted scalar value, i.e. strings, integers
      *
-     * @param string $ the query to prepare
+     * @param string $query the query to prepare
+     * @param array $types array thats specifies the types of the fields
      * @return mixed resource handle for the prepared query on success, a DB
      *        error on failure
      * @access public
      * @see execute
      */
-    function prepare($query)
+    function prepare($query, $types = null)
     {
         $this->debug($query, 'prepare');
         $positions = array();
@@ -1103,11 +1106,22 @@ class MDB_Common extends PEAR
                 $position = $question + 1;
             }
         }
+        if ($types) {
+            if (is_array($types)) {
+                $result = $this->loadModule('datatype');
+                if (MDB::isError($result)) {
+                    return $result;
+                }
+            } else {
+                return $this->raiseError(MDB_ERROR_SYNTAX, null, null,
+                    'prepare: value of types is not an array');
+            }
+        }
         $this->prepared_queries[] = array(
             'query' => $query,
             'positions' => $positions,
+            'types' => $types,
             'values' => array(),
-            'types' => array()
         );
         $prepared_query = count($this->prepared_queries);
         if ($this->selected_row_limit > 0) {
@@ -1152,37 +1166,24 @@ class MDB_Common extends PEAR
      *       statement. The order number of the first parameter is 1.
      * @param mixed $value value that is meant to be assigned to specified
      *       parameter. The type of the value depends on the $type argument.
-     * @param string $type designation of the type of the parameter to be set.
-     *       The designation of the currently supported types is as follows:
-     *           text, boolean, integer, decimal, float, date, time, timestamp,
-     *           clob, blob
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function setParam($prepared_query, $parameter, $value, $type = null)
+    function setParam($prepared_query, $parameter, $value)
     {
-        if ($type) {
-            $result = $this->loadModule('datatype');
-            if (MDB::isError($result)) {
-                return $result;
-            }
-        }
-
-        $result = $this->_validatePrepared($prepared_query);
+       $result = $this->_validatePrepared($prepared_query);
         if (MDB::isError($result)) {
             return $result;
         }
 
-        $index = $prepared_query-1;
         if ($parameter < 1
-            || $parameter > count($this->prepared_queries[$index]['positions'])
+            || $parameter > count($this->prepared_queries[$prepared_query-1]['positions'])
         ) {
             return $this->raiseError(MDB_ERROR_SYNTAX, null, null,
                 'setParam: it was not specified a valid argument number');
         }
 
-        $this->prepared_queries[$index]['values'][$parameter-1] = $value;
-        $this->prepared_queries[$index]['types'][$parameter-1] = $type;
+        $this->prepared_queries[$prepared_query-1]['values'][$parameter-1] = $value;
         return MDB_OK;
     }
 
@@ -1197,31 +1198,16 @@ class MDB_Common extends PEAR
      * @param array $params array thats specifies all necessary infromation
      *       for setParam() the array elements must use keys corresponding to
      *       the number of the position of the parameter.
-     * @param array $types array thats specifies the types of the fields
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      * @see setParam()
      */
-    function setParamArray($prepared_query, $params, $types = null)
+    function setParamArray($prepared_query, $params)
     {
-        if (is_array($types)) {
-            if (count($params) != count($types)) {
-                return $this->raiseError(MDB_ERROR_SYNTAX, null, null,
-                    'setParamArray: the number of given types ('.count($types).')'
-                    .'is not corresponding to the number of given parameters ('.count($params).')');
-            }
-            for ($i = 0, $j = count($params); $i < $j; ++$i) {
-                $success = $this->setParam($prepared_query, $i + 1, $params[$i], $types[$i]);
-                if (MDB::isError($success)) {
-                    return $success;
-                }
-            }
-        } else {
-            for ($i = 0, $j = count($params); $i < $j; ++$i) {
-                $success = $this->setParam($prepared_query, $i + 1, $params[$i]);
-                if (MDB::isError($success)) {
-                    return $success;
-                }
+        for ($i = 0, $j = count($params); $i < $j; ++$i) {
+            $success = $this->setParam($prepared_query, $i + 1, $params[$i]);
+            if (MDB::isError($success)) {
+                return $success;
             }
         }
         return MDB_OK;
@@ -1545,7 +1531,7 @@ class MDB_Common extends PEAR
         if (method_exists($this->datatype,"get{$type}Value")) {
             return $this->datatype->{"get{$type}Value"}($value);
         }
-        return $value;
+        return $this->raiseError('type not defined: '.$type);
     }
 
     // }}}
@@ -1571,7 +1557,7 @@ class MDB_Common extends PEAR
         if (method_exists($this->datatype,"get{$type}Declaration")) {
             return $this->datatype->{"get{$type}Declaration"}($name, $field);
         }
-        return $value;
+        return $this->raiseError('type not defined: '.$type);
     }
 
     // }}}
