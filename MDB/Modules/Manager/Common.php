@@ -56,71 +56,6 @@
 class MDB_Manager_Common
 {
     // }}}
-    // {{{ getFieldDeclaration()
-
-    /**
-     * get declaration of a field
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param string $field_name name of the field to be created
-     * @param string $field  associative array with the name of the properties
-     *      of the field being declared as array indexes. Currently, the types
-     *      of supported field properties are as follows:
-     *
-     *      default
-     *          Boolean value to be used as default for this field.
-     *
-     *      notnull
-     *          Boolean flag that indicates whether this field is constrained
-     *          to not be set to null.
-     * @return mixed string on success, a MDB error on failure
-     * @access public
-     */
-    function getFieldDeclaration(&$db, $field_name, $field)
-    {
-        if (!strcmp($field_name, '')) {
-            return $db->raiseError(MDB_ERROR_NOSUCHFIELD, null, null,
-                'Get field: it was not specified a valid field name ("'.$field_name.'")');
-        }
-        switch($field['type']) {
-            case 'integer':
-                return $db->getIntegerDeclaration($field_name, $field);
-                break;
-            case 'text':
-                return $db->getTextDeclaration($field_name, $field);
-                break;
-            case 'clob':
-                return $db->getClobDeclaration($field_name, $field);
-                break;
-            case 'blob':
-                return $db->getBlobDeclaration($field_name, $field);
-                break;
-            case 'boolean':
-                return $db->getBooleanDeclaration($field_name, $field);
-                break;
-            case 'date':
-                return $db->getDateDeclaration($field_name, $field);
-                break;
-            case 'timestamp':
-                return $db->getTimestampDeclaration($field_name, $field);
-                break;
-            case 'time':
-                return $db->getTimeDeclaration($field_name, $field);
-                break;
-            case 'float':
-                return $db->getFloatDeclaration($field_name, $field);
-                break;
-            case 'decimal':
-                return $db->getDecimalDeclaration($field_name, $field);
-                break;
-            default:
-                return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                    'Get field: type "'.$field['type'].'" is not yet supported');
-                break;
-        }
-    }
-
-    // }}}
     // {{{ getFieldDeclarationList()
 
     /**
@@ -153,7 +88,7 @@ class MDB_Manager_Common
     {
         if (is_array($fields)) {
             foreach($fields as $field_name => $field) {
-                $query = $db->getFieldDeclaration($field_name, $field);
+                $query = $db->getDeclaration($field['type'], $field_name, $field);
                 if (MDB::isError($query)) {
                     return $query;
                 }
