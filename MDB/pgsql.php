@@ -49,6 +49,17 @@ require_once('MDB/Common.php');
 /**
  * MDB PostGreSQL driver
  *
+ * Notes:
+ * - Creation of new databases is based on database template1.
+ *
+ * - The decimal type fields are emulated with integer fields.
+ *
+ * - PostgreSQL stores large objects in files managed by the server.
+ *   Tables with large object fields only store identifiers pointing to those
+ *   files. If you delete or update rows of those tables, the actual large
+ *   object files are not deleted from the server file system. Therefore you may
+ *   need to reclaim large object field space by deleting those files manually.
+ *
  * @package MDB
  * @category Database
  * @author  Paul Cooper <pgc@ucecom.com>
@@ -276,6 +287,7 @@ class MDB_pgsql extends MDB_Common
         if ($this->password != '') {
             $connect_string .= ' password='.$this->password;
         }
+        putenv('PGDATESTYLE=ISO');
         if (($connection = @$function($connect_string)) > 0) {
             return($connection);
         }
