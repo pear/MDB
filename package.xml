@@ -55,12 +55,6 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
       <email>chrisdicki@gmx.de</email>
     </maintainer>
     <maintainer>
-      <user>pgc</user>
-      <role>contributor</role>
-      <name>Paul Cooper</name>
-      <email>pgc@ucecom.com</email>
-    </maintainer>
-    <maintainer>
       <user>ssb</user>
       <role>contributor</role>
       <name>Stig S&#230;ther Bakken</name>
@@ -83,7 +77,7 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
     <version>1.0 RC4</version>
     <state>devel</state>
     <date>2002-09-07</date>
-    <notes>Just minor bugs fixes and beautifications in several places. Added skeleton drivers to help driver authors. Added Paul Cooper to the list of contributors.</notes>
+    <notes>Just minor bugs fixes and beautifications in several places. Added skeleton drivers to help driver authors.</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
