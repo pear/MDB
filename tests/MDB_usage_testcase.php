@@ -43,9 +43,6 @@
 //
 // $Id$
 
-require_once '../manager.php';
-require_once '../date.php';
-
 class MDB_Usage_TestCase extends PHPUnit_TestCase {
     //contains the dsn of the database we are testing
     var $dsn;
@@ -61,9 +58,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     }
 
     function setUp() {
-        global $dsn, $options;
+        global $dsn, $options, $database;
         $this->dsn = $dsn;
-        $this->db = MDB::connect($dsn, $options);
+        $this->database = $database;
+        $this->db =& MDB::connect($dsn, $options);
+        $this->db->setDatabase($this->database);
         $this->fields = array('user_name',
                         'user_password',
                         'subscribed',
@@ -374,7 +373,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $this->assertTrue(($this->db->resultIsNull($result, 0, 1) == $is_null), $error_message);
 
-
             $this->assertTrue($this->db->endOfResult($result), "the query result did not seem to have reached the end of result as expected after testing only if columns are NULLs");
 
         }
@@ -414,7 +412,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             if (MDB::isError($result)) {
                 $this->assertTrue(FALSE, 'Error executing select query' . $result->getMessage());
             }
-            
+
             $this->assertTrue(!$this->db->endOfResult($result), "The query result seems to have reached the end of result earlier than expected");
 
             $value = $this->db->fetch($result, 0, 'user_name');
@@ -423,7 +421,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         }
     }
-    
+
     /**
      * Test paged queries
      *
