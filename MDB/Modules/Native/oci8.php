@@ -52,7 +52,7 @@
  * @category Database
  * @author  Lukas Smith <smith@dybnet.de>
  */
-class MDB_Native_oci8 extends MDB_Native_Common
+class MDB_Native_oci8
 {
     var $db_index;
 

@@ -52,7 +52,7 @@
  * @category Database
  * @author  Lukas Smith <smith@dybnet.de>
  */
-class MDB_Native_fbsql extends MDB_Native_Common
+class MDB_Native_fbsql
 {
     var $db_index;
 

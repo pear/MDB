@@ -51,7 +51,7 @@
  * @category Database
  * @author  Paul Cooper <pgc@ucecom.com>
  */
-class MDB_Native_pgsql extends MDB_Native_common
+class MDB_Native_pgsql
 {
     var $db_index;
 

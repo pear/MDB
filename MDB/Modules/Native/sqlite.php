@@ -52,7 +52,7 @@
  * @category Database
  * @author  Lukas Smith <smith@backendmedia.com>
  */
-class MDB_Native_sqlite extends MDB_Native_Common
+class MDB_Native_sqlite
 {
     var $db_index;
 
