@@ -52,9 +52,9 @@
 * @author  Lukas Smith <smith@dybnet.de>
 */
 
-if(!defined('MDB_MANAGER_DATABASE_INCLUDED'))
+if(!defined('MDB_MANAGER_COMMON_INCLUDED'))
 {
-    define('MDB_MANAGER_DATABASE_INCLUDED',1);
+    define('MDB_MANAGER_COMMON_INCLUDED',1);
 
 
 class MDB_manager_common extends PEAR
@@ -64,7 +64,7 @@ class MDB_manager_common extends PEAR
     // {{{ getFieldDeclaration()
     /**
      * get declaration of a field
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string $field_name name of the field to be created
      * @param string $field  associative array with the name of the properties
@@ -77,12 +77,12 @@ class MDB_manager_common extends PEAR
      *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     * 
+     *
      * @access public
      *
      * @return mixed string on success, a DB error on failure
      */
-    function getFieldDeclaration(&$db, $field_name, &$field)
+    function getFieldDeclaration(&$db, $field_name, $field)
     {
         if (!strcmp($field_name, '')) {
             return $db->raiseError(DB_ERROR_NOSUCHFIELD, '', '', "Get field: it was not specified a valid field name (\"$field_name\")");
@@ -128,7 +128,7 @@ class MDB_manager_common extends PEAR
     // {{{ getFieldDeclarationList()
     /**
      * get declaration of a number of field in bulk
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string $fields  a multidimensional associative array.
              The first dimension determines the field name, while the second
@@ -149,12 +149,12 @@ class MDB_manager_common extends PEAR
      *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     * 
+     *
      * @access public
      *
      * @return mixed string on success, a DB error on failure
      */
-    function getFieldDeclarationList(&$db, &$fields)
+    function getFieldDeclarationList(&$db, $fields)
     {
         if(is_array($fields)) {
             foreach($fields as $field_name => $field) {
@@ -166,7 +166,7 @@ class MDB_manager_common extends PEAR
             }
             return (implode(',',$query_fields));
         }
-        return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
+        return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL,
             'the definition of the table "'.$table_name.'" does not contain any fields', 'MDB_Error', TRUE);
     }
 
@@ -174,14 +174,14 @@ class MDB_manager_common extends PEAR
     // {{{ _isSequenceName()
     /**
      * list all tables in the current database
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string $sqn string that containts name of a potential sequence
-     * 
+     *
      * @access private
      *
      * @return mixed name of the sequence if $sqn is a name of a sequence, else FALSE
-     */ 
+     */
     function _isSequenceName(&$db, $sqn)
     {
         $seq_pattern = '/^'.preg_replace('/%s/', '([a-z0-9_]+)', $db->options['seqname_format']).'$/i';
@@ -196,10 +196,10 @@ class MDB_manager_common extends PEAR
     // {{{ createDatabase()
     /**
      * create a new database
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string $name name of the database that should be created
-     * 
+     *
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
@@ -213,14 +213,14 @@ class MDB_manager_common extends PEAR
     // {{{ dropDatabase()
     /**
      * drop an existing database
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string $name name of the database that should be dropped
-     * 
+     *
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
-     */ 
+     */
     function dropDatabase(&$db, $database)
     {
         return $db->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Drop database: database dropping is not supported');
@@ -230,7 +230,7 @@ class MDB_manager_common extends PEAR
     // {{{ createTable()
     /**
      * create a new table
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string $name     Name of the database that should be created
      * @param array $fields Associative array that contains the definition of each field of the new table
@@ -240,7 +240,7 @@ class MDB_manager_common extends PEAR
      *
      *                        Example
      *                        array(
-     *                        
+     *
      *                            'id' => array(
      *                                'type' => 'integer',
      *                                'unsigned' => 1
@@ -256,12 +256,12 @@ class MDB_manager_common extends PEAR
      *                                'length' => 12
      *                            )
      *                        );
-       * 
+       *
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
-     */ 
-    function createTable(&$db, $name, &$fields)
+     */
+    function createTable(&$db, $name, $fields)
     {
         if (!isset($name) || !strcmp($name, '')) {
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'no valid table name specified');
@@ -280,14 +280,14 @@ class MDB_manager_common extends PEAR
     // {{{ dropTable()
     /**
      * drop an existing table
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string $name name of the table that should be dropped
-     * 
+     *
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
-     */ 
+     */
     function dropTable(&$db, $name)
     {
         return ($db->query("DROP TABLE $name"));
@@ -297,13 +297,13 @@ class MDB_manager_common extends PEAR
     // {{{ alterTable()
     /**
      * alter an existing table
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string $name         name of the table that is intended to be changed.
      * @param array $changes     associative array that contains the details of each type
      *                             of change that is intended to be performed. The types of
      *                             changes that are currently supported are defined as follows:
-     * 
+     *
      *                             name
      *
      *                                New name for the table.
@@ -384,17 +384,17 @@ class MDB_manager_common extends PEAR
      *                                        )
      *                                    )
      *                                )
-     * 
+     *
      * @param boolean $check     indicates whether the function should just check if the DBMS driver
      *                             can perform the requested table alterations if the value is true or
      *                             actually perform them otherwise.
      * @access public
      *
       * @return mixed DB_OK on success, a DB error on failure
-     */ 
-    function alterTable(&$db, $name, &$changes, $check)
+     */
+    function alterTable(&$db, $name, $changes, $check)
     {
-        return $db->raiseError(DB_ERROR_UNSUPPORTED, '', '', 
+        return $db->raiseError(DB_ERROR_UNSUPPORTED, '', '',
             'Alter table: database table alterations are not supported');
     }
 
@@ -402,16 +402,16 @@ class MDB_manager_common extends PEAR
     // {{{ listDatabases()
     /**
      * list all databases
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function listDatabases(&$db)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'List Databses: list databases is not supported');
     }
 
@@ -419,16 +419,16 @@ class MDB_manager_common extends PEAR
     // {{{ listUsers()
     /**
      * list all users
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function listUsers(&$db)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'List User: list user is not supported');
     }
 
@@ -436,16 +436,16 @@ class MDB_manager_common extends PEAR
     // {{{ listViews()
     /**
      * list all views in the current database
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function listViews(&$db)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'List View: list view is not supported');
     }
 
@@ -453,16 +453,16 @@ class MDB_manager_common extends PEAR
     // {{{ listFunctions()
     /**
      * list all functions in the current database
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function listFunctions(&$db)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'List Function: list function is not supported');
     }
 
@@ -470,16 +470,16 @@ class MDB_manager_common extends PEAR
     // {{{ listTables()
     /**
      * list all tables in the current database
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function listTables(&$db)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'List tables: list tables is not supported');
     }
 
@@ -487,17 +487,17 @@ class MDB_manager_common extends PEAR
     // {{{ listTableFields()
     /**
      * list all fields in a tables in the current database
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string $table name of table that should be used in method
-     * 
+     *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function listTableFields(&$db, $table)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'List table fields: list table fields is not supported');
     }
 
@@ -505,18 +505,18 @@ class MDB_manager_common extends PEAR
     // {{{ getTableFieldDefinition()
     /**
      * get the stucture of a field into an array
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $table         name of table that should be used in method
      * @param string    $fields     name of field that should be used in method
-      * 
+      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function getTableFieldDefinition(&$db, $table, $field)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'Get table field definition: table field definition is not supported');
     }
 
@@ -524,7 +524,7 @@ class MDB_manager_common extends PEAR
     // {{{ createIndex()
     /**
      * get the stucture of a field into an array
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $table         name of the table on which the index is to be created
      * @param string    $name         name of the index to be created
@@ -552,7 +552,7 @@ class MDB_manager_common extends PEAR
      *                                            'last_login' => array()
      *                                        )
      *                                    )
-       * 
+       *
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
@@ -589,15 +589,15 @@ class MDB_manager_common extends PEAR
     // {{{ dropIndex()
     /**
      * drop existing index
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $table         name of table that should be used in method
      * @param string    $name         name of the index to be dropped
-      * 
+      *
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
-     */ 
+     */
     function dropIndex(&$db, $table, $name)
     {
         return ($db->query("DROP INDEX $name"));
@@ -607,17 +607,17 @@ class MDB_manager_common extends PEAR
     // {{{ listTableIndexes()
     /**
      * list all indexes in a table
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $table      name of table that should be used in method
      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function listTableIndexes(&$db, $table)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'List table indexes: List Indexes is not supported');
     }
 
@@ -625,18 +625,18 @@ class MDB_manager_common extends PEAR
     // {{{ getTableIndexDefinition()
     /**
      * get the stucture of an index into an array
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $table      name of table that should be used in method
      * @param string    $index      name of index that should be used in method
-      * 
+      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function getTableIndexDefinition(&$db, $table, $index)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'get table index definition: getting index definition is not supported');
     }
 
@@ -644,18 +644,18 @@ class MDB_manager_common extends PEAR
     // {{{ createSequence()
     /**
      * create sequence
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $seq_name     name of the sequence to be created
      * @param string    $start         start value of the sequence; default is 1
-      * 
+      *
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
-     */ 
+     */
     function createSequence(&$db, $name, $start)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'Create Sequence: sequence creation not supported');
     }
 
@@ -663,17 +663,17 @@ class MDB_manager_common extends PEAR
     // {{{ dropSequence()
     /**
      * drop existing sequence
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $seq_name     name of the sequence to be dropped
-      * 
+      *
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
-     */ 
+     */
     function dropSequence(&$db, $name)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'Drop Sequence: sequence dropping not supported');
     }
 
@@ -681,16 +681,16 @@ class MDB_manager_common extends PEAR
     // {{{ listSequences()
     /**
      * list all sequences in the current database
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function listSequences(&$db)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'List sequences: List sequences is not supported');
     }
 
@@ -698,17 +698,17 @@ class MDB_manager_common extends PEAR
     // {{{ getSequenceDefinition()
     /**
      * get the stucture of a sequence into an array
-     * 
+     *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $sequence   name of sequence that should be used in method
-      * 
+      *
      * @access public
      *
      * @return mixed data array on success, a DB error on failure
-     */ 
+     */
     function getSequenceDefinition(&$db, $sequence)
     {
-        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '', 
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'get squence definition: getting sequence definition is not supported');
     }
 }
