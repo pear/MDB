@@ -316,6 +316,7 @@ class MDB_ibase extends MDB_Common
                 'Commit: transaction changes are being auto commited'));
         }
         $connection = ($this->auto_commit ? $this->connection : $this->transaction_id);
+        $this->in_transaction = false;
         return @ibase_commit($connection);
     }
 
@@ -345,6 +346,7 @@ class MDB_ibase extends MDB_Common
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'Rollback: Could not rollback a pending transaction: '.@ibase_errmsg()));
         }
+        $this->in_transaction = false;
         return $this->_startTransaction();
     }
 
@@ -362,6 +364,7 @@ class MDB_ibase extends MDB_Common
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'Could not start a new transaction: '.@ibase_errmsg()));
         }
+        $this->in_transaction = true;
         return MDB_OK;
     }
 

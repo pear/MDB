@@ -22,6 +22,7 @@
       - setSelectedRowRange() used to return one more result than requested
       - fixed bug #3770: autoCommit(false) now automatically starts a new transaction
       - fixed bug #3771: commit() now uses the correct connection resource
+      - fixed bug #3774: update the "in_transaction" property on commit/rollback
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
       <file role="doc">README</file>
