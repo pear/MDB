@@ -833,15 +833,15 @@ class MDB_oci8 extends MDB_Common
                 if ($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit) {
                     if (isset($this->results[$result_value]['row_buffer'])) {
                         $this->results[$result_value]['current_row']++;
-                        $this->results[$result_value][$this->results[$result_value]['current_row']] =
-                            $this->results[$result_value]['row_buffer'];
+                        $row = array_change_key_case($this->results[$result_value]['row_buffer']);
                         unset($this->results[$result_value]['row_buffer']);
+                        $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
                     }
                     while (($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit)
                         && @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS)
                     ) {
-                        $row = array_change_key_case($row);
                         $this->results[$result_value]['current_row']++;
+                        $row = array_change_key_case($row);
                         $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
                     }
                 }
@@ -956,6 +956,9 @@ class MDB_oci8 extends MDB_Common
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_value = intval($result);
+        if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
+            $fetchmode = $this->fetchmode;
+        }
         if ($this->options['result_buffering']) {
             if (is_null($rownum)) {
                 $rownum = $this->results[$result_value]['highest_fetched_row'] + 1;
@@ -985,14 +988,14 @@ class MDB_oci8 extends MDB_Common
         if ($this->options['result_buffering']) {
             if (isset($this->results[$result_value]['row_buffer'])) {
                 $this->results[$result_value]['current_row']++;
-                $this->results[$result_value][$this->results[$result_value]['current_row']] =
-                    $this->results[$result_value]['row_buffer'];
+                $row = array_change_key_case($this->results[$result_value]['row_buffer']);
                 unset($this->results[$result_value]['row_buffer']);
+                $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
             }
             while ($this->results[$result_value]['current_row'] < $rownum) {
                 $this->results[$result_value]['current_row']++;
                 $moredata = @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS);
-                if (!$moredata) {
+                if (!$moredata || !is_array($row)) {
                     return null;
                 }
                 $row = array_change_key_case($row);
@@ -1008,7 +1011,9 @@ class MDB_oci8 extends MDB_Common
         } else {
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                 $moredata = @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS);
-                $row = array_change_key_case($row);
+                if (is_array($row)) {
+                    $row = array_change_key_case($row);
+                }
             } else {
                 $moredata = @OCIFetchInto($result, $row, OCI_RETURN_NULLS);
             }

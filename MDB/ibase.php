@@ -703,8 +703,7 @@ class MDB_ibase extends MDB_Common
                     return true;
                 }
             }
-            if (is_array($row = @ibase_fetch_assoc($result))) {
-                $this->results[$result_value]['row_buffer'] = $row;
+            if (is_array($this->results[$result_value]['row_buffer'] = @ibase_fetch_assoc($result))) {
                 return false;
             }
             unset($this->results[$result_value]['row_buffer']);
@@ -764,15 +763,22 @@ class MDB_ibase extends MDB_Common
                 if ($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit) {
                     if (isset($this->results[$result_value]['row_buffer'])) {
                         $this->results[$result_value]['current_row']++;
-                        $this->results[$result_value][$this->results[$result_value]['current_row']] =
-                            $this->results[$result_value]['row_buffer'];
+                        $row = $this->results[$result_value]['row_buffer'];
                         unset($this->results[$result_value]['row_buffer']);
+                        if (is_array($row)) {
+                            foreach ($row as $key => $value_with_space) {
+                                $row[strtolower($key)] = rtrim($value_with_space);
+                            }
+                        }
+                        $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
                     }
                     while (($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit)
                         && (is_array($row = @ibase_fetch_assoc($result)))
                     ) {
-                        $row = array_change_key_case($row);
                         $this->results[$result_value]['current_row']++;
+                        foreach ($row as $key => $value_with_space) {
+                            $row[strtolower($key)] = rtrim($value_with_space);
+                        }
                         $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
                     }
                 }
@@ -918,6 +924,9 @@ class MDB_ibase extends MDB_Common
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_value = intval($result);
+        if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
+            $fetchmode = $this->fetchmode;
+        }
         if ($this->options['result_buffering']) {
             if (is_null($rownum)) {
                 $rownum = $this->results[$result_value]['highest_fetched_row'] + 1;
@@ -947,46 +956,47 @@ class MDB_ibase extends MDB_Common
         if ($this->options['result_buffering']) {
             if (isset($this->results[$result_value]['row_buffer'])) {
                 $this->results[$result_value]['current_row']++;
-                $this->results[$result_value][$this->results[$result_value]['current_row']] =
-                    $this->results[$result_value]['row_buffer'];
+                $row = $this->results[$result_value]['row_buffer'];
                 unset($this->results[$result_value]['row_buffer']);
-            }
-            while ($this->results[$result_value]['current_row'] < $rownum) {
-                $this->results[$result_value]['current_row']++;
-                $row = @ibase_fetch_assoc($result);
-                if (!$row) {
-                    return null;
-                }
-                $row = array_change_key_case($row);
-                //NOT SURE IF REALLY OK... basically it doesn't process $row if it's false
                 if (is_array($row)) {
                     foreach ($row as $key => $value_with_space) {
-                        $row[$key] = strtolower(rtrim($value_with_space));
+                        $row[strtolower($key)] = rtrim($value_with_space);
                     }
                 }
                 $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
             }
+            while ($this->results[$result_value]['current_row'] < $rownum) {
+                $this->results[$result_value]['current_row']++;
+                $row = @ibase_fetch_assoc($result);
+                if (!is_array($row)) {
+                    return null;
+                }
+                foreach ($row as $key => $value_with_space) {
+                    $row[strtolower($key)] = rtrim($value_with_space);
+                }
+                $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
+            }
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                $row = $this->results[$result_value][$rownum];
+                $row = $row;
             } else {
-                $row = array_values($this->results[$result_value][$rownum]);
+                $row = array_values($row);
             }
             $this->results[$result_value]['highest_fetched_row'] =
                 max($this->results[$result_value]['highest_fetched_row'], $rownum);
         } else {
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                 $row = @ibase_fetch_assoc($result);
+                if (is_array($row)) {
+                    $row = array_change_key_case($row);
+                }
             } else {
                 $row = @ibase_fetch_row($result);
             }
-            if (!$row) {
+            if (!is_array($row)) {
                 return null;
             }
-            $row = array_change_key_case($row);
-            if (is_array($row)) {
-                foreach ($row as $key => $value_with_space) {
-                    $row[$key] = rtrim($value_with_space);
-                }
+            foreach ($row as $key => $value_with_space) {
+                $row[$key] = rtrim($value_with_space);
             }
         }
         if (isset($this->results[$result_value]['types'])) {
