@@ -72,6 +72,34 @@ class MDB_manager extends PEAR
         "TABLES" => array()
     );
 
+    // }}}
+    // {{{ resetWarnings()
+    /**
+     * reset the warning array
+     *
+     * @access public
+     */
+    function resetWarnings()
+    {
+        $this->warnings = array();
+    }
+
+    // }}}
+    // {{{ getWarnings()
+    /**
+     * get all warnings in reverse order.
+     * This means that the last warning is the first element in the array
+     * 
+     * @return array with warnings
+     *
+     * @access public
+     * @see resetWarnings()
+     */
+    function getWarnings()
+    {
+        return array_reverse($this->warnings);
+    }
+
     function setupDatabase($dsninfo, $options = FALSE)
     {
         if (isset($options["debug"])) {
@@ -85,7 +113,7 @@ class MDB_manager extends PEAR
         if (!isset($options["debug"])) {
             $this->database->captureDebugOutput(1);
         }
-        return(1);
+        return (DB_OK;
     }
 
     function closeSetup()
@@ -255,11 +283,11 @@ class MDB_manager extends PEAR
                                 }
                                 switch($field["type"]) {
                                     case "integer":
-                                        $result = $this->database->querySetInteger($prepared_query,
+                                        $result = $this->database->setParamInteger($prepared_query,
                                             $field_number+1,intval($fields[$field_name]));
                                         break;
                                     case "text":
-                                        $result = $this->database->querySetText($prepared_query, 
+                                        $result = $this->database->setParamText($prepared_query, 
                                             $field_number+1, $fields[$field_name]);
                                         break;
                                     case "clob":
@@ -275,7 +303,7 @@ class MDB_manager extends PEAR
                                                 $lob_definition["Error"], 'MDB_Error', TRUE);
                                             break;
                                         }
-                                        $result = $this->database->querySetCLOB($prepared_query, 
+                                        $result = $this->database->setParamCLOB($prepared_query, 
                                             $field_number+1, $lobs[$lob], $field_name);
                                         break;
                                     case "blob":
@@ -290,31 +318,31 @@ class MDB_manager extends PEAR
                                                 $lob_definition["Error"], 'MDB_Error', TRUE);
                                             break;
                                         }
-                                        $result = $this->database->querySetBLOB($prepared_query, 
+                                        $result = $this->database->setParamBLOB($prepared_query, 
                                             $field_number+1, $lobs[$lob], $field_name);
                                         break;
                                     case "boolean":
-                                        $result = $this->database->querySetBoolean($prepared_query, 
+                                        $result = $this->database->setParamBoolean($prepared_query, 
                                             $field_number+1,intval($fields[$field_name]));
                                         break;
                                     case "date":
-                                        $result = $this->database->querySetDate($prepared_query, 
+                                        $result = $this->database->setParamDate($prepared_query, 
                                             $field_number+1, $fields[$field_name]);
                                         break;
                                     case "timestamp":
-                                        $result = $this->database->querySetTimestamp($prepared_query, 
+                                        $result = $this->database->setParamTimestamp($prepared_query, 
                                             $field_number+1, $fields[$field_name]);
                                         break;
                                     case "time":
-                                        $result = $this->database->querySetTime($prepared_query, 
+                                        $result = $this->database->setParamTime($prepared_query, 
                                             $field_number+1, $fields[$field_name]);
                                         break;
                                     case "float":
-                                        $result = $this->database->querySetFloat($prepared_query, 
+                                        $result = $this->database->setParamFloat($prepared_query, 
                                             $field_number+1,doubleval($fields[$field_name]));
                                         break;
                                     case "decimal":
-                                        $result = $this->database->querySetDecimal($prepared_query, 
+                                        $result = $this->database->setParamDecimal($prepared_query, 
                                             $field_number+1, $fields[$field_name]);
                                         break;
                                     default:
@@ -1241,18 +1269,13 @@ class MDB_manager extends PEAR
         if ($dump_definition) {
             $start = $sequence_definition["start"];
         } else {
+            $start = $this->database->currId($sequence_name);
+            if (MDB::isError($start)) {
+                return $start;
+            }
             if ($this->database->support("CurrId")) {
-                $result = $this->database->currId($sequence_name, $start);
-                if (MDB::isError($result)) {
-                    return $result;
-                }
                 $start++;
             } else {
-                $result = $this->database->nextId($sequence_name, $start);
-                if (MDB::isError($result)) {
-                    return $result;
-                }
-                // XXX needs more checking
                 $this->warnings[] = "database does not support getting current sequence value, the sequence value was incremented";
             }
         }
@@ -1457,7 +1480,7 @@ class MDB_manager extends PEAR
 
                     for($row = 0; $row < $rows; $row++) {
                         $buffer = ("$eol   <insert>$eol");
-                        $this->database->fetchInto($result, $values, DB_FETCHMODE_ASSOC);
+                        $values = $this->database->fetchInto($result, DB_FETCHMODE_ASSOC);
                         foreach($fields as $field_name => $field) {
                                 $buffer .= ("$eol   <field>$eol     <name>$field_name</name>$eol     <value>");
                                 $buffer .= $this->escapeSpecialCharacters($values[$field_name]);
@@ -1802,7 +1825,7 @@ class MDB_manager extends PEAR
                 'Could not copy the new database definition file to the current file', 'MDB_Error', TRUE);
         }
         
-        return(1);
+        return (DB_OK;
     }
 
 
@@ -1859,42 +1882,40 @@ class MDB_manager extends PEAR
             "create" => 1,
             "TABLES" => array()
         );
-
-        if (!$this->database->listTables($tables)) {
+        $tables = $this->database->listTables();
+        if (MDB::isError($tables)) {
             return($this->database->error());
         }
         for($table = 0; $table < count($tables); $table++) {
             $table_name = $tables[$table];
-            if (!$this->database->listTableFields($table_name, $fields)) {
-                return($this->database->error());
+            $fields = $this->database->listTableFields($table_name);
+            if (MDB::isError($fields)) {
+                return($fields);
             }
             $this->database_definition["TABLES"][$table_name] = array("FIELDS" => array());
             for($field = 0; $field < count($fields); $field++)
             {
                 $field_name = $fields[$field];
-                if (!$this->database->getTableFieldDefinition($table_name, $field_name, $definition)) {
-                    return($this->database->error());
+                $definition = $this->database->getTableFieldDefinition($table_name, $field_name);
+                if (MDB::isError($definition)) {
+                    return($definition);
                 }
                 $this->database_definition["TABLES"][$table_name]["FIELDS"][$field_name] = $definition[0];
             }
         }
-        if (!$this->database->listSequences($sequences)) {
-            return($this->database->error());
+        $sequences = $this->database->listSequences();
+        if (MDB::isError($sequences)) {
+            return($sequences);
         }
         for($sequence = 0; $sequence < count($sequences); $sequence++) {
             $sequence_name = $sequences[$sequence];
+            $start = $this->database->currId($sequence_name);
+            if (MDB::isError($start)) {
+                return $start;
+            }
             if ($this->database->support("CurrId")) {
-                $result = $this->database->currId($sequence_name, $start);
-                if (MDB::isError($result)) {
-                    return $result;
-                }
                 $start++;
             } else {
-                $result = $this->database->nextId($sequence_name, $start);
-                if (MDB::isError($result)) {
-                    return $result;
-                }
-                // XXX needs more checking
                 $this->warnings[] = "database does not support getting current sequence value, the sequence value was incremented";
             }
             $sequence_definition["start"] = $start;
