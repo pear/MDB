@@ -44,10 +44,10 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>0.9.8</version>
+    <version>0.9.9</version>
     <state>beta</state>
-    <date>2002-07-04</date>
-    <notes>Further cleanups to the API (especially for sending the types of to be fetched data);added initial pgsql manager class; formatting and eol fixes</notes>
+    <date>2002-07-17</date>
+    <notes>Further cleanups to the API;fixes to the pgsql driver; manager can now reverse engineer sequences into an xml schema</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
