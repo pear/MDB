@@ -28,10 +28,10 @@ discussion):
 ** Current State:
 
 The current release can be found at the PEAR webpage:
-  http://pear.php.net/package-info.php?pacid=54
+  http://pear.php.net/package-info.php?package=MDB
 
 MDB is still in beta at the moment.
-  
+
 MDB is based on Metabase but has been reworked severely to better match
 the PEAR DB API and PEAR CS. Currently the mysql driver is very reliable,
 while the pgsql driver is still under development but progressing steadily.
@@ -171,23 +171,23 @@ requested for all of following):
 
 1.0 Release (August)
 - PHPDoc comments (missing in lob.php and manager.php) (lsmith)
-- API cleanups (mainly to lob.php and manager.php) (lsmith)
+- API cleanups (only lob.php and manager.php left to cleanup) (lsmith)
 - Finish pgsql driver (pgc)
 - More tests with Metabase and PEAR DB wrapper (you)
 
 1.1 Release (Fall 2002)
-- Further cleanups in lob.php and manager.php (lsmith)
+- Further cleanups in lob.php, manager.php, parser.php (lsmith)
 - Add support for more RDBMS (you)
 
 Some time
 - Interactive Application for Schema Reverse Engineering to better handle
 ambiguities that cannot be resolved automatically
+- SQL Funtion Abstraction (for example SUBSTRING() and SUBSTR())
 
 ** Credits (never to early for those huh? :-)  ):
 
 I would especially like to thank Manuel Lemos (Author of Metabase) for 
 getting me involved in this and generally being around to ask questions. 
-
 I would also like to thank Tomas Cox and Stig S. Bakken from the PEAR 
 projects for help in undertstanding PEAR, solving problems and trusting 
 me enough. Paul Cooper for the work on the pgsql driver. Furthermore I 
