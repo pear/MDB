@@ -12,7 +12,7 @@ if(!defined("MDB_MANAGER_MYSQL_INCLUDED"))
 
 class MDB_manager_mysql_class extends MDB_manager_database_class
 {
-    function createDatabase(&$db,$name)
+    function createDatabase(&$db, $name)
     {
         if (MDB::isError($result = $db->connect())) {
             return $result;
@@ -21,10 +21,10 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
             return $db->mysqlRaiseError(DB_ERROR_CANNOT_CREATE);
         }
         
-        return (1);
+        return (DB_OK);
     }
 
-    function dropDatabase(&$db,$name)
+    function dropDatabase(&$db, $name)
     {
         if (MDB::isError($result = $db->connect())) {
             return $result;
@@ -32,7 +32,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
         if (!mysql_drop_db($name, $this->connection)) {
             return $db->mysqlRaiseError(DB_ERROR_CANNOT_DROP);
         }
-        return (1);
+        return (DB_OK);
     }
 
     function createTable(&$db, $name, &$fields)
@@ -73,7 +73,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
                             'Alter table: change type "'.Key($changes).'" not yet supported');
                 }
             }
-            return (1);
+            return (DB_OK);
         } else {
             $query = (isset($changes["name"]) ? "RENAME AS ".$changes["name"] : "");
             if (isset($changes["AddedFields"]))    {
@@ -143,6 +143,24 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
             }
             return ($db->query("ALTER TABLE $name $query"));
         }
+    }
+
+    function listDatabases(&$db, &$dbs)
+    {
+        $result = $db->queryCol("SHOW DATABASES", $dbs);
+        if(MDB::isError($result)) {
+            return $result;
+        }
+        return(1);
+    }
+
+    function listUsers(&$db, &$users)
+    {
+        $result = $db->queryCol("SELECT DISTINCT USER FROM USER", $users);
+        if(MDB::isError($result)) {
+            return $result;
+        }
+        return(1);
     }
 
     function listTables(&$db, &$tables)
@@ -316,7 +334,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
                     }
                 }
                 $db->freeResult($result);
-                return(1);
+                return(DB_OK);
             }
         }
         if(!$db->autofree) {
@@ -371,7 +389,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
             if ($field>0) {
                 $query .= ",";
             }
-            $query .= Key($definition["FIELDS"]);
+            $query .= key($definition["FIELDS"]);
         }
         $query .= ")";
         return ($db->query($query));
