@@ -39,7 +39,7 @@
 // | WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE          |
 // | POSSIBILITY OF SUCH DAMAGE.                                          |
 // +----------------------------------------------------------------------+
-// | Author: YOUR NAME <YOUR EMAIL>                                       |
+// | Author: Frank M. Kromann <frank@kromann.info                         |
 // +----------------------------------------------------------------------+
 //
 // $Id$
@@ -56,7 +56,7 @@ require_once('MDB/Modules/Manager/Common.php');
  *
  * @package MDB
  * @category Database
- * @author  YOUR NAME <YOUR EMAIL>
+ * @author  Frank M. Kromann <frank@kromann.info
  */
 class MDB_Manager_mssql extends MDB_Manager_Common
 {
@@ -74,7 +74,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     function createDatabase(&$db, $name)
     {
         $DatabaseDevice = isset($db->options["DatabaseDevice"]) ? $db->options["DatabaseDevice"] : "DEFAULT";
-        $DatabaseSize = isset($db->options["DatabaseSize"]) ? "=".$db->options["DatabaseSize"] : "";
+        $DatabaseSize = isset($db->options["DatabaseSize"]) ? ", SIZE=".$db->options["DatabaseSize"] : "";
         return($db->standaloneQuery("CREATE DATABASE $name ON ".$DatabaseDevice.$DatabaseSize));
     }
 
