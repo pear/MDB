@@ -701,7 +701,8 @@ class MDB_oci8 extends MDB_Common {
      */
     function numCols($result)
     {
-        if (!isset($this->highest_fetched_row[intval($result)])) {
+        $result_value = intval($result);
+        if (!isset($this->highest_fetched_row[$result_value])) {
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'Number of columns: it was specified an inexisting result set'));
         }
@@ -932,7 +933,7 @@ class MDB_oci8 extends MDB_Common {
                 $this->results[$result_value][$this->current_row[$result_value]] = false;
             }
         }
-        return($this->current_row[$result_value]);
+        return(max(0, $this->highest_fetched_row[$result_value]));
     }
 
     // }}}
@@ -952,8 +953,8 @@ class MDB_oci8 extends MDB_Common {
            return($this->raiseError(MDB_ERROR, NULL, NULL,
                'Free result: attemped to free an unknown query result'));
         }
-        if(isset($this->highest_fetched_row[$result])) {
-            unset($this->highest_fetched_row[$result]);
+        if(isset($this->highest_fetched_row[$result_value])) {
+            unset($this->highest_fetched_row[$result_value]);
         }
         if(isset($this->row_buffer[$result_value])) {
             unset($this->row_buffer[$result_value]);
@@ -967,11 +968,11 @@ class MDB_oci8 extends MDB_Common {
         if(isset($this->results[$result_value])) {
             unset($this->results[$result_value]);
         }
-        if(isset($this->columns[$result])) {
-            unset($this->columns[$result]);
+        if(isset($this->columns[$result_value])) {
+            unset($this->columns[$result_value]);
         }
-        if(isset($this->result_types[$result])) {
-            unset($this->result_types[$result]);
+        if(isset($this->result_types[$result_value])) {
+            unset($this->result_types[$result_value]);
         }
         return(@OCIFreeCursor($result));
     }
@@ -1564,7 +1565,7 @@ class MDB_oci8 extends MDB_Common {
         } else {
             $row = array_values($row);
         }
-        if (isset($this->result_types[$result])) {
+        if (isset($this->result_types[$result_value])) {
             $row = $this->convertResultRow($result, $row);
         }
         return($row);
