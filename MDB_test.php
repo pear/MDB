@@ -34,11 +34,11 @@
 
         $manager = new MDB_manager;
         $input_file = 'metapear_test_db.schema';
-        $database_variables = array();
+        $manager->connect($dsn);
         // lets create the database using 'metapear_test_db.schema'
         // if you have allready run this script you should have 'metapear_test_db.schema.before'
         // in that case MDB will just compare the two schemas and make any necessary modifications to the existing DB
-        echo Var_Dump::display($manager->updateDatabase($input_file, $input_file.'.before', $dsn, $database_variables)).'<br>';
+        echo Var_Dump::display($manager->updateDatabase($input_file, $input_file.'.before')).'<br>';
         echo 'updating database from xml schema file<br>';
     }
 
@@ -151,8 +151,6 @@
     echo Var_Dump::display($db->tableInfo('numbers')).'<br>';
     echo '<br>just a simple update query:<br>';
     echo Var_Dump::display($db->query('UPDATE numbers set trans_en ='.$db->getIntegerValue(0))).'<br>';
-    echo '<br>just a simple delete query:<br>';
-    echo Var_Dump::display($db->query('DELETE FROM numbers')).'<br>';
     echo '<br>affected rows:<br>';
     echo $db->affectedRows().'<br>';
     // subselect test
@@ -178,16 +176,14 @@
         // ok now lets create a new xml schema file from the existing DB
         // we will not use the 'metapear_test_db.schema' for this
         // this feature is especially interesting for people that have an existing Db and want to move to MDB's xml schema management
-        echo Var_Dump::display($manager->connect($dsn)).'<br>';
-
-        $manager->debug = 'Output';
         echo Var_Dump::display($manager->dumpDatabase(
             array(
                 'Output' => 'Dump',
                 'EndOfLine' => "\n",
                 'Output_Mode' => 'file',
-                'Output_File' => $manager->database->database_name.'2.schema'
-            )
+                'Output_File' => $db_name.'2.schema'
+            ),
+            MDB_MANAGER_DUMP_STRUCTURE
         )).'<br>';
         if($manager->database) {
             echo Var_Dump::display($manager->database->debugOutput()).'<br>';
@@ -196,4 +192,6 @@
         // this is the database definition as an array
         echo Var_Dump::display($manager->database_definition).'<br>';
     }
+    echo '<br>just a simple delete query:<br>';
+    echo Var_Dump::display($db->query('DELETE FROM numbers')).'<br>';
 ?>
