@@ -505,7 +505,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $this->assertTrue(($result_rows <= $rows), "expected a result of no more than $rows but the returned number of rows is $result_rows");
 
             for ($row = 0; $row < $result_rows; $row++) {
-                $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result at row $row that is before $result_rows as expected');
+                $this->assertTrue(!$this->db->endOfResult($result), "The query result seem to have reached the end of result at row $row that is before $result_rows as expected");
 
                 $this->verifyFetchedValues($result, $row, $data[$row + $start_row]);
 
