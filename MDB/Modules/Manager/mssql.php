@@ -90,7 +90,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     {
         $DatabaseDevice = isset($db->options["DatabaseDevice"]) ? $db->options["DatabaseDevice"] : "DEFAULT";
         $DatabaseSize = isset($db->options["DatabaseSize"]) ? "=".$db->options["DatabaseSize"] : "")
-        return($db->standaloneQuery("CREATE DATABASE $name ON ".$DatabaseDevice.$DatabaseSize));
+        return($db->query("CREATE DATABASE $name ON ".$DatabaseDevice.$DatabaseSize));
     }
 
     // }}}
@@ -106,7 +106,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
      */
     function dropDatabase(&$db, $name)
     {
-        return($db->standaloneQuery("DROP DATABASE $name"));
+        return($db->query("DROP DATABASE $name"));
     }
 
     // }}}
