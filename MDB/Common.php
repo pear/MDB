@@ -3671,17 +3671,15 @@ class MDB_Common extends PEAR
         if (is_array($row)) {
             if (isset($row[$colnum])) {
                 $column[] = $row[$colnum];
+                ++$rownum;
+                while (is_array($row = $this->fetchInto($result, $fetchmode, $rownum))) {
+                    $column[] = $row[$colnum];
+                    ++$rownum;
+                }
             } else {
                 $this->freeResult($result);
                 return($this->raiseError(MDB_ERROR_TRUNCATED));
             }
-        } else if (MDB::isError($row)) {
-            return($row);
-        }
-        ++$rownum;
-        while (is_array($row = $this->fetchInto($result, $fetchmode, $rownum))) {
-            $column[] = $row[$colnum];
-            ++$rownum;
         }
         if (!$this->options['autofree']) {
             $this->freeResult($result);
