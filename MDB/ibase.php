@@ -482,7 +482,7 @@ class MDB_ibase extends MDB_Common
             $result = @ibase_query($connection, $query);
         }
         if($result) {
-            if(($select=(substr(strtolower(ltrim($query)), 0, strlen("select")) == 'select'))) {
+            if(!MDB::isManip($query) {
                 $result_value = intval($result);
                 $this->current_row[$result_value] = -1;
                 if($limit>0) {
@@ -513,6 +513,7 @@ class MDB_ibase extends MDB_Common
     function query($query, $types = NULL)
     {
         $this->debug('Query: '.$query);
+        $this->last_query = $query;
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;
         $this->first_selected_row = $this->selected_row_limit = 0;
