@@ -102,6 +102,8 @@ class MDB_Date
 
     /**
      * convert a date into a MDB timestamp
+     * The oldest date support by this method is January 1 1970
+     * For older dates use the PEAR::Date class
      *
      * @param integer $hour hour of the date
      * @param integer $minute minute of the date
@@ -109,7 +111,7 @@ class MDB_Date
      * @param integer $month month of the date
      * @param integer $day day of the date
      * @param integer $year year of the date
-     * @return string a valid MDB timestamp
+     * @return string a valid MDB timestamp or NULL
      * @access public
      */
     function date2Mdbstamp($hour = NULL, $minute = NULL, $second = NULL,
@@ -123,13 +125,18 @@ class MDB_Date
 
     /**
      * convert a unix timestamp into a MDB timestamp
+     * The oldest date support by this method is January 1 1970
+     * For older dates use the PEAR::Date class
      *
      * @param integer $unix_timestamp a valid unix timestamp
-     * @return string a valid MDB timestamp
+     * @return string a valid MDB timestamp or NULL
      * @access public
      */
     function unix2Mdbstamp($unix_timestamp)
     {
+        if($unix_timestamp <= 0) {
+            return NULL;
+        }
         return date('Y-m-d H:i:s', $unix_timestamp);
     }
 
@@ -138,6 +145,8 @@ class MDB_Date
 
     /**
      * convert a MDB timestamp into a unix timestamp
+     * The oldest date support by this method is January 1 1970
+     * For older dates use the PEAR::Date class
      *
      * @param integer $mdb_timestamp a valid MDB timestamp
      * @return string unix timestamp with the time stored in the MDB format
