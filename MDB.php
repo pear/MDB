@@ -225,7 +225,8 @@ class MDB
      * type
      *
      * @param   string  $type   database type, for example 'mysql'
-     * @return  mixed   a newly created MDB object, or a MDB error code on error
+     * @return  mixed   a newly created MDB connection object, or a MDB
+     *                  error object on error
      * @access  public
      */
     function &factory($type)
@@ -287,7 +288,7 @@ class MDB
             // expose php errors with sufficient debug level
             include_once $include;
         } else {
-            @include_once $include;
+            include_once $include;
         }
         
         if (!class_exists($class_name)) {
@@ -296,7 +297,7 @@ class MDB
                 'MDB_Error', TRUE);
         }
         
-        @$db =& new $class_name($dsninfo, $options);
+        $db =& new $class_name($dsninfo, $options);
         
         if(!MDB::isError($db) && isset($dsninfo['database'])) {
             $db->setDatabase($dsninfo['database']);
