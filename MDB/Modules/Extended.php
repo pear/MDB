@@ -66,6 +66,7 @@ class MDB_Extended
      * the first row of the result set and then frees
      * the result set.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $query the SELECT query statement to be executed.
      * @param string $type optional argument that specifies the expected
      *       datatype of the result set field, so that an eventual conversion
@@ -100,6 +101,7 @@ class MDB_Extended
      * row of the result set into an array and then frees
      * the result set.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $query the SELECT query statement to be executed.
      * @param array $types optional array argument that specifies a list of
      *       expected datatypes of the result set columns, so that the eventual
@@ -131,6 +133,7 @@ class MDB_Extended
      * Execute the specified query, fetch the value from the first column of
      * each row of the result set into an array and then frees the result set.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $query the SELECT query statement to be executed.
      * @param string $type optional argument that specifies the expected
      *       datatype of the result set field, so that an eventual conversion
@@ -165,6 +168,7 @@ class MDB_Extended
      * Execute the specified query, fetch all the rows of the result set into
      * a two dimensional array and then frees the result set.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $query the SELECT query statement to be executed.
      * @param array $types optional array argument that specifies a list of
      *       expected datatypes of the result set columns, so that the eventual
@@ -206,6 +210,7 @@ class MDB_Extended
      * a query.  Takes care of doing the query and freeing the results
      * when finished.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $query the SQL query
      * @param string $type string that contains the type of the column in the
      *       result set
@@ -256,6 +261,7 @@ class MDB_Extended
      * Fetch the first row of data returned from a query.  Takes care
      * of doing the query and freeing the results when finished.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $query the SQL query
      * @param array $types array that contains the types of the columns in
      *       the result set
@@ -304,6 +310,7 @@ class MDB_Extended
      * Fetch a single column from a result set and return it as an
      * indexed array.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $query the SQL query
      * @param string $type string that contains the type of the column in the
      *       result set
@@ -355,6 +362,7 @@ class MDB_Extended
     /**
      * Fetch all the rows returned from a query.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $query the SQL query
      * @param array $types array that contains the types of the columns in
      *       the result set
@@ -404,5 +412,41 @@ class MDB_Extended
 
         return $all;
     }
+
+
+    // }}}
+    // {{{ executeMultiple()
+
+    /**
+     * This function does several execute() calls on the same statement handle.
+     * $params must be an array indexed numerically from 0, one execute call is
+     * done for every 'row' in the array.
+     *
+     * If an error occurs during execute(), executeMultiple() does not execute
+     * the unfinished rows, but rather returns that error.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param resource $prepared_query query handle from prepare()
+     * @param array $types array that contains the types of the columns in
+     *        the result set
+     * @param array $params numeric array containing the
+     *        data to insert into the query
+     * @param array $parAM_types array that contains the types of the values
+     *        defined in $params
+     * @return mixed a result handle or MDB_OK on success, a MDB error on failure
+     * @access public
+     * @see prepare(), execute()
+     */
+    function executeMultiple(&$db, $prepared_query, $types = null, $params, $param_types = null)
+    {
+        for($i = 0, $j = count($params); $i < $j; $i++) {
+            $result = $db->execute($prepared_query, $types, $params[$i], $param_types);
+            if (MDB::isError($result)) {
+                return $result;
+            }
+        }
+        return MDB_OK;
+    }
+
 }
 ?>
