@@ -315,6 +315,11 @@ class MDB_oci8 extends MDB_Common {
             $this->_close();
             return($doquery);
         }
+        if (MDB::isError($doquery = $this->_doQuery("ALTER SESSION SET NLS_NUMERIC_CHARACTERS='. '"))) {
+            $this->_close();
+            return($doquery);
+        }
+
         $this->connected_user = $user;
         $this->connected_password = $password;
         $this->opened_persistent = $persistent;
@@ -857,9 +862,9 @@ class MDB_oci8 extends MDB_Common {
             case MDB_TYPE_BOOLEAN:
                 return(strcmp($value, 'Y') ? 0 : 1);
             case MDB_TYPE_DECIMAL:
-                return(str_replace(',', '.', $value));
+                return($value);
             case MDB_TYPE_FLOAT:
-                return(doubleval(str_replace(',', '.', $value)));
+                return(doubleval($value));
             case MDB_TYPE_DATE:
                 return(substr($value, 0, strlen('YYYY-MM-DD')));
             case MDB_TYPE_TIME:
