@@ -47,12 +47,12 @@
 // MDB mysql driver.
 //
 
- if (!defined("MDB_MYSQL_INCLUDED")) {
+if (!defined("MDB_MYSQL_INCLUDED")) {
     define("MDB_MYSQL_INCLUDED", 1);
 
-require_once "common.php";
+require_once (dirname(__FILE__)."/common.php");
  
-class MDB_mysql extends MDB_common
+class MDB_driver_mysql extends MDB_common
 {
     var $connection = 0;
     var $connected_host;
@@ -75,7 +75,7 @@ class MDB_mysql extends MDB_common
     /**
     * Constructor
     */
-    function MDB_mysql()
+    function MDB_driver_mysql()
     {
         $this->MDB_common();
         $this->phptype = 'mysql';
@@ -244,6 +244,13 @@ class MDB_mysql extends MDB_common
         return ($this->query("ROLLBACK"));
     }
 
+    // }}} 
+    // {{{ connect()
+    /**
+     * Connect to the database
+     *
+     * @return TRUE on success, MDB_Error on failure
+     **/
     function connect()
     {
         $port = (isset($this->options["port"]) ? $this->options["port"] : "");
@@ -315,7 +322,7 @@ class MDB_mysql extends MDB_common
     /**
      * all the RDBMS specific things needed close a DB connection
      * 
-     * @access privat
+     * @access private
      *
      */
     function close()
@@ -396,7 +403,7 @@ class MDB_mysql extends MDB_common
                 return $result;
             }
         }
-        return $this->mysqlRaiseError(DB_ERROR);
+        return $this->mysqlRaiseError();
     }
 
     // }}}
@@ -419,16 +426,16 @@ class MDB_mysql extends MDB_common
         if($this->supported["SubSelects"] == 1) {
             return($query);
         }
-        $result = $this->queryCol($query, $col);
-        if (MDB::isError($result)) {
-            return $result;
+        $col = $this->queryCol($query);
+        if (MDB::isError($col)) {
+            return $col;
         }
         if(!is_array($col) || count($col) == 0) {
             return "NULL";
         }
         if($quote) {
             for($i = 0, $j = count($col); $i < $j; ++$i) {
-                $col[$i] = $this->getTextFieldValue($col[$i]);
+                $col[$i] = $this->getTextValue($col[$i]);
             }
         }
         return(implode(', ', $col));
@@ -522,28 +529,28 @@ class MDB_mysql extends MDB_common
                 }
                 switch(isset($fields[$name]["Type"]) ? $fields[$name]["Type"] : "text") {
                     case "text":
-                        $value = $this->getTextFieldValue($fields[$name]["Value"]);
+                        $value = $this->getTextValue($fields[$name]["Value"]);
                         break;
                     case "boolean":
-                        $value = $this->getBooleanFieldValue($fields[$name]["Value"]);
+                        $value = $this->getBooleanValue($fields[$name]["Value"]);
                         break;
                     case "integer":
                         $value = strval($fields[$name]["Value"]);
                         break;
                     case "decimal":
-                        $value = $this->getDecimalFieldValue($fields[$name]["Value"]);
+                        $value = $this->getDecimalValue($fields[$name]["Value"]);
                         break;
                     case "float":
-                        $value = $this->getFloatFieldValue($fields[$name]["Value"]);
+                        $value = $this->getFloatValue($fields[$name]["Value"]);
                         break;
                     case "date":
-                        $value = $this->getDateFieldValue($fields[$name]["Value"]);
+                        $value = $this->getDateValue($fields[$name]["Value"]);
                         break;
                     case "time":
-                        $value = $this->getTimeFieldValue($fields[$name]["Value"]);
+                        $value = $this->getTimeValue($fields[$name]["Value"]);
                         break;
                     case "timestamp":
-                        $value = $this->getTimestampFieldValue($fields[$name]["Value"]);
+                        $value = $this->getTimestampValue($fields[$name]["Value"]);
                         break;
                     default:
                         return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "", 
@@ -573,7 +580,10 @@ class MDB_mysql extends MDB_common
      * Retrieve the names of columns returned by the DBMS in a query result.
      * 
      * @param resource   $result    result identifier
-     * @param array      $columns   reference to an associative array variable
+     * 
+     * @access public
+     *
+     * @return mixed                an associative array variable
      *                              that will hold the names of columns. The
      *                              indexes of the array are the column names
      *                              mapped to lower case and the values are the
@@ -582,11 +592,9 @@ class MDB_mysql extends MDB_common
      *                              columns when the result set does not
      *                              contain any rows.
      * 
-     * @access public
-     *
-     * @return mixed DB_OK on success, a DB error on failure
+     *                              a DB error on failure
      */ 
-    function getColumnNames($result, &$column_names)
+    function getColumnNames($result)
     {
         $result_value = intval($result);
         if (!isset($this->highest_fetched_row[$result_value])) {
@@ -596,12 +604,11 @@ class MDB_mysql extends MDB_common
         if (!isset($this->columns[$result_value])) {
             $this->columns[$result_value] = array();
             $columns = mysql_num_fields($result);
-            for($column = 0;$column<$columns;$column++) {
+            for($column = 0; $column < $columns; $column++) {
                 $this->columns[$result_value][strtolower(mysql_field_name($result, $column))] = $column;
             }
         }
-        $column_names = $this->columns[$result_value];
-        return (DB_OK);
+        return ($this->columns[$result_value]);
     }
 
     // }}}
@@ -714,29 +721,28 @@ class MDB_mysql extends MDB_common
     /**
     * convert a value to a RDBMS indepdenant MDB type
     * 
-    * @param mixed    $value    refernce to a value to be converted
+    * @param mixed  $value   value to be converted
     * @param int    $type    constant that specifies which type to convert to
     *
-    * @return object a DB error on failure
+    * @return mixed converted value
     *
     * @access public
     */
-    function convertResult(&$value, $type)
+    function convertResult($value, $type)
     {
         switch($type) {
             case MDB_TYPE_BOOLEAN:
-                $value = (strcmp($value, "Y") ? 0 : 1);
-                return (DB_OK);
+                return (strcmp($value, "Y") ? 0 : 1);
             case MDB_TYPE_DECIMAL:
-                $value = sprintf("%.".$this->options['decimal_places']."f",doubleval($value)/$this->decimal_factor);
-                return (DB_OK);
+                return (sprintf("%.".$this->options['decimal_places']."f",doubleval($value)/$this->decimal_factor));
             case MDB_TYPE_FLOAT:
-                $value = doubleval($value);
-                return (DB_OK);
+                return (doubleval($value));
             case MDB_TYPE_DATE:
+                return ($value);
             case MDB_TYPE_TIME:
+                return ($value);
             case MDB_TYPE_TIMESTAMP:
-                return (DB_OK);
+                return ($value);
             default:
                 return ($this->baseConvertResult($value, $type));
         }
@@ -746,8 +752,6 @@ class MDB_mysql extends MDB_common
     // {{{ numRows()
     /**
     * returns the number of rows in a result object
-    * renamed for PEAR
-    * used to be: NumberOfColumns
     *
     * @param object DB_Result the result object to check
     *
@@ -1071,7 +1075,7 @@ class MDB_mysql extends MDB_common
                 ($this->fixed_float ?
                  '('.($this->fixed_float + 2).','.$this->fixed_float.')' : '').
                 (isset($field['default']) ?
-                 ' DEFAULT '.$this->getFloatFieldValue($field['default']) : '').
+                 ' DEFAULT '.$this->getFloatValue($field['default']) : '').
                 (isset($field['notnull']) ? ' NOT NULL' : '')
                );
     }
@@ -1106,76 +1110,81 @@ class MDB_mysql extends MDB_common
     {
         return ("$name BIGINT".
                 (isset($field['default']) ?
-                 ' DEFAULT '.$this->getDecimalFieldValue($field['default']) : '').
+                 ' DEFAULT '.$this->getDecimalValue($field['default']) : '').
                  (isset($field['notnull']) ? ' NOT NULL' : '')
                );
     }
 
     // }}}
-    // {{{ getCLOBFieldValue()
+    // {{{ getClobValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      * 
-     * @param string  $value  text string value that is intended to be
-     *                        converted.
+     * @param resource  $prepared_query query handle from prepare()
+     * @param           $parameter
+     * @param           $clob
      * 
      * @access public
      *
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      */    
-    function getClobFieldValue($prepared_query, $parameter, $clob, &$value)
+    function getClobValue($prepared_query, $parameter, $clob)
     {
-        for($value = "'";!endOfLob($clob);) {
+        $value = "'";
+        while(!endOfLob($clob)) {
             if (readLob($clob, $data, $this->options['lob_buffer_length']) < 0) {
                 $value = "";
                 return $this->raiseError(DB_ERROR, "", "", 
                     'Get CLOB field value: '.LobError($clob));
             }
-            $this->quote($data);
-            $value .= $data;
+            $value .= $this->quote($data);
         }
         $value .= "'";
-        return (DB_OK);
+        return ($value);
     }
 
     // }}}
-    // {{{ freeCLOBValue()
+    // {{{ freeClobValue()
 
     /**
      * free a chracter large object
      * 
-     * @param resource     $prepared_query query handle from prepare()
-     * @param string    $blob             
+     * @param resource  $prepared_query query handle from prepare()
+     * @param string    $clob             
      * @param string    $value             
-     * @param string    $success         
+     
      * 
-     * @access privat
+     * @access private
      */
-    function freeClobValue($prepared_query, $clob, &$value, $success)
+    function freeClobValue($prepared_query, $clob, &$value)
     {
         unset($value);
+        return (DB_OK);
     }
 
     // }}}
-    // {{{ getBLOBFieldValue()
+    // {{{ getBlobValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      * 
-     * @param string  $value text string value that is intended to be converted.
+     * @param resource  $prepared_query query handle from prepare()
+     * @param           $parameter
+     * @param           $blob
      * 
      * @access public
      *
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      */
-    function getBLobFieldValue($prepared_query, $parameter, $blob, &$value)
+    function getBlobValue($prepared_query, $parameter, $blob)
     {
-        for($value = "'";!endOfLob($blob);) {
+        $value = "'";
+        while(!endOfLob($blob)) {
             if (!readLob($blob, $data, $this->options['lob_buffer_length'])) {
                 $value = "";
                 return $this->raiseError(DB_ERROR, "", "", 
@@ -1184,29 +1193,29 @@ class MDB_mysql extends MDB_common
             $value .= addslashes($data);
         }
         $value .= "'";
-        return (DB_OK);
+        return ($value);
     }
 
     // }}}
-    // {{{ freeBLOBValue()
+    // {{{ freeBlobValue()
 
     /**
      * free a binary large object
      * 
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob             
-     * @param string    $value             
-     * @param string    $success         
+     
      * 
-     * @access privat
+     * @access private
      */
-    function freeBLobValue($prepared_query, $blob, &$value, $success)
+    function freeBLobValue($prepared_query, $blob)
     {
         unset($value);
+        return (DB_OK);
     }
 
     // }}}
-    // {{{ getFloatFieldValue()
+    // {{{ getFloatValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
@@ -1219,13 +1228,13 @@ class MDB_mysql extends MDB_common
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      */
-    function getFloatFieldValue($value)
+    function getFloatValue($value)
     {
         return (!strcmp($value, "NULL") ? "NULL" : "$value");
     }
 
     // }}}
-    // {{{ getDecimalFieldValue()
+    // {{{ getDecimalValue()
     /**
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
@@ -1237,7 +1246,7 @@ class MDB_mysql extends MDB_common
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      */
-    function getDecimalFieldValue($value)
+    function getDecimalValue($value)
     {
         return (!strcmp($value, "NULL") ? "NULL" : strval(round(doubleval($value)*$this->decimal_factor)));
     }
@@ -1246,29 +1255,25 @@ class MDB_mysql extends MDB_common
     // {{{ nextId()
     /**
      * returns the next free id of a sequence
-     * renamed for PEAR
-     * used to be: getSequenceNextValue
      *
      * @param string  $seq_name name of the sequence
-     * @param int     $value    reference to a var into
-     *                          which the Id will be stored
      * @param boolean $ondemand when true the seqence is
      *                          automatic created, if it
      *                          not exists
      *
      * @return mixed DB_Error or id
      */
-    function nextId($seq_name, &$value, $ondemand = FALSE)
+    function nextId($seq_name, $ondemand = FALSE)
     {
         $sequence_name = $this->getSequenceName($seq_name);
-        $res = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
-        if ($ondemand && DB::isError($result) &&
+        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
+        if ($ondemand && MDB::isError($result) &&
             $result->getCode() == DB_ERROR_NOSUCHTABLE)
         {
-            $result = $this->createSequence($sequence_name);
+            $result = $this->createSequence($seq_name);
             // Since createSequence initializes the ID to be 1,
             // we do not need to retrieve the ID again (or we will get 2)
-            if (DB::isError($result)) {
+            if (MDB::isError($result)) {
                 return $this->raiseError(DB_ERROR, "", "", 
                     'Next ID: on demand sequence could not be created');
             } else {
@@ -1279,12 +1284,9 @@ class MDB_mysql extends MDB_common
         $value = intval(mysql_insert_id());
         $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($res)) {
-            // XXX warning or error?
-            // $this->warning = "could delete previous sequence table values";
-            return $this->raiseError(DB_ERROR, "", "", 
-                'Next ID: could not delete previous sequence table values');
+            $this->warnings[] = 'Next ID: could not delete previous sequence table values';
         }
-        return (DB_OK);
+        return ($value);
     }
     
 
@@ -1292,16 +1294,12 @@ class MDB_mysql extends MDB_common
     // {{{ currId()
     /**
      * returns the current id of a sequence
-     * renamed for PEAR
-     * used to be: getSequenceCurrentValue
      *
      * @param string  $seq_name name of the sequence
-     * @param int     $value    reference to a var into
-     *                          which the Id will be stored
      *
      * @return mixed DB_Error or id
      */
-    function currId($seq_name, &$value)
+    function currId($seq_name)
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $result = $this->query("SELECT MAX(sequence) FROM $sequence_name");
@@ -1311,7 +1309,7 @@ class MDB_mysql extends MDB_common
         
         $value = intval($this->fetch($result,0,0));
         $this->freeResult($result);
-        return (DB_OK);
+        return ($value);
     }
 
     // }}}
@@ -1319,21 +1317,16 @@ class MDB_mysql extends MDB_common
 
     /**
      * Fetch a row and insert the data into an existing array.
-     * renamed for PEAR
-     * used to be fetchResultArray
      *
      * @param resource  $result     result identifier
-     * @param array     $array      reference to an array where data from the
-     *                              row is stored
      * @param int       $fetchmode  how the array data should be indexed
      * @param int       $rownum     the row number to fetch
-     * @access public
      *
-     * @return int DB_OK on success, a DB error on failure
+     * @return int data array on success, a DB error on failure
      * 
      * @access public
      */
-    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
+    function fetchInto($result, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
         if ($rownum == NULL) {
             ++$this->highest_fetched_row[$result];
@@ -1361,7 +1354,7 @@ class MDB_mysql extends MDB_common
         if (!$this->convertResultRow($result, $array)) {
             return $this->raiseError();
         }
-        return DB_OK;
+        return ($array);
     }
 
     /**
