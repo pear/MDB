@@ -9,7 +9,7 @@
     Most notably it features a DB independent XML-Schema manager.
   </description>
   <license>
-    PHP
+    BSD style
   </license>
   <maintainers>
     <maintainer>
@@ -47,7 +47,7 @@
     <version>0.9.8</version>
     <state>beta</state>
     <date>2002-06-28</date>
-    <notes>Further cleanups to the API (especially for sending the types of to be fetched data);added initial pgsql manager class; formatting improvements</notes>
+    <notes>Further cleanups to the API (especially for sending the types of to be fetched data);added initial pgsql manager class; formatting and eol fixes</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
