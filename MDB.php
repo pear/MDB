@@ -143,12 +143,11 @@ define('MDB_TYPE_CLOB'      , 8);
 define('MDB_TYPE_BLOB'      , 9);
 
 /**
- * Global arrays
+ * These are global variables that are used to track the various class instances
  */
 
-$_MDB_databases = array();
-$_MDB_lobs = array();
-
+$GLOBALS['_MDB_lobs'] = array();
+$GLOBALS['_MDB_databases'] = array();
 
 /**
  * The main 'MDB' class is simply a container class with some static
