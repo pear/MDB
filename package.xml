@@ -44,10 +44,10 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>0.9.11</version>
+    <version>1.0 RC1</version>
     <state>devel</state>
-    <date>2002-08-05</date>
-    <notes>made feature improvements and bug fixs to the manager; pgsql core driver now passes the driver test suite; lob support cleanup considerably</notes>
+    <date>2002-08-11</date>
+    <notes>this is the first release candidate for MDB 1.0; it contains mostly cosmetic changes but also improvements to reverse engineering of xml schemas from existing MySQL DBs.</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
@@ -63,7 +63,9 @@
           <file role="php">xml_parser.php</file>
           <file role="php">metabase_wrapper.php</file>
           <file role="php">pear_wrapper.php</file>
+          <file role="php">reverse_engineer_xml_schema.php</file>
           <file role="doc">Readme.txt</file>
+          <file role="doc">xml_schema_documentation.html</file>
           <file role="test">MDB_test.php</file>
           <file role="test">MDB_pear_wrapper_test.php</file>
           <file role="test">driver_test.php</file>

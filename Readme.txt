@@ -77,6 +77,7 @@ The files that make up MDB are:
   parser.php
   metabase_wrapper.php
   pear_wrapper.php
+  reverse_engineer_xml_schema.php
 
 The important pieces for testing right now are:
   driver_test.php (uses driver_test_config.php, setup_test.php,
@@ -89,6 +90,8 @@ Other Included Files
                   that is used for the schema management)
   Var_Dump.php (used in MDB_test.php and MDB_pear_wrapper_test.php
                 to display test results)
+  xml_schema_documentation.html (This document describe the format of
+                                 the xml schema files)
   Readme.txt (you are reading it currently)
 
 ** Documentation:
