@@ -158,10 +158,11 @@ class MDB_ibase extends MDB_Common
             -219 => MDB_ERROR_NOSUCHTABLE,
             -297 => MDB_ERROR_CONSTRAINT,
             -530 => MDB_ERROR_CONSTRAINT,
-            -607 => MDB_ERROR_NOSUCHTABLE,
-            -803 => MDB_ERROR_CONSTRAINT,
             -551 => MDB_ERROR_ACCESS_VIOLATION,
             -552 => MDB_ERROR_ACCESS_VIOLATION,
+            -607 => MDB_ERROR_NOSUCHTABLE,
+            -803 => MDB_ERROR_CONSTRAINT,
+            -913 => MDB_ERROR_DEADLOCK,
             -922 => MDB_ERROR_NOSUCHDB,
             -923 => MDB_ERROR_CONNECT_FAILED,
             -924 => MDB_ERROR_CONNECT_FAILED
@@ -193,7 +194,9 @@ class MDB_ibase extends MDB_Common
                 '/violation of [\w ]+ constraint/' => MDB_ERROR_CONSTRAINT,
                 '/conversion error from string/' => MDB_ERROR_INVALID_NUMBER,
                 '/no permission for/' => MDB_ERROR_ACCESS_VIOLATION,
-                '/arithmetic exception, numeric overflow, or string truncation/' => MDB_ERROR_DIVZERO
+                '/arithmetic exception, numeric overflow, or string truncation/' => MDB_ERROR_DIVZERO,
+                '/deadlock/' => MDB_ERROR_DEADLOCK,
+                '/attempt to store duplicate value/' => MDB_ERROR_CONSTRAINT
             );
         }
         foreach ($error_regexps as $regexp => $code) {
@@ -250,7 +253,9 @@ class MDB_ibase extends MDB_Common
                     '/violation of [\w ]+ constraint/' => MDB_ERROR_CONSTRAINT,
                     '/conversion error from string/' => MDB_ERROR_INVALID_NUMBER,
                     '/no permission for/' => MDB_ERROR_ACCESS_VIOLATION,
-                    '/arithmetic exception, numeric overflow, or string truncation/' => MDB_ERROR_DIVZERO
+                    '/arithmetic exception, numeric overflow, or string truncation/' => MDB_ERROR_DIVZERO,
+                    '/deadlock/' => MDB_ERROR_DEADLOCK,
+                    '/attempt to store duplicate value/' => MDB_ERROR_CONSTRAINT
                 );
                 foreach ($error_regexps as $regexp => $code) {
                     if (preg_match($regexp, $native_errmsg, $m)) {
@@ -524,6 +529,8 @@ class MDB_ibase extends MDB_Common
             if (@ibase_errmsg() == 'Query argument missed') { //ibase_errcode() only available in PHP5
                 //connection lost, try again...
                 $this->connect();
+                //rollback the failed transaction to prevent deadlock and execute the query again
+                $this->rollback();
                 $result = @ibase_query($this->connection, $query);
             }
         }
@@ -1595,13 +1602,15 @@ class MDB_ibase extends MDB_Common
      */
     function currId($seq_name)
     {
-        $seqname = $this->getSequenceName($seq_name);
-        $query = "SELECT RDB\$GENERATOR_ID FROM RDB\$GENERATORS WHERE RDB\$GENERATOR_NAME='$seqname'";
+        $sequence_name = strtoupper($this->getSequenceName($seq_name));
+        //$sequence_name = $this->getSequenceName($seq_name);
+        $query = "SELECT RDB\$GENERATOR_ID FROM RDB\$GENERATORS WHERE RDB\$GENERATOR_NAME='$sequence_name'";
         if (MDB::isError($result = $this->queryOne($query))) {
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'currId: Unable to select from ' . $seqname) );
         }
         if (!is_numeric($result)) {
+            //var_dump($result); ==> null
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'currId: could not find value in sequence table'));
         }
