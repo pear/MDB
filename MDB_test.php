@@ -178,24 +178,23 @@
         // ok now lets create a new xml schema file from the existing DB
         // we will not use the 'metapear_test_db.schema' for this
         // this feature is especially interesting for people that have an existing Db and want to move to MDB's xml schema management
-        echo Var_Dump::display($manager->setupDatabase($dsn))."<br>";
-        echo Var_Dump::display($manager->getDefinitionFromDatabase())."<br>";
-    
-        // this is the database definition as an array
-        echo Var_Dump::display($manager->database_definition)."<br>";
-    
+        echo Var_Dump::display($manager->connect($dsn))."<br>";
+
         // new we will write this array as an xml schema file
         $manager->debug = "Output";
-        echo $manager->dumpDatabase(
+        echo Var_Dump::display($manager->dumpDatabase(
             array(
                 "Output" => "Dump",
                 "EndOfLine" => "\n",
                 "Output_Mode" => "file",
                 "Output_File" => $manager->database->database_name.'2.schema'
             )
-        );
+        ))."<br>";
         if($manager->database) {
             echo Var_Dump::display($manager->database->debugOutput())."<br>";
         }
+
+        // this is the database definition as an array
+        echo Var_Dump::display($manager->database_definition)."<br>";
     }
 ?>
