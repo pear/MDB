@@ -77,9 +77,10 @@ Testing:
 driver_test.php is the testing suite provided by Metabase
 you will need to configure the mysql section of driver_test_config.php to fit your enviornment
 
-MDB_test.php will require that you setup a database and a table with a few rows.
-Depending how you name those you will have to change a few things here and there.
-If I find the time it would probably be smart to show off the XML schema manager to get rid of this requirement. :-)
+MDB_test.php will require that you setup the following user, with the right to create new databases:
+username = metapear
+password = funky
+
 
 MDB_pear_wrapper_test.php makes use of the same DB settings as MDB_test.php but uses the pear wrapper for its tests.
 

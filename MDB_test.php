@@ -4,8 +4,24 @@
  * @(#) $Header$
  *
  */
-    require_once("MDB.php");
+    require_once("manager.php");
     require_once("Var_Dump.php");
+
+    // just for kicks you can mess up this part to see some pear error handling
+    $dsn["username"] = 'metapear';
+    $dsn["password"] = 'funky';
+    //$pass = "";
+    $dsn["hostspec"] = 'localhost';
+    // Data Source Name: This is the universal connection string
+    $dsn["phptype"] = "mysql";
+    
+    $manager = new MDB_manager;
+    $input_file = 'metapear_test_db.schema';
+    $database_variables = array(
+    );
+
+    $result = $manager->updateDatabase($input_file, $input_file.".before", $dsn, $database_variables);
+    echo $manager->database->database_name;
 
     // just for kicks you can mess up this part to see some pear error handling
     $user = 'metapear';
@@ -26,45 +42,46 @@
     if (MDB::isError($db)) {
         die ($db->getMessage());
     }
+
     // happy query
     $query ="SELECT * FROM test";
     echo "query for the following examples:".$query."<br>";
     // run the query and get a result handler
-    $result = $db->Query($query);
+    $result = $db->query($query);
     // lets just get row:0 column:0 and free the result
-    $db->FetchField($result, $field);
+    $db->fetchField($result, $field);
     echo "<br>field:<br>".$field."<br>";
     // run the query and get a result handler
-    $result = $db->Query($query);
+    $result = $db->query($query);
     // lets just get row:0 and free the result
-    $db->FetchRow($result, $array);
+    $db->fetchRow($result, $array);
     echo "<br>row:<br>";
     echo Var_Dump::display($array)."<br>";
     // run the query and get a result handler
-    $result = $db->Query($query);
+    $result = $db->query($query);
     // lets just get column:0 and free the result
-    $db->FetchColumn($result, $array);
+    $db->fetchColumn($result, $array);
     echo "<br>column:<br>";
     echo Var_Dump::display($array)."<br>";
     // run the query and get a result handler
-    $result = $db->Query($query);
+    $result = $db->query($query);
     echo "tableInfo:<br>";
     echo Var_Dump::display($db->tableInfo($result))."<br>";
     // lets just get everything and free the result
-    $result = $db->Query($query);
-    $db->FetchAll($result, &$array);
+    $result = $db->query($query);
+    $db->fetchAll($result, &$array);
     echo "<br>all:<br>";
     echo Var_Dump::display($array)."<br>";
     // save some time with this function
     // lets just get all and free the result
-    $db->QueryAll($query, $array);
+    $db->queryAll($query, $array);
     echo "<br>all with just one call:<br>";
     echo Var_Dump::display($array)."<br>";
     // run the query with the offset 1 and count 1 and get a result handler
     unset($result);
     $result = $db->limitQuery($query, 1, 1);
     // lets just get everything but with an associative array and free the result
-    $db->FetchAll($result, $array, DB_FETCHMODE_ASSOC);
+    $db->fetchAll($result, $array, DB_FETCHMODE_ASSOC);
     echo "<br>associative array with offset 1 and count 1:<br>";
     echo Var_Dump::display($array)."<br>";
     // lets create a sequence
@@ -109,6 +126,20 @@
     echo Var_Dump::display($db->getAssoc("SELECT * FROM test", false, "", DB_FETCHMODE_ASSOC))."<br>";
     echo "tableInfo on a string:<br>";
     echo Var_Dump::display($db->tableInfo("numbers"))."<br>";
-    $db->disconnect();
-    
+
+
+    $manager->setupDatabase($dsn);
+    $manager->getDefinitionFromDatabase();
+    echo Var_Dump::display($manager->database_definition)."<br>";
+
+    $manager->debug = "Output";
+    echo $manager->dumpDatabase(array(
+        "Output" => "Dump",
+        "EndOfLine" => "\n",
+        "Output_Mode" => "file",
+        "Output_File" => $manager->database->database_name.'2.schema'
+    ));
+    if($manager->database) {
+        echo $manager->database->debugOutput();
+    }
 ?>
