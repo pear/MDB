@@ -52,70 +52,122 @@ if(!defined("MDB_MANAGER_DATABASE_INCLUDED"))
     define("MDB_MANAGER_DATABASE_INCLUDED",1);
 
 
-class MDB_manager_database_class extends PEAR
+class MDB_manager_common extends PEAR
 {
-    /* PRIVATE METHODS */
 
-    function getField(&$db, &$field, $field_name, &$query)
+    // }}}
+    // {{{ getField()
+
+    /**
+     * create a new database
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string $field_name name of the field to be created
+     * @param string $field  associative array with the name of the properties
+     *      of the field being declared as array indexes. Currently, the types
+     *      of supported field properties are as follows:
+     *
+     *      default
+     *          Boolean value to be used as default for this field.
+     *
+     *      notnull
+     *          Boolean flag that indicates whether this field is constrained
+     *          to not be set to NULL.
+     * 
+     * @access private
+     *
+     * @return mixed string on success, a DB error on failure
+     */
+    function getField(&$db, $field_name, &$field)
     {
         if (!strcmp($field_name, "")) {
             return $db->raiseError(DB_ERROR_NOSUCHFIELD, "", "", "Get field: it was not specified a valid field name (\"$field_name\")");
         }
         switch($field["type"]) {
             case "integer":
-                $query = $db->getIntegerDeclaration($field_name, $field);
+                return $db->getIntegerDeclaration($field_name, $field);
                 break;
             case "text":
-                $query = $db->getTextDeclaration($field_name, $field);
+                return $db->getTextDeclaration($field_name, $field);
                 break;
             case "clob":
-                $query = $db->getCLOBDeclaration($field_name, $field);
+                return $db->getCLOBDeclaration($field_name, $field);
                 break;
             case "blob":
-                $query = $db->getBLOBDeclaration($field_name, $field);
+                return $db->getBLOBDeclaration($field_name, $field);
                 break;
             case "boolean":
-                $query = $db->getBooleanDeclaration($field_name, $field);
+                return $db->getBooleanDeclaration($field_name, $field);
                 break;
             case "date":
-                $query = $db->getDateDeclaration($field_name, $field);
+                return $db->getDateDeclaration($field_name, $field);
                 break;
             case "timestamp":
-                $query = $db->getTimestampDeclaration($field_name, $field);
+                return $db->getTimestampDeclaration($field_name, $field);
                 break;
             case "time":
-                $query = $db->getTimeDeclaration($field_name, $field);
+                return $db->getTimeDeclaration($field_name, $field);
                 break;
             case "float":
-                $query = $db->getFloatDeclaration($field_name, $field);
+                return $db->getFloatDeclaration($field_name, $field);
                 break;
             case "decimal":
-                $query = $db->getDecimalDeclaration($field_name, $field);
+                return $db->getDecimalDeclaration($field_name, $field);
                 break;
             default:
                 return $db->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Get field: type \"".$field["type"]."\" is not yet supported");
                 break;
         }
-        return (DB_OK);
     }
 
-    function getFieldList(&$db, &$fields, &$query_fields)
+    // }}}
+    // {{{ getFieldList()
+
+    /**
+     * create a new database
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string $fields  a multidimensional associative array.
+             The first dimension determines the field name, while the second
+            dimension is keyed with the name of the properties
+     *      of the field being declared as array indexes. Currently, the types
+     *      of supported field properties are as follows:
+     *
+     *      default
+     *          Boolean value to be used as default for this field.
+     *
+     *      notnull
+     *          Boolean flag that indicates whether this field is constrained
+     *          to not be set to NULL.
+     *
+     *      default
+     *          Boolean value to be used as default for this field.
+     *
+     *      notnull
+     *          Boolean flag that indicates whether this field is constrained
+     *          to not be set to NULL.
+     * 
+     * @access private
+     *
+     * @return mixed string on success, a DB error on failure
+     */
+    function getFieldList(&$db, &$fields)
     {
         for($query_fields = "", reset($fields), $field_number = 0;
             $field_number < count($fields);
-            $field_number++,next($fields))
+            $field_number++, next($fields))
         {
-            if ($field_number>0) {
+            if ($field_number > 0) {
                 $query_fields.= ", ";
             }
             $field_name = key($fields);
-            $result = $this->getField(&$db, $fields[$field_name], $field_name, $query);
-            if (MDB::isError($result)) {
-                return $result;
+            $query = $this->getField(&$db, $field_name, $fields[$field_name]);
+            if (MDB::isError($query)) {
+                return $query;
             }
             $query_fields .= $query;
         }
-        return (DB_OK);
+        return ($query_fields);
     }
 
     // }}}
@@ -127,7 +179,7 @@ class MDB_manager_database_class extends PEAR
      * @param $dbs (reference) array where database names will be stored
      * @param string $sqn string that containts name of a potential sequence
      * 
-     * @access privat
+     * @access private
      *
      * @return mixed name of the sequence if $sqn is a name of a sequence, else FALSE
      */ 
@@ -141,18 +193,78 @@ class MDB_manager_database_class extends PEAR
         return FALSE;
     }
 
-    /* PUBLIC METHODS */
+    // }}}
+    // {{{ createDatabase()
 
+    /**
+     * create a new database
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string $name name of the database that should be created
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
     function createDatabase(&$db, $database)
     {
         return $db->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Create database: database creation is not supported");
     }
 
+    // }}}
+    // {{{ dropDatabase()
+
+    /**
+     * drop an existing database
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string $name name of the database that should be dropped
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function dropDatabase(&$db, $database)
     {
         return $db->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Drop database: database dropping is not supported");
     }
 
+    // }}}
+    // {{{ createTable()
+
+    /**
+     * create a new table
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string $name     Name of the database that should be created
+     * @param array $fields Associative array that contains the definition of each field of the new table
+     *                        The indexes of the array entries are the names of the fields of the table an
+     *                        the array entry values are associative arrays like those that are meant to be
+     *                         passed with the field definitions to get[Type]Declaration() functions.
+     *
+     *                        Example
+     *                        array(
+     *                        
+     *                            "id" => array(
+     *                                "type" => "integer",
+     *                                "unsigned" => 1
+     *                                "notnull" => 1
+     *                                "default" => 0
+     *                            ),
+     *                            "name" => array(
+     *                                "type"=>"text",
+     *                                "length"=>12
+     *                            ),
+     *                            "password"=>array(
+     *                                "type"=>"text",
+     *                                "length"=>12
+     *                            )
+     *                        );
+       * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function createTable(&$db, $name, &$fields)
     {
         if (!isset($name) || !strcmp($name, "")) {
@@ -168,59 +280,297 @@ class MDB_manager_database_class extends PEAR
         return ($db->query("CREATE TABLE $name ($query_fields)"));
     }
 
+    // }}}
+    // {{{ dropTable()
+
+    /**
+     * drop an existing table
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string $name name of the table that should be dropped
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function dropTable(&$db, $name)
     {
         return ($db->query("DROP TABLE $name"));
     }
 
+    // }}}
+    // {{{ alterTable()
+
+    /**
+     * alter an existing table
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string $name         name of the table that is intended to be changed.
+     * @param array $changes     associative array that contains the details of each type
+     *                             of change that is intended to be performed. The types of
+     *                             changes that are currently supported are defined as follows:
+     * 
+     *                             name
+     *
+     *                                New name for the table.
+     *
+     *                            AddedFields
+     *
+     *                                Associative array with the names of fields to be added as
+     *                                 indexes of the array. The value of each entry of the array
+     *                                 should be set to another associative array with the properties
+     *                                 of the fields to be added. The properties of the fields should
+     *                                 be the same as defined by the Metabase parser.
+     *
+     *                                Additionally, there should be an entry named Declaration that
+     *                                 is expected to contain the portion of the field declaration already
+     *                                 in DBMS specific SQL code as it is used in the CREATE TABLE statement.
+     *
+     *                            RemovedFields
+     *
+     *                                Associative array with the names of fields to be removed as indexes
+     *                                 of the array. Currently the values assigned to each entry are ignored.
+     *                                 An empty array should be used for future compatibility.
+     *
+     *                            RenamedFields
+     *
+     *                                Associative array with the names of fields to be renamed as indexes
+     *                                 of the array. The value of each entry of the array should be set to
+     *                                 another associative array with the entry named name with the new
+     *                                 field name and the entry named Declaration that is expected to contain
+     *                                 the portion of the field declaration already in DBMS specific SQL code
+     *                                 as it is used in the CREATE TABLE statement.
+     *
+     *                            ChangedFields
+     *
+     *                                Associative array with the names of the fields to be changed as indexes
+     *                                 of the array. Keep in mind that if it is intended to change either the
+     *                                 name of a field and any other properties, the ChangedFields array entries
+     *                                 should have the new names of the fields as array indexes.
+     *
+     *                                The value of each entry of the array should be set to another associative
+     *                                 array with the properties of the fields to that are meant to be changed as
+     *                                 array entries. These entries should be assigned to the new values of the
+     *                                 respective properties. The properties of the fields should be the same
+     *                                 as defined by the Metabase parser.
+     *
+     *                                If the default property is meant to be added, removed or changed, there
+     *                                 should also be an entry with index ChangedDefault assigned to 1. Similarly,
+     *                                 if the notnull constraint is to be added or removed, there should also be
+     *                                 an entry with index ChangedNotNull assigned to 1.
+     *
+     *                                Additionally, there should be an entry named Declaration that is expected
+     *                                 to contain the portion of the field changed declaration already in DBMS
+     *                                 specific SQL code as it is used in the CREATE TABLE statement.
+     *                            Example
+     *                                array(
+     *                                    "name" => "userlist",
+     *                                    "AddedFields" => array(
+     *                                        "quota" => array(
+     *                                            "type" => "integer",
+     *                                            "unsigned" => 1
+     *                                            "Declaration" => "quota INT"
+     *                                        )
+     *                                    ),
+     *                                    "RemovedFields" => array(
+     *                                        "file_limit" => array(),
+     *                                        "time_limit" => array()
+     *                                        ),
+     *                                    "ChangedFields" => array(
+     *                                        "gender" => array(
+     *                                            "default" => "M",
+     *                                            "ChangeDefault" => 1,
+     *                                            "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *                                        )
+     *                                    ),
+     *                                    "RenamedFields" => array(
+     *                                        "sex" => array(
+     *                                            "name" => "gender",
+     *                                            "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *                                        )
+     *                                    )
+     *                                )
+     * 
+     * @param boolean $check     indicates whether the function should just check if the DBMS driver
+     *                             can perform the requested table alterations if the value is true or
+     *                             actually perform them otherwise.
+     * @access public
+     *
+      * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function alterTable(&$db, $name, &$changes, $check)
     {
         return $db->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
             "Alter table: database table alterations are not supported");
     }
 
-    function listDatabases(&$db, &$dbs)
+    // }}}
+    // {{{ listDatabases()
+
+    /**
+     * list all databases
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     *
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function listDatabases(&$db)
     {
         return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
             'List Databses: list databases is not supported');
     }
 
-    function listUsers(&$db, &$users)
+    // }}}
+    // {{{ listUsers()
+
+    /**
+     * list all users
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     *
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function listUsers(&$db)
     {
         return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
             'List User: list user is not supported');
     }
 
-    function listViews(&$db, &$views)
+    // }}}
+    // {{{ listViews()
+
+    /**
+     * list all views in the current database
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     *
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function listViews(&$db)
     {
         return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
             'List View: list view is not supported');
     }
 
-    function listFunctions(&$db, &$functions)
+    // }}}
+    // {{{ listFunctions()
+
+    /**
+     * list all functions in the current database
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     *
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function listFunctions(&$db)
     {
         return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
             'List Function: list function is not supported');
     }
-    
-    function listTables(&$db, &$tables)
+
+    // }}}
+    // {{{ listTables()
+
+    /**
+     * list all tables in the current database
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     *
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function listTables(&$db)
     {
         return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
             'List tables: list tables is not supported');
     }
 
-    function listTableFields(&$db, $table, &$fields)
+    // }}}
+    // {{{ listTableFields()
+
+    /**
+     * list all fields in a tables in the current database
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string $table name of table that should be used in method
+     * 
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function listTableFields(&$db, $table)
     {
         return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
             'List table fields: list table fields is not supported');
     }
 
-    function getTableFieldDefinition(&$db, $table, $field, $definition)
+    // }}}
+    // {{{ getTableFieldDefinition()
+
+    /**
+     * get the stucture of a field into an array
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $table         name of table that should be used in method
+     * @param string    $fields     name of field that should be used in method
+      * 
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function getTableFieldDefinition(&$db, $table, $field)
     {
         return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
             'Get table field definition: table field definition is not supported');
     }
 
+    // }}}
+    // {{{ createIndex()
+
+    /**
+     * get the stucture of a field into an array
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $table         name of the table on which the index is to be created
+     * @param string    $name         name of the index to be created
+     * @param array     $definition        associative array that defines properties of the index to be created.
+     *                                 Currently, only one property named FIELDS is supported. This property
+     *                                 is also an associative with the names of the index fields as array
+     *                                 indexes. Each entry of this array is set to another type of associative
+     *                                 array that specifies properties of the index that are specific to
+     *                                 each field.
+     *
+     *                                Currently, only the sorting property is supported. It should be used
+     *                                 to define the sorting direction of the index. It may be set to either
+     *                                 ascending or descending.
+     *
+     *                                Not all DBMS support index sorting direction configuration. The DBMS
+     *                                 drivers of those that do not support it ignore this property. Use the
+     *                                 function support() to determine whether the DBMS driver can manage indexes.
+
+     *                                 Example
+     *                                    array(
+     *                                        "FIELDS"=>array(
+     *                                            "user_name"=>array(
+     *                                                "sorting"=>"ascending"
+     *                                            ),
+     *                                            "last_login"=>array()
+     *                                        )
+     *                                    )
+       * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
     function createIndex(&$db, $table, $name, $definition)
     {
         $query = "CREATE";
@@ -249,29 +599,83 @@ class MDB_manager_database_class extends PEAR
         return ($db->query($query));
     }
 
+    // }}}
+    // {{{ dropIndex()
+
+    /**
+     * drop existing index
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $table         name of table that should be used in method
+     * @param string    $name         name of the index to be dropped
+      * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function dropIndex(&$db, $table, $name)
     {
         return ($db->query("DROP INDEX $name"));
     }
 
+    // }}}
+    // {{{ createSequence()
+
+    /**
+     * create sequence
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $seq_name     name of the sequence to be created
+     * @param string    $start         start value of the sequence; default is 1
+      * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function createSequence(&$db, $name, $start)
     {
         return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
             'Create Sequence: sequence creation not supported');
     }
 
+    // }}}
+    // {{{ dropSequence()
+
+    /**
+     * drop existing sequence
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $seq_name     name of the sequence to be dropped
+      * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function dropSequence(&$db, $name)
     {
         return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
             'Drop Sequence: sequence dropping not supported');
     }
 
-    function listSequences(&$db, &$sequences)
+    // }}}
+    // {{{ listSequences()
+
+    /**
+     * list all sequences in the current database
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     *
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function listSequences(&$db)
     {
         return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
             'List sequences: List sequences is not supported');
     }
 
 };
+
 }
 ?>

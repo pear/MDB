@@ -41,81 +41,221 @@
 // +----------------------------------------------------------------------+
 // | Author: Paul Cooper <pgc@ucecom.com>                                 |
 // +----------------------------------------------------------------------+
-// 
+
 // $Id$
-//
+
 // MDB postgresql driver class for RDBMS management methods.
-//
 
-if(!defined("MDB_MANAGER_PGSQL_INCLUDED"))
-{
-    define("MDB_MANAGER_PGSQL_INCLUDED",1);
+if (!defined("MDB_MANAGER_PGSQL_INCLUDED")) {
+    define("MDB_MANAGER_PGSQL_INCLUDED", 1);
 
-class MDB_manager_pgsql_class extends MDB_manager_database_class
-{
+class MDB_manager_pgsql_class extends MDB_manager_common { 
+    // }}} 
+    // {{{ createDatabase()
+    /**
+     * create a new database
+     * @param  $dbs (reference) array where database names will be stored
+     * @param string $name name of the database that should be created
+     * @access public 
+     * @return mixed DB_OK on success, a DB error on failure
+     **/
     function createDatabase(&$db, $name)
     {
         return($db->_standaloneQuery("CREATE DATABASE $name"));
     }
 
+    // }}} 
+    // {{{ dropDatabase()
+    /**
+     * drop an existing database
+     * @param  $dbs (reference) array where database names will be stored
+     * @param string $name name of the database that should be dropped
+     * @access public 
+     * @return mixed DB_OK on success, a DB error on failure
+     **/
     function dropDatabase(&$db, $name)
     {
         return($db->_standaloneQuery("DROP DATABASE $name"));
     }
 
-    function createTable(&$db, $name, $fields) 
+    // }}} 
+    // {{{ createTable()
+    /**
+     * create a new table
+     * @param  $dbs (reference) array where database names will be stored
+     * @param string $name Name of the database that should be created
+     * @param array $fields Associative array that contains the definition of each field of the new table
+     *                         The indexes of the array entries are the names of the fields of the table an
+     *                         the array entry values are associative arrays like those that are meant to be
+     *                          passed with the field definitions to get[Type]Declaration() functions.
+     * 
+     *                         Example
+     *                         array(
+     * 
+     *                             "id" => array(
+     *                                 "type" => "integer",
+     *                                 "unsigned" => 1
+     *                                 "notNULL" => 1
+     *                                 "default" => 0
+     *                             ),
+     *                             "name" => array(
+     *                                 "type"=>"text",
+     *                                 "length"=>12
+     *                             ),
+     *                             "password"=>array(
+     *                                 "type"=>"text",
+     *                                 "length"=>12
+     *                             )
+     *                         );
+     * @access public 
+     * @return mixed DB_OK on success, a DB error on failure
+     **/
+    function createTable(&$db, $name, $fields)
     {
         if (!isset($name) || !strcmp($name, '')) {
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'no valid table name specified');
         }
         if (count($fields) == 0) {
-            return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "' . $name . '"');                
+            return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "' . $name . '"');
         }
         $query_fields = "";
         if (!$this->getFieldList($db, $fields, $query_fields)) {
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'unkown error');
         }
-
         return ($db->query("CREATE TABLE $name ($query_fields)"));
-
     }
 
+    // }}} 
+    // {{{ alterTable()
+    /**
+     * alter an existing table
+     * @param  $dbs (reference) array where database names will be stored
+     * @param string $name name of the table that is intended to be changed.
+     * @param array $changes associative array that contains the details of each type
+     *                              of change that is intended to be performed. The types of
+     *                              changes that are currently supported are defined as follows:
+     * 
+     *                              name
+     * 
+     *                                 New name for the table.
+     * 
+     *                             AddedFields
+     * 
+     *                                 Associative array with the names of fields to be added as
+     *                                  indexes of the array. The value of each entry of the array
+     *                                  should be set to another associative array with the properties
+     *                                  of the fields to be added. The properties of the fields should
+     *                                  be the same as defined by the Metabase parser.
+     * 
+     *                                 Additionally, there should be an entry named Declaration that
+     *                                  is expected to contain the portion of the field declaration already
+     *                                  in DBMS specific SQL code as it is used in the CREATE TABLE statement.
+     * 
+     *                             RemovedFields
+     * 
+     *                                 Associative array with the names of fields to be removed as indexes
+     *                                  of the array. Currently the values assigned to each entry are ignored.
+     *                                  An empty array should be used for future compatibility.
+     * 
+     *                             RenamedFields
+     * 
+     *                                 Associative array with the names of fields to be renamed as indexes
+     *                                  of the array. The value of each entry of the array should be set to
+     *                                  another associative array with the entry named name with the new
+     *                                  field name and the entry named Declaration that is expected to contain
+     *                                  the portion of the field declaration already in DBMS specific SQL code
+     *                                  as it is used in the CREATE TABLE statement.
+     * 
+     *                             ChangedFields
+     * 
+     *                                 Associative array with the names of the fields to be changed as indexes
+     *                                  of the array. Keep in mind that if it is intended to change either the
+     *                                  name of a field and any other properties, the ChangedFields array entries
+     *                                  should have the new names of the fields as array indexes.
+     * 
+     *                                 The value of each entry of the array should be set to another associative
+     *                                  array with the properties of the fields to that are meant to be changed as
+     *                                  array entries. These entries should be assigned to the new values of the
+     *                                  respective properties. The properties of the fields should be the same
+     *                                  as defined by the Metabase parser.
+     * 
+     *                                 If the default property is meant to be added, removed or changed, there
+     *                                  should also be an entry with index ChangedDefault assigned to 1. Similarly,
+     *                                  if the notNULL constraint is to be added or removed, there should also be
+     *                                  an entry with index ChangedNotNull assigned to 1.
+     * 
+     *                                 Additionally, there should be an entry named Declaration that is expected
+     *                                  to contain the portion of the field changed declaration already in DBMS
+     *                                  specific SQL code as it is used in the CREATE TABLE statement.
+     *                             Example
+     *                                 array(
+     *                                     "name" => "userlist",
+     *                                     "AddedFields" => array(
+     *                                         "quota" => array(
+     *                                             "type" => "integer",
+     *                                             "unsigned" => 1
+     *                                             "Declaration" => "quota INT"
+     *                                         )
+     *                                     ),
+     *                                     "RemovedFields" => array(
+     *                                         "file_limit" => array(),
+     *                                         "time_limit" => array()
+     *                                         ),
+     *                                     "ChangedFields" => array(
+     *                                         "gender" => array(
+     *                                             "default" => "M",
+     *                                             "ChangeDefault" => 1,
+     *                                             "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *                                         )
+     *                                     ),
+     *                                     "RenamedFields" => array(
+     *                                         "sex" => array(
+     *                                             "name" => "gender",
+     *                                             "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *                                         )
+     *                                     )
+     *                                 )
+     * @param boolean $check indicates whether the function should just check if the DBMS driver
+     *                              can perform the requested table alterations if the value is TRUE or
+     *                              actually perform them otherwise.
+     * @access public 
+     * @return mixed DB_OK on success, a DB error on failure
+     **/
     function alterTable($name, &$changes, $check)
     {
-        if($check) {
-            for($change=0, Reset($changes); $change < count($changes); Next($changes), $change++) {
-                switch(Key($changes)) {
-                case "AddedFields":
-                    break;
-                case "RemovedFields":
-                    return($this->SetError("Alter table", "database server does not support dropping table columns"));
-                case "name":
-                case "RenamedFields":
-                case "ChangedFields":
-                default:
-                    return($this->SetError("Alter table", "change type \"" . Key($changes) . "\" not yet supported"));
+        if ($check) {
+            for ($change = 0, reset($changes); $change < count($changes); next($changes), $change++) {
+                switch (key($changes)) {
+                    case "AddedFields":
+                        break;
+                    case "RemovedFields":
+                        return($this->raiseError(DB_ERROR_UNSUPPORTED, '', '', "database server does not support dropping table columns"));
+                    case "name":
+                    case "RenamedFields":
+                    case "ChangedFields":
+                    default:
+                        return($this->raiseError(DB_ERROR_UNSUPPORTED, '', '', "change type \"" . key($changes) . "\" not yet supported"));
                 }
             }
             return (DB_OK);
         } else {
-            if(IsSet($changes[$change="name"])
-               || IsSet($changes[$change="RenamedFields"])
-               || IsSet($changes[$change="ChangedFields"]))
-                return($this->SetError("Alter table", "change type \"$change\" not yet supported"));
+            if (isSet($changes[$change = "name"]) || isSet($changes[$change = "RenamedFields"]) || isSet($changes[$change = "ChangedFields"])) {
+                return($this->raiseError(DB_ERROR_UNSUPPORTED, '', '', "change type \"$change\" not yet supported"));
+            }
             $query = "";
-            if(IsSet($changes["AddedFields"])) {
+            if (isSet($changes["AddedFields"])) {
                 $fields = $changes["AddedFields"];
-                for($field = 0, Reset($fields); $field < count($fields); Next($fields), $field++) {
-                    if(!$this->Query("ALTER TABLE $name ADD " . $fields[Key($fields)]["Declaration"])) {
-                        return(0);
+                for ($field = 0, reset($fields); $field < count($fields); next($fields), $field++) {
+                    if (!$this->db->query("ALTER TABLE $name ADD " . $fields[key($fields)]["Declaration"])) {
+                        $this->db->pgsqlError();
                     }
                 }
             }
-            if(IsSet($changes["RemovedFields"])) {
+            if (isSet($changes["RemovedFields"])) {
                 $fields = $changes["RemovedFields"];
-                for($field = 0, Reset($fields); $field < count($fields); Next($fields), $field++) {
-                    if(!$this->Query("ALTER TABLE $name DROP " . Key($fields))) {
-                        return(0);
+                for ($field = 0, reset($fields); $field < count($fields); next($fields), $field++) {
+                    if (!$this->query("ALTER TABLE $name DROP " . key($fields))) {
+                        $this->db->pgsqlError();
                     }
                 }
             }
@@ -123,109 +263,119 @@ class MDB_manager_pgsql_class extends MDB_manager_database_class
         }
     }
 
-    // }}}
+    // }}} 
     // {{{ listDatabases()
     /**
-     * list the databases in the database
-     *
-     * @param $db (reference) MDB object database object
-     * @param $dbs (reference) array where database names will be stored
-     * 
-     * @return mixed DB_OK on success, a DB error on failure
-     */
-    function listDatabases(&$db, &$dbs)
+     * list all databases
+     * @param  $dbs (reference) array where database names will be stored
+     * @access public 
+     * @return mixed data array on success, a DB error on failure
+     **/
+    function listDatabases(&$db)
     {
         $result = $db->query('SELECT datname FROM pg_database');
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result, $dbs);
+        return $db->fetchCol($result);
     }
 
-    // }}}
+    // }}} 
     // {{{ listUsers()
     /**
-     * list the users in the database
-     *
-     * @param $db (reference) MDB object database object
-     * @param $users (reference) array where usernames will be stored
-     * 
-     * @return mixed DB_OK on success, a DB error on failure
-     */
-    function listUsers(&$db, &$users)
+     * list all users
+     * @param  $dbs (reference) array where database names will be stored
+     * @access public 
+     * @return mixed data array on success, a DB error on failure
+     **/
+    function listUsers(&$db)
     {
         $result = $db->query('SELECT usename FROM pg_user');
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result, $users);
+        return $db->fetchCol($result);
     }
 
-    // }}}
+    // }}} 
     // {{{ listTables()
     /**
-     * list the tables in the database
-     *
-     * @param $db (reference) MDB object database object
-     * @param $tables (reference) array where table names will be stored
-     * 
-     * @return mixed DB_OK on success, a DB error on failure
-     */
-    function listTables(&$db, &$tables)
-    {
+     * list all tables in the current database
+     * @param  $dbs (reference) array where database names will be stored
+     * @access public 
+     * @return mixed data array on success, a DB error on failure
+     **/
+    function listTables(&$db)
+    { 
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
         $sql = "SELECT c.relname as \"Name\"
-                FROM pg_class c, pg_user u
-                WHERE c.relowner = u.usesysid AND c.relkind = 'r'
-                AND not exists (select 1 from pg_views where viewname = c.relname)
-                AND c.relname !~ '^pg_'
-                UNION
-                SELECT c.relname as \"Name\"
-                FROM pg_class c
-                WHERE c.relkind = 'r'
-                AND not exists (select 1 from pg_views where viewname = c.relname)
-                AND not exists (select 1 from pg_user where usesysid = c.relowner)
-                AND c.relname !~ '^pg_'";
+            FROM pg_class c, pg_user u
+            WHERE c.relowner = u.usesysid AND c.relkind = 'r'
+            AND not exists (select 1 from pg_views where viewname = c.relname)
+            AND c.relname !~ '^pg_'
+            UNION
+            SELECT c.relname as \"Name\"
+            FROM pg_class c
+            WHERE c.relkind = 'r'
+            AND not exists (select 1 from pg_views where viewname = c.relname)
+            AND not exists (select 1 from pg_user where usesysid = c.relowner)
+            AND c.relname !~ '^pg_'";
         $result = $db->query($sql);
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result, $tables);
+        return $db->fetchCol($result);
     }
 
-    // }}}
+    // }}} 
     // {{{ listViews()
     /**
      * list the tables in the database
-     *
-     * @param $db (reference) MDB object database object
-     * @param $views (reference) array where view names will be stored
-     * 
+     * @param  $dbs (reference) array where database names will be stored
      * @return mixed DB_OK on success, a DB error on failure
-     */
-    function listViews(&$db, &$tables)
-    {
+     **/
+    function listViews(&$db)
+    { 
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
         $result = $db->query("SELECT viewname FROM pg_views");
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result, $viewss);
+        return $db->fetchCol($result);
     }
 
+    // }}} 
+    // {{{ createSequence()
+    /**
+     * create sequence
+     * @param  $dbs (reference) array where database names will be stored
+     * @param string $seq_name name of the sequence to be created
+     * @param string $start start value of the sequence; default is 1
+     * @access public 
+     * @return mixed DB_OK on success, a DB error on failure
+     **/
     function createSequence(&$db, $seq_name, $start)
     {
         $seqname = $db->getSequenceName($seq_name);
-        return($db->query("CREATE SEQUENCE $seqname INCREMENT 1" . ($start < 1 ? " MINVALUE $start" : "")." START $start"));
+        return($db->query("CREATE SEQUENCE $seqname INCREMENT 1" . ($start < 1 ? " MINVALUE $start" : "") . " START $start"));
     }
 
+    // }}} 
+    // {{{ dropSequence()
+    /**
+     * drop existing sequence
+     * @param  $dbs (reference) array where database names will be stored
+     * @param string $seq_name name of the sequence to be dropped
+     * @access public 
+     * @return mixed DB_OK on success, a DB error on failure
+     **/
     function dropSequence(&$db, $seq_name)
     {
         $seqname = $db->getSequenceName($seq_name);
         return($db->query("DROP SEQUENCE $seq_name"));
     }
-
 };
 
 }
-?> 
+
+?>
