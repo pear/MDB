@@ -1,4 +1,4 @@
-<?php
+<?
 /*
  * setup_test.php
  *
@@ -6,46 +6,44 @@
  *
  */
 
-    require("parser.php");
     require("manager.php");
     require("metabase_wrapper.php");
-    require("xml_parser.php");
 
-function output($message)
+Function Output($message)
 {
     echo $message,"\n";
 }
 
-function dump($output)
+Function Dump($output)
 {
     echo $output;
 }
 
-    $input_file = ($argc<2 ? "test.schema" : $argv[1]);
-    $variables = array(
-        "create" => "1"
+    $input_file=($argc<2 ? "test.schema" : $argv[1]);
+    $variables=array(
+        "create"=>"1"
     );
-    $arguments = array(
-        "Type" => "mysql",
-        "User" => "root",
-        "Debug" => "Output"
+    $arguments=array(
+        "Type"=>"mysql",
+        "User"=>"metapear",
+        "Password"=>"funky",
+        "Debug"=>"Output"
     );
-    $manager = new MDB_manager;
-    $manager->debug = "Output";
-    $success=$manager->updateDatabase($input_file,$input_file.".before",$arguments,$variables);
-    if($success) {
-        echo $manager->dumpDatabase(array(
+    $manager=new metabase_manager_class;
+    $manager->debug="Output";
+    $success=$manager->UpdateDatabase($input_file,$input_file.".before",$arguments,$variables);
+    if($success)
+    {
+        echo $manager->DumpDatabase(array(
             "Output"=>"Dump",
             "EndOfLine"=>"\n"
         ));
-    } else {
+    }
+    else
         echo "Error: ".$manager->error."\n";
-    }
-    if(count($manager->warnings) > 0) {
+    if(count($manager->warnings)>0)
         echo "WARNING:\n",implode($manager->warnings,"!\n"),"\n";
-    }
-    if($manager->database) {
-        echo metabaseDebugOutput($manager->database);
-    }
+    if($manager->database)
+        echo MetabaseDebugOutput($manager->database);
 
 ?>
