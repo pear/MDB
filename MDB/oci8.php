@@ -89,7 +89,6 @@ class MDB_oci8 extends MDB_Common {
 
     var $escape_quotes = "'";
 
-    var $auto_commit = 1;
     var $uncommitedqueries = 0;
 
     var $results = array();
@@ -210,7 +209,7 @@ class MDB_oci8 extends MDB_Common {
     function autoCommit($auto_commit)
     {
         $this->debug('AutoCommit: '.($auto_commit ? 'On' : 'Off'));
-        if (((!$this->auto_commit) == (!$auto_commit))) {
+        if ($this->auto_commit == $auto_commit) {
             return(MDB_OK);
         }
         if ($this->connection && $auto_commit && MDB::isError($commit = $this->commit())) {

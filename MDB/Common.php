@@ -209,13 +209,13 @@ class MDB_Common extends PEAR
     * @var boolean
     * @access private
     */
-    var $auto_commit = 1;
+    var $auto_commit = TRUE;
 
     /**
     * @var boolean
     * @access private
     */
-    var $in_transaction = 0;
+    var $in_transaction = FALSE;
 
     /**
     * @var integer
@@ -292,9 +292,8 @@ class MDB_Common extends PEAR
      */
     function MDB_Common()
     {
-        global $_MDB_databases;
-        $database = count($_MDB_databases) + 1;
-        $_MDB_databases[$database] = &$this;
+        $database = count($GLOBALS['_MDB_databases']) + 1;
+        $GLOBALS['_MDB_databases'][$database] = &$this;
         $this->database = $database;
 
         $this->PEAR('MDB_Error');
@@ -808,8 +807,7 @@ class MDB_Common extends PEAR
      */
     function _close()
     {
-        global $_MDB_databases;
-        $_MDB_databases[$database] = '';
+        unset($GLOBALS['_MDB_databases'][$this->database]);
     }
 
     // }}}
@@ -4399,16 +4397,15 @@ class MDB_Common extends PEAR
                 $class = $arguments['Class'];
             }
         }
-        global $_MDB_lobs;
-        $lob = count($_MDB_lobs) + 1;
-        $_MDB_lobs[$lob] = &new $class_name;
+        $lob = count($GLOBALS['_MDB_lobs']) + 1;
+        $GLOBALS['_MDB_lobs'][$lob] = &new $class_name;
         if (isset($arguments['Database'])) {
-            $_MDB_lobs[$lob]->database = $arguments['Database'];
+            $GLOBALS['_MDB_lobs'][$lob]->database = $arguments['Database'];
         } else {
-            $_MDB_lobs[$lob]->database = &$this;
+            $GLOBALS['_MDB_lobs'][$lob]->database = &$this;
         }
-        if (MDB::isError($result = $_MDB_lobs[$lob]->create($arguments))) {
-            $_MDB_lobs[$lob]->database->destroyLob($lob);
+        if (MDB::isError($result = $GLOBALS['_MDB_lobs'][$lob]->create($arguments))) {
+            $GLOBALS['_MDB_lobs'][$lob]->database->destroyLob($lob);
             return($result);
         }
         return($lob);
@@ -4433,8 +4430,7 @@ class MDB_Common extends PEAR
      */
     function readLob($lob, &$data, $length)
     {
-        global $_MDB_lobs;
-        return($_MDB_lobs[$lob]->readLob($data, $length));
+        return($GLOBALS['_MDB_lobs'][$lob]->readLob($data, $length));
     }
 
     // }}}
@@ -4451,8 +4447,7 @@ class MDB_Common extends PEAR
      */
     function endOfLob($lob)
     {
-        global $_MDB_lobs;
-        return($_MDB_lobs[$lob]->endOfLob());
+        return($GLOBALS['_MDB_lobs'][$lob]->endOfLob());
     }
 
     // }}}
@@ -4468,9 +4463,8 @@ class MDB_Common extends PEAR
      */
     function destroyLob($lob)
     {
-        global $_MDB_lobs;
-        $_MDB_lobs[$lob]->destroy();
-        unset($_MDB_lobs[$lob]);
+        $GLOBALS['_MDB_lobs'][$lob]->destroy();
+        unset($GLOBALS['_MDB_lobs'][$lob]);
     }
 
     // }}}

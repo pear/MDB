@@ -96,7 +96,6 @@ class MDB_ibase extends MDB_Common
     var $selected_database_file = '';
     var $opened_persistent = '';
     var $transaction_id = 0;
-    var $auto_commit = TRUE; //added
 
     var $escape_quotes = "'";
     var $decimal_factor = 1.0;
@@ -485,7 +484,7 @@ class MDB_ibase extends MDB_Common
             $this->connection = 0;
             $this->affected_rows = -1;
 
-            $GLOBALS['_MDB_databases'][$this->database] = '';
+            unset($GLOBALS['_MDB_databases'][$this->database]);
             return true;
         }
         return false;

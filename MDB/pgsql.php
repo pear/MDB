@@ -201,7 +201,7 @@ class MDB_pgsql extends MDB_Common
     function autoCommit($auto_commit)
     {
         $this->debug('AutoCommit: '.($auto_commit ? 'On' : 'Off'));
-        if (((!$this->auto_commit) == (!$auto_commit))) {
+        if ($this->auto_commit == $auto_commit) {
             return(MDB_OK);
         }
         if ($this->connection) {
@@ -388,7 +388,7 @@ class MDB_pgsql extends MDB_Common
             $this->connection = 0;
             $this->affected_rows = -1;
             
-            $GLOBALS['_MDB_databases'][$this->database] = '';
+            unset($GLOBALS['_MDB_databases'][$this->database]);
             return(MDB_OK);
         }
         return(MDB_ERROR);

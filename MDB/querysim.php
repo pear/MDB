@@ -348,7 +348,7 @@ class MDB_querysim extends MDB_Common
                 $ret = @fclose($this->connection);
             }
             $this->connection = 0;
-            $GLOBALS['_MDB_databases'][$this->database] = '';
+            unset($GLOBALS['_MDB_databases'][$this->database]);
         }
         return $ret;
     }

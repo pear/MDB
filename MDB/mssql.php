@@ -187,7 +187,7 @@ class MDB_mssql extends MDB_Common
             return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                 'Auto-commit transactions: transactions are not in use'));
         }
-        if (((!$this->auto_commit) == (!$auto_commit))) {
+        if ($this->auto_commit == $auto_commit) {
             return(MDB_OK);
         }
         if ($this->connection) {
@@ -204,6 +204,7 @@ class MDB_mssql extends MDB_Common
             }
         }
         $this->auto_commit = $auto_commit;
+        $this->in_transaction = !$auto_commit;
         return(MDB_OK);
     }
 
@@ -358,7 +359,7 @@ class MDB_mssql extends MDB_Common
             if (isset($result) && MDB::isError($result)) {
                 return($result);
             }
-            $GLOBALS['_MDB_databases'][$this->database] = '';
+            unset($GLOBALS['_MDB_databases'][$this->database]);
             return(TRUE);
         }
         return(FALSE);
