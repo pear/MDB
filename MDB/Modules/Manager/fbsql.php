@@ -105,7 +105,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         {
             return MDB_OK;
         }
-        if (MDB::isError($has = $db->queryAll("SHOW VARIABLES LIKE '$check'", null, MDB_FETCHMODE_ORDERED))) {
+        if (MDB::isError($has = $db->extended->queryAll($db, "SHOW VARIABLES LIKE '$check'", null, MDB_FETCHMODE_ORDERED))) {
             return $db->raiseError();
         }
         if (count($has) == 0) {
@@ -427,7 +427,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listDatabases(&$db)
     {
-        $result = $db->queryCol('SHOW DATABASES');
+        $result = $db->extended->queryCol($db, 'SHOW DATABASES');
         if (MDB::isError($result)) {
             return $result;
         }
@@ -446,7 +446,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listUsers(&$db)
     {
-        $result = $db->queryCol('SELECT DISTINCT USER FROM USER');
+        $result = $db->extended->queryCol($db, 'SELECT DISTINCT USER FROM USER');
         if (MDB::isError($result)) {
             return $result;
         }
@@ -465,7 +465,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listTables(&$db)
     {
-        $table_names = $db->queryCol('SHOW TABLES');
+        $table_names = $db->extended->queryCol($db, 'SHOW TABLES');
         if (MDB::isError($table_names)) {
             return $table_names;
         }
@@ -682,7 +682,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listSequences(&$db)
     {
-        $table_names = $db->queryCol('SHOW TABLES');
+        $table_names = $db->extended->queryCol($db, 'SHOW TABLES');
         if (MDB::isError($table_names)) {
             return $table_names;
         }

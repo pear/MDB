@@ -391,7 +391,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function listViews(&$db)
     {
-        //return $db->queryCol('SELECT RDB$VIEW_NAME');
+        //return $db->extended->queryCol($db, 'SELECT RDB$VIEW_NAME');
         return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not supported feature');
     }
 
@@ -533,7 +533,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function listSequences(&$db)
     {
-        return $db->queryCol("SELECT RDB\$GENERATOR_NAME FROM RDB\$GENERATORS");
+        return $db->extended->queryCol($db, "SELECT RDB\$GENERATOR_NAME FROM RDB\$GENERATORS");
     }
 }
 ?>
