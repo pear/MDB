@@ -101,8 +101,8 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                     'Verify transactional table',
                     $table_type.' is not a supported table type'));
         }
-        if(!$db->connect()) {
-            return($db->raiseError());
+        if(MDB::isError($connect = $db->connect())) {
+            return($connect);
         }
         if(isset($this->verified_table_types[$table_type])
             && $this->verified_table_types[$table_type] == $db->connection)

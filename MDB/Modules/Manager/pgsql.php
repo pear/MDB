@@ -263,16 +263,16 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             if (isSet($changes['AddedFields'])) {
                 $fields = $changes['AddedFields'];
                 for ($field = 0, reset($fields); $field < count($fields); next($fields), $field++) {
-                    if (!$db->query("ALTER TABLE $name ADD ".$fields[key($fields)]['Declaration'])) {
-                        $db->pgsqlError();
+                    if (MDB::isError($result = $db->query("ALTER TABLE $name ADD ".$fields[key($fields)]['Declaration']))) {
+                        return($result);
                     }
                 }
             }
             if (isSet($changes['RemovedFields'])) {
                 $fields = $changes['RemovedFields'];
                 for ($field = 0, reset($fields); $field < count($fields); next($fields), $field++) {
-                    if (!$db->query("ALTER TABLE $name DROP ".key($fields))) {
-                        $db->pgsqlError();
+                    if (MDB::isError($result = $db->query("ALTER TABLE $name DROP ".key($fields)))) {
+                        return($result);
                     }
                 }
             }
