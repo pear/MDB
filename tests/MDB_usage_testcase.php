@@ -138,7 +138,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     }
 
     function verifyFetchedValues(&$result, $rownum, &$data) {
-        $row = $this->db->fetchInto($result, $rownum);
+        $row = $this->db->fetchInto($result, null, $rownum);
         for ($i = 0; $i < count($this->fields); $i++) {
             $type = $this->types[$i];
             if ($this->types[$i] == 'float') {
