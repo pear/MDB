@@ -128,6 +128,7 @@ class MDB_mysql extends MDB_Common
             1048 => MDB_ERROR_CONSTRAINT,
             1213 => MDB_ERROR_DEADLOCK,
             1216 => MDB_ERROR_CONSTRAINT,
+            1217 => MDB_ERROR_CONSTRAINT,
         );
     }
 
