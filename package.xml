@@ -89,6 +89,12 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
       <name>Frank M. Kromann</name>
       <email>frank@kromann.info</email>
     </maintainer>
+    <maintainer>
+      <user>quipo</user>
+      <role>contributor</role>
+      <name>Lorenzo Alberton</name>
+      <email>l.alberton@quipo.it</email>
+    </maintainer>
   </maintainers>
   <release>
     <version>1.1.2</version>
