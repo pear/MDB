@@ -125,6 +125,9 @@ class MDB_Parser extends XML_Parser {
             $this->field_name = '';
             $this->field = array();
             break;
+        case 'database-table-declaration-field-default':
+            $this->field['default'] == '';
+            break;
         case 'database-table-declaration-index':
             $this->index_name = '';
             $this->index = array();
@@ -159,7 +162,9 @@ class MDB_Parser extends XML_Parser {
             if (!isset($this->table['FIELDS'][$this->init_name])) {
                 $this->raiseError($xp, 'unkown field "'.$this->init_name.'"');
             };
-            if (!$this->validateFieldValue($this->init_name, $this->init_value, $xp)) {
+            if ($this->init_value !== '' 
+                && !$this->validateFieldValue($this->init_name, $this->init_value, $xp)) 
+            {
                 $this->raiseError($xp, 'field "'.$this->init_name.'" has wrong value');
             };
             $this->init['FIELDS'][$this->init_name] = $this->init_value;
@@ -249,7 +254,11 @@ class MDB_Parser extends XML_Parser {
             };
             $this->table['FIELDS'][$this->field_name] = $this->field;
             if (isset($this->field['default'])) {
-                if (!$this->validateFieldValue($this->field_name, $this->field['default'], $xp)) {
+                if ($this->field['type'] == 'clob' || $this->field['type'] == 'blob') {
+                    $this->raiseError($xp, '"'.$this->field['type'].'"-fields are not allowed to have a default value');
+                };
+                if ($this->field['default'] !== '' 
+                    && !$this->validateFieldValue($this->field_name, $this->field['default'], $xp)) {
                     $this->raiseError($xp, 'default value of "'.$this->field_name.'" is of wrong type');
                 };
             };
@@ -342,9 +351,6 @@ class MDB_Parser extends XML_Parser {
     {
         if (!isset($this->table['FIELDS'][$field_name])) {
             return;
-        };
-        if ($field_value === '') {
-            return true;
         };
         $field_def = $this->table['FIELDS'][$field_name];
         switch($field_def['type']) {
