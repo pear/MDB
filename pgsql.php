@@ -367,6 +367,15 @@ class MDB_driver_pgsql extends MDB_common {
             return DB_OK;
         } elseif  (preg_match('/^\s*\(?\s*SELECT\s+/si', $query) && !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query)) {
             $this->highest_fetched_row[$result] = -1;
+            if ($types != NULL) {
+                if (!is_array($types)) {
+                    $types = array($types);
+                }
+                if (MDB::isError($err = $this->setResultTypes($result, $types))) {
+                    $this->freeResult($result);
+                    return $err;
+                }
+            }
             return $result;
         } else {
             $this->affected_rows = 0;
@@ -394,24 +403,6 @@ class MDB_driver_pgsql extends MDB_common {
         return ($this->highest_fetched_row[$result] >= $this->numRows($result) - 1);
     }
 
-    // }}}
-    // {{{ fetch()
-    /**
-    * fetch value from a result set
-    * 
-    * @param resource    $result result identifier
-    * @param int    $row    number of the row where the data can be found
-    * @param int    $field    field number where the data can be found 
-    *
-    * @return mixed string on success, a DB error on failure
-    *
-    * @access public
-    */
-    function fetch($result, $row, $field)
-    {
-        $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
-        return (pg_result($result, $row, $field));
-    }
 
     // }}}
     // {{{ retrieveLob()
@@ -427,23 +418,23 @@ class MDB_driver_pgsql extends MDB_common {
     function retrieveLOB($lob)
     {
         if (!isset($this->lobs[$lob])) {
-            return ($this->SetError("Retrieve LOB", "it was not specified a valid lob"));
+            return ($this->raiseError(DB_ERROR_INVALID, NULL, NULL, "Retrieve LOB: did not specified a valid lob"));
         }
         if (!isset($this->lobs[$lob]["Value"])) {
             if ($this->auto_commit) {
-                if (!@pg_Exec($this->connection, "BEGIN")) {
-                    return ($this->SetError("Retrieve LOB", pg_ErrorMessage($this->connection)));
+                if (!@pg_exec($this->connection, "BEGIN")) {
+                    return ($this->raiseError(DB_ERROR,  NULL, NULL, "Retrieve LOB: " . pg_ErrorMessage($this->connection)));
                 }
                 $this->lobs[$lob]["InTransaction"] = 1;
             }
-            $this->lobs[$lob]["Value"] = $this->FetchResult($this->lobs[$lob]["Result"], $this->lobs[$lob]["Row"], $this->lobs[$lob]["Field"]);
-            if (!($this->lobs[$lob]["Handle"] = pg_loopen($this->connection, $this->lobs[$lob]["Value"], "r"))) {
+            $this->lobs[$lob]["Value"] = $this->fetch($this->lobs[$lob]["Result"], $this->lobs[$lob]["Row"], $this->lobs[$lob]["Field"]);
+            if (!($this->lobs[$lob]["Handle"] = @pg_loopen($this->connection, $this->lobs[$lob]["Value"], "r"))) {
                 if (isset($this->lobs[$lob]["InTransaction"])) {
                     @pg_Exec($this->connection, "END");
-                    UnSet($this->lobs[$lob]["InTransaction"]);
+                    unSet($this->lobs[$lob]["InTransaction"]);
                 }
-                Unset($this->lobs[$lob]["Value"]);
-                return ($this->SetError("Retrieve LOB", pg_ErrorMessage($this->connection)));
+                unset($this->lobs[$lob]["Value"]);
+                return ($this->raiseError(DB_ERROR, NULL, NULL, "Retrieve LOB: " . pg_ErrorMessage($this->connection)));
             }
         }
         return (DB_OK);
@@ -463,8 +454,9 @@ class MDB_driver_pgsql extends MDB_common {
      */
     function endOfResultLOB($lob)
     {
-        if (!$this->retrieveLOB($lob)) {
-            return (0);
+        $lobresult = $this->retrieveLOB($lob);
+        if (MDB::isError($lobresult)) {
+            return ($lobresult);
         }
         return (isset($this->lobs[$lob]["EndOfLOB"]));
     }
@@ -486,13 +478,13 @@ class MDB_driver_pgsql extends MDB_common {
      */
     function readResultLOB($lob, &$data, $length)
     {
-        if (!$this->RetrieveLOB($lob)) {
-            return (-1);
+        $lobresult = $this->retrieveLOB($lob);
+        if (MDB::isError($lobresult)) {
+            return ($lobresult);
         }
         $data = pg_loread($this->lobs[$lob]["Handle"], $length);
         if (GetType($data) != "string") {
-            $this->SetError("Read Result LOB", pg_ErrorMessage($this->connection));
-            return (-1);
+            $this->raiseError(DB_ERROR, NULL, NULL, "Read Result LOB: " . pg_ErrorMessage($this->connection));
         }
         if (($length = strlen($data)) == 0) {
             $this->lobs[$lob]["EndOfLOB"] = 1;
@@ -869,31 +861,34 @@ class MDB_driver_pgsql extends MDB_common {
             if (($handle = pg_loopen($this->connection, $lo, "w"))) {
                 while (!endOfLOB($lob)) {
                     if (readLOB($lob, $data, $this->options['lob_buffer_length']) < 0) {
-                        $this->SetError("Get LOB field value", lobError($lob));
+                        $this->raiseError(DB_ERROR, NULL, NULL, "Get LOB field value: " . lobError($lob));
                         $success = 0;
                         break;
                     }
                     if (!pg_lowrite($handle, $data)) {
-                        $this->SetError("Get LOB field value", pg_ErrorMessage($this->connection));
+                        $this->raiseError(DB_ERROR, NULL, NULL, "Get LOB field value: " . pg_ErrorMessage($this->connection));
                         $success = 0;
                         break;
                     }
                 }
                 pg_loclose($handle);
-                if ($success)
+                if ($success) {
                     $value = strval($lo);
+                }
             } else {
-                $this->SetError("Get LOB field value", pg_ErrorMessage($this->connection));
+                $this->raiseError(DB_ERROR, NULL, NULL, "Get LOB field value: " .  pg_ErrorMessage($this->connection));
                 $success = 0;
             }
-            if (!$success)
+            if (!$success) {
                 pg_lounlink($this->connection, $lo);
+            }
         } else {
-            $this->SetError("Get LOB field value", pg_ErrorMessage($this->connection));
+            $this->raiseError(DB_ERROR, NULL, NULL, "Get LOB field value: " . pg_ErrorMessage($this->connection));
             $success = 0;
         }
-        if ($this->auto_commit)
+        if ($this->auto_commit) {
             @pg_Exec($this->connection, "END");
+        }
         return ($value);
     }
 
@@ -912,9 +907,9 @@ class MDB_driver_pgsql extends MDB_common {
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
      */
-    function getClobValue($prepared_query, $parameter, $clob, &$value)
+    function getClobValue($prepared_query, $parameter, $clob)
     {
-        return ($this->getLobValue($prepared_query, $parameter, $clob, $value));
+        return ($this->getLobValue($prepared_query, $parameter, $clob));
     }
 
     // }}}
@@ -948,9 +943,9 @@ class MDB_driver_pgsql extends MDB_common {
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
      */
-    function getBlobValue($prepared_query, $parameter, $blob, &$value)
+    function getBlobValue($prepared_query, $parameter, $blob)
     {
-        return ($this->getLobValue($prepared_query, $parameter, $blob, $value));
+        return ($this->getLobValue($prepared_query, $parameter, $blob));
     }
 
     // }}}
