@@ -93,7 +93,7 @@ class MDB_mysql extends MDB_Common
         $this->supported['summary_functions'] = 1;
         $this->supported['order_by_text'] = 1;
         $this->supported['current_id'] = 1;
-        $this->supported['limit_querys'] = 1;
+        $this->supported['limit_queries'] = 1;
         $this->supported['LOBs'] = 1;
         $this->supported['replace'] = 1;
         $this->supported['sub_selects'] = 0;

@@ -83,7 +83,7 @@ class MDB_pgsql extends MDB_Common
         $this->supported['order_by_text'] = 1;
         $this->supported['transactions'] = 1;
         $this->supported['current_id'] = 1;
-        $this->supported['limit_querys'] = 1;
+        $this->supported['limit_queries'] = 1;
         $this->supported['LOBs'] = 1;
         $this->supported['replace'] = 1;
         $this->supported['sub_selects'] = 1;

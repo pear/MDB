@@ -862,7 +862,7 @@ class MDB_Common extends PEAR
      */
     function setLimit($first, $limit)
     {
-        if (!isset($this->supported['limit_querys'])) {
+        if (!isset($this->supported['limit_queries'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'setLimit: limit is not supported by this driver');
         }

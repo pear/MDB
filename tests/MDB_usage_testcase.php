@@ -436,7 +436,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
      * Test the use of setLimit to return paged queries
      */
     function testRanges() {
-        if (!$this->supported('limit_querys')) {
+        if (!$this->supported('limit_queries')) {
             return;
         }
 
