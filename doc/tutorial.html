@@ -102,7 +102,7 @@ It will automatically include the MDB.php file you.</p>
 <ul>
 <p><tt>&lt;field&gt; &lt;name&gt;user_id&lt;/name&gt;   &lt;type&gt;integer&lt;/type&gt; &lt;default&gt;0&lt;/default&gt; &lt;notnull&gt;1&lt;/notnull&gt; &lt;/field&gt;<br />
 &lt;field&gt; &lt;name&gt;user_name&lt;/name&gt; &lt;type&gt;text&lt;/type&gt;                                              &lt;/field&gt;<br />
-&lt;field&gt; &lt;name&gt;password&lt;/name&gt;  &lt;type&gt;text&lt;/type&gt;                                              &lt;/field&gt;<br />
+&lt;field&gt; &lt;name&gt;passwd&lt;/name&gt;  &lt;type&gt;text&lt;/type&gt;                                              &lt;/field&gt;<br />
 &lt;field&gt; &lt;name&gt;reminder&lt;/name&gt;  &lt;type&gt;text&lt;/type&gt;                                              &lt;/field&gt;<br />
 &lt;field&gt; &lt;name&gt;name&lt;/name&gt;      &lt;type&gt;text&lt;/type&gt;                                              &lt;/field&gt;<br />
 &lt;field&gt; &lt;name&gt;email&lt;/name&gt;     &lt;type&gt;text&lt;/type&gt;                                              &lt;/field&gt;</tt></p>
@@ -272,11 +272,11 @@ It will automatically include the MDB.php file you.</p>
 <ul>
 <h4><li><a name="47.3.1">Direct queries</a></li></h4>
 <p>Direct queries are those that are executed simply by passing the <i>SQL</i> statement to the <i>DBMS</i>.  To execute a direct query use the method <tt>query()</tt>.  This method takes a database access handle and the <tt>SQL</tt> query statement as arguments.  Here follows an example:</p>
-<p><tt>$query=&quot;SELECT name,password FROM users&quot;;</tt><br />
+<p><tt>$query=&quot;SELECT name,passwd FROM users&quot;;</tt><br />
 <tt>$result=$mdb->query($query);</tt></p>
 <p>The return value is either a result set or an MDB error object.  If <tt>MDB::isError($result)</tt> is <tt>TRUE</tt> then the query failed.  For <tt>SELECT</tt> queries the return value is a result handle.  It should be used to retrieve the query results.</p>
 <p>Query statements often contain constant values like in following example:</p>
-<p><tt>$query=&quot;SELECT name,password FROM users WHERE user_name='admin'&quot;;</tt><br />
+<p><tt>$query=&quot;SELECT name,passwd FROM users WHERE user_name='admin'&quot;;</tt><br />
 <tt>$result=$mdb->query($query);</tt></p>
 <p>You may build queries like this by manually inserting constant values in the query statement text string.  However, different <i>DBMS</i> may require that constant values be represented in different manners.</p>
 <p>For instance, text constant values may need to escape special characters like <tt>'</tt>.  Date constant values may be represented as integers rather than date text strings because the underlying <i>DBMS</i> does not support date data types natively.</p>
@@ -294,17 +294,17 @@ It will automatically include the MDB.php file you.</p>
 <p><li><tt>getDecimalValue($value)</tt></li></p>
 </ul>
 <p>Using the constant value conversion methods for the execution of the query mentioned above, it would be rewritten like this:</p>
-<p><tt>$query=&quot;SELECT name,password FROM users WHERE user_name=&quot;.$mdb->getTextValue(&quot;admin&quot;);</tt><br />
+<p><tt>$query=&quot;SELECT name,passwd FROM users WHERE user_name=&quot;.$mdb->getTextValue(&quot;admin&quot;);</tt><br />
 <tt>$result=$mdb->query($query);</tt></p>
 <p>Converting constant values before executing queries requires a little extra effort, but considering the flexibility that is gained from the extra portability of your application code, it is an effort that it is worthy and it is thoroughly recommended to you make it.</p>
 <h4><li><a name="48.3.2">Prepared queries</a></li></h4>
 <p>Prepared queries are <i>SQL</i> statements that have to be prepared before being executed.  Executing a prepared query takes less time than executing a non-prepared query because prepared queries have already been parsed by the time they are executed.</p>
 <p>Using prepared queries to execute them only once in a script does not take less time than just using direct queries. Prepared queries are recommended when you need to execute a query more than once in the same script.</p>
 <p>Prepared queries may take arguments.  When a prepared query is executed argument values are inserted in special spots in the query statement marked as with <tt>?</tt>.  Consider for instance this example that uses a direct query:</p>
-<p><tt>$query=&quot;SELECT name,password FROM users WHERE user_name=&quot;.$mdb->getTextValue(&quot;admin&quot;);</tt><br />
+<p><tt>$query=&quot;SELECT name,passwd FROM users WHERE user_name=&quot;.$mdb->getTextValue(&quot;admin&quot;);</tt><br />
 <tt>$result=$mdb->query($query);</tt></p>
 <p>It may be rewritten using a prepared query like this:</p>
-<p><tt>$query=&quot;SELECT name,password FROM users WHERE user_name=?&quot;;</tt><br />
+<p><tt>$query=&quot;SELECT name,passwd FROM users WHERE user_name=?&quot;;</tt><br />
 <tt>$prepared_query=$mdb->prepareQuery($query);</tt></p>
 <p>Get a prepared query handle.</p>
 <p><tt>if(!MDB::isError($prepared_query))</tt></p>
