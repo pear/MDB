@@ -1040,12 +1040,12 @@ class MDB_Common extends PEAR
     }
 
     // }}}
-    // {{{ prepareQuery()
+    // {{{ prepare()
 
     /**
      * Prepares a query for multiple execution with execute().
      * With some database backends, this is emulated.
-     * prepareQuery() requires a generic query as string like
+     * prepare() requires a generic query as string like
      * 'INSERT INTO numbers VALUES(?,?,?)'. The ? are wildcards.
      * Types of wildcards:
      *    ? - a quoted scalar value, i.e. strings, integers
@@ -1056,7 +1056,7 @@ class MDB_Common extends PEAR
      * @access public
      * @see execute
      */
-    function prepareQuery($query)
+    function prepare($query)
     {
         $this->debug($query, 'prepareQuery');
         $positions = array();
@@ -1110,7 +1110,7 @@ class MDB_Common extends PEAR
      * validate that a handle is infact a prepared query
      *
      * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
+     *       the function prepare()
      * @access private
      */
     function _validatePreparedQuery($prepared_query)
@@ -1133,7 +1133,7 @@ class MDB_Common extends PEAR
      * Set the value of a parameter of a prepared query.
      *
      * @param int $prepared_query argument is a handle that was returned
-     *       by the function prepareQuery()
+     *       by the function prepare()
      * @param int $parameter the order number of the parameter in the query
      *       statement. The order number of the first parameter is 1.
      * @param mixed $value value that is meant to be assigned to specified
@@ -1179,7 +1179,7 @@ class MDB_Common extends PEAR
      * Set the values of multiple a parameter of a prepared query in bulk.
      *
      * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
+     *       the function prepare()
      * @param array $params array thats specifies all necessary infromation
      *       for setParam() the array elements must use keys corresponding to
      *       the number of the position of the parameter.
@@ -1220,7 +1220,7 @@ class MDB_Common extends PEAR
      * Release resources allocated for the specified prepared query.
      *
      * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
+     *       the function prepare()
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
@@ -1235,38 +1235,38 @@ class MDB_Common extends PEAR
     }
 
     // }}}
-    // {{{ _executePreparedQuery()
+    // {{{ _executePrepared()
 
     /**
      * Execute a prepared query statement.
      *
      * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
+     *       the function prepare()
      * @param string $query query to be executed
      * @param array $types array that contains the types of the columns in
      *       the result set
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access private
      */
-    function _executePreparedQuery($prepared_query, $query, $types = null)
+    function _executePrepared($prepared_query, $query, $types = null)
     {
         return $this->query($query, $types, false);
     }
 
     // }}}
-    // {{{ executeQuery()
+    // {{{ execute()
 
     /**
      * Execute a prepared query statement.
      *
      * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
+     *       the function prepare()
      * @param array $types array that contains the types of the columns in the
      *       result set
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function executeQuery($prepared_query, $types = null)
+    function execute($prepared_query, $types = null)
     {
         $result = $this->_validatePreparedQuery($prepared_query);
         if (MDB::isError($result)) {
@@ -1326,7 +1326,7 @@ class MDB_Common extends PEAR
             } else {
                 $this->first_selected_row = $this->selected_row_limit = 0;
             }
-            $success = $this->_executePreparedQuery($prepared_query, $query, $types);
+            $success = $this->_executePrepared($prepared_query, $query, $types);
         }
         reset($this->clobs[$prepared_query]);
         for($clob = 0, $count = count($this->clobs[$prepared_query]);

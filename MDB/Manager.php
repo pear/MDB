@@ -362,7 +362,7 @@ class MDB_Manager extends PEAR
                             }
                             $query_fields = implode(',',$query_fields);
                             $query_values = implode(',',$query_values);
-                            $result = $prepared_query = $this->db->prepareQuery(
+                            $result = $prepared_query = $this->db->prepare(
                                 "INSERT INTO $table_name ($query_fields) VALUES ($query_values)");
                         }
                         if(!MDB::isError($prepared_query)) {
@@ -436,7 +436,7 @@ class MDB_Manager extends PEAR
                                 }
                             }
                             if(!MDB::isError($result)) {
-                                $result = $this->db->executeQuery($prepared_query);
+                                $result = $this->db->execute($prepared_query);
                             }
                             for($lob = 0; $lob < count($lobs); $lob++) {
                                 $this->db->destroyLOB($lobs[$lob]);

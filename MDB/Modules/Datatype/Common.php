@@ -891,7 +891,7 @@ class MDB_Datatype_Common
      *                      result
      *
      *                          Integer handle value as returned by the function
-     *                          MDB::query() or MDB::executeQuery() that specifies
+     *                          MDB::query() or MDB::execute() that specifies
      *                          the result set that contains the large object value
      *                          to be retrieved. If the LOB argument is specified,
      *                          this argument is ignored.

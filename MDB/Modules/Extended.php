@@ -256,12 +256,12 @@ class MDB_Extended
             $type = array($type);
         }
 
-        $prepared_query = $db->prepareQuery($query);
+        $prepared_query = $db->prepare($query);
         if (MDB::isError($prepared_query)) {
             return $prepared_query;
         }
 
-        $result = $this->execute($prepared_query, $type, $params, $param_types);
+        $result = $this->executeParams($prepared_query, $type, $params, $param_types);
         if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
@@ -304,12 +304,12 @@ class MDB_Extended
             return $this->queryRow($query, $types, $fetchmode);
         }
 
-        $prepared_query = $db->prepareQuery($query);
+        $prepared_query = $db->prepare($query);
         if (MDB::isError($prepared_query)) {
             return $prepared_query;
         }
 
-        $result = $this->execute($prepared_query, $types, $params, $param_types);
+        $result = $this->executeParams($prepared_query, $types, $params, $param_types);
         if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
@@ -355,12 +355,12 @@ class MDB_Extended
             $result = $this->queryCol($query, $type, $colnum);
         }
 
-        $prepared_query = $db->prepareQuery($query);
+        $prepared_query = $db->prepare($query);
         if (MDB::isError($prepared_query)) {
             return $prepared_query;
         }
 
-        $result = $this->execute($prepared_query, $type, $params, $param_types);
+        $result = $this->executeParams($prepared_query, $type, $params, $param_types);
         if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
@@ -412,12 +412,12 @@ class MDB_Extended
             return $this->queryAll($query, $types, $fetchmode, $rekey, $force_array, $group);
         }
 
-        $prepared_query = $db->prepareQuery($query);
+        $prepared_query = $db->prepare($query);
         if (MDB::isError($prepared_query)) {
             return $prepared_query;
         }
 
-        $result = $this->execute($prepared_query, $types, $params, $param_types);
+        $result = $this->executeParams($prepared_query, $types, $params, $param_types);
         if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
@@ -434,11 +434,11 @@ class MDB_Extended
     }
 
     // }}}
-    // {{{ execute()
+    // {{{ executeParams()
 
     /**
      * Executes a prepared SQL query
-     * With execute() the generic query of prepare is assigned with the given
+     * With executeParams() the generic query of prepare is assigned with the given
      * data array. The values of the array inserted into the query in the same
      * order like the array order
      *
@@ -453,27 +453,27 @@ class MDB_Extended
      * @access public
      * @see prepare()
      */
-    function execute($prepared_query, $types = null, $params = false, $param_types = null)
+    function executeParams($prepared_query, $types = null, $params = false, $param_types = null)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
 
         $db->setParamArray($prepared_query, $params, $param_types);
 
-        return $db->executeQuery($prepared_query, $types);
+        return $db->execute($prepared_query, $types);
     }
 
     // }}}
     // {{{ executeMultiple()
 
     /**
-     * This function does several execute() calls on the same statement handle.
+     * This function does several executeParams() calls on the same statement handle.
      * $params must be an array indexed numerically from 0, one execute call is
      * done for every 'row' in the array.
      *
-     * If an error occurs during execute(), executeMultiple() does not execute
+     * If an error occurs during executeParams(), executeMultiple() does not execute
      * the unfinished rows, but rather returns that error.
      *
-     * @param resource $prepared_query query handle from prepareQuery()
+     * @param resource $prepared_query query handle from prepare()
      * @param array $types array that contains the types of the columns in
      *        the result set
      * @param array $params numeric array containing the
@@ -482,13 +482,13 @@ class MDB_Extended
      *        defined in $params
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access public
-     * @see prepareQuery(), execute()
+     * @see prepare(), executeParams()
      */
     function executeMultiple($prepared_query, $types = null, $params, $param_types = null)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         for($i = 0, $j = count($params); $i < $j; $i++) {
-            $result = $this->execute($prepared_query, $types, $params[$i], $param_types);
+            $result = $this->executeParams($prepared_query, $types, $params[$i], $param_types);
             if (MDB::isError($result)) {
                 return $result;
             }
@@ -500,7 +500,7 @@ class MDB_Extended
     // {{{ autoPrepare()
 
     /**
-     * Make automaticaly an insert or update query and call prepareQuery() with it
+     * Make automaticaly an insert or update query and call prepare() with it
      *
      * @param string $table name of the table
      * @param array $table_fields ordered array containing the fields names
@@ -514,14 +514,14 @@ class MDB_Extended
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $query = $this->buildManipSQL($table, $table_fields, $mode, $where);
-        return $db->prepareQuery($query);
+        return $db->prepare($query);
     }
 
     // {{{
     // }}} autoExecute()
 
     /**
-     * Make automaticaly an insert or update query and call prepareQuery() and execute() with it
+     * Make automaticaly an insert or update query and call prepare() and executeParams() with it
      *
      * @param string $table name of the table
      * @param array $fields_values assoc ($key=>$value) where $key is a field name and $value its value
@@ -541,7 +541,7 @@ class MDB_Extended
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $prepared_query = $this->autoPrepare($table, array_keys($fields_values), $mode, $where);
-        $result = $this->execute($prepared_query, $types, array_values($fields_values), $param_types);
+        $result = $this->executeParams($prepared_query, $types, array_values($fields_values), $param_types);
         $db->freePreparedQuery($prepared_query);
         return $result;
     }
@@ -550,7 +550,7 @@ class MDB_Extended
     // }}} buildManipSQL()
 
     /**
-     * Make automaticaly an sql query for prepareQuery()
+     * Make automaticaly an sql query for prepare()
      *
      * Example : buildManipSQL('table_sql', array('field1', 'field2', 'field3'), MDB_AUTOQUERY_INSERT)
      *           will return the string : INSERT INTO table_sql (field1,field2,field3) VALUES (?,?,?)
@@ -562,7 +562,7 @@ class MDB_Extended
      * @param array $table_fields ordered array containing the fields names
      * @param int $mode type of query to make (MDB_AUTOQUERY_INSERT or MDB_AUTOQUERY_UPDATE)
      * @param string $where in case of update queries, this string will be put after the sql WHERE statement
-     * @return string sql query for prepareQuery()
+     * @return string sql query for prepare()
      * @access public
      */
     function buildManipSQL($table, $table_fields, $mode, $where = false)

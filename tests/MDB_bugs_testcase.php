@@ -125,7 +125,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
     function testFetchModeBug() {
         $data = array();
 
-        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $prepared_query = $this->db->prepare('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
         $data['user_name'] = "user_=";
         $data['user_password'] = 'somepassword';
@@ -139,7 +139,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
         $this->insertTestValues($prepared_query, $data);
 
-        $result = $this->db->executeQuery($prepared_query);
+        $result = $this->db->execute($prepared_query);
         
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());

@@ -305,7 +305,7 @@ It will automatically include the MDB.php file you.</p>
 <tt>$result=$mdb->query($query);</tt></p>
 <p>It may be rewritten using a prepared query like this:</p>
 <p><tt>$query=&quot;SELECT name,passwd FROM users WHERE user_name=?&quot;;</tt><br />
-<tt>$prepared_query=$mdb->prepareQuery($query);</tt></p>
+<tt>$prepared_query=$mdb->prepare($query);</tt></p>
 <p>Get a prepared query handle.</p>
 <p><tt>if (!MDB::isError($prepared_query))</tt></p>
 <p>Make sure the query was prepared without error.</p>
@@ -315,7 +315,7 @@ It will automatically include the MDB.php file you.</p>
 </ul>
 <p>Set the first query argument with the text constant value <tt>admin</tt>.</p>
 <ul>
-<p><tt>$result=$mdb->executeQuery($prepared_query);</tt></p>
+<p><tt>$result=$mdb->execute($prepared_query);</tt></p>
 </ul>
 <p><tt>}</tt></p>
 <p>Execute the query.  From here on handling query results is the same as for direct queries.</p>
@@ -350,7 +350,7 @@ It will automatically include the MDB.php file you.</p>
 <p>The <tt>fetch*()</tt> method retrieves data just as it is returned by the <i>DBMS</i>.  The data representation format for each type of field may vary from <i>DBMS</i> to <i>DBMS</i>.</p>
 <p>To avoid the problem of having to handle data representation format differences in your database application, <b>MDB</b> provides a set of methods that fetch the result data and already convert it to a single representation format defined for each supported data type.</p>
 <p>This simplifies database application development a lot and promotes code portability when using different <i>DBMS</i>.</p>
-<p>Not all types of result data need to be converted.  For instance, text and integer result data do not need to be converted. You can either use <tt>convertResult($value, $type)</tt> to convert result data. Optionally you can pass an array to <tt>query()</tt> and <tt>prepareQuery()</tt> that contains the types in the result set. Then the type conversion is handled automatically for you.</p>
+<p>Not all types of result data need to be converted.  For instance, text and integer result data do not need to be converted. You can either use <tt>convertResult($value, $type)</tt> to convert result data. Optionally you can pass an array to <tt>query()</tt> and <tt>prepare()</tt> that contains the types in the result set. Then the type conversion is handled automatically for you.</p>
 <h4><li><a name="70.3.5">Freeing the result set resources</a></li></h4>
 <p>When you are done with the result set of a query, you should make sure that any resources implicitly allocated for it are freed.  Freeing allocated resources is important because it reduces the use of memory that a script needs to run by allowing that memory may be reused.</p>
 <p>Even if your script exits right after you are done with the result of a query, you should always explicitly free query results because the end of a script may not imply that the resources are freed automatically then.  This is particularly true if you are using persistent database connections when running PHP as Web server module.</p>
@@ -386,7 +386,7 @@ It will automatically include the MDB.php file you.</p>
 <p>Here follows an example of how to execute a query that inserts data defined programmatically into a large object character field:</p>
 <ul>
 <p><li>Prepare a query to insert a row with character large object field (<tt>document</tt>). You may insert rows with as many large object fields as you want, but in this example only one is inserted.</li></p>
-<p><tt>if (($prepared_query=$mdb->prepareQuery(&quot;INSERT INTO files (id,document,picture) VALUES (1,?,null)&quot;)))<br />
+<p><tt>if (($prepared_query=$mdb->prepare(&quot;INSERT INTO files (id,document,picture) VALUES (1,?,null)&quot;)))<br />
 {</tt></p>
 <p><li>Create a large object handler class to supply data defined in the program to insert in the table field.</li></p>
 <ul>
@@ -408,7 +408,7 @@ if (!MDB::isError($clob=$mdb->createLob($character_lob)))<br />
 <p><li>Execute the prepared query.</li></p>
 <ul>
 <ul>
-<p><tt>if (!MDB::isError($error = $mdb->executeQuery($prepared_query))</tt></p>
+<p><tt>if (!MDB::isError($error = $mdb->execute($prepared_query))</tt></p>
 <ul>
 <p><tt>echo $error->getMessage();</tt></p>
 </ul>
@@ -441,7 +441,7 @@ else</tt></p>
 <p>Here follows an example of how to execute a query that updates a large object binary field with data retrieved from a file. Make sure that only one row is affected by the query because some <i>DBMS</i> are not able to update values of large object fields in more than one row per query.</p>
 <ul>
 <p><li>Prepare a query to update a row with binary large object field (<tt>picture</tt>).</li></p>
-<p><tt>if (!MDB::isError($prepared_query=$mdb->prepareQuery(,&quot;UPDATE files SET picture=? WHERE id=1&quot;)))<br />
+<p><tt>if (!MDB::isError($prepared_query=$mdb->prepare(,&quot;UPDATE files SET picture=? WHERE id=1&quot;)))<br />
 {</tt></p>
 <p><li>Create a large object handler class to supply data from a specified file.</li></p>
 <ul>
@@ -463,7 +463,7 @@ if (!MDB::isError($blob=$mdb->createLob($binary_lob)))<br />
 <p><li>Execute the prepared query.</li></p>
 <ul>
 <ul>
-<p><tt>if (MDB::isError($error = $mdb->executeQuery($prepared_query)))</tt></p>
+<p><tt>if (MDB::isError($error = $mdb->execute($prepared_query)))</tt></p>
 <ul>
 <p><tt>$mdb->destroyLOB($blob);</tt></p>
 </ul>

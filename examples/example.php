@@ -163,10 +163,10 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
                      array(3, 'three', 'trois'),
                      array(4, 'four', 'quatre')
     );
-    $prepared_query = $db->prepareQuery('INSERT INTO numbers VALUES(?,?,?)');
+    $prepared_query = $db->prepare('INSERT INTO numbers VALUES(?,?,?)');
     foreach ($alldata as $row) {
             echo('running execute<br>');
-            $db->extended->execute($prepared_query, null, $row, array('integer', 'text', 'text'));
+            $db->extended->executeParams($prepared_query, null, $row, array('integer', 'text', 'text'));
     }
     // lets try an prepare execute combo
     $alldata = array(
@@ -175,7 +175,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
                      array(7, 'seven', 'sept'),
                      array(8, 'eight', 'huit')
     );
-    $prepared_query = $db->prepareQuery('INSERT INTO numbers VALUES(?,?,?)');
+    $prepared_query = $db->prepare('INSERT INTO numbers VALUES(?,?,?)');
     echo('running executeMultiple<br>');
     echo(Var_Dump::display($db->extended->executeMultiple($prepared_query, null, $alldata, array('integer', 'text', 'text'))).'<br>');
     $array = array(4);
