@@ -72,7 +72,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     }
 
     // }}}
-    // {{{ _verifyTransactionalTableType()
+    // {{{ _verifyTableType()
 
     /**
      * verify that chosen transactional table hanlder is available in the database
@@ -82,19 +82,19 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access private
      */
-    function _verifyTransactionalTableType($table_type)
+    function _verifyTableType($table_type)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         switch(strtoupper($table_type)) {
             case 'BERKELEYDB':
             case 'BDB':
-                $check = 'have_bdb';
+                $check = array('have_bdb');
                 break;
             case 'INNODB':
-                $check = 'have_innobase';
+                $check = array('have_innobase', 'have_innodb');
                 break;
             case 'GEMINI':
-                $check = 'have_gemini';
+                $check = array('have_gemini');
                 break;
             case 'HEAP':
             case 'ISAM':
@@ -107,32 +107,35 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                 return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                     $table_type.' is not a supported table type');
         }
-        if (MDB::isError($connect = $db->connect())) {
-            return $connect;
-        }
         if (isset($this->verified_table_types[$table_type])
-            && $this->verified_table_types[$table_type] == $db->connection)
-        {
+            && $this->verified_table_types[$table_type] == $db->connection
+        ) {
             return MDB_OK;
         }
-        $result = $db->query("SHOW VARIABLES LIKE '$check'", null, false);
-        if (MDB::isError($result)) {
-            return $db->mysqlRaiseError();
+        $not_supported = false;
+        for($i=0, $j=count($check); $i<$j; ++$i) {
+            $result = $db->query('SHOW VARIABLES LIKE '.$db->getValue('text', $check[$i]), null, false);
+            if (MDB::isError($result)) {
+                return $db->mysqlRaiseError();
+            }
+            $has = $db->fetchRow($result, MDB_FETCHMODE_ORDERED);
+            if (MDB::isError($has)) {
+                return $has;
+            }
+            if (is_array($has)) {
+                $not_supported = true;
+                if ($has[1] == 'YES') {
+                    $this->verified_table_types[$table_type] = $db->connection;
+                    return MDB_OK;
+                }
+            }
         }
-        $has = $db->fetchAll($result, MDB_FETCHMODE_ORDERED);
-        if (MDB::isError($has)) {
-            return $has;
-        }
-        if (count($has) == 0) {
-            return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'could not tell if '.$table_type.' is a supported table type');
-        }
-        if (strcmp($has[0][1], 'YES')) {
+        if ($not_supported) {
             return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 $table_type.' is not a supported table type by this MySQL database server');
         }
-        $this->verified_table_types[$table_type] = $db->connection;
-        return MDB_OK;
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+            'could not tell if '.$table_type.' is a supported table type');
     }
 
     // }}}
@@ -229,7 +232,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null,
                 'createTable: no fields specified for table "'.$name.'"');
         }
-        if (MDB::isError($verify = $this->_verifyTransactionalTableType($db->default_table_type))) {
+        if (MDB::isError($verify = $this->_verifyTableType($db->default_table_type))) {
             return $verify;
         }
         if (MDB::isError($query_fields = $this->getFieldDeclarationList($fields))) {
@@ -237,8 +240,8 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                 'createTable: unkown error');
         }
         if (isset($db->supported['transactions'])
-            && $db->default_table_type=='BDB')
-        {
+            && ($db->default_table_type == 'BDB' || $db->default_table_type == 'BERKELEYDB')
+        ) {
             $query_fields .= ', dummy_primary_key INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (dummy_primary_key)';
         }
         $query = "CREATE TABLE $name ($query_fields)".(strlen($db->default_table_type) ? ' TYPE='.$db->default_table_type : '');
