@@ -99,27 +99,42 @@
     <state>devel</state>
     <date></date>
     <notes>
+      All:
+      - fixed issues with PHP5
+      MDB Class:
       - added MDB::isConnection()
+      - fixed issues in MDB::singleton() if instances of MDB have been disconnected
+      test suite:
       - minor improvements to the test suite
+      - fixed bug in test suite (user_id was incorrectly set to type text instead of integer)
+      - added a test for MDB::singleton()
+      MDB_Common:
       - fixed bug in support() that would result in always returning true
       - fixed bug in getValue() when $type is empty
       - fixed bug in getDSN() incorrect handling of port value
-      - fixed bug in the transaction support detection in the mysql manager class
-      - several cosmetic fixes
-      - fixed bug in common implementation of currID() which would result in a fatal error
+      - fixed bug in currID() which would result in a fatal error
+      All drivers:
       - backported several fixes from HEAD to each of the drivers
-      - interbase driver now also supports associative fetching
-      - interbase driver: added missing getTypeDeclaration() method
-      - fixed bug in extension detection
-      - fixed bug in interbase driver LOB handling
-      - interbase/oci8 driver: fixed autofree in fetchInto()
-      - fixed bug 22328 in the mysql driver
-      - fixed issues in MDB::singleton() if instances of MDB have been disconnected
-      - added a test for MDB::singleton()
-      - fixed issues with PHP5
+      - fixed bug in extension detection in all drivers
+      - fixed bug 22328
       - added notes at the top of the driver regarding driver specfic issues
-      - mssql driver now passes all tests
-      - fixed bug in test suite (user_id was incorrectly set to type text instead of integer)
+      - disconnect now unsets instead of overwriting with '' in $GLOBALS['_MDB_databases']
+      MySQL driver:
+      - fixed bug in the transaction support detection in the manager class
+      Interbase driver:
+      - now passes all tests
+      - now also supports associative fetching
+      - added missing getTypeDeclaration() method
+      - fixed replace emulation
+      - fixed bug in interbase driver LOB handling
+      - fixed autofree in fetchInto()
+      Oracle driver:
+      - fixed autofree in fetchInto()
+      MSSQL driver:
+      - now passes all tests
+      FBSQL driver:
+      - several fixes to all parts of the driver (especially to the connection handling,
+      datatype abstraction, limit support and manager class)
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
