@@ -308,8 +308,9 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
                 $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
             }
         }
+        $this->db->freePreparedQuery($prepared_query);
 
-        $result = $this->db->query('SELECT * FROM users');
+        $result = $this->db->limitQuery('SELECT * FROM users', null, 1, 3);
         $numrows = $this->db->numRows($result);
         while ($row = $this->db->fetchInto($result)) {
             if (MDB::isError($row)) {
@@ -318,7 +319,15 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         }
 
         $this->db->freeResult($result);
-        $this->db->freePreparedQuery($prepared_query);
+        $result = $this->db->query('SELECT * FROM users');
+        $numrows = $this->db->numRows($result);
+        while ($row = $this->db->fetchInto($result)) {
+            if (MDB::isError($row)) {
+                $this->assertTrue(false, 'Error fetching a row with limit'.$row->getMessage());
+            }
+        }
+
+        $this->db->freeResult($result);
     }
 }
 
