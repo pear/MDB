@@ -373,9 +373,9 @@ class MDB_mysql extends MDB_Common
     /**
      * all the RDBMS specific things needed close a DB connection
      *
+     * @return boolean
      * @access private
-     *
-     */
+     **/
     function _close()
     {
         if ($this->connection != 0) {
@@ -389,8 +389,8 @@ class MDB_mysql extends MDB_Common
             if (isset($result) && MDB::isError($result)) {
                 return $result;
             }
-            global $databases;
-            $databases[$this->database] = '';
+            global $_MDB_databases;
+            $_MDB_databases[$this->database] = '';
             return TRUE;
         }
         return FALSE;
@@ -810,7 +810,7 @@ class MDB_mysql extends MDB_Common
      * Free the internal resources associated with $result.
      *
      * @param $result result identifier
-     * @return bool TRUE on success, FALSE if $result is invalid
+     * @return boolean TRUE on success, FALSE if $result is invalid
      * @access public
      */
     function freeResult($result)
@@ -1167,17 +1167,16 @@ class MDB_mysql extends MDB_Common
     // {{{ freeClobValue()
 
     /**
-     * free a chracter large object
+     * free a character large object
      *
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $clob
-     * @param string    $value
      * @return MDB_OK
      * @access public
      */
-    function freeClobValue($prepared_query, $clob, &$value)
+    function freeClobValue($prepared_query, $clob)
     {
-        unset($value);
+        unset($this->lobs[$clob]);
         return (MDB_OK);
     }
 
@@ -1221,7 +1220,7 @@ class MDB_mysql extends MDB_Common
      */
     function freeBlobValue($prepared_query, $blob)
     {
-        unset($value);
+        unset($this->lobs[$blob]);
         return (MDB_OK);
     }
 
