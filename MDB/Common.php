@@ -3704,7 +3704,7 @@ class MDB_Common extends PEAR
     {
         $fetchmode = is_numeric($colnum) ? MDB_FETCHMODE_ORDERED : MDB_FETCHMODE_ASSOC;
         $column = array();
-        $row = $this->fetchInto($result, $fetchmode, $rownum);
+        $row = $this->fetchInto($result, $fetchmode);
         if (is_array($row)) {
             if (isset($row[$colnum])) {
                 $column[] = $row[$colnum];
