@@ -173,13 +173,15 @@ but ...
 1.0 Release (sometime in August)
 - More tests with Metabase and PEAR DB wrapper (you)
 
-1.1 Release (Fall 2002)
+1.0.x (as needed)
 - Add more PHPDoc comments (lsmith)
-- Further cleanups in lob.php, parser.php (lsmith)
+- Add ability to snyc two databases (structure and/or content)
 - Add support for more RDBMS (you)
-- Finish reverse enginerring parts of the pgsql driver (pgc)
+- Finish reverse engineering parts of the pgsql driver (pgc)
 
-Some time
+1.1 Release (Fall 2002)
+- finish PHPDoc comments (lsmith)
+- Add support for more RDBMS (you)
 - Interactive Application for Schema Reverse Engineering to better handle
 ambiguities that cannot be resolved automatically
 - SQL Funtion Abstraction (for example SUBSTRING() and SUBSTR())
