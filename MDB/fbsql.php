@@ -285,7 +285,7 @@ class MDB_fbsql extends MDB_Common
             $this->connection = 0;
             $this->affected_rows = -1;
         }
-        if(PEAR::isError(PEAR::loadExtension($this->phptype))) {
+        if(!PEAR::loadExtension($this->phptype)) {
             return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
                 NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
                 'MDB_Error', TRUE));

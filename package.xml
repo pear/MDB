@@ -112,6 +112,7 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
       - fixed bug in common implementation of currID() which would result in a fatal error
       - backported several fixes from HEAD to each of the drivers
       - interbase driver now also supports associative fetching
+      - fixed bug in extension detection
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
