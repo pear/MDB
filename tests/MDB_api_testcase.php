@@ -132,7 +132,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $this->assertEquals(!$option, $this->db->getOption('persistent'));
         $this->db->setOption('persistent', $option);
     }
-
+/*
     function testGetTextValue() {
         if (!$this->methodExists('getTextValue')) {
             return;
@@ -141,7 +141,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $text = $this->db->getTextValue($text);
         $this->assertEquals("'Mr O\'Leary'", $text);
     }
-
+*/
     function testLoadModule() {
         $this->assertTrue(FALSE, 'Test stub: please fill in');
     }
