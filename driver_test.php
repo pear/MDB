@@ -1472,7 +1472,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                             if($success)
                             {
                                 $binary_data_file="binary_data";
-                                if(($file=fopen($binary_data_file,"w")))
+                                if(($file=fopen($binary_data_file,"wb")))
                                 {
                                     for($binary_data="",$code=0;$code<=255;$code++)
                                         $binary_data.=chr($code);
@@ -1589,7 +1589,7 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                                     MetabaseDestroyLOB($blob);
                                                     if($success)
                                                     {
-                                                        if(($file=fopen($binary_data_file,"r")))
+                                                        if(($file=fopen($binary_data_file,"rb")))
                                                         {
                                                             if(GetType($value=fread($file,filesize($binary_data_file)))!="string")
                                                             {
