@@ -229,16 +229,16 @@ class MDB_fbsql extends MDB_Common
         }
         if ($this->connection) {
             if ($auto_commit) {
-                $result = $this->query('COMMIT;');
+                $result = $this->query('COMMIT');
                 if (MDB::isError($result)) {
                     return $result;
                 }
-                $result = $this->query('SET COMMIT TRUE;');
+                $result = $this->query('SET COMMIT TRUE');
                 if (MDB::isError($result)) {
                     return $result;
                 }
             } else {
-                $result = $this->query('SET COMMIT FALSE;');
+                $result = $this->query('SET COMMIT FALSE');
                 if (MDB::isError($result)) {
                     return $result;
                 }
@@ -272,7 +272,7 @@ class MDB_fbsql extends MDB_Common
             return $this->raiseError(MDB_ERROR, '', '',
             'Commit transactions: transaction changes are being auto commited');
         }
-        return ($this->query('COMMIT;'));
+        return ($this->query('COMMIT'));
     }
 
     // }}}
@@ -299,7 +299,7 @@ class MDB_fbsql extends MDB_Common
             return $this->raiseError(MDB_ERROR, '', '',
                 'Rollback transactions: transactions can not be rolled back when changes are auto commited');
         }
-        return ($this->query('ROLLBACK;'));
+        return ($this->query('ROLLBACK'));
     }
 
     // }}}
@@ -431,10 +431,8 @@ class MDB_fbsql extends MDB_Common
             return $result;
         }
         if($limit > 0) {
-            if ($ismanip) {
-                $query .= " LIMIT $limit";
-            } else {
-                $query .= " LIMIT $first,$limit";
+            if (!$ismanip) {
+                eregi_replace("SELECT", "SELECT TOP($first,$limit)", $query)";
             }
         }
 
@@ -444,6 +442,8 @@ class MDB_fbsql extends MDB_Common
             }
         }
 
+		// Add ; to the end of the query. This is required by FrontBase
+		$query .= ";";
         if ($result = fbsql_query($query, $this->connection)) {
             if ($ismanip) {
                 $this->affected_rows = fbsql_affected_rows($this->connection);
@@ -1258,7 +1258,7 @@ class MDB_fbsql extends MDB_Common
     function nextId($seq_name, $ondemand = TRUE)
     {
         $sequence_name = $this->getSequenceName($seq_name);
-        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL);");
+        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
         if ($ondemand && MDB::isError($result) &&
             $result->getCode() == MDB_ERROR_NOSUCHTABLE)
         {
@@ -1275,7 +1275,7 @@ class MDB_fbsql extends MDB_Common
             }
         }
         $value = intval(fbsql_insert_id());
-        $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value;");
+        $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($res)) {
             $this->warnings[] = 'Next ID: could not delete previous sequence table values';
         }
@@ -1296,7 +1296,7 @@ class MDB_fbsql extends MDB_Common
     function currId($seq_name)
     {
         $sequence_name = $this->getSequenceName($seq_name);
-        $result = $this->query("SELECT MAX(sequence) FROM $sequence_name;", 'integer');
+        $result = $this->query("SELECT MAX(sequence) FROM $sequence_name", 'integer');
         if (MDB::isError($result)) {
             return $result;
         }
