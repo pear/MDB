@@ -97,23 +97,12 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.1.2</version>
-    <state>stable</state>
-    <date>2003-04-23</date>
+    <version></version>
+    <state></state>
+    <date></date>
     <notes>
-- This is mainly a bug fix release
-- 4 new driver were added
-    Oracle (still Beta)
-    Frontbase (still Alpha)
-    Interbase/Firebird (still Alpha, due to missing features)
-    Querysim
-- All get*Value() methods (excet get*lobValue() for now) will convert a php NULL into an SQL NULL
-  (resulting in API changes in the NULL handling of the get*Value() and replace() methods)
-- REPLACE emulation now works more similar to how MySQLs REPLACE works
-- Moved code from the Common constructor into MDB::connect()
-- Moved code from the Driver constructor into the drivers connect method
-- PostGreSQL reverse engineering partly implemented
-- Made the MDB_Date classe behave more similar to PEAR::Date (especially in regards to daylight saving time)
+      - added MDB::singleton()
+      - added MDB_Common destructor
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
@@ -189,6 +178,26 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     </deps>
   </release>
   <changelog>
+    <release>
+      <version>1.1.2</version>
+      <state>stable</state>
+      <date>2003-04-23</date>
+      <notes>
+      - This is mainly a bug fix release
+      - 4 new driver were added
+        Oracle (still Beta)
+        Frontbase (still Alpha)
+        Interbase/Firebird (still Alpha, due to missing features)
+        Querysim
+        - All get*Value() methods (excet get*lobValue() for now) will convert a php NULL into an SQL NULL
+          (resulting in API changes in the NULL handling of the get*Value() and replace() methods)
+        - REPLACE emulation now works more similar to how MySQLs REPLACE works
+        - Moved code from the Common constructor into MDB::connect()
+        - Moved code from the Driver constructor into the drivers connect method
+        - PostGreSQL reverse engineering partly implemented
+        - Made the MDB_Date classe behave more similar to PEAR::Date (especially in regards to daylight saving time)
+      </notes>
+    </release>
     <release>
       <version>1.1.1</version>
       <state>stable</state>
