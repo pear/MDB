@@ -748,7 +748,7 @@ class MDB_Common extends PEAR
     function getDSN()
     {
         return $this->phptype.'://'.$this->username.':'
-            .$this->password.'@'.$$this->hostspec
+            .$this->password.'@'.$this->hostspec
             .(isset($this->port) ? (':'.$this->port) : '')
             .'/'.$this->database_name;
     }
