@@ -56,11 +56,12 @@ require_once(dirname(__FILE__).'/MDB.php');
 
 $metabase_databases = &$databases;
 $metabases_lobs = &$lobs;
+$lob_error = '';
 
 function MetabaseSetupDatabase($arguments, &$database)
 {
     _convertArguments($arguments, $dsninfo, $options);
-    $db = MDB::connect($dsninfo, $options);
+    $db =& MDB::connect($dsninfo, $options);
 
     if (MDB::isError($db) || !is_object($db)) {
         $database = 0;
@@ -73,7 +74,7 @@ function MetabaseSetupDatabase($arguments, &$database)
 function MetabaseSetupDatabaseObject($arguments, &$db)
 {
     _convertArguments($arguments, $dsninfo, $options);
-    $db = MDB::connect($dsninfo, $options);
+    $db =& MDB::connect($dsninfo, $options);
 
     if (MDB::isError($db) || !is_object($db)) {
         return $db->getMessage();
@@ -1287,25 +1288,26 @@ function MetabaseCreateLOB(&$arguments, &$lob)
 {
     global $databases;
     $args = $arguments;
-    $args = array_change_key_case($arguments, 0);
-    $args['database'] = $databases[$arguments['Database']];
-    $result = createLob($args, $lob);
-    $arguments = $args;
-    $arguments['Database'] = $args['database']->database;
+    $args["Database"] = $databases[$arguments["Database"]];
+    $result = $databases[$arguments["Database"]]->createLob($args);
+    $args["Database"] = $arguments["Database"];
     if (MDB::isError($result)) {
-        $databases[$database]->setError('CreateLOB', $result->getMessage());
+        global $lob_error;
+        $lob_error = $result->getMessage();
         return(0);
     } else {
+        $lob = $result;
         return(1);
     }
 }
 
 function MetabaseDestroyLOB($lob)
 {
-    $result = destroyLob($lob);
+    global $lobs;
+    $result = $lobs[$lob]->database->destroyLob($lob);
     if (MDB::isError($result)) {
-        global $databases;
-        $databases[$database]->setError('DestroyLOB', $result->getMessage());
+        global $lob_error;
+        $lob_error = $result->getMessage();
         return(0);
     } else {
         return(1);
@@ -1314,10 +1316,11 @@ function MetabaseDestroyLOB($lob)
 
 function MetabaseEndOfLOB($lob)
 {
-    $result = endOfLob($lob);
+    global $lobs;
+    $result = $lobs[$lob]->database->endOfLob($lob);
     if (MDB::isError($result)) {
-        global $databases;
-        $databases[$database]->setError('EndOfLOB', $result->getMessage());
+        global $lob_error;
+        $lob_error = $result->getMessage();
         return(0);
     } else {
         return($result);
@@ -1326,10 +1329,11 @@ function MetabaseEndOfLOB($lob)
 
 function MetabaseReadLOB($lob, &$data, $length)
 {
-    $result = readLob($lob, &$data, $length);
+    global $lobs;
+    $result = $lobs[$lob]->database->readLob($lob, &$data, $length);
     if (MDB::isError($result)) {
-        global $databases;
-        $databases[$database]->setError('ReadLOB', $result->getMessage());
+        global $lob_error;
+        $lob_error = $result->getMessage();
         return(0);
     } else {
         return($result);
@@ -1338,14 +1342,8 @@ function MetabaseReadLOB($lob, &$data, $length)
 
 function MetabaseLOBError($lob)
 {
-    $result = lobError($lob);
-    if (MDB::isError($result)) {
-        global $databases;
-        $databases[$database]->setError('LOBError', $result->getMessage());
-        return(0);
-    } else {
-        return($result);
-    }
+    global $lob_error;
+    return $lob_error;
 }
 
 class Metabase_manager_class
@@ -1566,7 +1564,7 @@ class Metabase_manager_class
 
     function DumpDatabaseChanges(&$changes)
     {
-        $result = $this->MDB_manager_object->debugDatabaseChanges($changes);
+        $result = $this->MDB_manager_object->_debugDatabaseChanges($changes);
         if (MDB::isError($result)) {
             return(0);
         } else {
