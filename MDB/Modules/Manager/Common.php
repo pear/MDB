@@ -270,7 +270,7 @@ class MDB_manager_common extends PEAR
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'no fields specified for table "'.$name.'"');
         }
         $query_fields = '';
-        if (!$this->getFieldDeclarationList($db, $fields, $query_fields)) {
+        if (!$db->getFieldDeclarationList($db, $fields, $query_fields)) {
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, '', '', 'unkown error');
         }
         return ($db->query("CREATE TABLE $name ($query_fields)"));
