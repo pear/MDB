@@ -198,6 +198,16 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $this->assertTrue(!MDB::isError($numcols) && $numcols > 0);
         $this->db->freeResult($result);
     }
+
+    function testSingleton() {
+        $mdb =& MDB::singleton();
+        $this->assertTrue(MDB::isConnection($mdb));
+        
+        // should have a different database name set
+        $mdb =& MDB::singleton($this->dsn, $this->options);
+        
+        $this->assertTrue($mdb->db_index != $this->db->db_index);
+    }
 }
 
 ?>
