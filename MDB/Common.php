@@ -1270,39 +1270,6 @@ class MDB_Common extends PEAR
     }
 
     // }}}
-    // {{{ executeMultiple()
-
-    /**
-     * This function does several execute() calls on the same statement handle.
-     * $params must be an array indexed numerically from 0, one execute call is
-     * done for every 'row' in the array.
-     *
-     * If an error occurs during execute(), executeMultiple() does not execute
-     * the unfinished rows, but rather returns that error.
-     *
-     * @param resource $stmt query handle from prepare()
-     * @param array $types array that contains the types of the columns in
-     *        the result set
-     * @param array $params numeric array containing the
-     *        data to insert into the query
-     * @param array $parAM_types array that contains the types of the values
-     *        defined in $params
-     * @return mixed a result handle or MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see prepare(), execute()
-     */
-    function executeMultiple($prepared_query, $types = null, $params, $param_types = null)
-    {
-        for($i = 0, $j = count($params); $i < $j; $i++) {
-            $result = $this->execute($prepared_query, $types, $params[$i], $param_types);
-            if (MDB::isError($result)) {
-                return $result;
-            }
-        }
-        return MDB_OK;
-    }
-
-    // }}}
     // {{{ setParam()
 
     /**
@@ -1374,7 +1341,7 @@ class MDB_Common extends PEAR
             }
         } else {
             for ($i = 0, $j = count($params); $i < $j; ++$i) {
-                $success = $this->setParam($prepared_query, $i + 1, 'text', $params[$i]);
+                $success = $this->setParam($prepared_query, $i + 1, null, $params[$i]);
                 if (MDB::isError($success)) {
                     return $success;
                 }
