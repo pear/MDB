@@ -1675,12 +1675,16 @@ class MDB_manager extends PEAR
                     }
                 }
                 $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_name] = $definition[0][0];
-                for($field_choice = 0, $field_choices = count($definition[0]);
-                    $field_choice < $field_choices;
-                    $field_choice++)
-                {
-                    $this->warnings[] = "there is ambiguity in the table: $table_name
-                        with the field: $field_name.".serialize($definition[0][$field_choice]);
+                $field_choices = count($definition[0]);
+                if($field_choices > 1) {
+                    $warning = "There are $field_choices type choices in the table $table_name field $field_name (#1 is the default): ";
+                    for($field_choice = 0;
+                        $field_choice < $field_choices;
+                        $field_choice++)
+                    {
+                        $warning .= "choice #".($field_choice+1).": ".serialize($definition[0][$field_choice]);
+                    }
+                    $this->warnings[] = $warning;
                 }
                 if(isset($definition[1])) {
                     $sequence = $definition[1]['definition'];
@@ -1765,7 +1769,7 @@ class MDB_manager extends PEAR
      * @param integer $dump constant that determines what data to dump
      *                      MDB_MANAGER_DUMP_ALL       : the entire db
      *                      MDB_MANAGER_DUMP_STRUCTURE : only the structure of the db
-     *                      MDB_MANAGER_DUMP_CONTANT   : only the content of the db
+     *                      MDB_MANAGER_DUMP_CONTENT   : only the content of the db
      * @return mixed DB_OK on success, or a MDB error object
      * @access public
      */
