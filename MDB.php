@@ -462,6 +462,23 @@ class MDB
     }
     
     // }}}
+    // {{{ isConnection()
+    /**
+     * Tell whether a value is a MDB connection
+     *
+     * @param mixed $value value to test
+     *
+     * @return bool whether $value is a MDB connection
+     *
+     * @access public
+     */
+    function isConnection($value)
+    {
+        return (is_object($value)
+            && is_subclass_of($value, 'mdb_common'));
+    }
+    
+    // }}}
     // {{{ isManip()
     
     /**
