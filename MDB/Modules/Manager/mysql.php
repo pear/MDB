@@ -888,7 +888,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     {
         $sequence_name = $db->getSequenceName($seq_name);
         $res = $db->query("CREATE TABLE $sequence_name
-            (sequence INT DEFAULT 0 NOT NULL AUTO_INCREMENT, PRIMARY KEY (sequence))");
+            (sequence INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (sequence))");
         if (MDB::isError($res)) {
             return($res);
         }
