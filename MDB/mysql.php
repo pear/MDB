@@ -761,15 +761,35 @@ class MDB_mysql extends MDB_Common
      * returns the next free id of a sequence
      *
      * @param string  $seq_name name of the sequence
+     * @param boolean $ondemand when true the seqence is
+     *                          automatic created, if it
+     *                          not exists
      *
      * @return mixed MDB_Error or id
      * @access public
      */
-    function nextId($seq_name)
+    function nextId($seq_name, $ondemand = true)
     {
         $sequence_name = $this->getSequenceName($seq_name);
-        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (null)");
-
+        $this->expectError(MDB_ERROR_NOSUCHTABLE);
+        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
+        $this->popExpect();
+        if ($ondemand && MDB::isError($result) &&
+            $result->getCode() == MDB_ERROR_NOSUCHTABLE)
+        {
+            $this->loadManager();
+            // Since we are create the sequence on demand
+            // we know the first id = 1 so initialize the
+            // sequence at 2
+            $result = $this->manager->createSequence($this, $seq_name, 2);
+            if (MDB::isError($result)) {
+                return $this->raiseError(MDB_ERROR, null, null,
+                    'Next ID: on demand sequence could not be created');
+            } else {
+                // First ID of a newly created sequence is 1
+                return 1;
+            }
+        }
         $value = intval(mysql_insert_id($this->connection));
         $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($res)) {

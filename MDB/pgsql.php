@@ -566,7 +566,7 @@ class MDB_pgsql extends MDB_Common
     {
         $result_value = intval($result);
         if (!isset($this->results[$result_value]['highest_fetched_row'])) {
-            return $this->RaiseError(MDB_ERROR, null, null,
+            return $this->raiseError(MDB_ERROR, null, null,
                 'End of result attempted to check the end of an unknown result');
         }
         return $this->results[$result_value]['highest_fetched_row'] >= $this->numRows($result) - 1;
@@ -646,29 +646,32 @@ class MDB_pgsql extends MDB_Common
      */
     function nextId($seq_name, $ondemand = true)
     {
-        $seqname = $this->getSequenceName($seq_name);
-        $repeat = 0;
-        do {
-            $this->pushErrorHandling(PEAR_ERROR_RETURN);
-            $result = $this->query("SELECT NEXTVAL('$seqname')");
-            $this->popErrorHandling();
-            if ($ondemand && MDB::isError($result) && $result->getCode() == MDB_ERROR_NOSUCHTABLE) {
-                $repeat = 1;
-                $result = $this->createSequence($seq_name);
-                if (MDB::isError($result)) {
-                    return $this->raiseError($result);
-                }
+        if (MDB::isError($connect = $this->connect())) {
+            return $connect;
+        }
+        $sequence_name = $this->getSequenceName($seq_name);
+        $this->expectError(MDB_ERROR_NOSUCHTABLE);
+        $result = $this->query("SELECT NEXTVAL('$seqname')");
+        $this->popExpect();
+        if ($ondemand && MDB::isError($result) &&
+            $result->getCode() == MDB_ERROR_NOSUCHTABLE)
+        {
+            $this->loadManager();
+            // Since we are create the sequence on demand
+            // we know the first id = 1 so initialize the
+            // sequence at 2
+            $result = $this->manager->createSequence($this, $seq_name, 2);
+            if (MDB::isError($result)) {
+                return $this->raiseError(MDB_ERROR, null, null,
+                    'Next ID: on demand sequence could not be created');
             } else {
-                $repeat = 0;
+                // First ID of a newly created sequence is 1
+                return 1;
             }
         }
-        while ($repeat);
-        if (MDB::isError($result)) {
-            return $this->raiseError($result);
-        }
-        $next_id = $this->fetchOne($result, MDB_FETCHMODE_ORDERED);
+        $value = $this->fetchOne($result);
         $this->freeResult($result);
-        return $next_id;
+        return $value;
     }
 
     // }}}

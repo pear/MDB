@@ -569,15 +569,16 @@ class MDB_mssql extends MDB_Common
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
-        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (null)");
+        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
         $this->popExpect();
         if ($ondemand && MDB::isError($result) &&
             $result->getCode() == MDB_ERROR_NOSUCHTABLE)
         {
+            $this->loadManager();
             // Since we are create the sequence on demand
             // we know the first id = 1 so initialize the
             // sequence at 2
-            $result = $this->createSequence($seq_name, 2);
+            $result = $this->manager->createSequence($this, $seq_name, 2);
             if (MDB::isError($result)) {
                 return $this->raiseError(MDB_ERROR, null, null,
                     'Next ID: on demand sequence could not be created');

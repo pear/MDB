@@ -825,15 +825,34 @@ class MDB_oci8 extends MDB_Common
      * @return mixed MDB_Error or id
      * @access public 
      */
-    function nextId($seq_name)
+    function nextId($seq_name, $ondemand = true)
     {
         if (MDB::isError($connect = $this->connect())) {
             return $connect;
         }
         $sequence_name = $this->getSequenceName($seq_name);
+        $this->expectError(MDB_ERROR_NOSUCHTABLE);
         $result = $this->_doQuery("SELECT $sequence_name.nextval FROM DUAL");
-
-        return $this->fetchOne($result);
+        $this->popExpect();
+        if ($ondemand && MDB::isError($result) &&
+            $result->getCode() == MDB_ERROR_NOSUCHTABLE)
+        {
+            $this->loadManager();
+            // Since we are create the sequence on demand
+            // we know the first id = 1 so initialize the
+            // sequence at 2
+            $result = $this->manager->createSequence($this, $seq_name, 2);
+            if (MDB::isError($result)) {
+                return $this->raiseError(MDB_ERROR, null, null,
+                    'Next ID: on demand sequence could not be created');
+            } else {
+                // First ID of a newly created sequence is 1
+                return 1;
+            }
+        }
+        $value = $this->fetchOne($result);
+        $this->freeResult($result);
+        return $value;
     }
 
     // }}}
