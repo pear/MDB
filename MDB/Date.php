@@ -66,7 +66,7 @@ class MDB_Date
      */
     function mdbNow()
     {
-        return(strftime('%Y-%m-%d %H:%M:%S'));
+        return(date('Y-m-d H:i:s'));
     }
 
     // }}}
@@ -80,7 +80,7 @@ class MDB_Date
      */
     function mdbToday()
     {
-        return(strftime('%Y-%m-%d'));
+        return(date('Y-m-d'));
     }
 
     // }}}
@@ -94,7 +94,7 @@ class MDB_Date
      */
     function mdbTime()
     {
-        return(strftime('%H:%M:%S'));
+        return(date('H:i:s'));
     }
 
     // }}}
