@@ -78,6 +78,12 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
       <name>Manuel Lemos</name>
       <email>mlemos@acm.org</email>
     </maintainer>
+    <maintainer>
+      <user>fmk</user>
+      <role>contributor</role>
+      <name>Frank M. Kromann</name>
+      <email>frank@kromann.info</email>
+    </maintainer>
   </maintainers>
   <release>
     <version></version>
@@ -91,6 +97,7 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
       <file role="doc">README</file>
       <dir name="MDB">
         <file role="php">Common.php</file>
+        <file role="php">fbsql.php</file>
         <file role="php">mysql.php</file>
         <file role="php">pgsql.php</file>
         <file role="php">Date.php</file>
@@ -103,6 +110,7 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
           <file role="php">LOB.php</file>
           <dir name="Manager">
             <file role="php">Common.php</file>
+            <file role="php">fbsql.php</file>
             <file role="php">mysql.php</file>
             <file role="php">pgsql.php</file>
           </dir>
