@@ -330,12 +330,12 @@ class MDB_oci8 extends MDB_Common
 
     // }}}
     // {{{ _close()
-
     /**
-     * all the RDBMS specific things needed close a DB connection
-     * 
-     * @access private 
-     */
+     * Close the database connection
+     *
+     * @return boolean
+     * @access private
+     **/
     function _close()
     {
         if ($this->connection != 0) {
@@ -343,7 +343,11 @@ class MDB_oci8 extends MDB_Common
             $this->connection = 0;
             $this->affected_rows = -1;
             $this->uncommitedqueries = 0;
+
+            $GLOBALS['_MDB_databases'][$this->db_index] = '';
+            return true;
         }
+        return false;
     }
 
     // }}}
@@ -561,21 +565,21 @@ class MDB_oci8 extends MDB_Common
     }
 
     // }}}
-    // {{{ query()
-
-   /**
-     * Send a query to the database and return any results
-     * 
-     * @param string $query the SQL query
-     * @param array $types array that contains the types of the columns in
-     *                         the result set
-     * @param mixed $result_mode boolean or string which specifies which class to use
+    // {{{ _executePrepared()
+ 
+    /**
+     * Execute a prepared query statement.
      *
+     * @param int $prepared_query argument is a handle that was returned by
+     *       the function prepare()
+     * @param string $query query to be executed
+     * @param array $types array that contains the types of the columns in the result set
+     * @param mixed $result_mode boolean or string which specifies which class to use
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
-    * @access public
+     * @access private
      */
-    function &query($query, $types = null, $result_mode = null)
-    {
+    function &_executePrepared($prepared_query, $query, $types = null, $result_mode = false)
+     {
         $this->debug($query, 'query');
         $this->last_query = $query;
         $first = $this->first_selected_row;
@@ -585,7 +589,7 @@ class MDB_oci8 extends MDB_Common
             return $connect;
         }
 
-        if (!MDB::isError($result = $this->_doQuery($query, $first, $limit, 0))) {
+        if (!MDB::isError($result = $this->_doQuery($query, $first, $limit, $prepared_query))) {
             if ($types != null) {
                 if (!is_array($types)) {
                     $types = array($types);
@@ -600,6 +604,25 @@ class MDB_oci8 extends MDB_Common
         }
         $error =& $this->oci8RaiseError();
         return $error;
+    }
+
+    // }}}
+    // {{{ query()
+
+    /**
+     * Send a query to the database and return any results
+     * 
+     * @param string $query the SQL query
+     * @param array $types array that contains the types of the columns in the result set
+     * @param mixed $result_mode boolean or string which specifies which class to use
+     *
+     * @return mixed a result handle or MDB_OK on success, a MDB error on failure
+     * @access public
+     */
+    function &query($query, $types = null, $result_mode = null)
+    {
+        $result =& $this->_executePrepared(0, $query, $types, $result_mode);
+        return $result;
     }
 
     // }}}
@@ -625,40 +648,6 @@ class MDB_oci8 extends MDB_Common
             }
         }
         return MDB_OK;
-    }
-
-    // }}}
-    // {{{ _getColumn()
-
-    /**
-     * Get key for a given field with a result set.
-     *
-     * @param resource $result
-     * @param mixed $field integer or string key for the column
-     * @return mixed column from the result handle or a MDB error on failure
-     * @access private
-     */
-    function _getColumn($result, $field)
-    {
-        $result_value = intval($result);
-        if (MDB::isError($names = $this->getColumnNames($result))) {
-            return $names;
-        }
-         if (is_int($field)) {
-            if ($field < 0 || $field >= count($names)) {
-                return $this->raiseError(MDB_ERROR, null, null,
-                    'attempted to fetch an query result column out of range');
-            }
-            $column = $field;
-        } else {
-            $name = strtolower($field);
-            if (!isset($this->results[$result_value]['columns'][$name])) {
-                return $this->raiseError(MDB_ERROR, null, null,
-                    'attempted to fetch an unknown query result column');
-            }
-            $column = $this->results[$result_value]['columns'][$name];
-        }
-        return $column;
     }
 
     // }}}
@@ -701,15 +690,15 @@ class MDB_oci8 extends MDB_Common
      * Count the number of columns returned by the DBMS in a query result.
      * 
      * @param resource $result result identifier
-     * @access public 
      * @return mixed integer value with the number of columns, a MDB error
-     *                        on failure
+     *      on failure
+     * @access public
      */
     function numCols($result)
     {
         if (!isset($this->results[intval($result)])) {
             return $this->raiseError(MDB_ERROR, null, null,
-                'numCols: it was specified an inexisting result set');
+                'numCols: specified an nonexistant result set');
         }
         return @OCINumCols($result);
     }
@@ -748,7 +737,8 @@ class MDB_oci8 extends MDB_Common
                     return true;
                 }
             }
-            if (@OCIFetchInto($result, $this->results[$result_value]['row_buffer'], OCI_ASSOC+OCI_RETURN_NULLS)) {
+            @OCIFetchInto($result, $this->results[$result_value]['row_buffer'], OCI_ASSOC+OCI_RETURN_NULLS);
+            if (is_array($this->results[$result_value]['row_buffer'])) {
                 return false;
             }
             unset($this->results[$result_value]['row_buffer']);
@@ -794,6 +784,10 @@ class MDB_oci8 extends MDB_Common
     {
         if ($this->options['result_buffering']) {
             $result_value = intval($result);
+            if (!isset($this->results[$result_value])) {
+                return $this->raiseError(MDB_ERROR, null, null,
+                    'numRows: attempted to check the end of an unknown result');
+            }
             if (!isset($this->results[$result_value]['rows'])) {
                 if (isset($this->results[$result_value]['limits'])) {
                     $skipfirstrow = $this->_skipLimitOffset($result);
@@ -808,16 +802,15 @@ class MDB_oci8 extends MDB_Common
                 if ($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit) {
                     if (isset($this->results[$result_value]['row_buffer'])) {
                         $this->results[$result_value]['current_row']++;
-                        $row = array_change_key_case($this->results[$result_value]['row_buffer']);
+                        $this->results[$result_value][$this->results[$result_value]['current_row']] =
+                            $this->results[$result_value]['row_buffer'];
                         unset($this->results[$result_value]['row_buffer']);
-                        $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
                     }
                     while (($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit)
-                        && @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS)
+                        && @OCIFetchInto($result, $buffer, OCI_ASSOC+OCI_RETURN_NULLS)
                     ) {
                         $this->results[$result_value]['current_row']++;
-                        $row = array_change_key_case($row);
-                        $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
+                        $this->results[$result_value][$this->results[$result_value]['current_row']] = $buffer;
                     }
                 }
                 $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row'] + 1;
@@ -835,7 +828,7 @@ class MDB_oci8 extends MDB_Common
      * Free the internal resources associated with $result.
      * 
      * @param  $result result identifier
-     * @return bool true on success, false if $result is invalid
+     * @return boolean true on success, false if $result is invalid
      * @access public 
      */
     function freeResult($result)
@@ -906,14 +899,18 @@ class MDB_oci8 extends MDB_Common
      */
     function fetch($result, $rownum = 0, $field = 0)
     {
-        if (MDB::isError($column = $this->_getColumn($result, $field))) {
-            return $column;
+        if (is_numeric($field)) {
+            $row = $this->fetchRow($result, MDB_FETCHMODE_ORDERED, $rownum);
+        } else {
+            $row = $this->fetchRow($result, MDB_FETCHMODE_ASSOC, $rownum);
         }
-        $row = $this->fetchRow($result, MDB_FETCHMODE_ORDERED, $rownum);
         if (MDB::isError($row)) {
             return $row;
         }
-        return $row[$column];
+        if (!isset($row[strtolower($field)])) {
+            null;
+        }
+        return $row[$field];
     }
 
     // }}}
@@ -938,62 +935,53 @@ class MDB_oci8 extends MDB_Common
             if (is_null($rownum)) {
                 $rownum = $this->results[$result_value]['highest_fetched_row'] + 1;
             }
-            if (isset($this->results[$result_value][$rownum])) {
-                $this->results[$result_value]['highest_fetched_row'] =
-                    max($this->results[$result_value]['highest_fetched_row'], $rownum);
-                if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                    $row = $this->results[$result_value][$rownum];
-                } else {
-                    $row = array_values($this->results[$result_value][$rownum]);
-                }
-                if (isset($this->results[$result_value]['types'])) {
-                    $row = $this->datatype->convertResultRow($result, $row);
-                }
-                return $row;
-            }
         }
-        if (isset($this->results[$result_value]['limits'])) {
-            if ($rownum >= $this->results[$result_value]['limits'][1]) {
-                return null;
-            }
-            if (MDB::isError($this->_skipLimitOffset($result))) {
-                return null;
-            }
-        }
-        if ($this->options['result_buffering']) {
-            if (isset($this->results[$result_value]['row_buffer'])) {
-                $this->results[$result_value]['current_row']++;
-                $row = array_change_key_case($this->results[$result_value]['row_buffer']);
-                unset($this->results[$result_value]['row_buffer']);
-                $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
-            }
-            while ($this->results[$result_value]['current_row'] < $rownum) {
-                $this->results[$result_value]['current_row']++;
-                $moredata = @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS);
-                if (!$moredata || !is_array($row)) {
+        if (!isset($this->results[$result_value][$rownum])) {
+            if (isset($this->results[$result_value]['limits'])) {
+                if ($rownum >= $this->results[$result_value]['limits'][1]) {
                     return null;
                 }
-                $row = array_change_key_case($row);
-                $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
+                if (MDB::isError($this->_skipLimitOffset($result))) {
+                    return null;
+                }
             }
-            if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                $row = $this->results[$result_value][$rownum];
+            if ($this->options['result_buffering']) {
+                if (isset($this->results[$result_value]['row_buffer'])) {
+                    $this->results[$result_value]['current_row']++;
+                    $this->results[$result_value][$this->results[$result_value]['current_row']] =
+                        $this->results[$result_value]['row_buffer'];
+                    unset($this->results[$result_value]['row_buffer']);
+                }
+                while ($this->results[$result_value]['current_row'] < $rownum
+                    && @OCIFetchInto($result, $buffer, OCI_ASSOC+OCI_RETURN_NULLS)
+                ) {
+                    $this->results[$result_value]['current_row']++;
+                    $this->results[$result_value][$this->results[$result_value]['current_row']] = $buffer;
+                }
+                $this->results[$result_value]['highest_fetched_row'] =
+                    max($this->results[$result_value]['highest_fetched_row'],
+                        $this->results[$result_value]['current_row']);
             } else {
-                $row = array_values($this->results[$result_value][$rownum]);
+                if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+                    @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS);
+                } else {
+                    @OCIFetchInto($result, $row, OCI_RETURN_NULLS);
+                    $enumarated = true;
+                }
             }
+        }
+        if (isset($this->results[$result_value][$rownum])) {
             $this->results[$result_value]['highest_fetched_row'] =
                 max($this->results[$result_value]['highest_fetched_row'], $rownum);
+            $row = $this->results[$result_value][$rownum];
         } else {
-            if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                $moredata = @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS);
-                if (is_array($row)) {
-                    $row = array_change_key_case($row);
-                }
-            } else {
-                $moredata = @OCIFetchInto($result, $row, OCI_RETURN_NULLS);
-            }
-            if (!$moredata) {
-                return null;
+            return null;
+        }
+        if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+            $row = array_change_key_case($row);
+        } else {
+            if (!isset($enumarated)) {
+                $row = array_values($row);
             }
         }
         if (isset($this->results[$result_value]['types'])) {
