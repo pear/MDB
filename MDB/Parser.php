@@ -364,10 +364,9 @@ class MDB_Parser extends XML_Parser {
             };
             break;
         case 'boolean':
-            if ($field_value !== '0' && $field_value !== '1') {
+            if (!$this->is_boolean($field_value)) {
                 return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
-            $field_value = (int) $field_value;
             break;
         case 'date':
             if (!ereg("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})$", $field_value)) {
@@ -410,9 +409,30 @@ class MDB_Parser extends XML_Parser {
         return FALSE;
     }
 
-    function is_boolean($value)
+    function is_boolean(&$value)
     {
-        if ($value !== '1' && $value !== '0') {
+        if (is_int($value) && ($value == 0 || $value == 1)) {
+            return TRUE;
+        };
+        if ($value === '1' || $value === '0') {
+            $value = (int) $value;
+            return TRUE;
+        };
+        switch($value)
+        {
+        case 'N':
+        case 'n':
+        case 'no':
+        case 'false':
+            $value = 0;
+            break;
+        case 'Y':
+        case 'y':
+        case 'yes':
+        case 'true':
+            $value = 1;
+            break;
+        default:
             return FALSE;
         };
         return TRUE;
