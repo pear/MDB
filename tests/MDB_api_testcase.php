@@ -143,7 +143,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $this->assertEquals("'Mr O\'Leary'", $text);
     }
 
-    function testLoadExtension() {
+    function testLoadModule() {
         $this->assertTrue(FALSE, 'Test stub: please fill in');
     }
 
