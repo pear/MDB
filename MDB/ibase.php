@@ -1402,7 +1402,6 @@ class MDB_ibase extends MDB_Common
         if (MDB::isError($connect = $this->connect())) {
             return $connect;
         }
-        $success = 1;   // REMOVE ME
         $value   = '';  // DEAL WITH ME
         if (!$this->transaction_id = ibase_trans(IBASE_COMMITTED, $this->connection)) {
             return($this->raiseError(MDB_ERROR, '', '', '_getLobValue: Could not start a new transaction: '.ibase_errmsg()));
@@ -1411,12 +1410,10 @@ class MDB_ibase extends MDB_Common
         if (($lo = ibase_blob_create($this->auto_commit ? $this->connection : $this->transaction_id))) {
             while (!$this->endOfLob($lob)) {
                 if (MDB::isError($result = $this->readLob($lob, $data, $this->options['lob_buffer_length']))) {
-                    $success = 0;
                     break;
                 }
                 if (ibase_blob_add($lo, $data) === false) {
                     $result = $this->raiseError(MDB_ERROR, NULL, NULL, '_getLobValue - Could not add data to a large object: ' . ibase_errmsg());
-                    $success = 0;
                     break;
                 }
             }
