@@ -25,7 +25,7 @@
     // a valid connection.
     //echo Var_Dump::display($db).'<br>';
     if (DB::isError($db)) {
-        die ($db->getMessage());
+        die (__LINE__.$db->getMessage());
     }
 
     // happy query

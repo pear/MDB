@@ -312,7 +312,7 @@ class MDB_LOB_Output_File extends MDB_LOB
         } while($length == 0 && !$this->database->endOfLob($this->input_lob));
         return($written_full);
     }
-};
-
 }
+
+};
 ?>
