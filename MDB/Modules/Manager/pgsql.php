@@ -328,13 +328,15 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             WHERE c.relowner = u.usesysid AND c.relkind = \'r\'
             AND not exists (select 1 from pg_views where viewname = c.relname)
             AND c.relname !~ \'^pg_\'
+            AND c.relname !~ \'^pga_\'
             UNION
             SELECT c.relname as "Name"
             FROM pg_class c
             WHERE c.relkind = \'r\'
             AND not exists (select 1 from pg_views where viewname = c.relname)
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
-            AND c.relname !~ \'^pg_\'';
+            AND c.relname !~ \'^pg_\'
+            AND c.relname !~ \'^pga_\'';
         return($db->queryCol($sql));
     }
 
@@ -351,7 +353,6 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      */
     function listTableFields(&$db, $table)
     {
-        Var_Dump::display('in listTableFields');
         $result = $db->query("SELECT * FROM $table");
         if(MDB::isError($result)) {
             return($result);
@@ -363,7 +364,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
         return(array_flip($columns));
     }
 
-    // }}}  
+    // }}} 
     // {{{ getTableFieldDefinition()
 
     /**
@@ -380,17 +381,18 @@ class MDB_Manager_pgsql extends MDB_Manager_common
         $result = $db->query("select 
                     attnum,attname,typname,attlen,attnotnull,
                     atttypmod,usename,usesysid,pg_class.oid,relpages,
-                    reltuples,relhaspkey,relhasrules,relacl,adsrc 
-                    from pg_class,pg_user,pg_attribute,pg_type,pg_attrdef
+                    reltuples,relhaspkey,relhasrules,relacl,adsrc
+                    from pg_class,pg_user,pg_type,
+                         pg_attribute left outer join pg_attrdef on
+			             pg_attribute.attrelid=pg_attrdef.adrelid 
                     where (pg_class.relname='$table') 
                         and (pg_class.oid=pg_attribute.attrelid) 
                         and (pg_class.relowner=pg_user.usesysid) 
-                        and (pg_attribute.atttypid=pg_type.oid) 
-                        and (pg_attribute.attrelid=pg_attrdef.adrelid)
+                        and (pg_attribute.atttypid=pg_type.oid)
                         and attnum > 0
                         and attname = '$field_name'
                         order by attnum
-                         ");
+                        ");
         if(MDB::isError($result)) {
             return($result);
         }
@@ -458,6 +460,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             case 'numeric':
                 $type[0] = 'decimal';
                 break;
+            case 'oid':
             case 'tinyblob':
             case 'mediumblob':
             case 'longblob':
@@ -569,16 +572,33 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      * @access public
      */
     function listTableIndexes(&$db, $table) {
-        return $db->queryAll("select relname 
+        $result = $db->query("select relname 
                                 from pg_class where oid in
                                   (select indexrelid from pg_index, pg_class 
                                    where (pg_class.relname='$table') 
                                    and (pg_class.oid=pg_index.indrelid))");
-
+        return $db->fetchCol($result);
     }
 
     // }}}
     // {{{ getTableIndexDefinition()
+    /**
+     * get the stucture of an index into an array
+     *
+     * @param object    $db        database object that is extended by this class
+     * @param string    $table      name of table that should be used in method
+     * @param string    $index_name name of index that should be used in method
+     * @return mixed data array on success, a MDB error on failure
+     * @access public
+     */
+    function getTableIndexDefinition(&$db, $table, $index_name)
+    {
+        $row = $db->queryAll("select * from pg_index, pg_class 
+                                where (pg_class.relname='$index_name') 
+                                and (pg_class.oid=pg_index.indexrelid)");
+        $columns = $this->listTableFields($db, $table);
+    }
+
 
     // }}}
     // {{{ createSequence()
