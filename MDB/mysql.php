@@ -368,7 +368,7 @@ class MDB_mysql extends MDB_Common
             }
         }
         if (isset($this->supported['Transactions']) && !$this->auto_commit) {
-            if (@mysql_query('SET AUTOCOMMIT = 0', $this->connection)) {
+            if (!@mysql_query('SET AUTOCOMMIT = 0', $this->connection)) {
                 @mysql_close($this->connection);
                 $this->connection = 0;
                 $this->affected_rows = -1;
