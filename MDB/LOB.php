@@ -98,9 +98,9 @@ class MDB_LOB_Result extends MDB_LOB
     function create(&$arguments)
     {
         if(!isset($arguments['ResultLOB'])) {
-        return PEAR::raiseError(NULL, MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
-            'it was not specified a result Lob identifier',
-            'MDB_Error', TRUE);
+            return PEAR::raiseError(NULL, MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
+                'it was not specified a result Lob identifier',
+                'MDB_Error', TRUE);
         }
         $this->result_lob = $arguments['ResultLOB'];
         return (MDB_OK);
