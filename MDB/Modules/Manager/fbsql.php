@@ -820,7 +820,6 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
                 $found[$indexes_all[$index]] = 1;
             }
         }
-        $db->freeResult($result);
         return($indexes);
     }
 

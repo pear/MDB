@@ -821,7 +821,6 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                 $found[$indexes_all[$index]] = 1;
             }
         }
-        $db->freeResult($result);
         return($indexes);
     }
 
