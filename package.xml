@@ -95,9 +95,9 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>1.1.4RC4</version>
+    <version>1.1.4RC5</version>
     <state>devel</state>
-    <date>2003-11-12</date>
+    <date></date>
     <notes>
       - added MDB::isConnection()
       - minor improvements to the test suite
@@ -118,7 +118,8 @@
       - added a test for MDB::singleton()
       - fixed issues with PHP5
       - added notes at the top of the driver regarding driver specfic issues
-      - fixed typos in the mssql driver
+      - mssql driver now passes all tests
+      - fixed bug in test suite (user_id was incorrectly set to type text instead of integer)
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
