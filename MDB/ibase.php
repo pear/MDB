@@ -783,7 +783,7 @@ class MDB_ibase extends MDB_Common
         ) {
             if (isset($this->limits[$result_value])) {
                 //upper limit
-                if ($rownum > $this->limits[$result_value][1]) {
+                if ($rownum >= $this->limits[$result_value][1]) {
                     // are all previous rows fetched so that we can set the end
                     // of the result set and not have any "holes" in between?
                     if ($rownum == 0
@@ -791,8 +791,8 @@ class MDB_ibase extends MDB_Common
                             && count($this->results[$result_value]) == $rownum)
                     ) {
                         $this->highest_fetched_row[$result_value] = $rownum;
-                        $this->current_row[$result_value] = $rownum;
-                        $this->results[$result_value][$rownum] = false;
+                        $this->current_row[$result_value]         = $rownum;
+                        $this->results[$result_value][$rownum]    = false;
                     }
                     if ($this->options['autofree']) {
                         $this->freeResult($result);
@@ -802,7 +802,7 @@ class MDB_ibase extends MDB_Common
                 // offset skipping
                 if (MDB::isError($this->_skipLimitOffset($result))) {
                     $this->current_row[$result_value] = 0;
-                    $this->results[$result_value] = array(false);
+                    $this->results[$result_value]     = array(false);
                     if ($this->options['autofree']) {
                         $this->freeResult($result);
                     }
