@@ -237,10 +237,8 @@ class MDB_manager extends PEAR
                                                 'Data' => $field
                                             );
                                             $lob = count($lobs);
-                                            if (!createLOB($lob_definition, $lobs[$lob]))
+                                            if (MDB::isError($result = $this->database->reateLOB($lob_definition, $lobs[$lob])))
                                             {
-                                                $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL,
-                                                    $lob_definition['Error'], 'MDB_Error', TRUE);
                                                 break;
                                             }
                                             $result = $this->database->setParamCLOB($prepared_query,
@@ -253,9 +251,7 @@ class MDB_manager extends PEAR
                                                 'Data' => $field
                                             );
                                             $lob = count($lobs);
-                                            if (!createLOB($lob_definition, $lobs[$lob])) {
-                                                $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL,
-                                                    $lob_definition['Error'], 'MDB_Error', TRUE);
+                                            if (MDB::isError($result = $this->database->createLOB($lob_definition, $lobs[$lob]))) {
                                                 break;
                                             }
                                             $result = $this->database->setParamBLOB($prepared_query,
@@ -299,7 +295,7 @@ class MDB_manager extends PEAR
                                 $result = $this->database->executeQuery($prepared_query);
                             }
                             for($lob = 0; $lob < count($lobs); $lob++) {
-                                destroyLOB($lobs[$lob]);
+                                $this->database->destroyLOB($lobs[$lob]);
                             }
                             $this->database->freePreparedQuery($prepared_query);
                         }
@@ -1035,7 +1031,7 @@ class MDB_manager extends PEAR
                         }
                     }
 
-                    $result = $this->createSequence($sequence_name,
+                    $result = $this->_createSequence($sequence_name,
                         $this->database_definition['SEQUENCES'][$sequence_name], $created_on_table);
                     if (!MDB::isError($result)) {
                         $alterations++;
@@ -1059,7 +1055,7 @@ class MDB_manager extends PEAR
                             }
                             if (!MDB::isError($result = $this->_dropSequence(
                                     $this->database_definition['SEQUENCES'][$sequence_name]['was']), '')
-                                && !MDB::isError($result = $this->createSequence(
+                                && !MDB::isError($result = $this->_createSequence(
                                     $sequence_name, $this->database_definition['SEQUENCES'][$sequence_name], $created_on_table), ''))
                             {
                                 $alterations++;
@@ -1261,7 +1257,7 @@ class MDB_manager extends PEAR
     }
 
     // }}}
-    // {{{ debugDatabaseChanges()
+    // {{{ _debugDatabaseChanges()
     /**
      * Dump the changes between two database definitions.
      *
@@ -1273,7 +1269,7 @@ class MDB_manager extends PEAR
      *
      * @access private
      */
-    function debugDatabaseChanges($changes)
+    function _debugDatabaseChanges($changes)
     {
         if (isset($changes['TABLES'])) {
             foreach($changes['TABLES'] as $table_name => $table)
@@ -1523,17 +1519,17 @@ class MDB_manager extends PEAR
      * names and values that define dump options.
      *                 array (
      *                     'Definition'    =>    Boolean
-     *                         TRUE:     dump currently parsed definition
+     *                         TRUE   :  dump currently parsed definition
      *                         default:  dump currently connected database
      *                     'Output_Mode'    =>    String
-     *                         'file':     dump into a file
-     *                         default:    dump using a function
+     *                         'file' :   dump into a file
+     *                         default:   dump using a function
      *                     'Output'        =>    String
      *                         depending on the 'Output_Mode'
      *                                  name of the file
      *                                  name of the function
      *                     'EndOfLine'        =>    String
-     *                         End of Line delimiter that should be used
+     *                         end of line delimiter that should be used
      *                         default: "\n"
      *                 );
      *
@@ -1548,7 +1544,7 @@ class MDB_manager extends PEAR
      */
     function dumpDatabase($arguments, $dump = MDB_MANAGER_DUMP_ALL)
     {
-        if(isset($arguments['Definition'])) {
+        if(isset($arguments['Definition']) && $arguments['Definition']) {
             $dump_definition = TRUE;
         } else {
             if(!$this->database) {
@@ -1559,13 +1555,13 @@ class MDB_manager extends PEAR
             $this->_getDefinitionFromDatabase();
             $dump_definition = FALSE;
         }
-        $output = false;
+        $output = FALSE;
         if (isset($arguments['Output'])) {
             if (isset($arguments['Output_Mode']) && $arguments['Output_Mode'] == 'file') {
                 $fp = fopen($arguments['Output'], 'w');
             } elseif (function_exists($arguments['Output'])) {
                 $output = $arguments['Output'];
-               } else {
+            } else {
                 return PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL,
                         'no valid output function specified', 'MDB_Error', TRUE);
             }
@@ -1577,7 +1573,7 @@ class MDB_manager extends PEAR
 
         $sequences = array();
         if (isset($this->database_definition['SEQUENCES']) 
-	    && is_array($this->database_definition['SEQUENCES'])) 
+            && is_array($this->database_definition['SEQUENCES'])) 
         {
             foreach($this->database_definition['SEQUENCES'] as $sequence_name => $sequence) {
                 if (isset($sequence['on'])) {
@@ -1850,7 +1846,7 @@ class MDB_manager extends PEAR
 
                 $copy = 1;
                 if($this->debug) {
-                    $result = $this->debugDatabaseChanges($changes);
+                    $result = $this->_debugDatabaseChanges($changes);
                     if (MDB::isError($result)) {
                         return $result;
                     }
