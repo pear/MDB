@@ -84,7 +84,8 @@ class MDB_Manager_Common
     function getFieldDeclaration(&$db, $field_name, $field)
     {
         if (!strcmp($field_name, '')) {
-            return $db->raiseError(MDB_ERROR_NOSUCHFIELD, '', '', "Get field: it was not specified a valid field name (\"$field_name\")");
+            return $db->raiseError(MDB_ERROR_NOSUCHFIELD, '', '',
+                "Get field: it was not specified a valid field name (\"$field_name\")");
         }
         switch($field['type']) {
             case 'integer':
@@ -118,7 +119,8 @@ class MDB_Manager_Common
                 return $db->getDecimalDeclaration($field_name, $field);
                 break;
             default:
-                return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'Get field: type "'.$field['type'].'" is not yet supported');
+                return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+                    'Get field: type "'.$field['type'].'" is not yet supported');
                 break;
         }
     }
@@ -201,7 +203,8 @@ class MDB_Manager_Common
      */
     function createDatabase(&$db, $database)
     {
-        return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'Create database: database creation is not supported');
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+            'Create database: database creation is not supported');
     }
 
     // }}}
@@ -217,7 +220,8 @@ class MDB_Manager_Common
      */
     function dropDatabase(&$db, $database)
     {
-        return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'Drop database: database dropping is not supported');
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '',
+            'Drop database: database dropping is not supported');
     }
 
     // }}}
@@ -547,7 +551,9 @@ class MDB_Manager_Common
             $query .= ' UNIQUE';
         }
         $query .= " INDEX $name ON $table (";
-        for($field = 0,reset($definition['FIELDS']); $field<count($definition['FIELDS']); $field++,next($definition['FIELDS'])) {
+        for($field = 0,reset($definition['FIELDS']);
+            $field<count($definition['FIELDS']); $field++,next($definition['FIELDS']))
+        {
             if ($field>0) {
                 $query.= ', ';
             }
