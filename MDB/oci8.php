@@ -182,7 +182,11 @@ class MDB_oci8 extends MDB_Common {
     function oci8RaiseError($errno = NULL, $message = NULL)
     {
         if ($errno === NULL) {
-            $error = @OCIError($this->connection);
+            if ($this->connection) {
+                $error = @OCIError($this->connection);
+            } else {
+                $error = @OCIError();
+            }
             return($this->raiseError($this->errorCode($error['code']),
                 NULL, NULL, $message, $error['message']));
         } elseif (is_resource($errno)) {
