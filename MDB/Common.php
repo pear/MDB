@@ -252,7 +252,7 @@ class MDB_Common extends PEAR
     * @var integer
     * @access private
     */
-    var $fetchmode = DB_FETCHMODE_ORDERED;
+    var $fetchmode = MDB_FETCHMODE_ORDERED;
 
     /**
     * @var integer
