@@ -215,11 +215,16 @@ class MDB
 
         if (!class_exists($classname)) {
             return PEAR::raiseError(NULL, DB_ERROR_NOT_FOUND,
-                                    NULL, NULL, NULL, 'DB_Error', TRUE);
+                                    NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
 
         @$db =& new $classname;
-
+        
+        global $databases;
+        $database = count($databases)+1;
+        $databases[$database] = &$db;
+        $db->database = $database;
+        
         return $db;
     }
 
@@ -343,6 +348,12 @@ class MDB
                 NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
         $db = new $class_name;
+        
+        global $databases;
+        $database = count($databases)+1;
+        $databases[$database] = &$db;
+        $db->database = $database;
+        
         $db->include_path = $include_path;
         if (isset($dsninfo["hostspec"])) {
             $db->host = $dsninfo["hostspec"];
