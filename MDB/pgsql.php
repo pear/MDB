@@ -64,7 +64,7 @@ class MDB_pgsql extends MDB_common
     var $escape_quotes = "\\";
     var $decimal_factor = 1.0;
 
-    var $highest_fetchd_row = array();
+    var $highest_fetched_row = array();
     var $columns = array();
 
     // }}}
@@ -373,8 +373,8 @@ class MDB_pgsql extends MDB_common
             $this->connection = 0;
             $this->affected_rows = -1;
             
-            global $databases;
-            $databases[$this->database] = '';
+            global $_MDB_databases;
+            $_MDB_databases[$this->database] = '';
             return TRUE;
         }
         return FALSE;
@@ -499,6 +499,56 @@ class MDB_pgsql extends MDB_common
     }
 
     // }}}
+    // {{{ getColumnNames()
+
+    /**
+     * Retrieve the names of columns returned by the DBMS in a query result.
+     *
+     * @param resource $result  result identifier
+     * @return mixed associative array variable
+     *      that holds the names of columns. The indexes of the array are
+     *      the column names mapped to lower case and the values are the
+     *      respective numbers of the columns starting from 0. Some DBMS may
+     *      not return any columns when the result set does not contain any
+     *      rows.
+     *     a MDB error on failure
+     * @access public
+     */
+    function getColumnNames($result)
+    {
+        if (!isset($this->highest_fetched_row[$result])) {
+            return ($this->raiseError(MDB_ERROR, NULL, NULL, 'Get Column Names: specified an nonexistant result set'));
+        }
+        if (!isset($this->columns[$result])) {
+            $this->columns[$result] = array();
+            $columns = pg_numfields($result);
+            for($column = 0; $column < $columns; $column++) {
+                $this->columns[$result][strtolower(pg_fieldname($result, $column))] = $column;
+            }
+        }
+        return ($this->columns[$result]);
+    }
+
+    // }}}
+    // {{{ numCols()
+
+    /**
+     * Count the number of columns returned by the DBMS in a query result.
+     *
+     * @param resource $result result identifier
+     * @return mixed integer value with the number of columns, a MDB error
+     *      on failure
+     * @access public
+     */
+    function numCols($result)
+    {
+        if (!isset($this->highest_fetched_row[$result])) {
+            return $this->raiseError(MDB_ERROR, NULL, NULL, 'numCols: specified an nonexistant result set');
+        }
+        return (pg_numfields($result));
+    }
+
+    // }}}
     // {{{ endOfResult()
 
     /**
@@ -514,6 +564,28 @@ class MDB_pgsql extends MDB_common
             return $this->RaiseError(MDB_ERROR, '', '', 'End of result attempted to check the end of an unknown result');
         }
         return ($this->highest_fetched_row[$result] >= $this->numRows($result) - 1);
+    }
+
+    // }}}
+    // {{{ fetch()
+
+    /**
+     * fetch value from a result set
+     *
+     * @param resource $result result identifier
+     * @param int $row number of the row where the data can be found
+     * @param int $field field number where the data can be found
+     * @return mixed string on success, a MDB error on failure
+     * @access public
+     */
+    function fetch($result, $row, $field)
+    {
+        $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
+        $res = @pg_result($result, $row, $field);
+        if ($res === FALSE && $res != NULL) {
+            return $this->pgsqlRaiseError();
+        }
+        return ($res);
     }
 
     // }}}
@@ -657,6 +729,37 @@ class MDB_pgsql extends MDB_common
     function fetchBlob($result, $row, $field)
     {
         return ($this->fetchLob($result, $row, $field));
+    }
+
+    // }}}
+    // {{{ convertResult()
+
+    /**
+     * convert a value to a RDBMS indepdenant MDB type
+     *
+     * @param mixed $value value to be converted
+     * @param int $type constant that specifies which type to convert to
+     * @return mixed converted value or a MDB error on failure
+     * @access public
+     */
+    function convertResult($value, $type)
+    {
+        switch ($type) {
+            case MDB_TYPE_BOOLEAN:
+                return (strcmp($value, 'Y') ? 0 : 1);
+            case MDB_TYPE_DECIMAL:
+                return (sprintf('%.'.$this->decimal_places.'f',doubleval($value)/$this->decimal_factor));
+            case MDB_TYPE_FLOAT:
+                return doubleval($value);
+            case MDB_TYPE_DATE:
+                return ($value);
+            case MDB_TYPE_TIME:
+                return ($value);
+            case MDB_TYPE_TIMESTAMP:
+                return substr($value, 0, strlen('YYYY-MM-DD HH:MM:SS'));
+            default:
+                return ($this->_baseConvertResult($value, $type));
+        }
     }
 
     // }}}
@@ -997,7 +1100,7 @@ class MDB_pgsql extends MDB_common
      * free a character large object
      *
      * @param resource  $prepared_query query handle from prepare()
-     * @param string    $blob
+     * @param string    $clob
      * @return MDB_OK
      * @access public
      */
@@ -1078,87 +1181,6 @@ class MDB_pgsql extends MDB_common
     }
 
     // }}}
-    // {{{ getColumnNames()
-
-    /**
-     * Retrieve the names of columns returned by the DBMS in a query result.
-     *
-     * @param resource $result  result identifier
-     * @return mixed associative array variable
-     *      that holds the names of columns. The indexes of the array are
-     *      the column names mapped to lower case and the values are the
-     *      respective numbers of the columns starting from 0. Some DBMS may
-     *      not return any columns when the result set does not contain any
-     *      rows.
-     *     a MDB error on failure
-     * @access public
-     */
-    function getColumnNames($result)
-    {
-        if (!isset($this->highest_fetched_row[$result])) {
-            return ($this->raiseError(MDB_ERROR, NULL, NULL, 'Get Column Names: specified an nonexistant result set'));
-        }
-        if (!isset($this->columns[$result])) {
-            $this->columns[$result] = array();
-            $columns = pg_numfields($result);
-            for($column = 0; $column < $columns; $column++) {
-                $this->columns[$result][strtolower(pg_fieldname($result, $column))] = $column;
-            }
-        }
-        return ($this->columns[$result]);
-    }
-
-    // }}}
-    // {{{ numCols()
-
-    /**
-     * Count the number of columns returned by the DBMS in a query result.
-     *
-     * @param resource $result result identifier
-     * @return mixed integer value with the number of columns, a MDB error
-     *      on failure
-     * @access public
-     */
-    function numCols($result)
-    {
-        if (!isset($this->highest_fetched_row[$result])) {
-            return $this->raiseError(MDB_ERROR, NULL, NULL, 'numCols: specified an nonexistant result set');
-        }
-        return (pg_numfields($result));
-    }
-
-    // }}}
-    // {{{ convertResult()
-
-    /**
-     * convert a value to a RDBMS indepdenant MDB type
-     *
-     * @param mixed $value value to be converted
-     * @param int $type constant that specifies which type to convert to
-     * @return mixed converted value or a MDB error on failure
-     * @access public
-     */
-    function convertResult($value, $type)
-    {
-        switch ($type) {
-            case MDB_TYPE_BOOLEAN:
-                return (strcmp($value, 'Y') ? 0 : 1);
-            case MDB_TYPE_DECIMAL:
-                return (sprintf('%.'.$this->decimal_places.'f',doubleval($value)/$this->decimal_factor));
-            case MDB_TYPE_FLOAT:
-                return doubleval($value);
-            case MDB_TYPE_DATE:
-                return ($value);
-            case MDB_TYPE_TIME:
-                return ($value);
-            case MDB_TYPE_TIMESTAMP:
-                return substr($value, 0, strlen('YYYY-MM-DD HH:MM:SS'));
-            default:
-                return ($this->_baseConvertResult($value, $type));
-        }
-    }
-
-    // }}}
     // {{{ nextId()
 
     /**
@@ -1220,26 +1242,52 @@ class MDB_pgsql extends MDB_common
         return ($result);
     }
 
+
     // }}}
-    // {{{ fetch()
+    // {{{ fetchInto()
 
     /**
-     * fetch value from a result set
+     * Fetch a row and insert the data into an existing array.
      *
-     * @param resource $result result identifier
-     * @param int $row number of the row where the data can be found
-     * @param int $field field number where the data can be found
-     * @return mixed string on success, a MDB error on failure
+     * @param resource  $result     result identifier
+     * @param int       $fetchmode  how the array data should be indexed
+     * @param int       $rownum     the row number to fetch
+     * @return int data array on success, a MDB error on failure
      * @access public
      */
-    function fetch($result, $row, $field)
+    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
-        $res = @pg_result($result, $row, $field);
-        if ($res === FALSE && $res != NULL) {
-            return $this->pgsqlRaiseError();
+        if ($rownum == NULL) {
+            ++$this->highest_fetched_row[$result];
+            $rownum = $this->highest_fetched_row[$result];
+        } else {
+            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
         }
-        return ($res);
+        if ($rownum + 1 > $this->numRows($result)) {
+            return NULL;
+        }
+        if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
+            $fetchmode = $this->fetchmode;
+        }
+        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+            $array = @pg_fetch_array($result, $rownum, PGSQL_ASSOC);
+        } else {
+            $array = @pg_fetch_row($result, $rownum);
+        }
+        if (!$array) {
+            $errno = @pg_errormessage($this->connection);
+            if (!$errno) {
+                if ($this->options['autofree']) {
+                    $this->freeResult($result);
+                }
+                return NULL;
+            }
+            return $this->pgsqlRaiseError($errno);
+        }
+        if (isset($this->result_types[$result])) {
+            $array = $this->convertResultRow($result, $array);
+        }
+        return ($array);
     }
 
     // }}}
@@ -1359,53 +1407,6 @@ class MDB_pgsql extends MDB_common
             @pg_freeresult($id);
         }
         return $res;
-    }
-
-    // }}}
-    // {{{ fetchInto()
-
-    /**
-     * Fetch a row and insert the data into an existing array.
-     *
-     * @param resource  $result     result identifier
-     * @param int       $fetchmode  how the array data should be indexed
-     * @param int       $rownum     the row number to fetch
-     * @return int data array on success, a MDB error on failure
-     * @access public
-     */
-    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
-    {
-        if ($rownum == NULL) {
-            ++$this->highest_fetched_row[$result];
-            $rownum = $this->highest_fetched_row[$result];
-        } else {
-            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
-        }
-        if ($rownum + 1 > $this->numRows($result)) {
-            return NULL;
-        }
-        if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
-            $fetchmode = $this->fetchmode;
-        }
-        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-            $array = @pg_fetch_array($result, $rownum, PGSQL_ASSOC);
-        } else {
-            $array = @pg_fetch_row($result, $rownum);
-        }
-        if (!$array) {
-            $errno = @pg_errormessage($this->connection);
-            if (!$errno) {
-                if ($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
-                return NULL;
-            }
-            return $this->pgsqlRaiseError($errno);
-        }
-        if (isset($this->result_types[$result])) {
-            $array = $this->convertResultRow($result, $array);
-        }
-        return ($array);
     }
 
     // }}}
