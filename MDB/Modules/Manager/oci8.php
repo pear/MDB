@@ -79,13 +79,13 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
     function createDatabase($name)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $tablespace = $db->getOption('DefaultTablespace');
+        $tablespace = $db->options['default_tablespace'];
         if (MDB::isError($tablespace)) {
             $tablespace = '';
         } else {
             $tablespace = ' DEFAULT TABLESPACE '.$tablespace;
         }
-        if (MDB::isError($password = $db->getOption('password'))) {
+        if (MDB::isError($password = $db->dsn['password'])) {
             $password = $name;
         }
         $result = $db->standaloneQuery('CREATE USER '.$name.' IDENTIFIED BY '.$password.$tablespace);
