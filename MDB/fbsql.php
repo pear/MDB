@@ -184,7 +184,7 @@ class MDB_fbsql extends MDB_Common
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                 'Auto-commit transactions: transactions are not in use');
         }
-        if (((!$this->auto_commit) == (!$auto_commit))) {
+        if (!$this->auto_commit == !$auto_commit) {
             return MDB_OK;
         }
         if ($this->connection) {

@@ -182,7 +182,7 @@ class MDB_oci8 extends MDB_Common
     function autoCommit($auto_commit)
     {
         $this->debug('autoCommit', ($auto_commit ? "On" : "Off"));
-        if (((!$this->auto_commit) == (!$auto_commit))) {
+        if (!$this->auto_commit == !$auto_commit) {
             return MDB_OK;
         }
         if ($this->connection && $auto_commit && MDB::isError($commit = $this->commit())) {
@@ -877,8 +877,8 @@ class MDB_oci8 extends MDB_Common
                 unset($this->results[$result_value]['row_buffer']);
             }
             for(;$this->results[$result_value]['current_row'] < $rownum;
-                $this->results[$result_value]['current_row']++)
-            {
+                $this->results[$result_value]['current_row']++
+            ) {
                 if ($fetchmode & MDB_FETCHMODE_ASSOC) {
                     $moredata = @OCIFetchInto($result, $this->results[$result_value][$this->results[$result_value]['current_row']+1], OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS);
                 } else {

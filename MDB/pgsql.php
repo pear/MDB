@@ -190,7 +190,7 @@ class MDB_pgsql extends MDB_Common
     function autoCommit($auto_commit)
     {
         $this->debug('autoCommit', ($auto_commit ? "On" : "Off"));
-        if (((!$this->auto_commit) == (!$auto_commit))) {
+        if (!$this->auto_commit == !$auto_commit) {
             return MDB_OK;
         }
         if ($this->connection) {
