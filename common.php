@@ -2436,21 +2436,23 @@ class MDB_common extends PEAR
     function fetchLob($result, $row, $field)
     {
         $lob = count($this->lobs) + 1;
-        $this->lobs[$lob] = array('Result' => $result,
+        $this->lobs[$lob] = array(
+            'Result' => $result,
             'Row' => $row,
             'Field' => $field,
             'Position' => 0
-            );
-        $character_lob = array('Database' => $this,
+        );
+        $dst_lob = array(
+            'Database' => $this,
             'Error' => '',
             'Type' => 'resultlob',
             'ResultLOB' => $lob
-            );
-        if (MDB::isError($clob = $this->createLob($character_lob))) {
+        );
+        if (MDB::isError($lob = $this->createLob($dst_lob))) {
             return $this->raiseError(MDB_ERROR, '', '',
-                'Fetch LOB result: ' . $character_lob['Error']);
+                'Fetch LOB result: ' . $dst_lob['Error']);
         }
-        return ($clob);
+        return ($lob);
     }
 
     // }}}
