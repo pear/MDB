@@ -722,16 +722,12 @@ class MDB_mysql extends MDB_Common
      */
     function freeResult($result)
     {
-        $result_value = intval($result);
-        if (isset($this->results[$result_value])) {
-            unset($this->results[$result_value]);
+        if (!is_resource($result)) {
+            return $this->raiseError(MDB_ERROR, null, null,
+                'freeResult: attemped to free an unknown query result');
         }
-        if (is_resource($result)) {
-            return @mysql_free_result($result);
-        }
-
-        return $this->raiseError(MDB_ERROR, null, null,
-            'freeResult: attemped to free an unknown query result');
+        unset($this->results[intval($result)]);
+        return @mysql_free_result($result);
     }
 
     // }}}
@@ -771,8 +767,8 @@ class MDB_mysql extends MDB_Common
             }
             return $result;
         }
-        $result = $this->query("SELECT last_insert_id()", 'integer', false);
-        $value = $this->fetchOne($result);
+        $result = $this->query('SELECT LAST_INSERT_ID()', 'integer', false);
+        $value = $this->fetch($result);
         $this->freeResult($result);
         $result = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($result)) {
@@ -799,7 +795,7 @@ class MDB_mysql extends MDB_Common
             return $result;
         }
 
-        $value = $this->fetchOne($result);
+        $value = $this->fetch($result);
         $this->freeResult($result);
         return $value;
     }
@@ -816,14 +812,14 @@ class MDB_mysql extends MDB_Common
     * @return mixed string on success, a MDB error on failure
     * @access public
     */
-    function fetch($result, $rownum, $field)
+    function fetch($result, $rownum = 0, $field = 0)
     {
         $result_value = intval($result);
         $this->results[$result_value]['highest_fetched_row'] =
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
         $value = @mysql_result($result, $rownum, $field);
         if ($value === false && $value != null) {
-            return $this->mysqlRaiseError($errno);
+            return $this->mysqlRaiseError();
         }
         if (isset($this->results[$result_value]['types'][$field])) {
             $type = $this->results[$result_value]['types'][$field];
@@ -851,9 +847,6 @@ class MDB_mysql extends MDB_Common
             ++$this->results[$result_value]['highest_fetched_row'];
         } else {
             if (!@mysql_data_seek($result, $rownum)) {
-                if ($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
                 return null;
             }
             $this->results[$result_value]['highest_fetched_row'] =
@@ -868,9 +861,6 @@ class MDB_mysql extends MDB_Common
             $row = @mysql_fetch_row($result);
         }
         if (!$row) {
-            if ($this->options['autofree']) {
-                $this->freeResult($result);
-            }
             return null;
         }
         if (isset($this->results[$result_value]['types'])) {
@@ -878,109 +868,5 @@ class MDB_mysql extends MDB_Common
         }
         return $row;
     }
-
-    // }}}
-    // {{{ tableInfo()
-
-    /**
-    * returns meta data about the result set
-    *
-    * @param resource    $result    result identifier
-    * @param mixed $mode depends on implementation
-    * @return array an nested array, or a MDB error
-    * @access public
-    */
-    function tableInfo($result, $mode = null) {
-        $count = 0;
-        $id     = 0;
-        $res  = array();
-
-        /*
-         * depending on $mode, metadata returns the following values:
-         *
-         * - mode is false (default):
-         * $result[]:
-         *   [0]['table']  table name
-         *   [0]['name']   field name
-         *   [0]['type']   field type
-         *   [0]['len']    field length
-         *   [0]['flags']  field flags
-         *
-         * - mode is MDB_TABLEINFO_ORDER
-         * $result[]:
-         *   ['num_fields'] number of metadata records
-         *   [0]['table']  table name
-         *   [0]['name']   field name
-         *   [0]['type']   field type
-         *   [0]['len']    field length
-         *   [0]['flags']  field flags
-         *   ['order'][field name]  index of field named "field name"
-         *   The last one is used, if you have a field name, but no index.
-         *   Test:  if (isset($result['meta']['myfield'])) { ...
-         *
-         * - mode is MDB_TABLEINFO_ORDERTABLE
-         *    the same as above. but additionally
-         *   ['ordertable'][table name][field name] index of field
-         *      named 'field name'
-         *
-         *      this is, because if you have fields from different
-         *      tables with the same field name * they override each
-         *      other with MDB_TABLEINFO_ORDER
-         *
-         *      you can combine MDB_TABLEINFO_ORDER and
-         *      MDB_TABLEINFO_ORDERTABLE with MDB_TABLEINFO_ORDER |
-         *      MDB_TABLEINFO_ORDERTABLE * or with MDB_TABLEINFO_FULL
-         */
-
-        // if $result is a string, then we want information about a
-        // table without a resultset
-        if (is_string($result)) {
-            $id = @mysql_list_fields($this->database_name, $result, $this->connection);
-            if (empty($id)) {
-                return $this->mysqlRaiseError();
-            }
-        } else { // else we want information about a resultset
-            $id = $result;
-            if (empty($id)) {
-                return $this->mysqlRaiseError();
-            }
-        }
-
-        $count = @mysql_num_fields($id);
-
-        // made this IF due to performance (one if is faster than $count if's)
-        if (empty($mode)) {
-            for ($i = 0; $i<$count; $i++) {
-                $res[$i]['table'] = @mysql_field_table ($id, $i);
-                $res[$i]['name'] = @mysql_field_name  ($id, $i);
-                $res[$i]['type'] = @mysql_field_type  ($id, $i);
-                $res[$i]['len']  = @mysql_field_len   ($id, $i);
-                $res[$i]['flags'] = @mysql_field_flags ($id, $i);
-            }
-        } else { // full
-            $res['num_fields'] = $count;
-
-            for ($i = 0; $i<$count; $i++) {
-                $res[$i]['table'] = @mysql_field_table ($id, $i);
-                $res[$i]['name'] = @mysql_field_name  ($id, $i);
-                $res[$i]['type'] = @mysql_field_type  ($id, $i);
-                $res[$i]['len']  = @mysql_field_len   ($id, $i);
-                $res[$i]['flags'] = @mysql_field_flags ($id, $i);
-                if ($mode & MDB_TABLEINFO_ORDER) {
-                    $res['order'][$res[$i]['name']] = $i;
-                }
-                if ($mode & MDB_TABLEINFO_ORDERTABLE) {
-                    $res['ordertable'][$res[$i]['table']][$res[$i]['name']] = $i;
-                }
-            }
-        }
-
-        // free the result only if we were called on a table
-        if (is_string($result)) {
-            @mysql_free_result($id);
-        }
-        return $res;
-    }
 }
-
 ?>

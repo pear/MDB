@@ -128,16 +128,6 @@ define('MDB_FETCHMODE_ASSOC',    2);
 define('MDB_FETCHMODE_FLIPPED',  4);
 
 /**
- * These are constants for the tableInfo-function
- * they are bitwised or'ed. so if there are more constants to be defined
- * in the future, adjust MDB_TABLEINFO_FULL accordingly
- */
-
-define('MDB_TABLEINFO_ORDER',      1);
-define('MDB_TABLEINFO_ORDERTABLE', 2);
-define('MDB_TABLEINFO_FULL',       3);
-
-/**
  * These are global variables that are used to track the various class instances
  */
 

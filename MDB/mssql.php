@@ -562,16 +562,12 @@ class MDB_mssql extends MDB_Common
      */
     function freeResult($result)
     {
-        $result_value = intval($result);
-        if (isset($this->results[$result_value])) {
-            unset($this->results[$result_value]);
+        if (!is_resource($result)) {
+            return $this->raiseError(MDB_ERROR, null, null,
+                'freeResult: attemped to free an unknown query result');
         }
-        if (is_resource($result)) {
-            return @mssql_free_result($result);
-        }
-
-        return $this->raiseError(MDB_ERROR, null, null,
-            'freeResult: attemped to free an unknown query result');
+        unset($this->results[intval($result)]);
+        return @mssql_free_result($result);
     }
 
     // }}}
@@ -612,7 +608,7 @@ class MDB_mssql extends MDB_Common
             return $result;
         }
         $result = $this->query("SELECT @@IDENTITY FROM $sequence_name", 'integer', false);
-        $value = $this->fetchOne($result);
+        $value = $this->fetch($result);
         $this->freeResult($result);
         $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($res)) {
@@ -639,7 +635,7 @@ class MDB_mssql extends MDB_Common
             return $result;
         }
 
-        $value = $this->fetchOne($result);
+        $value = $this->fetch($result);
         $this->freeResult($result);
         return $value;
     }
@@ -656,14 +652,14 @@ class MDB_mssql extends MDB_Common
     * @return mixed string on success, a MDB error on failure
     * @access public
     */
-    function fetch($result, $rownum, $field)
+    function fetch($result, $rownum = 0, $field = 0)
     {
         $result_value = intval($result);
         $this->results[$result_value]['highest_fetched_row'] =
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
         $value = @mssql_result($result, $rownum, $field);
         if ($value === false && $value != null) {
-            return $this->mssqlRaiseError($errno);
+            return $this->mssqlRaiseError();
         }
         if (isset($this->results[$result_value]['types'][$field])) {
             $type = $this->results[$result_value]['types'][$field];
@@ -705,9 +701,6 @@ class MDB_mssql extends MDB_Common
             $row = @mssql_fetch_row($result);
         }
         if (!$row) {
-            if ($this->options['autofree']) {
-                $this->freeResult($result);
-            }
             return null;
         }
         if (isset($this->results[$result_value]['types'])) {
@@ -720,10 +713,10 @@ class MDB_mssql extends MDB_Common
     // {{{ nextResult()
 
     /**
-     * Move the internal mssql result pointer to the next available result
+     * Move the internal result pointer to the next available result
      * Currently not supported
-     *
-     * @param a valid result resource
+     * 
+     * @param $result valid result resource
      * @return true if a result is available otherwise return false
      * @access public
      */
@@ -731,169 +724,5 @@ class MDB_mssql extends MDB_Common
     {
         return mssql_next_result($result);
     }
-
-    // }}}
-    // {{{ tableInfo()
-
-  /**
-     * Returns information about a table or a result set
-     *
-     * NOTE: doesn't support table name and flags if called from a db_result
-     *
-     * @param  mixed $resource SQL Server result identifier or table name
-     * @param  int $mode A valid tableInfo mode (MDB_TABLEINFO_ORDERTABLE or
-     *                   MDB_TABLEINFO_ORDER)
-     *
-     * @return array An array with all the information
-     */
-    function tableInfo($result, $mode = null)
-    {
-
-        $count = 0;
-        $id    = 0;
-        $res   = array();
-
-        /*
-         * depending on $mode, metadata returns the following values:
-         *
-         * - mode is false (default):
-         * $result[]:
-         *   [0]['table']  table name
-         *   [0]['name']   field name
-         *   [0]['type']   field type
-         *   [0]['len']    field length
-         *   [0]['flags']  field flags
-         *
-         * - mode is MDB_TABLEINFO_ORDER
-         * $result[]:
-         *   ["num_fields"] number of metadata records
-         *   [0]['table']  table name
-         *   [0]['name']   field name
-         *   [0]['type']   field type
-         *   [0]['len']    field length
-         *   [0]['flags']  field flags
-         *   ['order'][field name]  index of field named "field name"
-         *   The last one is used, if you have a field name, but no index.
-         *   Test:  if (isset($result['meta']['myfield'])) { ...
-         *
-         * - mode is MDB_TABLEINFO_ORDERTABLE
-         *    the same as above. but additionally
-         *   ["ordertable"][table name][field name] index of field
-         *      named "field name"
-         *
-         *      this is, because if you have fields from different
-         *      tables with the same field name * they override each
-         *      other with MDB_TABLEINFO_ORDER
-         *
-         *      you can combine MDB_TABLEINFO_ORDER and
-         *      MDB_TABLEINFO_ORDERTABLE with MDB_TABLEINFO_ORDER |
-         *      MDB_TABLEINFO_ORDERTABLE * or with MDB_TABLEINFO_FULL
-         */
-
-        // if $result is a string, then we want information about a
-        // table without a resultset
-
-        if (is_string($result)) {
-            if (!@mssql_select_db($this->database_name, $this->connection)) {
-                return $this->mssqlRaiseError(MDB_ERROR_NODBSELECTED);
-            }
-            $id = mssql_query("SELECT * FROM $result", $this->connection);
-            if (empty($id)) {
-                return $this->mssqlRaiseError();
-            }
-        } else { // else we want information about a resultset
-            $id = $result;
-            if (empty($id)) {
-                return $this->mssqlRaiseError();
-            }
-        }
-
-        $count = @mssql_num_fields($id);
-
-        // made this IF due to performance (one if is faster than $count if's)
-        if (empty($mode)) {
-
-            for ($i=0; $i<$count; $i++) {
-                $res[$i]['table'] = (is_string($result)) ? $result : '';
-                $res[$i]['name']  = @mssql_field_name($id, $i);
-                $res[$i]['type']  = @mssql_field_type($id, $i);
-                $res[$i]['len']   = @mssql_field_length($id, $i);
-                // We only support flags for tables
-                $res[$i]['flags'] = is_string($result) ? $this->_mssql_field_flags($result, $res[$i]['name']) : '';
-            }
-
-        } else { // full
-            $res['num_fields']= $count;
-
-            for ($i=0; $i<$count; $i++) {
-                $res[$i]['table'] = (is_string($result)) ? $result : '';
-                $res[$i]['name']  = @mssql_field_name($id, $i);
-                $res[$i]['type']  = @mssql_field_type($id, $i);
-                $res[$i]['len']   = @mssql_field_length($id, $i);
-                // We only support flags for tables
-                $res[$i]['flags'] = is_string($result) ? $this->_mssql_field_flags($result, $res[$i]['name']) : '';
-                if ($mode & MDB_TABLEINFO_ORDER) {
-                    $res['order'][$res[$i]['name']] = $i;
-                }
-                if ($mode & MDB_TABLEINFO_ORDERTABLE) {
-                    $res['ordertable'][$res[$i]['table']][$res[$i]['name']] = $i;
-                }
-            }
-        }
-
-        // free the result only if we were called on a table
-        if (is_string($result)) {
-            @mssql_free_result($id);
-        }
-        return $res;
-    }
-
-    // }}}
-    // {{{ _mssql_field_flags()
-    /**
-    * Get the flags for a field, currently only supports "isnullable" and "primary_key"
-    *
-    * @param string The table name
-    * @param string The field
-    * @access private
-    */
-    function _mssql_field_flags($table, $column)
-    {
-        static $current_table = null;
-        static $flags;
-        // At the first call we discover the flags for all fields
-        if ($table != $current_table) {
-            $flags = array();
-            // find nullable fields
-            $q_nulls = "SELECT syscolumns.name, syscolumns.isnullable
-                        FROM sysobjects
-                        INNER JOIN syscolumns ON sysobjects.id = syscolumns.id
-                        WHERE sysobjects.name ='$table' AND syscolumns.isnullable = 1";
-            $res = $this->query($q_nulls, null, false);
-            $nullables = $this->fetchAll($res, MDB_FETCHMODE_ASSOC);
-            $this->freeResult($res);
-            foreach ($nullables as $data) {
-                if ($data['isnullable'] == 1) {
-                    $flags[$data['name']][] = 'isnullable';
-                }
-            }
-            // find primary keys
-            $res = $this->query("EXEC SP_PKEYS[$table]", null, false);
-            $primarykeys = $this->fetchAll($res, MDB_FETCHMODE_ASSOC);
-            $this->freeResult($res);
-            foreach ($primarykeys as $data) {
-                if (!empty($data['COLUMN_NAME'])) {
-                    $flags[$data['COLUMN_NAME']][] = 'primary_key';
-                }
-            }
-            $current_table = $table;
-        }
-        if (isset($flags[$column])) {
-            return implode(',', $flags[$column]);
-        }
-        return '';
-    }
-    // }}}
 }
-
 ?>

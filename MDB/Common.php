@@ -113,7 +113,6 @@ class MDB_Common extends PEAR
      * $options['persistent'] -> boolean persistent connection?
      * $options['debug'] -> integer numeric debug level
      * $options['debug_handler'] -> string function/meothd that captures debug messages
-     * $options['autofree'] -> boolean automatically free result that have been read to the end?
      * $options['lob_buffer_length'] -> integer LOB buffer length
      * $options['log_line_break'] -> string line-break format
      * $options['seqname_format'] -> string pattern for sequence name
@@ -128,7 +127,6 @@ class MDB_Common extends PEAR
             'persistent' => false,
             'debug' => 0,
             'debug_handler' => 'MDB_defaultDebugOutput',
-            'autofree' => false,
             'lob_buffer_length' => 8192,
             'log_line_break' => "\n",
             'seqname_format' => '%s_seq',
@@ -160,12 +158,6 @@ class MDB_Common extends PEAR
      * @access private
      */
     var $warnings = array();
-
-    /**
-     * @var string
-     * @access private
-     */
-    var $debug = '';
 
     /**
      * @var string
@@ -568,8 +560,8 @@ class MDB_Common extends PEAR
      */
     function debug($message, $scope='')
     {
-        if ($this->debug && $this->option['debug_handler']) {
-            call_user_func($this->option['debug_handler'], $this, $scope, $message);
+        if ($this->options['debug'] && $this->options['debug_handler']) {
+            call_user_func($this->options['debug_handler'], $this, $scope, $message);
         }
     }
 
@@ -1364,7 +1356,7 @@ class MDB_Common extends PEAR
      * Define the list of types to be associated with the columns of a given
      * result set.
      *
-     * This function may be called before invoking fetchOne(),
+     * This function may be called before invoking fetch(),
      * fetchRow(), fetchCol() and fetchAll() so that the necessary data type
      * conversions are performed on the data to be retrieved by them. If this
      * function is not called, the type of all result set columns is assumed
@@ -1655,35 +1647,15 @@ class MDB_Common extends PEAR
      * fetch value from a result set
      *
      * @param resource $result result identifier
-     * @param int $row number of the row where the data can be found
+     * @param int $rownum number of the row where the data can be found
      * @param int $field field number where the data can be found
      * @return mixed string on success, a MDB error on failure
      * @access public
      */
-    function fetch($result, $row, $field)
+    function fetch($result, $rownum = 0, $field = 0)
     {
         return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
             'fetch: method not implemented');
-    }
-
-    // }}}
-    // {{{ fetchOne()
-
-    /**
-     * Fetch and return a field of data (it uses fetchRow for that)
-     *
-     * @param resource $result result identifier
-     * @return mixed data on success, a MDB error on failure
-     * @access public
-     */
-    function fetchOne($result)
-    {
-        $row = $this->fetchRow($result, MDB_FETCHMODE_ORDERED);
-
-        if (is_array($row)) {
-            return $row[0];
-        }
-        return $row;
     }
 
     // }}}
@@ -1701,9 +1673,6 @@ class MDB_Common extends PEAR
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum)
     {
         if (MDB::isError($this->endOfResult($result))) {
-            if ($this->options['autofree']) {
-                $this->freeResult($result);
-            }
             return null;
         }
         $columns = $this->numCols($result);
@@ -1722,9 +1691,6 @@ class MDB_Common extends PEAR
         for($column = 0; $column < $columns; $column++) {
             $result = $this->fetch($result, $rownum, $column);
             if ($result == null) {
-                if ($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
                 return null;
             }
             if (isset($column_names)) {
@@ -1860,23 +1826,6 @@ class MDB_Common extends PEAR
     }
 
     // }}}
-    // {{{ tableInfo()
-
-    /**
-     * returns meta data about the result set
-     *
-     * @param resource $result result identifier
-     * @param mixed $mode depends on implementation
-     * @return array an nested array, or a MDB error
-     * @access public
-     */
-    function tableInfo($result, $mode = null)
-    {
-        return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-            'tableInfo: method not implemented');
-    }
-
-    // }}}
     // {{{ Destructor
 
     /**
@@ -1924,5 +1873,4 @@ if (!function_exists('array_change_key_case')) {
         return $ret;
     }
 }
-
 ?>

@@ -670,16 +670,12 @@ class MDB_pgsql extends MDB_Common
      */
     function freeResult($result)
     {
-        $result_value = intval($result);
-        if (isset($this->results[$result_value])) {
-            unset($this->results[$result_value]);
+        if (!is_resource($result)) {
+            return $this->raiseError(MDB_ERROR, null, null,
+                'freeResult: attemped to free an unknown query result');
         }
-        if (is_resource($result)) {
-            return @pg_free_result($result);
-        }
-
-        return $this->raiseError(MDB_ERROR, null, null,
-            'freeResult: attemped to free an unknown query result');
+        unset($this->results[intval($result)]);
+        return @pg_free_result($result);
     }
 
     // }}}
@@ -718,7 +714,7 @@ class MDB_pgsql extends MDB_Common
             }
             return $result;
         }
-        $value = $this->fetchOne($result);
+        $value = $this->fetch($result);
         $this->freeResult($result);
         return $value;
     }
@@ -741,7 +737,7 @@ class MDB_pgsql extends MDB_Common
             return $this->raiseError(MDB_ERROR, null, null,
                 'currID: Unable to select from ' . $seqname) ;
         }
-        $value = $this->fetchOne($result);
+        $value = $this->fetch($result);
         $this->freeResult($result);
         if (MDB::isError($value)) {
             return $this->raiseError(MDB_ERROR, null, null,
@@ -766,14 +762,14 @@ class MDB_pgsql extends MDB_Common
     * @return mixed string on success, a MDB error on failure
     * @access public
     */
-    function fetch($result, $rownum, $field)
+    function fetch($result, $rownum = 0, $field = 0)
     {
         $result_value = intval($result);
         $this->results[$result_value]['highest_fetched_row'] =
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
         $value = @pg_result($result, $rownum, $field);
         if ($value === false && $value != null) {
-            return $this->pgsqlRaiseError($errno);
+            return $this->pgsqlRaiseError();
         }
         if (isset($this->results[$result_value]['types'][$field])) {
             $type = $this->results[$result_value]['types'][$field];
@@ -815,9 +811,6 @@ class MDB_pgsql extends MDB_Common
         if (!$row) {
             $errno = @pg_errormessage($this->connection);
             if (!$errno) {
-                if ($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
                 return null;
             }
             return $this->pgsqlRaiseError($errno);
@@ -827,187 +820,5 @@ class MDB_pgsql extends MDB_Common
         }
         return $row;
     }
-
-    // }}}
-    // {{{ nextResult()
-
-    /**
-     * Move the internal pgsql result pointer to the next available result
-     *
-     * @param a valid fbsql result resource
-     * @return true if a result is available otherwise return false
-     * @access public
-     */
-    function nextResult($result)
-    {
-        return false;
-    }
-
-    // }}}
-    // {{{ tableInfo()
-
-    /**
-     * returns meta data about the result set
-     *
-     * @param  mixed $resource PostgreSQL result identifier or table name
-     * @param mixed $mode depends on implementation
-     * @return array an nested array, or a MDB error
-     * @access public
-     */
-    function tableInfo($result, $mode = null)
-    {
-        $count = 0;
-        $id = 0;
-        $res = array();
-        
-        /**
-         * depending on $mode, metadata returns the following values:
-         *
-         * - mode is false (default):
-         * $result[]:
-         *    [0]['table']  table name
-         *    [0]['name']   field name
-         *    [0]['type']   field type
-         *    [0]['len']    field length
-         *    [0]['flags']  field flags
-         *
-         * - mode is MDB_TABLEINFO_ORDER
-         * $result[]:
-         *    ['num_fields'] number of metadata records
-         *    [0]['table']  table name
-         *    [0]['name']   field name
-         *    [0]['type']   field type
-         *    [0]['len']    field length
-         *    [0]['flags']  field flags
-         *    ['order'][field name]  index of field named 'field name'
-         *    The last one is used, if you have a field name, but no index.
-         *    Test:  if (isset($result['meta']['myfield'])) { ...
-         *
-         * - mode is MDB_TABLEINFO_ORDERTABLE
-         *     the same as above. but additionally
-         *    ['ordertable'][table name][field name] index of field
-         *       named 'field name'
-         *
-         *       this is, because if you have fields from different
-         *       tables with the same field name * they override each
-         *       other with MDB_TABLEINFO_ORDER
-         *
-         *       you can combine MDB_TABLEINFO_ORDER and
-         *       MDB_TABLEINFO_ORDERTABLE with MDB_TABLEINFO_ORDER |
-         *       MDB_TABLEINFO_ORDERTABLE * or with MDB_TABLEINFO_FULL
-         **/
-        
-        // if $result is a string, then we want information about a
-        // table without a resultset
-        if (is_string($result)) {
-            $id = pg_exec($this->connection, "SELECT * FROM $result LIMIT 0");
-            if (empty($id)) {
-                return $this->pgsqlRaiseError();
-            }
-        } else { // else we want information about a resultset
-            $id = $result;
-            if (empty($id)) {
-                return $this->pgsqlRaiseError();
-            }
-        }
-        
-        $count = @pg_numfields($id);
-        
-        // made this IF due to performance (one if is faster than $count if's)
-        if (empty($mode)) {
-            for ($i = 0; $i < $count; $i++) {
-                $res[$i]['table'] = (is_string($result)) ? $result : '';
-                $res[$i]['name'] = @pg_fieldname ($id, $i);
-                $res[$i]['type'] = @pg_fieldtype ($id, $i);
-                $res[$i]['len'] = @pg_fieldsize ($id, $i);
-                $res[$i]['flags'] = (is_string($result)) ? $this->_pgFieldflags($id, $i, $result) : '';
-            }
-        } else { // full
-            $res['num_fields'] = $count;
-            
-            for ($i = 0; $i < $count; $i++) {
-                $res[$i]['table'] = (is_string($result)) ? $result : '';
-                $res[$i]['name'] = @pg_fieldname ($id, $i);
-                $res[$i]['type'] = @pg_fieldtype ($id, $i);
-                $res[$i]['len'] = @pg_fieldsize ($id, $i);
-                $res[$i]['flags'] = (is_string($result)) ? $this->_pgFieldFlags($id, $i, $result) : '';
-                if ($mode & MDB_TABLEINFO_ORDER) {
-                    $res['order'][$res[$i]['name']] = $i;
-                }
-                if ($mode & MDB_TABLEINFO_ORDERTABLE) {
-                    $res['ordertable'][$res[$i]['table']][$res[$i]['name']] = $i;
-                }
-            }
-        }
-        
-        // free the result only if we were called on a table
-        if (is_string($result) && is_resource($id)) {
-            @pg_freeresult($id);
-        }
-        return $res;
-    }
-
-    // }}}
-    // {{{ _pgFieldFlags()
-
-    /**
-     * Flags of a Field
-     *
-     * @param int $resource PostgreSQL result identifier
-     * @param int $num_field the field number
-     * @return string The flags of the field ('not_null', 'default_xx', 'primary_key',
-     *                 'unique' and 'multiple_key' are supported)
-     * @access private
-     **/
-    function _pgFieldFlags($resource, $num_field, $table_name)
-    {
-        $field_name = @pg_fieldname($resource, $num_field);
-        
-        $result = pg_exec($this->connection, "SELECT f.attnotnull, f.atthasdef
-            FROM pg_attribute f, pg_class tab, pg_type typ
-            WHERE tab.relname = typ.typname
-            AND typ.typrelid = f.attrelid
-            AND f.attname = '$field_name'
-            AND tab.relname = '$table_name'");
-        if (pg_numrows($result) > 0) {
-            $row = pg_fetch_row($result, 0);
-            $flags = ($row[0] == 't') ? 'not_null ' : '';
-            
-            if ($row[1] == 't') {
-                $result = pg_exec($this->connection, "SELECT a.adsrc
-                    FROM pg_attribute f, pg_class tab, pg_type typ, pg_attrdef a
-                    WHERE tab.relname = typ.typname AND typ.typrelid = f.attrelid
-                    AND f.attrelid = a.adrelid AND f.attname = '$field_name'
-                    AND tab.relname = '$table_name'");
-                $row = pg_fetch_row($result, 0);
-                $num = str_replace('\'', '', $row[0]);
-                
-                $flags .= "default_$num ";
-            }
-        }
-        $result = pg_exec($this->connection, "SELECT i.indisunique, i.indisprimary, i.indkey
-            FROM pg_attribute f, pg_class tab, pg_type typ, pg_index i
-            WHERE tab.relname = typ.typname
-            AND typ.typrelid = f.attrelid
-            AND f.attrelid = i.indrelid
-            AND f.attname = '$field_name'
-            AND tab.relname = '$table_name'");
-        $count = pg_numrows($result);
-        
-        for ($i = 0; $i < $count ; $i++) {
-            $row = pg_fetch_row($result, $i);
-            $keys = explode(' ', $row[2]);
-            
-            if (in_array($num_field + 1, $keys)) {
-                $flags .= ($row[0] == 't') ? 'unique ' : '';
-                $flags .= ($row[1] == 't') ? 'primary ' : '';
-                if (count($keys) > 1)
-                    $flags .= 'multiple_key ';
-            }
-        }
-        
-        return trim($flags);
-    }
 }
-
 ?>
