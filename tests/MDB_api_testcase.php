@@ -191,16 +191,12 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     }
 
     function testNumRows() {
-        if ($this->db->getOption('result_buffering')) {
-            $this->assertTrue(false, 'numRows not supported if result_buffering option is enabled');
-        } else {
-            if (!$this->methodExists('numRows')) {
-                return;
-            }
-            $result = $this->standardQuery();
-            $numrows = $this->db->numRows($result);
-            $this->assertTrue(!MDB::isError($numrows) && $numrows > 0);
+        if (!$this->methodExists('numRows')) {
+            return;
         }
+        $result = $this->standardQuery();
+        $numrows = $this->db->numRows($result);
+        $this->assertTrue(!MDB::isError($numrows) && $numrows > 0);
     }
 
     function testNumCols() {
