@@ -84,7 +84,7 @@ class MDB_pgsql extends MDB_common
         
         if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
             return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                NULL, NULL, 'extension {$type} is not compiled into PHP',
+                NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
                 'MDB_Error', TRUE);
         }
         
