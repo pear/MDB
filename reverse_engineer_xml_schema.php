@@ -68,13 +68,22 @@
         if(MDB::isError($err)) {
             $error = $err->getMessage();
         } else {
-            Var_Dump::display($manager->dumpDatabase(
-                array(
-                    'Output_Mode' => 'file',
-                    'Output' => $file
-                ),
-                MDB_MANAGER_DUMP_STRUCTURE
-            ));
+            if($action) {
+                set_time_limit(0);
+            }
+            if($action == 'dump') {
+                Var_Dump::display($manager->dumpDatabase(
+                    array(
+                        'Output_Mode' => 'file',
+                        'Output' => $file
+                    ),
+                    MDB_MANAGER_DUMP_ALL
+                ));
+            } else if($action == 'create') {
+                Var_Dump::display($manager->updateDatabase($file));
+            } else {
+                $error = 'no action selected';
+            }
             $warnings = $manager->getWarnings();
             if(count($warnings) > 0) {
                 Var_Dump::display($warnings);
@@ -94,7 +103,7 @@
             <select name="type">
                 <option value="mysql"');
                 if($type == 'mysql') {echo ('selected');}
-            echo ('>MySQL</option>
+                echo ('>MySQL</option>
             </select>
             <br />
             Username:
@@ -111,6 +120,12 @@
             <br />
             Filename:
             <input type="text" name="file" value="'.$file.'" />
+            <br />
+            Dump:
+            <input type="radio" name="action" value="dump" />
+            <br />
+            Create:
+            <input type="radio" name="action" value="create" />
             <br />
             <input type="submit" name="submit" value="ok" />
         ');
