@@ -19,3 +19,5 @@ Sometime (in no particular order)
 - SQL Funtion Abstraction (for example SUBSTRING() and SUBSTR())
 - Different modes: performance, portability
 - Add optional unbuffered query mode
+- Add EXPLAIN method
+- Add call to EXPLAIN method to the default debug output handler
