@@ -44,8 +44,13 @@
 //
 // $Id$
 //
-// Base class for DB implementations.
-//
+
+/**
+* Base class that is extended by each DB driver
+*
+* @package MDB
+* @author  Lukas Smith <smith@dybnet.de>
+*/
 
 require_once 'PEAR.php';
 
@@ -115,7 +120,7 @@ function defaultDebugOutput($database, $message)
  */
 function mdbNow()
 {
-    return(strftime("%Y-%m-%d %H:%M:%S"));
+    return(strftime('%Y-%m-%d %H:%M:%S'));
 }
 
 // }}}
@@ -129,7 +134,7 @@ function mdbNow()
  */
 function mdbToday()
 {
-    return(strftime("%Y-%m-%d"));
+    return(strftime('%Y-%m-%d'));
 }
 
 // }}}
@@ -143,7 +148,7 @@ function mdbToday()
  */
 function mdbTime()
 {
-    return(strftime("%H:%M:%S"));
+    return(strftime('%H:%M:%S'));
 }
 
 // }}}
@@ -214,26 +219,26 @@ function mdbstamp2Unix($mdb_timestamp)
 class MDB_common extends PEAR
 {
     var $database = 0;
-    var $host = "";
-    var $user = "";
-    var $password = "";
+    var $host = '';
+    var $user = '';
+    var $password = '';
     var $supported = array();
     var $persistent = 1;
-    var $database_name = "";
+    var $database_name = '';
     var $warnings = array();
     var $affected_rows = -1;
     var $auto_commit = 1;
     var $prepared_queries = array();
     var $first_selected_row = 0;
     var $selected_row_limit = 0;
-    var $last_query = "";
+    var $last_query = '';
     var $options = array(
         'persistent' => FALSE,
         'debug' => 0,
         'seqname_format' => '%s_seq',
         'autofree' => FALSE,
         'lob_buffer_length' => 8000,
-        'log_line_break' => '\n',
+        'log_line_break' => "\n",
         'escape_quotes' => '',
         'autofree' => FALSE,
         'decimal_places' => 2
@@ -244,16 +249,16 @@ class MDB_common extends PEAR
     var $blobs = array();
     var $in_transaction = 0;
     var $fetchmodes = array();
-    var $error_handler = "";
+    var $error_handler = '';
     var $manager;
-    var $include_path = "";
-    var $manager_included_constant = "";
-    var $manager_include = "";
-    var $manager_class_name = "";
+    var $include_path = '';
+    var $manager_included_constant = '';
+    var $manager_include = '';
+    var $manager_class_name = '';
 
-    var $last_error = "";
-    var $debug = "";
-    var $debug_output = "";
+    var $last_error = '';
+    var $debug = '';
+    var $debug_output = '';
     var $pass_debug_handle = 0;
     // }}}
     // {{{ constructor
@@ -273,14 +278,14 @@ class MDB_common extends PEAR
         $this->database = $database;
 
         $this->include_path = $include_path;
-        if (isset($dsninfo["hostspec"])) {
-            $this->host = $dsninfo["hostspec"];
+        if (isset($dsninfo['hostspec'])) {
+            $this->host = $dsninfo['hostspec'];
         }
-        if (isset($dsninfo["username"])) {
-            $this->user = $dsninfo["username"];
+        if (isset($dsninfo['username'])) {
+            $this->user = $dsninfo['username'];
         }
-        if (isset($dsninfo["password"])) {
-            $this->password = $dsninfo["password"];
+        if (isset($dsninfo['password'])) {
+            $this->password = $dsninfo['password'];
         }
         if (isset($options['includelob'])) {
             $this->loadLob('load at start');
@@ -291,8 +296,8 @@ class MDB_common extends PEAR
         if (is_array($options)) {
             $this->options = array_merge($this->options, $options);
         }
-        if(isset($dsninfo["database"])) {
-            $this->setDatabase($dsninfo["database"]);
+        if(isset($dsninfo['database'])) {
+            $this->setDatabase($dsninfo['database']);
             $err = $this->connect();
             if (MDB::isError($err)) {
                 $err->addUserInfo($dsn);
@@ -312,11 +317,11 @@ class MDB_common extends PEAR
     function _toString()
     {
         $info = get_class($this);
-        $info .=  ": (phptype = " . $this->phptype .
-                  ", dbsyntax = " . $this->dbsyntax .
-                  ")";
+        $info .=  ': (phptype = ' . $this->phptype .
+                  ', dbsyntax = ' . $this->dbsyntax .
+                  ')';
         if ($this->connection) {
-            $info .= " [connected]";
+            $info .= ' [connected]';
         }
         return $info;
     }
@@ -493,7 +498,7 @@ class MDB_common extends PEAR
     // }}}
     // {{{ captureDebugOutput()
     /**
-     * set a debug handler (deprecated)
+     * set a debug handler
      *
      * @param string $capture name of the function that should be used in
      *     debug()
@@ -504,13 +509,13 @@ class MDB_common extends PEAR
     function captureDebugOutput($capture)
     {
         $this->pass_debug_handle = $capture;
-        $this->debug = ($capture ? "defaultDebugOutput" : "");
+        $this->debug = ($capture ? 'defaultDebugOutput' : '');
     }
 
     // }}}
     // {{{ debug()
     /**
-     * set a debug message (deprecated)
+     * set a debug message
      *
      * @param string $message Message with information for the user.
      *
@@ -518,7 +523,7 @@ class MDB_common extends PEAR
      */
     function debug($message)
     {
-        if (strcmp($function = $this->debug, "")) {
+        if (strcmp($function = $this->debug, '')) {
             if ($this->pass_debug_handle) {
                 $function($this->database, $message);
             } else {
@@ -530,7 +535,7 @@ class MDB_common extends PEAR
     // }}}
     // {{{ debugOutput()
     /**
-     * output debug info (deprecated)
+     * output debug info
      *
      * @access public
      *
@@ -557,12 +562,12 @@ class MDB_common extends PEAR
     function setError($scope, $message)
     {
         $this->last_error = $message;
-        $this->debug($scope.": ".$message);
-        if(strcmp($function = $this->error_handler, ""))
+        $this->debug($scope.': '.$message);
+        if(strcmp($function = $this->error_handler, ''))
         {
             $error = array(
-                "Scope" => $scope,
-                "Message" => $message
+                'Scope' => $scope,
+                'Message' => $message
             );
             $function($this, $error);
         }
@@ -664,27 +669,27 @@ class MDB_common extends PEAR
         {
             $include_path = $this->include_path;
             $length = strlen($include_path);
-            $separator = "";
+            $separator = '';
             if ($length) {
                 $directory_separator =
-                   (defined("DIRECTORY_SEPARATOR") ? DIRECTORY_SEPARATOR : "/");
+                   (defined('DIRECTORY_SEPARATOR') ? DIRECTORY_SEPARATOR : '/');
                 if ($include_path[$length - 1] != $directory_separator) {
                     $separator=$directory_separator;
                 }
             }
             if (!file_exists($include_path.$separator.$include)) {
                 $directory = 0;
-                if (!strcmp($include_path, "")
+                if (!strcmp($include_path, '')
                     || ($directory = @opendir($include_path)))
                 {
                     if ($directory) {
                         closedir($directory);
                     }
-                    return $this->raiseError(DB_ERROR_LOADEXTENSION, "", "",
+                    return $this->raiseError(DB_ERROR_LOADEXTENSION, '', '',
                         $scope.': it was not specified an existing '.
                         $extension.' file ('.$include.')');
                 } else {
-                    return $this->raiseError(DB_ERROR_LOADEXTENSION, "", "",
+                    return $this->raiseError(DB_ERROR_LOADEXTENSION, '', '',
                         $scope.': it was not specified a valid '.
                         $extension.' include path');
                 }
@@ -707,11 +712,11 @@ class MDB_common extends PEAR
      */
     function loadLob($scope = '')
     {
-        if (defined("MDB_LOB_INCLUDED")) {
+        if (defined('MDB_LOB_INCLUDED')) {
             return (DB_OK);
         }
-        $result = $this->_loadExtension($scope, "lob",
-                         "MDB_LOB_INCLUDED", "lob.php");
+        $result = $this->_loadExtension($scope, 'lob',
+                         'MDB_LOB_INCLUDED', 'lob.php');
         if (MDB::isError($result)) {
             return($result);
         }
@@ -734,23 +739,23 @@ class MDB_common extends PEAR
         if (isset($this->manager)) {
             return (DB_OK);
         }
-        $result = $this->_loadExtension($scope, "database manager",
-                         "MDB_MANAGER_DATABASE_INCLUDED", "manager_common.php");
+        $result = $this->_loadExtension($scope, 'database manager',
+                         'MDB_MANAGER_DATABASE_INCLUDED', 'manager_common.php');
         if (MDB::isError($result)) {
             return($result);
         }
         if (strlen($this->manager_class_name)) {
             if(strlen($this->manager_include) == 0)
-                return $this->raiseError(DB_LOADEXTENSION, "", "", $scope.
+                return $this->raiseError(DB_LOADEXTENSION, '', '', $scope.
                        ': no valid database manager include file');
-            $result = $this->_loadExtension($scope, "database manager",
+            $result = $this->_loadExtension($scope, 'database manager',
                       $this->manager_included_constant, $this->manager_include);
             if (MDB::isError($result)) {
                 return($result);
             }
             $class_name = $this->manager_class_name;
         } else {
-            $class_name = "MDB_manager_common";
+            $class_name = 'MDB_manager_common';
         }
         $this->manager = new $class_name;
         return (DB_OK);
@@ -774,7 +779,7 @@ class MDB_common extends PEAR
         if (($this->in_transaction = !$auto_commit)
             && !$registered_transactions_shutdown)
         {
-            register_shutdown_function("_shutdownTransactions");
+            register_shutdown_function('_shutdownTransactions');
             $registered_transactions_shutdown = 1;
         }
         return (DB_OK);
@@ -798,7 +803,8 @@ class MDB_common extends PEAR
      */
     function autoCommit($auto_commit)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+        $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
             'Auto-commit transactions: transactions are not supported');
     }
 
@@ -816,7 +822,8 @@ class MDB_common extends PEAR
      */
     function commit()
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+         $this->debug("Commit Transaction");
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
             'Commit transaction: commiting transactions are not supported');
     }
 
@@ -834,7 +841,8 @@ class MDB_common extends PEAR
      */
     function rollback()
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+         $this->debug("Rollback Transaction");
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
            'Rollback transaction: rolling back transactions are not supported');
     }
 
@@ -870,7 +878,7 @@ class MDB_common extends PEAR
     function _close()
     {
         global $databases;
-        $databases[$database] = "";
+        $databases[$database] = '';
     }
 
     // }}}
@@ -880,9 +888,9 @@ class MDB_common extends PEAR
      *
      * @param string $name name of the database that should be selected
      *
-     * @access public
-     *
      * @return string name of the database previously connected to
+     * @access public
+     * 
      */
     function setDatabase($name)
     {
@@ -904,7 +912,7 @@ class MDB_common extends PEAR
      */
     function createDatabase($name)
     {
-        $result = $this->loadManager("Create database");
+        $result = $this->loadManager('Create database');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -924,7 +932,7 @@ class MDB_common extends PEAR
      */
     function dropDatabase($name)
     {
-        $result = $this->loadManager("Drop database");
+        $result = $this->loadManager('Drop database');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -945,19 +953,19 @@ class MDB_common extends PEAR
      *
      *     Example
      *       array(
-     *           "id" => array(
-     *               "type" => "integer",
-     *               "unsigned" => 1
-     *               "notnull" => 1
-     *               "default" => 0
+     *           'id' => array(
+     *               'type' => 'integer',
+     *               'unsigned' => 1
+     *               'notnull' => 1
+     *               'default' => 0
      *           ),
-     *           "name" => array(
-     *               "type"=>"text",
-     *               "length"=>12
+     *           'name' => array(
+     *               'type' => 'text',
+     *               'length' => 12
      *           ),
-     *           "password"=>array(
-     *               "type"=>"text",
-     *               "length"=>12
+     *           'password' => array(
+     *               'type' => 'text',
+     *               'length' => 12
      *           )
      *       );
      *
@@ -967,7 +975,7 @@ class MDB_common extends PEAR
      */
     function createTable($name, &$fields)
     {
-        $result = $this->loadManager("Create table");
+        $result = $this->loadManager('Create table');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -987,7 +995,7 @@ class MDB_common extends PEAR
      */
     function dropTable($name)
     {
-        $result = $this->loadManager("Drop table");
+        $result = $this->loadManager('Drop table');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1056,29 +1064,29 @@ class MDB_common extends PEAR
      *
      * Example
      *  array(
-     *      "name" => "userlist",
-     *      "AddedFields" => array(
-     *          "quota" => array(
-     *              "type" => "integer",
-     *              "unsigned" => 1,
-     *              "Declaration" => "quota INT"
+     *      'name' => 'userlist',
+     *      'AddedFields' => array(
+     *          'quota' => array(
+     *              'type' => 'integer',
+     *              'unsigned' => 1,
+     *              'Declaration' => 'quota INT'
      *              )
      *          ),
-     *      "RemovedFields" => array(
-     *          "file_limit" => array(),
-     *          "time_limit" => array()
+     *      'RemovedFields' => array(
+     *          'file_limit' => array(),
+     *          'time_limit' => array()
      *          ),
-     *      "ChangedFields" => array(
-     *          "gender" => array(
-     *              "default" => "M",
-     *              "ChangeDefault" => 1,
-     *              "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *      'ChangedFields' => array(
+     *          'gender' => array(
+     *              'default' => 'M',
+     *              'ChangeDefault' => 1,
+     *              'Declaration' => "gender CHAR(1) DEFAULT 'M'"
      *              )
      *          ),
-     *      "RenamedFields" => array(
-     *          "sex" => array(
-     *              "name" => "gender",
-     *              "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *      'RenamedFields' => array(
+     *          'sex' => array(
+     *              'name' => 'gender',
+     *              'Declaration' => "gender CHAR(1) DEFAULT 'M'"
      *          )
      *      )
      *  )
@@ -1092,7 +1100,7 @@ class MDB_common extends PEAR
      */
     function alterTable($name, &$changes, $check)
     {
-        $result = $this->loadManager("Alter table");
+        $result = $this->loadManager('Alter table');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1110,7 +1118,7 @@ class MDB_common extends PEAR
      */
     function listDatabases()
     {
-        $result = $this->loadManager("List databases");
+        $result = $this->loadManager('List databases');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1129,7 +1137,7 @@ class MDB_common extends PEAR
      */
     function listUsers()
     {
-        $result = $this->loadManager("List users");
+        $result = $this->loadManager('List users');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1147,7 +1155,7 @@ class MDB_common extends PEAR
      */
     function listViews()
     {
-        $result = $this->loadManager("List views");
+        $result = $this->loadManager('List views');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1165,7 +1173,7 @@ class MDB_common extends PEAR
      */
     function listFunctions()
     {
-        $result = $this->loadManager("List functions");
+        $result = $this->loadManager('List functions');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1183,7 +1191,7 @@ class MDB_common extends PEAR
      */
     function listTables()
     {
-        $result = $this->loadManager("List tables");
+        $result = $this->loadManager('List tables');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1203,7 +1211,7 @@ class MDB_common extends PEAR
      */
     function listTableFields($table)
     {
-        $result = $this->loadManager("List table fields");
+        $result = $this->loadManager('List table fields');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1224,7 +1232,7 @@ class MDB_common extends PEAR
      */
     function getTableFieldDefinition($table, $field)
     {
-        $result = $this->loadManager("Get table field definition");
+        $result = $this->loadManager('Get table field definition');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1233,7 +1241,6 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getFieldDeclaration()
-
     /**
      * get declaration of a field
      * 
@@ -1255,7 +1262,7 @@ class MDB_common extends PEAR
      */
     function getFieldDeclaration($field_name, &$field)
     {
-        $result = $this->loadManager("Get table field definition");
+        $result = $this->loadManager('Get table field definition');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1264,7 +1271,6 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getFieldDeclarationList()
-
     /**
      * get declaration of a number of field in bulk
      * 
@@ -1294,7 +1300,7 @@ class MDB_common extends PEAR
      */
     function getFieldDeclarationList(&$fields)
     {
-        $result = $this->loadManager("Get table field list");
+        $result = $this->loadManager('Get table field list');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1303,7 +1309,6 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ _isSequenceName()
-
     /**
      * list all tables in the current database
      * 
@@ -1315,7 +1320,7 @@ class MDB_common extends PEAR
      */ 
     function _isSequenceName($sqn)
     {
-        $result = $this->loadManager("is sequence name");
+        $result = $this->loadManager('is sequence name');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1346,11 +1351,11 @@ class MDB_common extends PEAR
      *
      *      Example
      *         array(
-     *             "FIELDS"=>array(
-     *                 "user_name"=>array(
-     *                     "sorting"=>"ascending"
+     *             'FIELDS' => array(
+     *                 'user_name' => array(
+     *                     'sorting' => 'ascending'
      *                 ),
-     *                 "last_login"=>array()
+     *                 'last_login' => array()
      *             )
      *         )
      *
@@ -1360,7 +1365,7 @@ class MDB_common extends PEAR
      */
     function createIndex($table, $name, &$definition)
     {
-        $result = $this->loadManager("Create index");
+        $result = $this->loadManager('Create index');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1381,7 +1386,7 @@ class MDB_common extends PEAR
      */
     function dropIndex($table, $name)
     {
-        $result = $this->loadManager("Drop index");
+        $result = $this->loadManager('Drop index');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1390,7 +1395,6 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ listTableIndexes()
-
     /**
      * list all indexes in a table
      * 
@@ -1403,7 +1407,7 @@ class MDB_common extends PEAR
      */ 
     function listTableIndexes($table)
     {
-        $result = $this->loadManager("List table index");
+        $result = $this->loadManager('List table index');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1412,7 +1416,6 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getTableIndexDefinition()
-
     /**
      * get the stucture of an index into an array
      * 
@@ -1426,7 +1429,7 @@ class MDB_common extends PEAR
      */ 
     function getTableIndexDefinition($table, $index)
     {
-        $result = $this->loadManager("Get table index definition");
+        $result = $this->loadManager('Get table index definition');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1447,7 +1450,7 @@ class MDB_common extends PEAR
      */
     function createSequence($name, $start = 1)
     {
-        $result = $this->loadManager("Create sequence");
+        $result = $this->loadManager('Create sequence');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1467,7 +1470,7 @@ class MDB_common extends PEAR
      */
     function dropSequence($name)
     {
-        $result = $this->loadManager("Drop sequence");
+        $result = $this->loadManager('Drop sequence');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1485,7 +1488,7 @@ class MDB_common extends PEAR
      */
     function listSequences()
     {
-        $result = $this->loadManager("List sequences");
+        $result = $this->loadManager('List sequences');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1494,7 +1497,6 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getSequenceDefinition()
-
     /**
      * get the stucture of a sequence into an array
      * 
@@ -1507,7 +1509,7 @@ class MDB_common extends PEAR
      */ 
     function getSequenceDefinition($sequence)
     {
-        $result = $this->loadManager("Get sequence definition");
+        $result = $this->loadManager('Get sequence definition');
         if (MDB::isError($result)) {
             return ($result);
         }
@@ -1516,7 +1518,6 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ query()
-
     /**
      * Send a query to the database and return any results with a
      * DB_result object.
@@ -1529,7 +1530,8 @@ class MDB_common extends PEAR
      */
     function query($query)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Query: database queries are not implemented");
+        $this->debug("Query: $query");
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Query: database queries are not implemented');
     }
 
     // }}}
@@ -1546,16 +1548,16 @@ class MDB_common extends PEAR
      */
     function setSelectedRowRange($first, $limit)
     {
-        if (!isset($this->supported["SelectRowRanges"])) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+        if (!isset($this->supported['SelectRowRanges'])) {
+            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
                 'Set selected row range: selecting row ranges is not supported by this driver');
         }
-        if (gettype($first) != "integer" || $first < 0) {
-            return $this->raiseError(DB_ERROR_SYNTAX, "", "",
+        if (gettype($first) != 'integer' || $first < 0) {
+            return $this->raiseError(DB_ERROR_SYNTAX, '', '',
                 'Set selected row range: it was not specified a valid first selected range row');
         }
-        if (gettype($limit) != "integer" || $limit < 1) {
-            return $this->raiseError(DB_ERROR_SYNTAX, "", "",
+        if (gettype($limit) != 'integer' || $limit < 1) {
+            return $this->raiseError(DB_ERROR_SYNTAX, '', '',
                 'Set selected row range: it was not specified a valid selected range row limit');
         }
         $this->first_selected_row = $first;
@@ -1598,10 +1600,10 @@ class MDB_common extends PEAR
      */
     function subSelect($query)
     {
-        if($this->supported["SubSelects"] == 1) {
+        if($this->supported['SubSelects'] == 1) {
             return ($query);
         }
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Subselect: subselect not implemented");
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Subselect: subselect not implemented');
     }
 
     // }}}
@@ -1671,73 +1673,73 @@ class MDB_common extends PEAR
      */
     function replace($table, &$fields)
     {
-        if (!$this->supported["Replace"]) {
-            return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Replace: replace query is not supported");
+        if (!$this->supported['Replace']) {
+            return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Replace: replace query is not supported');
         }
         $count = count($fields);
-        for($keys = 0, $condition = $update = $insert = $values = "", reset($fields), $field = 0;
+        for($keys = 0, $condition = $update = $insert = $values = '', reset($fields), $field = 0;
             $field < $count;
             next($fields), $field++)
         {
             $name = key($fields);
             if ($field > 0) {
-                $update.= ", ";
-                $insert.= ", ";
-                $values.= ", ";
+                $update.= ', ';
+                $insert.= ', ';
+                $values.= ', ';
             }
             $update.= $name;
             $insert.= $name;
-            if (isset($fields[$name]["Null"])
-            && $fields[$name]["Null"]) {
-                $value = "NULL";
+            if (isset($fields[$name]['Null'])
+            && $fields[$name]['Null']) {
+                $value = 'NULL';
             } else {
-                if (!isset($fields[$name]["Value"])) {
-                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "",
+                if (!isset($fields[$name]['Value'])) {
+                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
                         'no value for field "'.$name.'" specified');
                 }
-                switch(isset($fields[$name]["Type"]) ? $fields[$name]["Type"] : "text")    {
-                    case "text":
-                        $value = $this->getTextValue($fields[$name]["Value"]);
+                switch(isset($fields[$name]['Type']) ? $fields[$name]['Type'] : 'text')    {
+                    case 'text':
+                        $value = $this->getTextValue($fields[$name]['Value']);
                         break;
-                    case "boolean":
-                        $value = $this->getBooleanValue($fields[$name]["Value"]);
+                    case 'boolean':
+                        $value = $this->getBooleanValue($fields[$name]['Value']);
                         break;
-                    case "integer":
-                        $value = strval($fields[$name]["Value"]);
+                    case 'integer':
+                        $value = strval($fields[$name]['Value']);
                         break;
-                    case "decimal":
-                        $value = $this->getDecimalValue($fields[$name]["Value"]);
+                    case 'decimal':
+                        $value = $this->getDecimalValue($fields[$name]['Value']);
                         break;
-                    case "float":
-                        $value = $this->getFloatValue($fields[$name]["Value"]);
+                    case 'float':
+                        $value = $this->getFloatValue($fields[$name]['Value']);
                         break;
-                    case "date":
-                        $value = $this->getDateValue($fields[$name]["Value"]);
+                    case 'date':
+                        $value = $this->getDateValue($fields[$name]['Value']);
                         break;
-                    case "time":
-                        $value = $this->getTimeValue($fields[$name]["Value"]);
+                    case 'time':
+                        $value = $this->getTimeValue($fields[$name]['Value']);
                         break;
-                    case "timestamp":
-                        $value = $this->getTimestampValue($fields[$name]["Value"]);
+                    case 'timestamp':
+                        $value = $this->getTimestampValue($fields[$name]['Value']);
                         break;
                     default:
-                        return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "",
+                        return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
                             'no supported type for field "'.$name.'" specified');
                 }
             }
-            $update .= "=".$value;
+            $update .= '='.$value;
             $values.= $value;
-            if (isset($fields[$name]["Key"]) && $fields[$name]["Key"]) {
-                if ($value == "NULL") {
-                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "",
+            if (isset($fields[$name]['Key']) && $fields[$name]['Key']) {
+                if ($value == 'NULL') {
+                    return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
                         'key values may not be NULL');
                 }
-                $condition.= ($keys ? " AND " : " WHERE ").$name."=".$value;
+                $condition.= ($keys ? ' AND ' : ' WHERE ').$name.'='.$value;
                 $keys++;
             }
         }
         if ($keys == 0) {
-            return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "",
+            return $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
                 'not specified which fields are keys');
         }
         if (!($in_transaction = $this->in_transaction)
@@ -1757,7 +1759,7 @@ class MDB_common extends PEAR
                     $affected_rows = $this->affected_rows*2;
                     break;
                 default:
-                    $success = $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "",
+                    $success = $this->raiseError(DB_ERROR_CANNOT_REPLACE, '', '',
                                    'replace keys are not unique');
                     break;
             }
@@ -1769,7 +1771,7 @@ class MDB_common extends PEAR
             if (!MDB::isError($success)) {
                 if (($success = (!MDB::isError($this->commit())
                     && !MDB::isError($this->autoCommit(TRUE))))
-                    && isset($this->supported["AffectedRows"]))
+                    && isset($this->supported['AffectedRows']))
                 {
                     $this->affected_rows = $affected_rows;
                 }
@@ -1801,19 +1803,20 @@ class MDB_common extends PEAR
      */
     function prepareQuery($query)
     {
+        $this->debug("PrepareQuery: $query");
         $positions = array();
         for($position = 0;
-            $position < strlen($query) && gettype($question = strpos($query, "?", $position)) == "integer";)
+            $position < strlen($query) && gettype($question = strpos($query, '?', $position)) == 'integer';)
         {
-            if (gettype($quote = strpos($query, "'", $position)) == "integer"
+            if (gettype($quote = strpos($query, "'", $position)) == 'integer'
                 && $quote<$question)
             {
-                if (gettype($end_quote = strpos($query, "'", $quote+1))!= "integer") {
-                    return $this->raiseError(DB_ERROR_SYNTAX, "", "",
+                if (gettype($end_quote = strpos($query, "'", $quote+1))!= 'integer') {
+                    return $this->raiseError(DB_ERROR_SYNTAX, '', '',
                         'Prepare query: query with an unterminated text string specified');
                 }
                 switch($this->escape_quotes) {
-                    case "":
+                    case '':
                     case "'":
                         $position = $end_quote+1;
                         break;
@@ -1836,15 +1839,15 @@ class MDB_common extends PEAR
             }
         }
         $this->prepared_queries[] = array(
-            "Query" =>$query,
-            "Positions" =>$positions,
-            "Values" =>array(),
-            "Types" =>array()
+            'Query' => $query,
+            'Positions' => $positions,
+            'Values' => array(),
+            'Types' => array()
         );
         $prepared_query = count($this->prepared_queries);
         if ($this->selected_row_limit>0) {
-            $this->prepared_queries[$prepared_query-1]["First"] = $this->first_selected_row;
-            $this->prepared_queries[$prepared_query-1]["Limit"] = $this->selected_row_limit;
+            $this->prepared_queries[$prepared_query-1]['First'] = $this->first_selected_row;
+            $this->prepared_queries[$prepared_query-1]['Limit'] = $this->selected_row_limit;
         }
         return ($prepared_query);
     }
@@ -1863,11 +1866,11 @@ class MDB_common extends PEAR
     function _validatePreparedQuery($prepared_query)
     {
         if ($prepared_query < 1 || $prepared_query > count($this->prepared_queries)) {
-            return $this->raiseError(DB_ERROR_INVALID, "", "",
+            return $this->raiseError(DB_ERROR_INVALID, '', '',
                 'Validate prepared query: invalid prepared query');
         }
-        if (gettype($this->prepared_queries[$prepared_query-1])!= "array") {
-            return $this->raiseError(DB_ERROR_INVALID, "", "",
+        if (gettype($this->prepared_queries[$prepared_query-1])!= 'array') {
+            return $this->raiseError(DB_ERROR_INVALID, '', '',
                 'Validate prepared query: prepared query was already freed');
         }
        return (DB_OK);
@@ -1891,7 +1894,7 @@ class MDB_common extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
-        $this->prepared_queries[$prepared_query-1] = "";
+        $this->prepared_queries[$prepared_query-1] = '';
         return (DB_OK);
     }
 
@@ -1937,28 +1940,28 @@ class MDB_common extends PEAR
             return $result;
         }
         $index = $prepared_query-1;
-        for($this->clobs[$prepared_query] = $this->blobs[$prepared_query] = array(), $query = "", $last_position = $position = 0;
-            $position < count($this->prepared_queries[$index]["Positions"]);
+        for($this->clobs[$prepared_query] = $this->blobs[$prepared_query] = array(), $query = '', $last_position = $position = 0;
+            $position < count($this->prepared_queries[$index]['Positions']);
             $position++)
         {
-            if (!isset($this->prepared_queries[$index]["Values"][$position])) {
-                return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "",
+            if (!isset($this->prepared_queries[$index]['Values'][$position])) {
+                return $this->raiseError(DB_ERROR_NEED_MORE_DATA, '', '',
                     'Execute query: it was not defined query argument '.($position+1));
             }
-            $current_position = $this->prepared_queries[$index]["Positions"][$position];
-            $query .= substr($this->prepared_queries[$index]["Query"], $last_position, $current_position - $last_position);
-            $value = $this->prepared_queries[$index]["Values"][$position];
-            if ($this->prepared_queries[$index]["IsNULL"][$position]) {
+            $current_position = $this->prepared_queries[$index]['Positions'][$position];
+            $query .= substr($this->prepared_queries[$index]['Query'], $last_position, $current_position - $last_position);
+            $value = $this->prepared_queries[$index]['Values'][$position];
+            if ($this->prepared_queries[$index]['IsNULL'][$position]) {
                 $query .= $value;
             } else {
-                switch($this->prepared_queries[$index]["Types"][$position]) {
-                    case "clob":
+                switch($this->prepared_queries[$index]['Types'][$position]) {
+                    case 'clob':
                         if (!MDB::isError($success = $this->getCLOBValue($prepared_query, $position+1, $value))) {
                             $this->clobs[$prepared_query][$position+1] = $success;
                             $query .= $this->clobs[$prepared_query][$position+1];
                         }
                         break;
-                    case "blob":
+                    case 'blob':
                         if (!MDB::isError($success = $this->getBlobValue($prepared_query, $position+1, $value))) {
                             $this->blobs[$prepared_query][$position+1] = $success;
                             $query .= $this->blobs[$prepared_query][$position+1];
@@ -1972,16 +1975,16 @@ class MDB_common extends PEAR
             $last_position = $current_position + 1;
         }
         if (!MDB::isError($success)) {
-            $query.= substr($this->prepared_queries[$index]["Query"], $last_position);
+            $query.= substr($this->prepared_queries[$index]['Query'], $last_position);
             if ($this->selected_row_limit > 0) {
-                $this->prepared_queries[$index]["First"] = $this->first_selected_row;
-                $this->prepared_queries[$index]["Limit"] = $this->selected_row_limit;
+                $this->prepared_queries[$index]['First'] = $this->first_selected_row;
+                $this->prepared_queries[$index]['Limit'] = $this->selected_row_limit;
             }
-            if (isset($this->prepared_queries[$index]["Limit"])
-                && $this->prepared_queries[$index]["Limit"] > 0)
+            if (isset($this->prepared_queries[$index]['Limit'])
+                && $this->prepared_queries[$index]['Limit'] > 0)
             {
-                $this->first_selected_row = $this->prepared_queries[$index]["First"];
-                $this->selected_row_limit = $this->prepared_queries[$index]["Limit"];
+                $this->first_selected_row = $this->prepared_queries[$index]['First'];
+                $this->selected_row_limit = $this->prepared_queries[$index]['Limit'];
             } else {
                 $this->first_selected_row = $this->selected_row_limit = 0;
             }
@@ -2069,17 +2072,16 @@ class MDB_common extends PEAR
     // }}}
     // {{{ autoPrepare()
     /**
-     * Make automaticaly an insert or update query and call prepare() with it
-     *
-     * @param string $table name of the table
-     * @param array $table_fields ordered array containing the fields names
-     * @param int $mode type of query to make (DB_AUTOQUERY_INSERT or
-     *       DB_AUTOQUERY_UPDATE)
-     * @param string $where in case of update queries, this string will be put       *       after the sql WHERE statement
-     * @return resource handle for the query
-     * @see buildManipSQL
-     * @access public
-     */
+    * Make automaticaly an insert or update query and call prepare() with it
+    *
+    * @param string $table name of the table
+    * @param array $table_fields ordered array containing the fields names
+    * @param int $mode type of query to make (DB_AUTOQUERY_INSERT or DB_AUTOQUERY_UPDATE)
+    * @param string $where in case of update queries, this string will be put after the sql WHERE statement
+    * @return resource handle for the query
+    * @see buildManipSQL
+    * @access public
+    */
     function autoPrepare($table, $table_fields, $mode = DB_AUTOQUERY_INSERT, $where = FALSE)
     {
         $query = $this->buildManipSQL($table, $table_fields, $mode, $where);
@@ -2089,89 +2091,85 @@ class MDB_common extends PEAR
     // {{{
     // }}} autoExecute()
     /**
-     * Make automaticaly an insert or update query and call prepare() and
-     *   execute() with it
-     *
-     * @param string $table name of the table
-     * @param array $fields_values assoc ($key=>$value) where $key is a field
-     *       name and $value its value
-     * @param int $mode type of query to make (DB_AUTOQUERY_INSERT or
-     *       DB_AUTOQUERY_UPDATE)
-     * @param string $where in case of update queries, this string will be put
-     *       after the sql WHERE statement
-     * @return mixed  a new DB_Result or a DB_Error when fail
-     * @see buildManipSQL
-     * @see autoPrepare
-     * @access public
-     */
+    * Make automaticaly an insert or update query and call prepare() and execute() with it
+    *
+    * @param string $table name of the table
+    * @param array $fields_values assoc ($key=>$value) where $key is a field name and $value its value
+    * @param int $mode type of query to make (DB_AUTOQUERY_INSERT or DB_AUTOQUERY_UPDATE)
+    * @param string $where in case of update queries, this string will be put after the sql WHERE statement
+    * @return mixed  a new DB_Result or a DB_Error when fail
+    * @see buildManipSQL
+    * @see autoPrepare
+    * @access public
+    */
     function autoExecute($table, $fields_values, $mode = DB_AUTOQUERY_INSERT, $where = FALSE)
     {
         $sth = $this->autoPrepare($table, array_keys($fields_values), $mode, $where);
         return $this->execute($sth, array_values($fields_values));
+
     }
 
     // {{{
     // }}} buildManipSQL()
     /**
-     * Make automaticaly an sql query for prepare()
-     *
-     * Example:
-     *    buildManipSQL('table_sql', array('field1', 'field2', 'field3'),
-     *                   DB_AUTOQUERY_INSERT)
-     *    will return the string : INSERT INTO table_sql (field1,field2,field3)
-     *                             VALUES (?,?,?)
-     * NB : This belongs more to a SQL Builder class, but this is a simple
-     *      facility
-     *
-     * @param string $table name of the table
-     * @param array $table_fields ordered array containing the fields names
-     * @param int $mode type of query to make (DB_AUTOQUERY_INSERT or
-     *       DB_AUTOQUERY_UPDATE)
-     * @param string $where in case of update queries, this string will be put
-     *       after the sql WHERE statement
-     * @return string sql query for prepare()
-     * @access public
-     */
+    * Make automaticaly an sql query for prepare()
+    *
+    * Example : buildManipSQL('table_sql', array('field1', 'field2', 'field3'),
+    *                                                      DB_AUTOQUERY_INSERT)
+    *           will return the string :
+    *             INSERT INTO table_sql (field1,field2,field3) VALUES (?,?,?)
+    * NB : - This belongs more to a SQL Builder class, but this is a simple facility
+    *      - Be carefull ! If you don't give a $where param with an UPDATE query, all
+    *        the records of the table will be updated !
+    *
+    * @param string $table name of the table
+    * @param array  $table_fields ordered array containing the fields names
+    * @param int    $mode type of query to make (DB_AUTOQUERY_INSERT or DB_AUTOQUERY_UPDATE)
+    * @param string $where in case of update queries,
+    *                      this string will be put after the sql WHERE statement
+    * @return string sql query for prepare()
+    * @access public
+    */
     function buildManipSQL($table, $table_fields, $mode, $where = FALSE)
     {
-        if (count($table_fields)==0) {
+        if (count($table_fields) == 0) {
             $this->raiseError(DB_ERROR_NEED_MORE_DATA);
         }
         $first = TRUE;
-        switch($mode) {
-        case DB_AUTOQUERY_INSERT:
-            $values = '';
-            $names = '';
-            while (list(, $value) = each($table_fields)) {
-                if ($first) {
-                    $first = FALSE;
-                } else {
-                    $names .= ',';
-                    $values .= ',';
+        switch ($mode) {
+            case DB_AUTOQUERY_INSERT:
+                $values = '';
+                $names = '';
+                while (list(, $value) = each($table_fields)) {
+                    if ($first) {
+                        $first = FALSE;
+                    } else {
+                        $names .= ',';
+                        $values .= ',';
+                    }
+                    $names .= $value;
+                    $values .= '?';
                 }
-                $names .= $value;
-                $values .= '?';
-            }
-            return "INSERT INTO $table ($names) VALUES ($values)";
-            break;
-        case DB_AUTOQUERY_UPDATE:
-            $set = '';
-            while (list(, $value) = each($table_fields)) {
-                if ($first) {
-                    $first = false;
-                } else {
-                    $set .= ',';
+                return "INSERT INTO $table ($names) VALUES ($values)";
+                break;
+            case DB_AUTOQUERY_UPDATE:
+                $set = '';
+                while (list(, $value) = each($table_fields)) {
+                    if ($first) {
+                        $first = FALSE;
+                    } else {
+                        $set .= ',';
+                    }
+                    $set .= "$value = ?";
                 }
-                $set .= "$value = ?";
-            }
-            $sql = "UPDATE $table SET $set";
-            if($where) {
-                $sql .= " WHERE $where";
-            }
-            return $sql;
-            break;
-        default:
-            $this->raiseError(DB_ERROR_SYNTAX);
+                $sql = "UPDATE $table SET $set";
+                if ($where) {
+                    $sql .= " WHERE $where";
+                }
+                return $sql;
+                break;
+            default:
+                $this->raiseError(DB_ERROR_SYNTAX);
         }
     }
 
@@ -2199,23 +2197,23 @@ class MDB_common extends PEAR
      *
      * @return mixed DB_OK on success, a DB error on failure
      */
-    function setParam($prepared_query, $parameter, $type, $value, $is_null = 0, $field = "")
+    function setParam($prepared_query, $parameter, $type, $value, $is_null = 0, $field = '')
     {
         $result = $this->_validatePreparedQuery($prepared_query);
         if (MDB::isError($result)) {
             return $result;
         }
-        $index = $prepared_query-1;
+        $index = $prepared_query - 1;
         if ($parameter < 1
-            || $parameter>count($this->prepared_queries[$index]["Positions"]))
+            || $parameter>count($this->prepared_queries[$index]['Positions']))
         {
-            return $this->raiseError(DB_ERROR_SYNTAX, "", "",
+            return $this->raiseError(DB_ERROR_SYNTAX, '', '',
                 'Query set: it was not specified a valid argument number');
         }
-        $this->prepared_queries[$index]["Values"][$parameter-1] = $value;
-        $this->prepared_queries[$index]["Types"][$parameter-1] = $type;
-        $this->prepared_queries[$index]["Fields"][$parameter-1] = $field;
-        $this->prepared_queries[$index]["IsNULL"][$parameter-1] = $is_null;
+        $this->prepared_queries[$index]['Values'][$parameter-1] = $value;
+        $this->prepared_queries[$index]['Types'][$parameter-1] = $type;
+        $this->prepared_queries[$index]['Fields'][$parameter-1] = $field;
+        $this->prepared_queries[$index]['IsNULL'][$parameter-1] = $is_null;
         return (DB_OK);
     }
 
@@ -2240,41 +2238,41 @@ class MDB_common extends PEAR
         if (is_array($types)) {
             for($i = 0, $j = count($params); $i<$j; ++$i) {
                 switch($types[$i]) {
-                    case "null":
-                        $success = $this->setParam($prepared_query, $i+1, $params[$i][0], "NULL", 1, "");
+                    case 'null':
+                        $success = $this->setParam($prepared_query, $i+1, $params[$i][0], 'NULL', 1, '');
                         break;
-                    case "text":
-                        $success = $this->setParam($prepared_query, $i+1, "text", $this->getTextValue($params[$i]));
+                    case 'text':
+                        $success = $this->setParam($prepared_query, $i+1, 'text', $this->getTextValue($params[$i]));
                         break;
-                    case "clob":
-                        $success = $this->setParam($prepared_query, $i+1, "clob", $params[$i][0], 0, $params[$i][1]);
+                    case 'clob':
+                        $success = $this->setParam($prepared_query, $i+1, 'clob', $params[$i][0], 0, $params[$i][1]);
                         break;
-                    case "blob":
-                        $success = $this->setParam($prepared_query, $i+1, "blob", $params[$i][0], 0, $params[$i][1]);
+                    case 'blob':
+                        $success = $this->setParam($prepared_query, $i+1, 'blob', $params[$i][0], 0, $params[$i][1]);
                         break;
-                    case "integer":
-                        $success = $this->setParam($prepared_query, $i+1, "integer", $this->getIntegerValue($params[$i]));
+                    case 'integer':
+                        $success = $this->setParam($prepared_query, $i+1, 'integer', $this->getIntegerValue($params[$i]));
                         break;
-                    case "boolean":
-                        $success = $this->setParam($prepared_query, $i+1, "boolean", $this->getBooleanValue($params[$i]));
+                    case 'boolean':
+                        $success = $this->setParam($prepared_query, $i+1, 'boolean', $this->getBooleanValue($params[$i]));
                         break;
-                    case "date":
-                        $success = $this->setParam($prepared_query, $i+1, "date", $this->getDateValue($params[$i]));
+                    case 'date':
+                        $success = $this->setParam($prepared_query, $i+1, 'date', $this->getDateValue($params[$i]));
                         break;
-                    case "timestamp":
-                        $success = $this->setParam($prepared_query, $i+1, "timestamp", $this->getTimestampValue($params[$i]));
+                    case 'timestamp':
+                        $success = $this->setParam($prepared_query, $i+1, 'timestamp', $this->getTimestampValue($params[$i]));
                         break;
-                    case "time":
-                        $success = $this->setParam($prepared_query, $i+1, "time", $this->getTimeValue($params[$i]));
+                    case 'time':
+                        $success = $this->setParam($prepared_query, $i+1, 'time', $this->getTimeValue($params[$i]));
                         break;
-                    case "float":
-                        $success = $this->setParam($prepared_query, $i+1, "float", $this->getFloatValue($params[$i]));
+                    case 'float':
+                        $success = $this->setParam($prepared_query, $i+1, 'float', $this->getFloatValue($params[$i]));
                         break;
-                    case "decimal":
-                        $success = $this->setParam($prepared_query, $i+1, "decimal", $this->getDecimalValue($params[$i]));
+                    case 'decimal':
+                        $success = $this->setParam($prepared_query, $i+1, 'decimal', $this->getDecimalValue($params[$i]));
                         break;
                     default:
-                        $success = $this->setParam($prepared_query, $i+1, "text", $this->getTextValue($params[$i]));
+                        $success = $this->setParam($prepared_query, $i+1, 'text', $this->getTextValue($params[$i]));
                         break;
                 }
                 if (MDB::isError($success)) {
@@ -2285,7 +2283,7 @@ class MDB_common extends PEAR
         else
         {
             for($i = 0, $j = count($params); $i<$j; ++$i) {
-                $success = $this->setParam($prepared_query, $i+1, "text", $this->getTextValue($params[$i]));
+                $success = $this->setParam($prepared_query, $i+1, 'text', $this->getTextValue($params[$i]));
                 if (MDB::isError($success)) {
                     return $success;
                 }
@@ -2313,7 +2311,7 @@ class MDB_common extends PEAR
      */
     function setParamNull($prepared_query, $parameter, $type)
     {
-        return ($this->setParam($prepared_query, $parameter, $type, "NULL", 1, ""));
+        return ($this->setParam($prepared_query, $parameter, $type, 'NULL', 1, ''));
     }
 
     // }}}
@@ -2334,7 +2332,7 @@ class MDB_common extends PEAR
      */
     function setParamText($prepared_query, $parameter, $value)
     {
-        return ($this->setParam($prepared_query, $parameter, "text", $this->getTextValue($value)));
+        return ($this->setParam($prepared_query, $parameter, 'text', $this->getTextValue($value)));
     }
 
     // }}}
@@ -2358,7 +2356,7 @@ class MDB_common extends PEAR
      */
     function setParamClob($prepared_query, $parameter, $value, $field)
     {
-        return ($this->setParam($prepared_query, $parameter, "clob", $value, 0, $field));
+        return ($this->setParam($prepared_query, $parameter, 'clob', $value, 0, $field));
     }
 
     // }}}
@@ -2382,7 +2380,7 @@ class MDB_common extends PEAR
      */
     function setParamBlob($prepared_query, $parameter, $value, $field)
     {
-        return ($this->setParam($prepared_query, $parameter, "blob", $value, 0, $field));
+        return ($this->setParam($prepared_query, $parameter, 'blob', $value, 0, $field));
     }
 
     // }}}
@@ -2403,7 +2401,7 @@ class MDB_common extends PEAR
      */
     function setParamInteger($prepared_query, $parameter, $value)
     {
-        return ($this->setParam($prepared_query, $parameter, "integer", $this->getIntegerValue($value)));
+        return ($this->setParam($prepared_query, $parameter, 'integer', $this->getIntegerValue($value)));
     }
 
     // }}}
@@ -2424,7 +2422,7 @@ class MDB_common extends PEAR
      */
     function setParamBoolean($prepared_query, $parameter, $value)
     {
-        return ($this->setParam($prepared_query, $parameter, "boolean", $this->getBooleanValue($value)));
+        return ($this->setParam($prepared_query, $parameter, 'boolean', $this->getBooleanValue($value)));
     }
 
     // }}}
@@ -2445,7 +2443,7 @@ class MDB_common extends PEAR
      */
     function setParamDate($prepared_query, $parameter, $value)
     {
-        return ($this->setParam($prepared_query, $parameter, "date", $this->getDateValue($value)));
+        return ($this->setParam($prepared_query, $parameter, 'date', $this->getDateValue($value)));
     }
 
     // }}}
@@ -2466,7 +2464,7 @@ class MDB_common extends PEAR
      */
     function setParamTimestamp($prepared_query, $parameter, $value)
     {
-        return ($this->setParam($prepared_query, $parameter, "timestamp", $this->getTimestampValue($value)));
+        return ($this->setParam($prepared_query, $parameter, 'timestamp', $this->getTimestampValue($value)));
     }
 
     // }}}
@@ -2487,12 +2485,11 @@ class MDB_common extends PEAR
      */
     function setParamTime($prepared_query, $parameter, $value)
     {
-        return ($this->setParam($prepared_query, $parameter, "time", $this->getTimeValue($value)));
+        return ($this->setParam($prepared_query, $parameter, 'time', $this->getTimeValue($value)));
     }
 
     // }}}
     // {{{ setParamFloat()
-
     /**
      * Set a parameter of a prepared query with a float value.
      *
@@ -2509,7 +2506,7 @@ class MDB_common extends PEAR
      */
     function setParamFloat($prepared_query, $parameter, $value)
     {
-        return ($this->setParam($prepared_query, $parameter, "float", $this->getFloatValue($value)));
+        return ($this->setParam($prepared_query, $parameter, 'float', $this->getFloatValue($value)));
     }
 
     // }}}
@@ -2530,7 +2527,7 @@ class MDB_common extends PEAR
      */
     function setParamDecimal($prepared_query, $parameter, $value)
     {
-        return ($this->setParam($prepared_query, $parameter, "decimal", $this->getDecimalValue($value)));
+        return ($this->setParam($prepared_query, $parameter, 'decimal', $this->getDecimalValue($value)));
     }
 
     // }}}
@@ -2560,7 +2557,7 @@ class MDB_common extends PEAR
     function setResultTypes($result, $types)
     {
         if (isset($this->result_types[$result])) {
-            return $this->raiseError(DB_ERROR_INVALID, "", "",
+            return $this->raiseError(DB_ERROR_INVALID, '', '',
                 'Set result types: attempted to redefine the types of the columns of a result set');
         }
         $columns = $this->numCols($result);
@@ -2568,24 +2565,24 @@ class MDB_common extends PEAR
             return $columns;
         }
         if ($columns<count($types)) {
-            return $this->raiseError(DB_ERROR_SYNTAX, "", "",
+            return $this->raiseError(DB_ERROR_SYNTAX, '', '',
                 'Set result types: it were specified more result types ('.count($types).') than result columns ('.$columns.')');
         }
         $valid_types = array(
-            "text" =>      MDB_TYPE_TEXT,
-            "boolean" =>   MDB_TYPE_BOOLEAN,
-            "integer" =>   MDB_TYPE_INTEGER,
-            "decimal" =>   MDB_TYPE_DECIMAL,
-            "float" =>     MDB_TYPE_FLOAT,
-            "date" =>      MDB_TYPE_DATE,
-            "time" =>      MDB_TYPE_TIME,
-            "timestamp" => MDB_TYPE_TIMESTAMP,
-            "clob" =>      MDB_TYPE_CLOB,
-            "blob" =>      MDB_TYPE_BLOB
+            'text' =>      MDB_TYPE_TEXT,
+            'boolean' =>   MDB_TYPE_BOOLEAN,
+            'integer' =>   MDB_TYPE_INTEGER,
+            'decimal' =>   MDB_TYPE_DECIMAL,
+            'float' =>     MDB_TYPE_FLOAT,
+            'date' =>      MDB_TYPE_DATE,
+            'time' =>      MDB_TYPE_TIME,
+            'timestamp' => MDB_TYPE_TIMESTAMP,
+            'clob' =>      MDB_TYPE_CLOB,
+            'blob' =>      MDB_TYPE_BLOB
         );
         for($column = 0; $column<count($types); $column++) {
             if (!isset($valid_types[$types[$column]])) {
-                return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+                return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
                     'Set result types: '.$types[$column].' is not a supported column type');
             }
             $this->result_types[$result][$column] = $valid_types[$types[$column]];
@@ -2616,7 +2613,6 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ getColumnNames()
-
     /**
      * Retrieve the names of columns returned by the DBMS in a query result.
      *
@@ -2635,7 +2631,7 @@ class MDB_common extends PEAR
     function getColumnNames($result)
     {
         $columns = array();
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
             'Get column names: obtaining result column names is not implemented');
     }
 
@@ -2653,7 +2649,7 @@ class MDB_common extends PEAR
      */
     function numCols($result)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
             'Number of columns: obtaining the number of result columns is not implemented');
     }
 
@@ -2670,7 +2666,7 @@ class MDB_common extends PEAR
     */
     function endOfResult($result)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
             'End of result: end of result method not implemented');
     }
 
@@ -2728,7 +2724,7 @@ class MDB_common extends PEAR
      */
     function fetch($result, $row, $field)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
             'Fetch: fetch result method not implemented');
     }
 
@@ -2749,20 +2745,20 @@ class MDB_common extends PEAR
     {
         $lob = count($this->lobs) + 1;
         $this->lobs[$lob] = array(
-            "Result" => $result,
-            "Row" => $row,
-            "Field" => $field,
-            "Position" => 0
+            'Result' => $result,
+            'Row' => $row,
+            'Field' => $field,
+            'Position' => 0
         );
         $character_lob = array(
-            "Database" => $this,
-            "Error" => "",
-            "Type" => "resultlob",
-            "ResultLOB" => $lob
+            'Database' => $this,
+            'Error' => '',
+            'Type' => 'resultlob',
+            'ResultLOB' => $lob
         );
         if (!createLob($character_lob, $clob)) {
-            return $this->raiseError(DB_ERROR, "", "",
-                'Fetch LOB result: '. $character_lob["Error"]);
+            return $this->raiseError(DB_ERROR, '', '',
+                'Fetch LOB result: '. $character_lob['Error']);
         }
         return ($clob);
     }
@@ -2781,11 +2777,11 @@ class MDB_common extends PEAR
     function retrieveLob($lob)
     {
         if (!isset($this->lobs[$lob])) {
-            return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "",
+            return $this->raiseError(DB_ERROR_NEED_MORE_DATA, '', '',
                 'Fetch LOB result: it was not specified a valid lob');
         }
-        if (!isset($this->lobs[$lob]["Value"])) {
-            $this->lobs[$lob]["Value"] = $this->fetch($this->lobs[$lob]["Result"], $this->lobs[$lob]["Row"], $this->lobs[$lob]["Field"]);
+        if (!isset($this->lobs[$lob]['Value'])) {
+            $this->lobs[$lob]['Value'] = $this->fetch($this->lobs[$lob]['Result'], $this->lobs[$lob]['Row'], $this->lobs[$lob]['Field']);
         }
         return (DB_OK);
     }
@@ -2808,7 +2804,7 @@ class MDB_common extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
-        return ($this->lobs[$lob]["Position"] >= strlen($this->lobs[$lob]["Value"]));
+        return ($this->lobs[$lob]['Position'] >= strlen($this->lobs[$lob]['Value']));
     }
 
     // }}}
@@ -2832,9 +2828,9 @@ class MDB_common extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
-        $length = min($length,strlen($this->lobs[$lob]["Value"])-$this->lobs[$lob]["Position"]);
-        $data = substr($this->lobs[$lob]["Value"], $this->lobs[$lob]["Position"], $length);
-        $this->lobs[$lob]["Position"] += $length;
+        $length = min($length,strlen($this->lobs[$lob]['Value'])-$this->lobs[$lob]['Position']);
+        $data = substr($this->lobs[$lob]['Value'], $this->lobs[$lob]['Position'], $length);
+        $this->lobs[$lob]['Position'] += $length;
         return ($length);
     }
 
@@ -2851,7 +2847,7 @@ class MDB_common extends PEAR
     function destroyResultLob($lob)
     {
         if (isset($this->lobs[$lob])) {
-            $this->lobs[$lob] = "";
+            $this->lobs[$lob] = '';
         }
     }
 
@@ -2871,7 +2867,7 @@ class MDB_common extends PEAR
      */
     function fetchClob($result, $row, $field)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
             'fetch clob result method is not implemented');
     }
 
@@ -2890,7 +2886,7 @@ class MDB_common extends PEAR
      */
     function fetchBlob($result, $row, $field)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
             'fetch blob result method is not implemented');
     }
 
@@ -2937,7 +2933,7 @@ class MDB_common extends PEAR
             case MDB_TYPE_INTEGER:
                 return (intval($value));
             case MDB_TYPE_BOOLEAN:
-                return (strcmp($value, "Y") ? 0 : 1);
+                return (strcmp($value, 'Y') ? 0 : 1);
             case MDB_TYPE_DECIMAL:
                 return ($value);
             case MDB_TYPE_FLOAT:
@@ -2951,10 +2947,10 @@ class MDB_common extends PEAR
             case MDB_TYPE_CLOB:
                 return ($value);
             case MDB_TYPE_BLOB:
-                return $this->raiseError(DB_ERROR_INVALID, "", "",
+                return $this->raiseError(DB_ERROR_INVALID, '', '',
                     'BaseConvertResult: attempt to convert result value to an unsupported type '.$type);
             default:
-                return $this->raiseError(DB_ERROR_INVALID, "", "",
+                return $this->raiseError(DB_ERROR_INVALID, '', '',
                     'BaseConvertResult: attempt to convert result value to an unknown type '.$type);
         }
     }
@@ -3146,7 +3142,7 @@ class MDB_common extends PEAR
      */
     function numRows($result)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Num Rows: number of rows method not implemented");
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Num Rows: number of rows method not implemented');
     }
 
     // }}}
@@ -3162,7 +3158,7 @@ class MDB_common extends PEAR
      */
     function freeResult($result)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Free Result: free result method not implemented");
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', 'Free Result: free result method not implemented');
     }
 
     // }}}
@@ -3194,10 +3190,10 @@ class MDB_common extends PEAR
      */
     function getIntegerDeclaration($name, &$field)
     {
-        if (isset($field["unsigned"])) {
+        if (isset($field['unsigned'])) {
             $this->warnings[] = "unsigned integer field \"$name\" is being declared as signed integer";
         }
-        return ("$name INT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name INT".(isset($field['default']) ? ' DEFAULT '.$field['default'] : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -3230,7 +3226,7 @@ class MDB_common extends PEAR
      */
     function getTextDeclaration($name, &$field)
     {
-        return ((isset($field["length"]) ? "$name CHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->getTextValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ((isset($field['length']) ? "$name CHAR (".$field['length'].')' : "$name TEXT").(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -3260,7 +3256,7 @@ class MDB_common extends PEAR
      */
     function getCLOBDeclaration($name, &$field)
     {
-        return ((isset($field["length"]) ? "$name CHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->getTextValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ((isset($field['length']) ? "$name CHAR (".$field['length'].')' : "$name TEXT").(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -3290,7 +3286,7 @@ class MDB_common extends PEAR
      */
     function getBLOBDeclaration($name, &$field)
     {
-        return ((isset($field["length"]) ? "$name CHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->getTextValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ((isset($field['length']) ? "$name CHAR (".$field['length'].')' : "$name TEXT").(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -3318,7 +3314,7 @@ class MDB_common extends PEAR
      */
     function getBooleanDeclaration($name, &$field)
     {
-        return ("$name CHAR (1)".(isset($field["default"]) ? " DEFAULT ".$this->getBooleanValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name CHAR (1)".(isset($field['default']) ? ' DEFAULT '.$this->getBooleanValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -3346,7 +3342,7 @@ class MDB_common extends PEAR
      */
     function getDateDeclaration($name, &$field)
     {
-        return ("$name CHAR (".strlen("YYYY-MM-DD").")".(isset($field["default"]) ? " DEFAULT ".$this->getDateValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name CHAR (".strlen("YYYY-MM-DD").")".(isset($field['default']) ? ' DEFAULT '.$this->getDateValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -3374,7 +3370,7 @@ class MDB_common extends PEAR
      */
     function getTimestampDeclaration($name, &$field)
     {
-        return ("$name CHAR (".strlen("YYYY-MM-DD HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimestampValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name CHAR (".strlen("YYYY-MM-DD HH:MM:SS").")".(isset($field['default']) ? ' DEFAULT '.$this->getTimestampValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -3402,7 +3398,7 @@ class MDB_common extends PEAR
      */
     function getTimeDeclaration($name, &$field)
     {
-        return ("$name CHAR (".strlen("HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimeValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name CHAR (".strlen("HH:MM:SS").")".(isset($field['default']) ? ' DEFAULT '.$this->getTimeValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -3430,7 +3426,7 @@ class MDB_common extends PEAR
      */
     function getFloatDeclaration($name, &$field)
     {
-        return ("$name TEXT ".(isset($field["default"]) ? " DEFAULT ".$this->getFloatValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name TEXT ".(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -3458,7 +3454,7 @@ class MDB_common extends PEAR
      */
     function getDecimalDeclaration($name, &$field)
     {
-        return ("$name TEXT ".(isset($field["default"]) ? " DEFAULT ".$this->getDecimalValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name TEXT ".(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -3476,7 +3472,7 @@ class MDB_common extends PEAR
      */
     function getIntegerValue($value)
     {
-        return (!strcmp($value, "NULL") ? "NULL" : "$value");
+        return (!strcmp($value, 'NULL') ? 'NULL' : "$value");
     }
 
     // }}}
@@ -3515,7 +3511,7 @@ class MDB_common extends PEAR
      */
     function getClobValue($prepared_query, $parameter, $clob)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
             'Get CLOB field value: prepared queries with values of type "clob" are not yet supported');
     }
 
@@ -3551,7 +3547,7 @@ class MDB_common extends PEAR
      */
     function getBlobValue($prepared_query, $parameter, $blob)
     {
-        return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "",
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '',
             'Get BLOB field value: prepared queries with values of type "blob" are not yet supported');
     }
 
@@ -3585,7 +3581,7 @@ class MDB_common extends PEAR
      */
     function getBooleanValue($value)
     {
-        return (!strcmp($value, "NULL") ? "NULL" : ($value ? "'Y'" : "'N'"));
+        return (!strcmp($value, 'NULL') ? 'NULL' : ($value ? "'Y'" : "'N'"));
     }
 
     // }}}
@@ -3603,7 +3599,7 @@ class MDB_common extends PEAR
      */
     function getDateValue($value)
     {
-        return (!strcmp($value, "NULL") ? "NULL" : "'$value'");
+        return (!strcmp($value, 'NULL') ? 'NULL' : "'$value'");
     }
 
     // }}}
@@ -3621,7 +3617,7 @@ class MDB_common extends PEAR
      */
     function getTimestampValue($value)
     {
-        return (!strcmp($value, "NULL") ? "NULL" : "'$value'");
+        return (!strcmp($value, 'NULL') ? 'NULL' : "'$value'");
     }
 
     // }}}
@@ -3639,7 +3635,7 @@ class MDB_common extends PEAR
      */
     function getTimeValue($value)
     {
-        return (!strcmp($value, "NULL") ? "NULL" : "'$value'");
+        return (!strcmp($value, 'NULL') ? 'NULL' : "'$value'");
     }
 
     // }}}
@@ -3657,7 +3653,7 @@ class MDB_common extends PEAR
      */
     function getFloatValue($value)
     {
-        return (!strcmp($value, "NULL") ? "NULL" : "'$value'");
+        return (!strcmp($value, 'NULL') ? 'NULL' : "'$value'");
     }
 
     // }}}
@@ -3675,7 +3671,7 @@ class MDB_common extends PEAR
      */
     function getDecimalValue($value)
     {
-        return (!strcmp($value, "NULL") ? "NULL" : "'$value'");
+        return (!strcmp($value, 'NULL') ? 'NULL' : "'$value'");
     }
 
     // }}}
@@ -3695,24 +3691,24 @@ class MDB_common extends PEAR
     function getValue($type, $value)
     {
         switch($type) {
-            case "integer":
+            case 'integer':
                 return ($this->getIntegerValue($value));
-            case "text":
+            case 'text':
                 return ($this->getTextValue($value));
-            case "boolean":
+            case 'boolean':
                 return ($this->getBooleanValue($value));
-            case "date":
+            case 'date':
                 return ($this->getDateValue($value));
-            case "timestamp":
+            case 'timestamp':
                 return ($this->getTimestampValue($value));
-            case "time":
+            case 'time':
                 return ($this->getTimeValue($value));
-            case "float":
+            case 'float':
                 return ($this->getFloatValue($value));
-            case "decimal":
+            case 'decimal':
                 return ($this->getDecimalValue($value));
         }
-        return ("");
+        return ('');
     }
 
     // }}}
@@ -3741,7 +3737,7 @@ class MDB_common extends PEAR
      */
     function getSequenceName($sqn)
     {
-        return sprintf($this->options["seqname_format"],
+        return sprintf($this->options['seqname_format'],
                        preg_replace('/[^a-z0-9_]/i', '_', $sqn));
     }
 
@@ -3759,7 +3755,7 @@ class MDB_common extends PEAR
      */
     function nextId($seq_name, $ondemand = FALSE)
     {
-         return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "",
+         return $this->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
             'Next Sequence: getting next sequence value not supported');
     }
 
@@ -3774,13 +3770,13 @@ class MDB_common extends PEAR
      */
     function currId($seq_name)
     {
-        $this->warnings[] = "database does not support getting current sequence value, the sequence value was incremented";
+        $this->warnings[] = 'database does not support getting current sequence value, the sequence value was incremented';
         expectError(DB_ERROR_NOT_CAPABLE);
         $id = $this->nextId($seq_name);
         popExpectError(DB_ERROR_NOT_CAPABLE);
         if(MDB::isError($id)) {
             if($id->getCode() == DB_ERROR_NOT_CAPABLE) {
-                return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "",
+                return $this->raiseError(DB_ERROR_NOT_CAPABLE, '', '',
                     'Current Sequence: getting current sequence value not supported');
             }
             return $id;
@@ -3790,7 +3786,6 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ fetchInto()
-
     /**
      * Fetch a row and insert the data into an existing array.
      *
@@ -3805,12 +3800,12 @@ class MDB_common extends PEAR
     function fetchInto($result, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
         if (MDB::isError($result)) {
-            return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "",
+            return $this->raiseError(DB_ERROR_NEED_MORE_DATA, '', '',
                     'Fetch field: it was not specified a valid result set');
         }
         if (MDB::isError($this->endOfResult($result))) {
             $this->freeResult($result);
-            $res = $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "",
+            $res = $this->raiseError(DB_ERROR_NEED_MORE_DATA, '', '',
                     'Fetch field: result set is empty');
         }
         if($rownum == NULL) {
@@ -4016,7 +4011,6 @@ class MDB_common extends PEAR
 
     // }}}
     // {{{ queryRow()
-
     /**
      * Execute the specified query, fetch the value from the first column of
      * the first row of the result set into a given variable and then frees
@@ -4123,7 +4117,7 @@ class MDB_common extends PEAR
         if ($types != NULL) {
             $types = array($type);
         }
-        settype($params, "array");
+        settype($params, 'array');
         if (sizeof($params) > 0) {
             $prepared_query = $this->prepareQuery($query);
             if (MDB::isError($prepared_query)) {
@@ -4232,7 +4226,7 @@ class MDB_common extends PEAR
         if ($type != NULl) {
             $types = array($type);
         }
-        settype($params, "array");
+        settype($params, 'array');
         if (sizeof($params) > 0) {
             $prepared_query = $this->prepareQuery($query);
 
@@ -4344,7 +4338,7 @@ class MDB_common extends PEAR
     function &getAssoc($query, $types = NULL, $params = array(), $param_types = NULL,
         $fetchmode = DB_FETCHMODE_ORDERED, $force_array = FALSE, $group = FALSE)
     {
-        settype($params, "array");
+        settype($params, 'array');
         if (sizeof($params) > 0) {
             $prepared_query = $this->prepareQuery($query);
 
@@ -4393,7 +4387,7 @@ class MDB_common extends PEAR
      */
     function &getAll($query, $types = NULL, $params = array(), $param_types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
-        settype($params, "array");
+        settype($params, 'array');
         if (sizeof($params) > 0) {
             $prepared_query = $this->prepareQuery($query);
 
