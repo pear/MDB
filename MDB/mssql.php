@@ -687,7 +687,7 @@ class MDB_mssql extends MDB_Common
             $fetchmode = $this->fetchmode;
         }
         if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-            $row = @mssql_fetch_array($result, MYSQL_ASSOC);
+            $row = @mssql_fetch_array($result, MSSQL_ASSOC);
         } else {
             $row = @mssql_fetch_row($result);
         }
@@ -698,9 +698,9 @@ class MDB_mssql extends MDB_Common
             return null;
         }
         if (isset($this->results[$result_value]['types'])) {
-            $array = $this->datatype->convertResultRow($this, $result, $array);
+            $row = $this->datatype->convertResultRow($this, $result, $row);
         }
-        return $array;
+        return $row;
     }
 
     // }}}
