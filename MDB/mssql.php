@@ -116,7 +116,7 @@ class MDB_mssql extends MDB_Common
     {
        $res = mssql_query('select @@ERROR as ErrorCode', $this->connection);
        if (!$res) {
-           return DB_ERROR;
+           return MDB_ERROR;
        }
        $row = mssql_fetch_row($res);
        return $row[0];
@@ -143,7 +143,7 @@ class MDB_mssql extends MDB_Common
             if (isset($this->errorcode_map[$native_code])) {
                 $code = $this->errorcode_map[$native_code];
             } else {
-                $code = DB_ERROR;
+                $code = MDB_ERROR;
             }
         }
         return $this->raiseError($code, null, null, null, $native_code . ' - ' . $native_msg);
@@ -641,20 +641,16 @@ class MDB_mssql extends MDB_Common
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
-        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-            $array = @mssql_fetch_array($result, MYSQL_ASSOC);
+        if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+            $row = @mssql_fetch_array($result, MYSQL_ASSOC);
         } else {
-            $array = @mssql_fetch_row($result);
+            $row = @mssql_fetch_row($result);
         }
-        if (!$array) {
-            $errno = @mssql_errno($this->connection);
-            if (!$errno) {
-                if ($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
-                return null;
+        if (!$row) {
+            if ($this->options['autofree']) {
+                $this->freeResult($result);
             }
-            return $this->mssqlRaiseError($errno);
+            return null;
         }
         if (isset($this->results[$result_value]['types'])) {
             $array = $this->datatype->convertResultRow($this, $result, $array);
