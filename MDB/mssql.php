@@ -262,7 +262,7 @@ class MDB_mssql extends MDB_Common
             $this->affected_rows = -1;
         }
 
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+        if (!PEAR::loadExtension($this->phptype)) {
             return $this->raiseError(null, MDB_ERROR_NOT_FOUND, null, null,
                 'connect: extension '.$this->phptype.' is not compiled into PHP');
         }
@@ -348,7 +348,7 @@ class MDB_mssql extends MDB_Common
      */
     function standaloneQuery($query)
     {
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+        if (!PEAR::loadExtension($this->phptype)) {
             return $this->raiseError(null, MDB_ERROR_NOT_FOUND, null, null,
                 'standaloneQuery: extension '.$this->phptype.' is not compiled into PHP');
         }
@@ -555,11 +555,12 @@ class MDB_mssql extends MDB_Common
      */
     function freeResult($result)
     {
-        if (!is_resource($result)) {
-            return $this->raiseError(MDB_ERROR, null, null,
-                'freeResult: attemped to free an unknown query result');
+        $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'freeResult: it was specified an inexisting result set');
         }
-        unset($this->results[intval($result)]);
+        unset($this->results[$result_value]);
         return @mssql_free_result($result);
     }
 
@@ -648,6 +649,10 @@ class MDB_mssql extends MDB_Common
     function fetch($result, $rownum = 0, $field = 0)
     {
         $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'fetch: it was specified an inexisting result set');
+        }
         $value = @mssql_result($result, $rownum, $field);
         if ($value === false && $value != null) {
             return $this->mssqlRaiseError();
@@ -676,6 +681,10 @@ class MDB_mssql extends MDB_Common
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'fetchRow: it was specified an inexisting result set');
+        }
         if (is_null($rownum)) {
             ++$this->results[$result_value]['highest_fetched_row'];
         } else {
@@ -715,7 +724,14 @@ class MDB_mssql extends MDB_Common
      */
     function nextResult($result)
     {
-        return mssql_next_result($result);
+        $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'nextResult: it was specified an inexisting result set');
+        }
+        // not sure how to best handle setting the values that usually
+        // set per query in query() like affected_rows and highest_fetched_row
+        return @mssql_next_result($result);
     }
 }
 ?>

@@ -646,7 +646,12 @@ class MDB_querysim extends MDB_Common
      */
     function freeResult(&$result)
     {
-        unset($this->results[$this->_querySimSignature($result)]);
+        $result_value = $this->_querySimSignature($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'freeResult: it was specified an inexisting result set');
+        }
+        unset($this->results[$result_value]);
         unset($result);
         return true;
     }
@@ -665,13 +670,17 @@ class MDB_querysim extends MDB_Common
     */
     function fetch($result, $rownum = 0, $field = 0)
     {
-        $result_link = $this->_querySimSignature($result);
+        $result_value = $this->_querySimSignature($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'fetch: it was specified an inexisting result set');
+        }
         if (!isset($result[1][$rownum][$field])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 "fetch():  row $row, field $field is undefined in result set");
         }
-        $this->highest_fetched_row[$result_link] =
-            max($this->highest_fetched_row[$result_link], $rownum);
+        $this->highest_fetched_row[$result_value] =
+            max($this->highest_fetched_row[$result_value], $rownum);
         $value = $result[1][$rownum][$field];
         if (isset($this->results[$result_value]['types'][$field])) {
             $value = $this->datatype->convertResult($value, $this->results[$result_value]['types'][$field]);
@@ -694,6 +703,10 @@ class MDB_querysim extends MDB_Common
     function fetchRow(&$result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_value = $this->_querySimSignature($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'fetchRow: it was specified an inexisting result set');
+        }
         //if specific rownum request
         if (is_null($rownum)) {
             ++$this->results[$result_value]['highest_fetched_row'];

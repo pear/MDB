@@ -286,6 +286,7 @@ class MDB_pgsql extends MDB_Common
         if (!empty($dsninfo['tty'])) {
             $connstr .= ' tty=' . $dsninfo['tty'];
         }
+        putenv('PGDATESTYLE=ISO');
 
         $function = ($persistent ? 'pg_pconnect' : 'pg_connect');
         // catch error
@@ -327,7 +328,7 @@ class MDB_pgsql extends MDB_Common
             $this->connection = 0;
         }
 
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+        if (!PEAR::loadExtension($this->phptype)) {
             return $this->raiseError(MDB_ERROR_NOT_FOUND, null, null,
                 'connect: extension '.$this->phptype.' is not compiled into PHP');
         }
@@ -670,9 +671,10 @@ class MDB_pgsql extends MDB_Common
      */
     function freeResult($result)
     {
-        if (!is_resource($result)) {
-            return $this->raiseError(MDB_ERROR, null, null,
-                'freeResult: attemped to free an unknown query result');
+        $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'freeResult: it was specified an inexisting result set');
         }
         unset($this->results[intval($result)]);
         return @pg_free_result($result);
@@ -765,6 +767,10 @@ class MDB_pgsql extends MDB_Common
     function fetch($result, $rownum = 0, $field = 0)
     {
         $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'fetch: it was specified an inexisting result set');
+        }
         $value = @pg_result($result, $rownum, $field);
         if ($value === false && $value != null) {
             return $this->pgsqlRaiseError();
@@ -793,6 +799,11 @@ class MDB_pgsql extends MDB_Common
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'fetchRow
+                : it was specified an inexisting result set');
+        }
         if (is_null($rownum)) {
             ++$this->results[$result_value]['highest_fetched_row'];
             $rownum = $this->results[$result_value]['highest_fetched_row'];

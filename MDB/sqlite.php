@@ -326,7 +326,7 @@ class MDB_sqlite extends MDB_Common
             $this->affected_rows = -1;
         }
 
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+        if (!PEAR::loadExtension($this->phptype)) {
             return $this->raiseError(MDB_ERROR_NOT_FOUND, null, null,
                 'connect: extension '.$this->phptype.' is not compiled into PHP');
         }
@@ -681,11 +681,12 @@ class MDB_sqlite extends MDB_Common
      */
     function freeResult(&$result)
     {
-        if (!isset($this->results[intval($result)])) {
-            return $this->raiseError(MDB_ERROR, null, null,
-                'freeResult: attemped to free an unknown query result');
+        $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'freeResulr: it was specified an inexisting result set');
         }
-        unset($this->results[intval($result)]);
+        unset($this->results[$result_value]);
         unset($result);
         return MDB_OK;
     }
@@ -773,6 +774,10 @@ class MDB_sqlite extends MDB_Common
     function fetch($result, $rownum = 0, $field = 0)
     {
         $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'fetch: it was specified an inexisting result set');
+        }
         if (!sqlite_seek($result, $rownum)) {
             return null;
         }
@@ -808,6 +813,10 @@ class MDB_sqlite extends MDB_Common
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'fetchRow: it was specified an inexisting result set');
+        }
         if (is_null($rownum)) {
             ++$this->results[$result_value]['highest_fetched_row'];
         } else {
