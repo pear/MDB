@@ -623,6 +623,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
                     case 'longblob':
                     case 'blob':
                         $type[0] = 'blob';
+                        $type[1] = 'text';
                         break;
                     case 'year':
                         $type[0] = 'integer';
@@ -681,7 +682,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
                     }
                     $is_primary = FALSE;
                     foreach($indexes as $index) {
-                        if ($index['Key_name'] == 'PRIMARY' && $index['Column_name'] == $field_name) {
+                        if ($index['Key_name'] == 'PRIMARY' && $index['Column_name'] == $field) {
                             $is_primary = TRUE;
                             break;
                         }
