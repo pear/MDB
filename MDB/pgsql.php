@@ -1,6 +1,6 @@
 <?php
 /*
- * mysql.php
+ * pgsql.php
  *
  * @(#) $Header$
  *
