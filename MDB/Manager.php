@@ -260,7 +260,7 @@ class MDB_Manager extends PEAR
      */
     function &connect(&$dbinfo, $options = FALSE)
     {
-        if($this->database) {
+        if(is_object($this->database) && !MDB::isError($this->database)) {
             $this->disconnect();
         }
         if (is_object($dbinfo)) {
@@ -275,7 +275,7 @@ class MDB_Manager extends PEAR
         }
         if (isset($options['debug'])) {
             $this->options['debug'] = $options['debug'];
-        } 
+        }
         return (MDB_OK);
     }
 
