@@ -302,13 +302,18 @@ class MDB
                         null, null, 'no existing DBMS driver specified', 'MDB_Error', true);
                 }
         }
+        $include_path = (isset($options["includepath"]) ? $options["includepath"] : dirname(__FILE__));
         if (!strcmp($included,"") || !defined($included))
         {
-            $include_path = (isset($options["includepath"]) ? $options["includepath"] : dirname(__FILE__));
-            if ($include_path != "" && $include_path[strlen($include_path)-1] != "/") {
-                $include="/".$include;
+            $length = strlen($include_path);
+            $separator = "";
+            if($length) {
+                $directory_separator = (defined("DIRECTORY_SEPARATOR") ? DIRECTORY_SEPARATOR : "/");
+                if ($include_path[$length-1]!=$directory_separator)
+                    $separator = $directory_separator;
             }
-            if (!file_exists($include_path.$include)) {
+            
+            if(!file_exists($include_path.$separator.$include)) {
                 $directory = 0;
                 if (!strcmp($include_path,"")
                     || ($directory = @opendir($include_path)))
@@ -323,13 +328,14 @@ class MDB
                         null, null, 'no valid DBMS driver include path specified', 'MDB_Error', true);
                 }
             }
-            include($include_path.$include);
+            include($include_path.$separator.$include);
         }
         if (!class_exists($class_name)) {
             return PEAR::raiseError(null, DB_ERROR_NOT_FOUND,
                 null, null, null, 'MDB_Error', true);
         }
         $db = new $class_name;
+        $db->include_path=$include_path;
         if (isset($dsninfo["phptype"])) {
             $db->phptype = $dsninfo["phptype"];
         }
