@@ -802,18 +802,11 @@ class MDB_oci8 extends MDB_Common
      */
     function resultIsNull($result, $rownum, $field)
     {
-        $result_value = intval($result);
-        if (MDB::isError($column = $this->_getColumn($result, $field))) {
-            return $column;
+        $value = $this->fetch($result, $rownum, $field);
+        if (MDB::isError($value)) {
+            return $value;
         }
-        $row = $this->fetchRow($result, MDB_FETCHMODE_ORDERED, $rownum);
-        if (MDB::isError($row)) {
-            return $row;
-        }
-        $this->results[$result_value]['highest_fetched_row'] =
-            max($this->results[$result_value]['highest_fetched_row'], $rownum);
-        $this->results[$result_value][$rownum][$column] = $row;
-        return !isset($this->results[$result_value][$rownum][$column]);
+        return !isset($value);
     }
 
     // }}}
@@ -942,7 +935,6 @@ class MDB_oci8 extends MDB_Common
      */
     function fetch($result, $rownum = 0, $field = 0)
     {
-        $result_value = intval($result);
         if (MDB::isError($column = $this->_getColumn($result, $field))) {
             return $column;
         }
