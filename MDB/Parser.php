@@ -45,6 +45,8 @@
 // $Id$
 //
 
+require_once 'PEAR.php';
+
 /**
 * Parses an XML schema file
 *
@@ -895,12 +897,7 @@ class MDB_parser extends PEAR
                                 );
                             }
                             $sequence_definition['start'] = $start;
-                        } else {
-                            return($this->setParserError($database_tags['sequence'][$sequence],
-                                'it was not specified a valid sequence start value')
-                            );
-                        }
-                        if (isset($sequence_tags['on'])) {
+                        } if (isset($sequence_tags['on'])) {
                             if (count($sequence_tags['on']) > 1) {
                                 return($this->setParserError($sequence_tags['on'][1],
                                     'it was defined the sequence on section more than once')
@@ -937,6 +934,8 @@ class MDB_parser extends PEAR
                                 'table' => $table,
                                 'field' => $field
                             );
+                        } else {
+                            $sequence_definition['start'] = 1;
                         }
                         $this->database['SEQUENCES'][$sequence_values['name']] = $sequence_definition;
                     }
