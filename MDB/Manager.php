@@ -532,7 +532,7 @@ class MDB_Manager extends PEAR
                 'no valid sequence name specified'));
         }
         $this->database->debug('Create sequence: '.$sequence_name);
-        if(isset($sequence['start']) && $sequence['start'] != '') {
+        if(isset($sequence['start']) && is_int($sequence['start'])) {
             $start = $sequence['start'];
         } else if(isset($sequence['on']) && !$created_on_table) {
             $table = $sequence['on']['table'];
@@ -547,6 +547,9 @@ class MDB_Manager extends PEAR
             $start = $this->database->fetchOne($result);
             if(MDB::isError($start)) {
                 return($start);
+            }
+            if (!is_int($start)) {
+                $start = 1;
             }
         } else {
             $start = 1;
