@@ -1,24 +1,32 @@
 <?php
 
-$testarray = array('MDB_manager_testcase',
-                   'MDB_api_testcase',
-                   'MDB_usage_testcase'
-                   );
+// if you get a max execution exceed error uncomment the following line
+// and modify the time limit as needed
+//set_time_limit(100);
+
+
+$testarray = array(
+    'MDB_manager_testcase',
+    'MDB_api_testcase',
+    'MDB_usage_testcase'
+);
 
 $dbarray[] = array(
     'dsn' => array(
+        'phptype' => 'pgsql',
         'username' => 'username',
         'password' => 'password',
         'hostspec' => 'hostname',
-        'phptype' => 'pgsql',
+    ),
+    'options' => array(
     )
 );
 $dbarray[] = array(
     'dsn' => array(
+        'phptype' => 'mysql',
         'username' => 'username',
         'password' => 'password',
         'hostspec' => 'hostname',
-        'phptype' => 'mysql',
     ),
     'options' => array(
         'UseTransactions' => TRUE
