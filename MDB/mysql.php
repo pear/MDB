@@ -462,11 +462,11 @@ class MDB_mysql extends MDB_Common
                         return $err;
                     }
                 }
-                $result= $this->_return_result($result, $return_obj);
+                $result =& $this->_return_result($result, $return_obj);
                 return $result;
             }
         }
-        $error = $this->mysqlRaiseError();
+        $error =& $this->mysqlRaiseError();
         return $error;
     }
 

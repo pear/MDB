@@ -560,7 +560,7 @@ class MDB_oci8 extends MDB_Common
             $result= $this->_return_result($result, $return_obj);
             return $result;
         }
-        $error = $this->oci8RaiseError();
+        $error =& $this->oci8RaiseError();
         return $error;
     }
 

@@ -386,7 +386,7 @@ class MDB_Common extends PEAR
             $userinfo .= " [nativecode = $nativecode]";
         }
 
-        $error = PEAR::raiseError(null, $code, $mode, $options, $userinfo,
+        $error =& PEAR::raiseError(null, $code, $mode, $options, $userinfo,
             'MDB_Error', true);
 
         return $error;
@@ -484,7 +484,7 @@ class MDB_Common extends PEAR
                 return $this->raiseError(MDB_ERROR, null, null,
                     "no result class defined");
             }
-            $result = new $class_name($this, $result);
+            $result =& new $class_name($this, $result);
         }
         return $result;
     }
@@ -602,12 +602,12 @@ class MDB_Common extends PEAR
             } elseif (@include_once($include_dir.ucfirst($module).'/'.$this->phptype.'.php')) {
                 $class_name = 'MDB_'.ucfirst($module).'_'.$this->phptype;
             } else {
-                $error = $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
+                $error =& $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
                     'unable to find module: '.$module);
                 return $error;
             }
             if (!class_exists($class_name)) {
-                $error = $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
+                $error =& $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
                     'unable to load module: '.$module);
                 return $error;
             }
@@ -803,7 +803,7 @@ class MDB_Common extends PEAR
     function &query($query, $types = null, $return_obj = false)
     {
         $this->debug($query, 'query');
-        $error = $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Query: database queries are not implemented');
+        $error =& $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Query: database queries are not implemented');
         return $error;
     }
 

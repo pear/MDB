@@ -498,7 +498,7 @@ class MDB_pgsql extends MDB_Common
             $this->affected_rows = 0;
             return MDB_OK;
         }
-        $error = $this->pgsqlRaiseError();
+        $error =& $this->pgsqlRaiseError();
         return $error;
     }
 

@@ -428,7 +428,7 @@ class MDB_querysim extends MDB_Common
             $result= $this->_return_result($result, $return_obj);
             return $result;
         }
-        $error = $this->raiseError();
+        $error =& $this->raiseError();
         return $error;
     }
 

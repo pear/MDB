@@ -431,7 +431,7 @@ class MDB_fbsql extends MDB_Common
                 return $result;
             }
         }
-        $error = $this->fbsqlRaiseError();
+        $error =& $this->fbsqlRaiseError();
         return $error;
     }
 
