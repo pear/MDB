@@ -74,6 +74,23 @@ class MDB_manager extends PEAR
         'create' => 0,
         'TABLES' => array()
     );
+    var $invalid_names = array(
+        'user' => array(),
+        'is' => array(),
+        'file' => array(
+            'oci' => array(),
+            'oracle' => array()
+        ),
+        'notify' => array(
+            'pgsql' => array()
+        ),
+        'restrict' => array(
+            'mysql' => array()
+        ),
+        'password' => array(
+            'ibase' => array()
+        )
+    );
 
     // }}}
     // {{{ captureDebugOutput()
@@ -364,7 +381,7 @@ class MDB_manager extends PEAR
                         $this->warnings[] = 'Index allready exists: '.$index_name;
                         if ($overwrite) {
                             $this->database->debug('Overwritting Index');
-                            $result = $this->database->dropIndex($index_name);
+                            $result = $this->database->dropIndex($table_name, $index_name);
                             if (MDB::isError($result)) {
                                 break;
                             }
@@ -1760,6 +1777,9 @@ class MDB_manager extends PEAR
                                     'it was not specified the type of the field "'.$field_name.'" of the table "'.$table_name, 'MDB_Error', TRUE);
                             }
                             $buffer .=("$eol   <field>$eol    <name>$field_name</name>$eol    <type>".$field['type']."</type>$eol");
+                            if(in_array($field_name, array_keys($this->invalid_names))) {
+                                $this->warnings[] = "invalid field name: $field_name. You will need to set the class var \$fail_on_invalid_names to FALSE";
+                            }
                             switch($field['type']) {
                                 case 'integer':
                                     if (isset($field['unsigned'])) {
