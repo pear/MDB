@@ -105,6 +105,7 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
       - added MDB::isConnection()
       - fixed LOB handling in Interbase driver
       - minor improvements to the test suite
+      - fixed function support()
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
