@@ -1177,8 +1177,7 @@ class MDB_mssql extends MDB_Common
         if (MDB::isError($result)) {
             return($result);
         }
-        $value = $this->fetch($result);
-        $this->freeResult($result);
+        $value = $this->fetchOne($result);
         $result = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($result)) {
             $this->warnings[] = 'nextID: could not delete previous sequence table values';
