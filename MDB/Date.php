@@ -144,9 +144,7 @@ class MDB_Date
      */
     function mdbstamp2Unix($mdb_timestamp)
     {
-        $arr = MDB_Date::mdbstamp2Date($mdb_timestamp);
-        return mktime ($arr['hour'], $arr['minute'], $arr['second'],
-            $arr['month'], $arr['day'], $arr['year']);
+        return strtotime($mdb_timestamp);
     }
 
     // }}}
@@ -162,17 +160,12 @@ class MDB_Date
      */
     function mdbstamp2Date($mdb_timestamp)
     {
-        // 0123456789012345678
-        // YYYY-MM-DD HH:MM:SS
-        $arr['year'] = substr($mdb_timestamp, 0, 4);
-        $arr['month'] = substr($mdb_timestamp, 5, 2);
-        $arr['day'] = substr($mdb_timestamp, 8, 2);
-        $arr['hour'] = substr($mdb_timestamp, 11, 2);
-        $arr['minute'] = substr($mdb_timestamp, 14, 2);
-        $arr['second'] = substr($mdb_timestamp, 17, 2);
+        list($arr['year'], $arr['month'], $arr['day'], $arr['hour'], $arr['minute'], $arr['second']) =
+            sscanf($mdb_timestamp, "%04u-%02u-%02u %02u:%02u:%02u");
         return $arr;
     }
 
     // }}}
 }
+
 ?>
