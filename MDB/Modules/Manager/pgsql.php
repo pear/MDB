@@ -78,7 +78,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     function createDatabase($name)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        return $db->_standaloneQuery("CREATE DATABASE $name");
+        return $db->standaloneQuery("CREATE DATABASE $name");
     }
 
     // }}}
@@ -95,7 +95,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     {
         
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        return $db->_standaloneQuery("DROP DATABASE $name");
+        return $db->standaloneQuery("DROP DATABASE $name");
     }
 
     // }}}

@@ -429,7 +429,7 @@ class MDB_pgsql extends MDB_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function _standaloneQuery($query)
+    function standaloneQuery($query)
     {
         if (($connection = $this->_doConnect('template1', 0)) == 0) {
             return $this->raiseError(MDB_ERROR_CONNECT_FAILED, null, null,
@@ -461,6 +461,7 @@ class MDB_pgsql extends MDB_Common
     {
         $this->debug($query, 'query');
         $ismanip = MDB::isManip($query);
+        $this->last_query = $query;
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;
         $this->first_selected_row = $this->selected_row_limit = 0;
