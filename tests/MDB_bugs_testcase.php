@@ -116,8 +116,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
     function insertTestValues($prepared_query, &$data) {
         for ($i = 0; $i < count($this->fields); $i++) {
-            $func = 'setParam'.$this->types[$i];
-            $this->db->$func($prepared_query, ($i + 1), $data[$this->fields[$i]]);
+            $this->db->setParam($prepared_query, ($i + 1), $this->types[$i], $data[$this->fields[$i]]);
         }
     }
 
@@ -162,7 +161,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
         $field = $this->db->fetchOne($result);
         $this->assertEquals($field, $data[0]['user_name'], "The data returned ($field) does not match that expected ($data[0]['user_name'])");
-
+        $this->db->freeResult($result);
     }
 
 }
