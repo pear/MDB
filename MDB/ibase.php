@@ -130,7 +130,7 @@ class MDB_ibase extends MDB_Common
         $this->supported['CurrId'] = 1;
         $this->supported['SelectRowRanges'] = 1;
         $this->supported['LOBs'] = 1;
-        $this->supported['Replace'] = 0;   // TEMPORARY SECURITY MEASURE...
+        $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 1;
 
         $this->decimal_factor = pow(10.0, $this->decimal_places);
@@ -513,6 +513,11 @@ class MDB_ibase extends MDB_Common
         } else {
             //Not Prepared Query
             $result = @ibase_query($connection, $query);
+            if (ibase_errmsg() == 'Query argument missed') { //ibase_errcode() only available in PHP5
+                //connection lost, try again...
+                $this->connect();
+                $result = @ibase_query($this->connection, $query);
+            }
         }
         if ($result) {
             if (!MDB::isManip($query)) {
