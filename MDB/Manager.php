@@ -263,16 +263,15 @@ class MDB_Manager extends PEAR
         if(is_object($this->database) && !MDB::isError($this->database)) {
             $this->disconnect();
         }
-        if (is_object($dbinfo)) {
+        if(is_object($dbinfo)) {
              $this->database =& $dbinfo;
         } else {
             $this->database =& MDB::connect($dbinfo, $options);
-            if (MDB::isError($this->database)) {
-                $this->database = '';
+            if(MDB::isError($this->database)) {
                 return($this->database);
             }
         }
-        if (is_array($options)) {
+        if(is_array($options)) {
             $this->options = array_merge($options, $this->options);
         }
         return(MDB_OK);
