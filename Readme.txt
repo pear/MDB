@@ -178,12 +178,18 @@ but ...
 - Add ability to snyc two databases (structure and/or content)
 - Add support for more RDBMS (you)
 - Finish reverse engineering parts of the pgsql driver (pgc)
+- Add testing suite
+  (currently there is only the test suite provided by Metabase)
 
 1.1 Release (Fall 2002)
-- finish PHPDoc comments (lsmith)
+- Finish PHPDoc comments (lsmith)
+- Write Docbook documentation
 - Add support for more RDBMS (you)
+- Complete testing suite
+
+Sometime
 - Interactive Application for Schema Reverse Engineering to better handle
-ambiguities that cannot be resolved automatically
+  ambiguities that cannot be resolved automatically
 - SQL Funtion Abstraction (for example SUBSTRING() and SUBSTR())
 - Different modes: performance, portability
 
