@@ -17,7 +17,8 @@ Sometime (in no particular order)
 - Write Docbook documentation
 - Store the contents of LOB fields into seperate files when dumping
 - SQL Funtion Abstraction (for example SUBSTRING() and SUBSTR())
-- Different modes: performance, portability
+- Different modes: portability, performance (there certain RDBMS specfic features
+  might also be exposed like "auto_increment" etc.)
 - Add optional unbuffered query mode
 - Add EXPLAIN method
 - Add call to EXPLAIN method to the default debug output handler
