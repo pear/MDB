@@ -4,23 +4,11 @@
 // and modify the time limit as needed
 //set_time_limit(100);
 
-
 $testcases = array(
     'MDB_manager_testcase',
     'MDB_api_testcase',
     'MDB_usage_testcase',
     'MDB_bugs_testcase'
-);
-
-$dbarray[] = array(
-    'dsn' => array(
-        'phptype' => 'pgsql',
-        'username' => 'username',
-        'password' => 'password',
-        'hostspec' => 'hostname',
-    ),
-    'options' => array(
-    )
 );
 $dbarray[] = array(
     'dsn' => array(
@@ -30,8 +18,29 @@ $dbarray[] = array(
         'hostspec' => 'hostname',
     ),
     'options' => array(
-        'use_transactions' => TRUE
+        'use_transactions' => true
     )
 );
 
+$dbarray[] = array(
+    'dsn' => array(
+        'phptype' => 'pgsql',
+        'username' => 'username',
+        'password' => 'password',
+        'hostspec' => 'hostname',
+    )
+);
+
+$dbarray[] = array(
+    'dsn' => array(
+        'phptype' => 'oci8',
+        'username' => '',
+        'password' => 'password',
+        'hostspec' => 'hostname',
+    ),
+    'options' => array(
+        'DBA_username' => 'username',
+        'DBA_password' => 'password'
+    )
+);
 ?>
