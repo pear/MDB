@@ -76,6 +76,7 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ resetWarnings()
+
     /**
      * reset the warning array
      *
@@ -88,6 +89,7 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ getWarnings()
+
     /**
      * get all warnings in reverse order.
      * This means that the last warning is the first element in the array
@@ -104,6 +106,7 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ connect()
+
     /**
      * Create a new MDB connection object and connect to the specified
      * database
@@ -124,31 +127,64 @@ class MDB_manager extends PEAR
      *
      * @see     MDB::parseDSN
      */
-    function connect($dsninfo, $options = FALSE)
+    function &connect(&$dsninfo, $options = FALSE)
     {
-        if (isset($options['debug'])) {
-            $this->debug = $options['debug'];
-        }
         if($this->database) {
-            $this->disconnect;
+            $this->disconnect();
         }
         if (is_object($dsninfo)) {
-             $database = $dsninfo;
+             $this->database =& $dsninfo;
         } else {
-            $database = MDB::connect($dsninfo, $options);
-            if (MDB::isError($database)) {
-                return $database;
+            $this->database =& MDB::connect($dsninfo, $options);
+            if (MDB::isError($this->database)) {
+                $error = $this->database;
+                $this->database = '';
+                return $error;
             }
         }
-        $this->database = $database;
-        if (!isset($options['debug'])) {
-            $this->database->captureDebugOutput(1);
+        if (isset($options['debug'])) {
+            $this->debug = $options['debug'];
         }
         return (DB_OK);
     }
 
+
+    // }}}
+    // {{{ captureDebugOutput()
+
+    /**
+     * set a debug handler
+     *
+     * @param string $capture name of the function that should be used in
+     *     debug()
+     *
+     * @access public
+     * @see debug()
+     */
+    function captureDebugOutput($capture)
+    {
+        $this->debug = $capture;
+        $this->database->captureDebugOutput(1);
+    }
+
+    // }}}
+    // {{{ debugOutput()
+
+    /**
+     * output debug info
+     *
+     * @access public
+     *
+     * @return string content of the debug_output class variable
+     */
+    function debugOutput()
+    {
+        return ($this->database->debugOutput());
+    }
+
     // }}}
     // {{{ disconnect()
+
     /**
      * Log out and disconnect from the database.
      *
@@ -165,6 +201,7 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ setDatabase()
+
     /**
      * Select a different database
      *
@@ -1509,6 +1546,7 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ dumpDatabase()
+
     /**
      * Dump a previously parsed database structure in the Metabase schema
      * XML based format suitable for the Metabase parser. This function
@@ -1572,8 +1610,8 @@ class MDB_manager extends PEAR
         $eol = (isset($arguments['EndOfLine']) ? $arguments['EndOfLine'] : "\n");
 
         $sequences = array();
-        if (isset($this->database_definition['SEQUENCES']) 
-            && is_array($this->database_definition['SEQUENCES'])) 
+        if (isset($this->database_definition['SEQUENCES'])
+            && is_array($this->database_definition['SEQUENCES']))
         {
             foreach($this->database_definition['SEQUENCES'] as $sequence_name => $sequence) {
                 if (isset($sequence['on'])) {
@@ -1788,6 +1826,7 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ updateDatabase()
+
     /**
      * Compare the correspondent files of two versions of a database schema
      * definition: the previously installed and the one that defines the schema
