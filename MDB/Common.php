@@ -116,7 +116,7 @@ class MDB_common extends PEAR
 
     // new for PEAR
     var $last_query = "";
-    var $autofree = false;
+    var $autofree = FALSE;
 
     /* PRIVATE METHODS */
 
@@ -147,81 +147,18 @@ class MDB_common extends PEAR
         }
         $text = str_replace("'", $this->escape_quotes."'", $text);
     }
-
+    
+    /**
+     * Quotes a string so it can be safely used in a query. It will quote
+     * the text so it can safely be used within a query.
+     *
+     * @param string $text the input string to quote
+     *
+     */
     function close()
     {
     }
 
-    /* PUBLIC METHODS */
-
-    // renamed for PEAR
-    // used to be: CloseSetup
-    function disconnect()
-    {
-        if ($this->in_transaction
-        && !MDB::isError($this->rollbackTransaction())
-        && !MDB::isError($this->autoCommitTransactions(1))) {
-            $this->in_transaction = 0;
-        }
-        $this->close();
-    }
-
-    function debug($message)
-    {
-        if (strcmp($function = $this->debug, "")) {
-            if ($this->pass_debug_handle) {
-                $function($this->database, $message);
-            } else {
-                $function($message);
-            }
-        }
-    }
-
-    function debugOutput()
-    {
-        return($this->debug_output);
-    }
-
-    function setDatabase($name)
-    {
-        $previous_database_name = $this->database_name;
-        $this->database_name = $name;
-        return($previous_database_name);
-    }
-
-    function registerTransactionShutdown($auto_commit)
-    {
-        global $registered_transactions_shutdown;
-
-        if (($this->in_transaction = !$auto_commit)
-            && !$registered_transactions_shutdown)
-        {
-            register_shutdown_function("shutdownTransactions");
-            $registered_transactions_shutdown = 1;
-        }
-        return(1);
-    }
-
-    function captureDebugOutput($capture)
-    {
-        $this->pass_debug_handle = $capture;
-        $this->debug = ($capture ? "defaultDebugOutput" : "");
-    }
-
-    function setError($scope, $message)
-    {
-        $this->last_error=$message;
-        $this->debug($scope.": ".$message);
-        if (strcmp($function=$this->error_handler,"")) {
-            $error=array(
-                "Scope"=>$scope,
-                "Message"=>$message
-            );
-            $function($this,$error);
-        }
-        return(0);
-    }
-    
     function loadExtension($scope, $extension, $included_constant, $include)
     {
         if (strlen($included_constant) == 0
@@ -281,24 +218,198 @@ class MDB_common extends PEAR
         return(1);
     }
 
-    function createDatabase($database)
+    function validatePreparedQuery($prepared_query)
+    {
+        if ($prepared_query < 1 || $prepared_query > count($this->prepared_queries)) {
+            return $this->raiseError(DB_ERROR_INVALID, "", "", 
+                'Validate prepared query: invalid prepared query');
+        }
+        if (gettype($this->prepared_queries[$prepared_query-1])!= "array") {
+            return $this->raiseError(DB_ERROR_INVALID, "", "", 
+                'Validate prepared query: prepared query was already freed');
+        }
+        return(1);
+    }
+    
+    /* PUBLIC METHODS */
+
+    // BEGIN METHODS THAT NEED SOME WORK
+    function registerTransactionShutdown($auto_commit)
+    {
+        global $registered_transactions_shutdown;
+
+        if (($this->in_transaction = !$auto_commit)
+            && !$registered_transactions_shutdown)
+        {
+            register_shutdown_function("shutdownTransactions");
+            $registered_transactions_shutdown = 1;
+        }
+        return(1);
+    }
+
+    function captureDebugOutput($capture)
+    {
+        $this->pass_debug_handle = $capture;
+        $this->debug = ($capture ? "defaultDebugOutput" : "");
+    }
+    
+    function debug($message)
+    {
+        if (strcmp($function = $this->debug, "")) {
+            if ($this->pass_debug_handle) {
+                $function($this->database, $message);
+            } else {
+                $function($message);
+            }
+        }
+    }
+
+    function debugOutput()
+    {
+        return($this->debug_output);
+    }
+    
+    function setError($scope, $message)
+    {
+        $this->last_error = $message;
+        $this->debug($scope.": ".$message);
+        if(strcmp($function = $this->error_handler,""))
+        {
+            $error = array(
+                "Scope" => $scope,
+                "Message" => $message
+            );
+            $function($this,$error);
+        }
+        return(0);
+    }
+
+    function setErrorHandler($function)
+    {
+        $last_function = $this->error_handler;
+        $this->error_handler = $function;
+        return($last_function);
+    }
+    // END METHODS THAT NEED SOME WORK
+    
+    // }}}
+    // {{{ disconnect()
+
+    /**
+     * Log out and disconnect from the database.
+     * renamed for PEAR
+     * used to be: CloseSetup
+     *
+     * @access public
+     *
+     * @return mixed TRUE on success, FALSE if not connected and error object on error
+     */
+    function disconnect()
+    {
+        if ($this->in_transaction
+        && !MDB::isError($this->rollbackTransaction())
+        && !MDB::isError($this->autoCommitTransactions(1))) {
+            $this->in_transaction = 0;
+        }
+        return $this->close();
+    }
+
+    // }}}
+    // {{{ setDatabase()
+
+    /**
+     * Select a different database
+     * 
+     * @param string $name name of the database that should be selected
+     * 
+     * @access public
+     *
+     * @return string name of the database previously connected to
+     */
+    function setDatabase($name)
+    {
+        $previous_database_name = $this->database_name;
+        $this->database_name = $name;
+        return($previous_database_name);
+    }
+
+    // }}}
+    // {{{ createDatabase()
+
+    /**
+     * create a new database
+     * 
+     * @param string $name name of the database that should be created
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
+    function createDatabase($name)
     {
         $result = $this->loadManager("Create database");
         if (MDB::isError($result)) {
             return($result);
         }
-        return($this->manager->createDatabase($this, $database));
+        return($this->manager->createDatabase($this, $name));
     }
 
-    function dropDatabase($database)
+    // }}}
+    // {{{ dropDatabase()
+
+    /**
+     * drop an existing database
+     * 
+     * @param string $name name of the database that should be dropped
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
+    function dropDatabase($name)
     {
         $result = $this->loadManager("Drop database");
         if (MDB::isError($result)) {
             return($result);
         }
-        return($this->manager->dropDatabase($this, $database));
+        return($this->manager->dropDatabase($this, $name));
     }
 
+    // }}}
+    // {{{ createTable()
+
+    /**
+     * create a new table
+     * 
+     * @param string $name     Name of the database that should be created
+     * @param array $fields Associative array that contains the definition of each field of the new table
+     *                        The indexes of the array entries are the names of the fields of the table an
+     *                        the array entry values are associative arrays like those that are meant to be
+     *                         passed with the field definitions to get[Type]Declaration() functions.
+     *
+     *                        Example
+     *                        array(
+     *                        
+     *                            "id" => array(
+     *                                "type" => "integer",
+     *                                "unsigned" => 1
+     *                                "notnull" => 1
+     *                                "default" => 0
+     *                            ),
+     *                            "name" => array(
+     *                                "type"=>"text",
+     *                                "length"=>12
+     *                            ),
+     *                            "password"=>array(
+     *                                "type"=>"text",
+     *                                "length"=>12
+     *                            )
+     *                        );
+       * 
+     * @access public
+     *
+      * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function createTable($name, &$fields)
     {
         $result = $this->loadManager("Create table");
@@ -308,6 +419,18 @@ class MDB_common extends PEAR
         return($this->manager->createTable($this, $name, $fields));
     }
 
+    // }}}
+    // {{{ dropTable()
+
+    /**
+     * drop an existing table
+     * 
+     * @param string $name name of the table that should be dropped
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function dropTable($name)
     {
         $result = $this->loadManager("Drop table");
@@ -317,6 +440,105 @@ class MDB_common extends PEAR
         return($this->manager->dropTable($this, $name));
     }
 
+    // }}}
+    // {{{ alterTable()
+
+    /**
+     * alter an existing table
+     * 
+     * @param string $name         name of the table that is intended to be changed.
+     * @param array $changes     associative array that contains the details of each type
+     *                             of change that is intended to be performed. The types of
+     *                             changes that are currently supported are defined as follows:
+     * 
+     *                             name
+     *
+     *                                New name for the table.
+     *
+     *                            AddedFields
+     *
+     *                                Associative array with the names of fields to be added as
+     *                                 indexes of the array. The value of each entry of the array
+     *                                 should be set to another associative array with the properties
+     *                                 of the fields to be added. The properties of the fields should
+     *                                 be the same as defined by the Metabase parser.
+     *
+     *                                Additionally, there should be an entry named Declaration that
+     *                                 is expected to contain the portion of the field declaration already
+     *                                 in DBMS specific SQL code as it is used in the CREATE TABLE statement.
+     *
+     *                            RemovedFields
+     *
+     *                                Associative array with the names of fields to be removed as indexes
+     *                                 of the array. Currently the values assigned to each entry are ignored.
+     *                                 An empty array should be used for future compatibility.
+     *
+     *                            RenamedFields
+     *
+     *                                Associative array with the names of fields to be renamed as indexes
+     *                                 of the array. The value of each entry of the array should be set to
+     *                                 another associative array with the entry named name with the new
+     *                                 field name and the entry named Declaration that is expected to contain
+     *                                 the portion of the field declaration already in DBMS specific SQL code
+     *                                 as it is used in the CREATE TABLE statement.
+     *
+     *                            ChangedFields
+     *
+     *                                Associative array with the names of the fields to be changed as indexes
+     *                                 of the array. Keep in mind that if it is intended to change either the
+     *                                 name of a field and any other properties, the ChangedFields array entries
+     *                                 should have the new names of the fields as array indexes.
+     *
+     *                                The value of each entry of the array should be set to another associative
+     *                                 array with the properties of the fields to that are meant to be changed as
+     *                                 array entries. These entries should be assigned to the new values of the
+     *                                 respective properties. The properties of the fields should be the same
+     *                                 as defined by the Metabase parser.
+     *
+     *                                If the default property is meant to be added, removed or changed, there
+     *                                 should also be an entry with index ChangedDefault assigned to 1. Similarly,
+     *                                 if the notnull constraint is to be added or removed, there should also be
+     *                                 an entry with index ChangedNotNull assigned to 1.
+     *
+     *                                Additionally, there should be an entry named Declaration that is expected
+     *                                 to contain the portion of the field changed declaration already in DBMS
+     *                                 specific SQL code as it is used in the CREATE TABLE statement.
+     *                            Example
+     *                                array(
+     *                                    "name" => "userlist",
+     *                                    "AddedFields" => array(
+     *                                        "quota" => array(
+     *                                            "type" => "integer",
+     *                                            "unsigned" => 1
+     *                                            "Declaration" => "quota INT"
+     *                                        )
+     *                                    ),
+     *                                    "RemovedFields" => array(
+     *                                        "file_limit" => array(),
+     *                                        "time_limit" => array()
+     *                                        ),
+     *                                    "ChangedFields" => array(
+     *                                        "gender" => array(
+     *                                            "default" => "M",
+     *                                            "ChangeDefault" => 1,
+     *                                            "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *                                        )
+     *                                    ),
+     *                                    "RenamedFields" => array(
+     *                                        "sex" => array(
+     *                                            "name" => "gender",
+     *                                            "Declaration" => "gender CHAR(1) DEFAULT 'M'"
+     *                                        )
+     *                                    )
+     *                                )
+     * 
+     * @param boolean $check     indicates whether the function should just check if the DBMS driver
+     *                             can perform the requested table alterations if the value is true or
+     *                             actually perform them otherwise.
+     * @access public
+     *
+      * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function alterTable($name, &$changes, $check)
     {
         $result = $this->loadManager("Alter table");
@@ -326,6 +548,102 @@ class MDB_common extends PEAR
         return($this->manager->alterTable($this, $name, $changes, $check));
     }
 
+    // }}}
+    // {{{ listDatabases()
+
+    /**
+     * list all databases
+     * 
+     * @param array $dbs reference to an empty array into which the list is stored
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
+    function listDatabases(&$dbs)
+    {
+        $result = $this->loadManager("List databases");
+        if (MDB::isError($result)) {
+            return($result);
+        }
+        return($this->manager->listDatabases($this, $dbs));
+    }
+
+    // }}}
+    // {{{ listUsers()
+
+    /**
+     * list all users
+     * 
+     * @param array $users reference to an empty array into which the list is stored
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
+    function listUsers(&$users)
+    {
+        $result = $this->loadManager("List users");
+        if (MDB::isError($result)) {
+            return($result);
+        }
+        return($this->manager->listUsers($this, $users));
+    }
+
+    // }}}
+    // {{{ listViews()
+
+    /**
+     * list all viewes in the current database
+     * 
+     * @param array $views reference to an empty array into which the list is stored
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
+    function listViews(&$views)
+    {
+        $result = $this->loadManager("List views");
+        if (MDB::isError($result)) {
+            return($result);
+        }
+        return($this->manager->listViews($this, $users));
+    }
+
+    // }}}
+    // {{{ listFunctions()
+
+    /**
+     * list all functions in the current database
+     * 
+     * @param array $functions reference to an empty array into which the list is stored
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
+    function listFunctions(&$functions)
+    {
+        $result = $this->loadManager("List functions");
+        if (MDB::isError($result)) {
+            return($result);
+        }
+        return($this->manager->listFunctions($this, $users));
+    }
+
+    // }}}
+    // {{{ listTables()
+
+    /**
+     * list all tables in the current database
+     * 
+     * @param array $tables reference to an empty array into which the list is stored
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function listTables(&$tables)
     {
         $result = $this->loadManager("List tables");
@@ -335,6 +653,19 @@ class MDB_common extends PEAR
         return($this->manager->listTables($this, $tables));
     }
 
+    // }}}
+    // {{{ listTableFields()
+
+    /**
+     * list all fields in a tables in the current database
+     * 
+     * @param string $table name of table that should be used in method
+     * @param array $fields reference to an empty array into which the list is stored
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function listTableFields($table, &$fields)
     {
         $result = $this->loadManager("List table fields");
@@ -344,6 +675,20 @@ class MDB_common extends PEAR
         return($this->manager->listTableFields($this, $table, $fields));
     }
 
+    // }}}
+    // {{{ getTableFieldDefinition()
+
+    /**
+     * get the stucture of a field into an array
+     * 
+     * @param string    $table         name of table that should be used in method
+     * @param string    $fields     name of field that should be used in method
+     * @param array        $definition reference to an empty array into which the structure of the field should be stored
+      * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function getTableFieldDefinition($table, $field, &$definition)
     {
         $result = $this->loadManager("Get table field definition");
@@ -353,6 +698,43 @@ class MDB_common extends PEAR
         return($this->manager->getTableFieldDefinition($this, $table, $field, $definition));
     }
 
+    // }}}
+    // {{{ createIndex()
+
+    /**
+     * get the stucture of a field into an array
+     * 
+     * @param string    $table         name of the table on which the index is to be created
+     * @param string    $name         name of the index to be created
+     * @param array        $definition associative array that defines properties of the index to be created.
+     *                                 Currently, only one property named FIELDS is supported. This property
+     *                                 is also an associative with the names of the index fields as array
+     *                                 indexes. Each entry of this array is set to another type of associative
+     *                                 array that specifies properties of the index that are specific to
+     *                                 each field.
+     *
+     *                                Currently, only the sorting property is supported. It should be used
+     *                                 to define the sorting direction of the index. It may be set to either
+     *                                 ascending or descending.
+     *
+     *                                Not all DBMS support index sorting direction configuration. The DBMS
+     *                                 drivers of those that do not support it ignore this property. Use the
+     *                                 function support() to determine whether the DBMS driver can manage indexes.
+
+     *                                 Example
+     *                                    array(
+     *                                        "FIELDS"=>array(
+     *                                            "user_name"=>array(
+     *                                                "sorting"=>"ascending"
+     *                                            ),
+     *                                            "last_login"=>array()
+     *                                        )
+     *                                    )
+       * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
     function createIndex($table, $name, &$definition)
     {
         $result = $this->loadManager("Create index");
@@ -362,6 +744,19 @@ class MDB_common extends PEAR
         return($this->manager->createIndex($this, $table, $name, $definition));
     }
 
+    // }}}
+    // {{{ dropIndex()
+
+    /**
+     * drop existing index
+     * 
+     * @param string    $table         name of table that should be used in method
+     * @param string    $name         name of the index to be dropped
+      * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function dropIndex($table, $name)
     {
         $result = $this->loadManager("Drop index");
@@ -371,7 +766,20 @@ class MDB_common extends PEAR
         return($this->manager->dropIndex($this, $table ,$name));
     }
 
-    function createSequence($name, $start)
+    // }}}
+    // {{{ createSequence()
+
+    /**
+     * create sequence
+     * 
+     * @param string    $name         name of the sequence to be created
+     * @param string    $start         start value of the sequence; default is 1
+      * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
+    function createSequence($name, $start = 1)
     {
         $result = $this->loadManager("Create sequence");
         if (MDB::isError($result)) {
@@ -380,6 +788,18 @@ class MDB_common extends PEAR
         return($this->manager->createSequence($this, $name, $start));
     }
 
+    // }}}
+    // {{{ dropSequence()
+
+    /**
+     * drop existing sequence
+     * 
+     * @param string    $name         name of the sequence to be dropped
+      * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function dropSequence($name)
     {
         $result = $this->loadManager("Drop sequence");
@@ -389,6 +809,18 @@ class MDB_common extends PEAR
         return($this->manager->dropSequence($this, $name));
     }
 
+    // }}}
+    // {{{ listSequences()
+
+    /**
+     * list all tables in the current database
+     * 
+     * @param array $sequences reference to an empty array into which the list is stored
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function listSequences(&$sequences)
     {
         $result = $this->loadManager("List sequences");
@@ -398,12 +830,75 @@ class MDB_common extends PEAR
         return($this->manager->listSequences($this, $sequences));
     }
 
+    // }}}
+    // {{{ query()
+
+    /**
+     * Send a query to the database and return any results with a
+     * DB_result object.
+     *
+     * @access public
+     *
+     * @param string $query  the SQL query or the statement to prepare
+     * 
+     * @return mixed a result handle or DB_OK on success, a DB error on failure
+     */
     function query($query)
     {
         $this->debug("Query: $query");
         return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Query: database queries are not implemented");
     }
 
+    // }}}
+    // {{{ replace()
+
+    /**
+     * Execute a SQL REPLACE query. A REPLACE query is identical to a INSERT query, except
+     * that if there is already a row in the table with the same key field values, the
+     * REPLACE query just updates its values instead of inserting a new row.
+     *
+     * The REPLACE type of query does not make part of the SQL standards. Since pratically
+     * only MySQL implements it natively, this type of query is emulated through this
+     * method for other DBMS using standard types of queries inside a transaction to
+     * assure the atomicity of the operation.
+     *
+     * @access public
+     *
+     * @param string $table name of the table on which the REPLACE query will be executed.
+     * @param array $fields associative array that describes the fields and the values
+     *                         that will be inserted or updated in the specified table. The
+     *                         indexes of the array are the names of all the fields of the
+     *                         table. The values of the array are also associative arrays that
+     *                         describe the values and other properties of the table fields.
+      *
+     *                         Here follows a list of field properties that need to be specified:
+     *                        
+     *                        Value
+     *                        Value to be assigned to the specified field. This value may be of specified in database independent type format as this function can perform the necessary datatype conversions.
+     *                        
+     *                        Default: this property is required unless the Null property is set to 1.
+     *                        
+     *                        Type
+     *                        Name of the type of the field. Currently, all types Metabase are supported except for clob and blob.
+     *                        
+     *                        Default: text
+     *                        
+     *                        Null
+     *                        Boolean property that indicates that the value for this field should be set to NULL.
+     *                        
+     *                        The default value for fields missing in INSERT queries may be specified the definition of a table. Often, the default value is already NULL, but since the REPLACE may be emulated using an UPDATE query, make sure that all fields of the table are listed in this function argument array.
+     *                        
+     *                        Default: 0
+     *                        
+     *                        Key
+     *                        Boolean property that indicates that this field should be handled as a primary key or at least as part of the compound unique index of the table that will determine the row that will updated if it exists or inserted a new row otherwise.
+     *                        
+     *                        This function will fail if no key field is specified or if the value of a key field is set to NULL because fields that are part of unique index they may not be NULL.
+     *                        
+     *                        Default: 0
+     * 
+     * @return mixed DB_OK on success, a DB error on failure
+     */
     function replace($table, &$fields)
     {
         if (!$this->supported["Replace"]) {
@@ -513,12 +1008,30 @@ class MDB_common extends PEAR
         return($success);
     }
 
+    // }}}
+    // {{{ prepareQuery()
+
+    /**
+    * Prepares a query for multiple execution with execute().
+    * With some database backends, this is emulated.
+    * prepareQuery() requires a generic query as string like
+    * "INSERT INTO numbers VALUES(?,?,?)". The ? are wildcards.
+    * Types of wildcards:
+    *   ? - a quoted scalar value, i.e. strings, integers
+    *
+    * @param string the query to prepare
+    *
+    * @return mixed resource handle for the prepared query on success, a DB error on failure
+    *
+    * @access public
+    * @see execute
+    */
     function prepareQuery($query)
     {
         $this->debug("PrepareQuery: $query");
         $positions = array();
         for($position = 0;
-            $position<strlen($query) && gettype($question = strpos($query, "?", $position)) == "integer";)
+            $position < strlen($query) && gettype($question = strpos($query, "?", $position)) == "integer";)
         {
             if (gettype($quote = strpos($query, "'", $position)) == "integer"
                 && $quote<$question)
@@ -564,19 +1077,18 @@ class MDB_common extends PEAR
         return($prepared_query);
     }
 
-    function validatePreparedQuery($prepared_query)
-    {
-        if ($prepared_query<1 || $prepared_query>count($this->prepared_queries)) {
-            return $this->raiseError(DB_ERROR_INVALID, "", "", 
-                'Validate prepared query: invalid prepared query');
-        }
-        if (gettype($this->prepared_queries[$prepared_query-1])!= "array") {
-            return $this->raiseError(DB_ERROR_INVALID, "", "", 
-                'Validate prepared query: prepared query was already freed');
-        }
-        return(1);
-    }
+    // }}}
+    // {{{ freePreparedQuery()
 
+    /**
+     * Release resources allocated for the specified prepared query.
+     * 
+     * @param int $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function freePreparedQuery($prepared_query)
     {
         $result = $this->validatePreparedQuery($prepared_query);
@@ -584,14 +1096,39 @@ class MDB_common extends PEAR
             return $result;
         }
         $this->prepared_queries[$prepared_query-1] = "";
-        return(1);
+        return(DB_OK);
     }
 
+    // }}}
+    // {{{ executePreparedQuery()
+
+    /**
+     * Execute a prepared query statement.
+     * 
+     * @param int $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * @param string $query query to be executed
+      * 
+     * @access privat
+     *
+     * @return mixed a result handle or DB_OK on success, a DB error on failure
+     */ 
     function executePreparedQuery($prepared_query, $query)
     {
         return($this->query($query));
     }
 
+    // }}}
+    // {{{ executeQuery()
+
+    /**
+     * Execute a prepared query statement.
+     * 
+     * @param int $prepared_query argument is a handle that was returned by the function prepareQuery()
+      * 
+     * @access public
+     *
+     * @return mixed a result handle or DB_OK on success, a DB error on failure
+     */ 
     function executeQuery($prepared_query)
     {
         $result = $this->validatePreparedQuery($prepared_query);
@@ -659,14 +1196,37 @@ class MDB_common extends PEAR
         }
         unset($this->clobs[$prepared_query]);
         for(reset($this->blobs[$prepared_query]), $blob = 0;
-        $blob<count($this->blobs[$prepared_query]);
-        $blob++,next($this->blobs[$prepared_query])) {
+            $blob<count($this->blobs[$prepared_query]);
+            $blob++,next($this->blobs[$prepared_query]))
+        {
             $this->freeBLOBValue($prepared_query,key($this->blobs[$prepared_query]), $this->blobs[$prepared_query][key($this->blobs[$prepared_query])], $success);
         }
         unset($this->blobs[$prepared_query]);
         return($success);
     }
 
+    // }}}
+    // {{{ querySet()
+
+    /**
+     * Set the value of a parameter of a prepared query.
+     * 
+     * @param int         $prepared_query    argument is a handle that was returned by the function prepareQuery()
+     * @param int         $parameter      the order number of the parameter in the query statement. The order
+     *                                     number of the first parameter is 1.
+     * @param string     $type             designation of the type of the parameter to be set.
+     *                                    The designation of the currently supported types is as follows:
+                                        text, boolean, integer, decimal, float, date, time, timestamp, clob, blob
+     * @param mixed        $value             value that is meant to be assigned to specified parameter. The type of
+     *                                     the value depends on the $type argument.
+     * @param boolean    $is_null        flag that indicates whether whether the parameter is a NULL
+     * @param string    $field            name of the field that is meant to be assigned with this parameter value
+     *                                     when it is of type clob or blob
+       * 
+     * @access public
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySet($prepared_query, $parameter, $type, $value, $is_null = 0, $field = "")
     {
         $result = $this->validatePreparedQuery($prepared_query);
@@ -684,17 +1244,32 @@ class MDB_common extends PEAR
         $this->prepared_queries[$index]["Types"][$parameter-1] = $type;
         $this->prepared_queries[$index]["Fields"][$parameter-1] = $field;
         $this->prepared_queries[$index]["IsNULL"][$parameter-1] = $is_null;
-        return(1);
+        return(DB_OK);
     }
 
-    // new Metabase function for the PEAR get*()
-    // needs testing
-    // the array elements must use keys that correspond to the number of the position of the parameter
-    // single dimensional array: querySet with type text for all values of the array
-    // multi dimensional array :
-    // 0:    type
-    // 1:    value
-    // 2:    optional data
+
+    // }}}
+    // {{{ querySetArray()
+
+    /**
+     * Set the values of multiple a parameter of a prepared query in bulk.
+     * 
+     * @param int         $prepared_query    argument is a handle that was returned by the function prepareQuery()
+     * @param array     $array              array thats specifies all necessary infromation for querySet()
+     *                                    the array elements must use keys corresponding to the number of the
+     *                                     position of the parameter.
+     *                                    single dimensional array:
+     *                                         querySet with type text for all values of the array
+     *                                    multi dimensional array :
+                                    
+     *                                         0:    type
+     *                                        1:    value
+     *                                        2:    optional data
+       * 
+     * @access public
+     * @see querySet()
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySetArray($prepared_query, $array)
     {
         if (is_array($array[0])) {
@@ -703,7 +1278,7 @@ class MDB_common extends PEAR
                     case "null":
                         // maybe it would be cleaner to use $array[$i][2] instead of $array[$i][1] here
                         // but it might not be as nice when defining the array itself
-                        $success = $this->querySet($prepared_query, $i+1, $array[$i][1], "NULL",1, "");
+                        $success = $this->querySet($prepared_query, $i+1, $array[$i][1], "NULL", 1, "");
                         break;
                     case "text":
                         $success = $this->querySet($prepared_query, $i+1, "text", $this->getTextFieldValue($array[$i][1]));
@@ -753,78 +1328,260 @@ class MDB_common extends PEAR
                 }
             }
         }
-        return (1);
+        return (DB_OK);
     }
 
+    // }}}
+    // {{{ querySetNull()
+
+    /**
+     * Set the value of a parameter of a prepared query to NULL.
+     * 
+     * @param int         $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * @param int         $parameter         order number of the parameter in the query statement. The order
+     *                                     number of the first parameter is 1.
+     * @param string     $type             designation of the type of the parameter to be set. The designation of
+     *                                     the currently supported types is list in the usage of the function 
+     *                                     querySet()
+       * 
+     * @access public
+     * @seee querySet()
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySetNull($prepared_query, $parameter, $type)
     {
         return($this->querySet($prepared_query, $parameter, $type, "NULL", 1, ""));
     }
 
+    // }}}
+    // {{{ querySetText()
+
+    /**
+     * Set a parameter of a prepared query with a text value.
+     * 
+     * @param int         $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * @param int         $parameter         order number of the parameter in the query statement. The order
+     *                                     number of the first parameter is 1.
+     * @param string     $value             text value that is meant to be assigned to specified parameter.
+       * 
+     * @access public
+     * @seee querySet()
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySetText($prepared_query, $parameter, $value)
     {
         return($this->querySet($prepared_query, $parameter, "text", $this->getTextFieldValue($value)));
     }
 
+    // }}}
+    // {{{ querySetClob()
+
+    /**
+     * Set a parameter of a prepared query with a character large object value.
+     * 
+     * @param int         $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * @param int         $parameter         order number of the parameter in the query statement. The order
+     *                                     number of the first parameter is 1.
+     * @param int         $value             handle of large object created with createLOB() function from which
+     *                                     it will be read the data value that is meant to be assigned to
+     *                                     specified parameter.
+     * @param string    $field            name of the field of a INSERT or UPDATE query to which it will be
+                                         assigned the value to specified parameter.
+       * 
+     * @access public
+     * @seee querySet()
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySetCLob($prepared_query, $parameter, $value, $field)
     {
         return($this->querySet($prepared_query, $parameter, "clob", $value, 0, $field));
     }
 
+    // }}}
+    // {{{ querySetClob()
+
+    /**
+     * Set a parameter of a prepared query with a binary large object value.
+     * 
+     * @param int         $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * @param int         $parameter         order number of the parameter in the query statement. The order
+     *                                     number of the first parameter is 1.
+     * @param int         $value             handle of large object created with createLOB() function from which
+     *                                     it will be read the data value that is meant to be assigned to
+     *                                     specified parameter.
+     * @param string    $field            name of the field of a INSERT or UPDATE query to which it will be
+                                         assigned the value to specified parameter.
+       * 
+     * @access public
+     * @seee querySet()
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySetBLob($prepared_query, $parameter, $value, $field)
     {
         return($this->querySet($prepared_query, $parameter, "blob", $value, 0, $field));
     }
 
+    // }}}
+    // {{{ querySetInteger()
+
+    /**
+     * Set a parameter of a prepared query with a text value.
+     * 
+     * @param int     $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * @param int     $parameter         order number of the parameter in the query statement. The order
+     *                                 number of the first parameter is 1.
+     * @param int     $value             an integer value that is meant to be assigned to specified parameter.
+       * 
+     * @access public
+     * @seee querySet()
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySetInteger($prepared_query, $parameter, $value)
     {
         return($this->querySet($prepared_query, $parameter, "integer", $this->getIntegerFieldValue($value)));
     }
 
+    // }}}
+    // {{{ querySetBoolean()
+
+    /**
+     * Set a parameter of a prepared query with a boolean value.
+     * 
+     * @param int         $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * @param int         $parameter         order number of the parameter in the query statement. The order
+     *                                     number of the first parameter is 1.
+     * @param boolean     $value             boolean value that is meant to be assigned to specified parameter.
+       * 
+     * @access public
+     * @seee querySet()
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySetBoolean($prepared_query, $parameter, $value)
     {
         return($this->querySet($prepared_query, $parameter, "boolean", $this->getBooleanFieldValue($value)));
     }
 
+    // }}}
+    // {{{ querySetDate()
+
+    /**
+     * Set a parameter of a prepared query with a date value.
+     * 
+     * @param int         $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * @param int         $parameter         order number of the parameter in the query statement. The order
+     *                                     number of the first parameter is 1.
+     * @param string     $value             date value that is meant to be assigned to specified parameter.
+       * 
+     * @access public
+     * @seee querySet()
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySetDate($prepared_query, $parameter, $value)
     {
         return($this->querySet($prepared_query, $parameter, "date", $this->getDateFieldValue($value)));
     }
 
+    // }}}
+    // {{{ querySetTimestamp()
+
+    /**
+     * Set a parameter of a prepared query with a time stamp value.
+     * 
+     * @param int         $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * @param int         $parameter         order number of the parameter in the query statement. The order
+     *                                     number of the first parameter is 1.
+     * @param string     $value             time stamp value that is meant to be assigned to specified parameter.
+       * 
+     * @access public
+     * @seee querySet()
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySetTimestamp($prepared_query, $parameter, $value)
     {
         return($this->querySet($prepared_query, $parameter, "timestamp", $this->getTimestampFieldValue($value)));
     }
 
+    // }}}
+    // {{{ querySetTime()
+
+    /**
+     * Set a parameter of a prepared query with a time value.
+     * 
+     * @param int         $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * @param int         $parameter         order number of the parameter in the query statement. The order
+     *                                     number of the first parameter is 1.
+     * @param string     $value             time value that is meant to be assigned to specified parameter.
+       * 
+     * @access public
+     * @seee querySet()
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySetTime($prepared_query, $parameter, $value)
     {
         return($this->querySet($prepared_query, $parameter, "time", $this->getTimeFieldValue($value)));
     }
 
+    // }}}
+    // {{{ querySetFloat()
+
+    /**
+     * Set a parameter of a prepared query with a float value.
+     * 
+     * @param int         $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * @param int         $parameter         order number of the parameter in the query statement. The order
+     *                                     number of the first parameter is 1.
+     * @param string     $value             float value that is meant to be assigned to specified parameter.
+       * 
+     * @access public
+     * @seee querySet()
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySetFloat($prepared_query, $parameter, $value)
     {
         return($this->querySet($prepared_query, $parameter, "float", $this->getFloatFieldValue($value)));
     }
 
+    // }}}
+    // {{{ querySetDecimal()
+
+    /**
+     * Set a parameter of a prepared query with a decimal value.
+     * 
+     * @param int         $prepared_query argument is a handle that was returned by the function prepareQuery()
+     * @param int         $parameter         order number of the parameter in the query statement. The order
+     *                                     number of the first parameter is 1.
+     * @param string     $value             decimal value that is meant to be assigned to specified parameter.
+       * 
+     * @access public
+     * @seee querySet()
+     * @return mixed DB_OK on success, a DB error on failure
+     */ 
     function querySetDecimal($prepared_query, $parameter, $value)
     {
         return($this->querySet($prepared_query, $parameter, "decimal", $this->getDecimalFieldValue($value)));
     }
 
+    // }}}
+    // {{{ affectedRows()
+    /**
+    * returns the affected rows of a query
+    *
+    * @return mixed DB_Error or number of rows
+    *
+    * @access public
+    */
     function affectedRows()
     {
         if ($this->affected_rows == -1) {
             return $this->raiseError(DB_ERROR_NEED_MORE_DATA);
         }
-        $affected_rows = $this->affected_rows;
-        return($affected_rows);
+        return($this->affected_rows);
     }
 
     function endOfResult($result)
     {
         return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
             'End of result: end of result method not implemented');
-        //return(-1);
     }
 
     function fetch($result, $row, $field)
@@ -864,7 +1621,7 @@ class MDB_common extends PEAR
         if (!isset($this->lobs[$lob]["Value"])) {
             $this->lobs[$lob]["Value"] = $this->fetch($this->lobs[$lob]["Result"], $this->lobs[$lob]["Row"], $this->lobs[$lob]["Field"]);
         }
-        return(1);
+        return(DB_OK);
     }
 
     function endOfResultLob($lob)
@@ -920,22 +1677,22 @@ class MDB_common extends PEAR
     {
         switch($type) {
             case MDB_TYPE_TEXT:
-                return(1);
+                return(DB_OK);
             case MDB_TYPE_INTEGER:
                 $value = intval($value);
-                return(1);
+                return(DB_OK);
             case MDB_TYPE_BOOLEAN:
                 $value = (strcmp($value, "Y") ? 0 : 1);
-                return(1);
+                return(DB_OK);
             case MDB_TYPE_DECIMAL:
-                return(1);
+                return(DB_OK);
             case MDB_TYPE_FLOAT:
                 $value = doubleval($value);
-                return(1);
+                return(DB_OK);
             case MDB_TYPE_DATE:
             case MDB_TYPE_TIME:
             case MDB_TYPE_TIMESTAMP:
-                return(1);
+                return(DB_OK);
             case MDB_TYPE_CLOB:
             case MDB_TYPE_BLOB:
                 $value = "";
@@ -980,7 +1737,7 @@ class MDB_common extends PEAR
                 }
             }
         }
-        return(1);
+        return(DB_OK);
     }
 
     function fetchDateResult($result, $row, $field)
@@ -1025,28 +1782,53 @@ class MDB_common extends PEAR
         return($value);
     } 
 
-    // renamed for PEAR
-    // used to be: NumberOfColumns
+    // }}}
+    // {{{ numRows()
+    /**
+    * returns the number of rows in a result object
+    * renamed for PEAR
+    * used to be: NumberOfColumns
+    *
+    * @param object DB_Result the result object to check
+    *
+    * @return mixed DB_Error or the number of rows
+    *
+    * @access public
+    */
     function numRows($result)
     {
         return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Num Rows: number of rows method not implemented");
     }
 
+    // }}}
+    // {{{ freeResult()
+
+    /**
+     * Free the internal resources associated with $result.
+     *
+     * @param $result result identifier
+     *
+     * @access public
+     *
+     * @return bool TRUE on success, FALSE if $result is invalid
+     */
     function freeResult($result)
     {
         return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Free Result: free result method not implemented");
     }
 
-    function error()
+    // }}}
+    // {{{ errorNative()
+    /**
+    * returns an errormessage, provides by the database
+    *
+    * @return mixed DB_Error or message
+    *
+    * @access public
+    */
+    function errorNative()
     {
-        return($this->last_error);
-    }
-
-    function setErrorHandler($function)
-    {
-        $last_function = $this->error_handler;
-        $this->error_handler = $function;
-        return($last_function);
+        return $this->raiseError(DB_ERROR_NOT_CAPABLE);
     }
 
     function getIntegerDeclaration($name, &$field)
@@ -1187,21 +1969,53 @@ class MDB_common extends PEAR
         return("");
     }
 
+    // }}}
+    // {{{ support()
+
+    /**
+     * Tell whether a DB implementation or its backend extension
+     * supports a given feature.
+     *
+     * @param string $feature name of the feature (see the MDB class doc)
+     * @return bool whether this DB implementation supports $feature
+     * @access public
+     */
     function support($feature)
     {
         return(isset($this->supported[$feature]));
     }
 
-    // renamed for PEAR
-    // used to be: getSequencenextValue
-    function nextId($name)
+    // }}}
+    // {{{ nextId()
+    /**
+    * returns the next free id of a sequence
+    * renamed for PEAR
+    * used to be: getSequenceNextValue
+    *
+    * @param string  $name     name of the sequence
+    * @param boolean $ondemand when true the seqence is
+    *                          automatic created, if it
+    *                          not exists
+    *
+    * @return mixed DB_Error or id
+    */
+    function nextId($name, $ondemand = FALSE)
     {
          return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
             'Next Sequence: getting next sequence value not supported');
     }
 
-    // renamed for PEAR
-    // used to be: getSequenceCurrentValue
+    // }}}
+    // {{{ currId()
+    /**
+    * returns the current id of a sequence
+    * renamed for PEAR
+    * used to be: getSequenceCurrentValue
+    *
+    * @param string  $name     name of the sequence
+    *
+    * @return mixed DB_Error or id
+    */
     function currId($name)
     {
         return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
@@ -1227,11 +2041,6 @@ class MDB_common extends PEAR
         $this->debug("Rollback Transaction");
         return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
             'Rollback transaction: rolling back transactions are not supported');
-    }
-
-    function setup()
-    {
-        return("");
     }
 
     function setSelectedRowRange($first, $limit)
@@ -1321,7 +2130,7 @@ class MDB_common extends PEAR
                         if($this->autofree) {
                             $this->freeResult($result);
                         }
-                        return null;
+                        return NULL;
                     } else {
                         return $res;
                     }
@@ -1337,18 +2146,42 @@ class MDB_common extends PEAR
         return DB_OK;
     }
 
+
+    // }}}
+    // {{{ fetchInto()
+
+    /**
+     * Fetch a row and insert the data into an existing array.
     // renamed for PEAR
     // used to be fetchResultArray
-    // added $fetchmode
-    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $row = null)
+*      *
+     * @param $result result identifier
+     * @param $array (reference) array where data from the row is stored
+     * @param $fetchmode how the array data should be indexed
+     * @param $rownum the row number to fetch
+     * @access public
+     *
+     * @return int DB_OK on success, a DB error on failure
+     */
+    function fetchInto($result, &$array, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        return ($this->baseFetchInto($result, $array, $row));
+        return ($this->baseFetchInto($result, $array, $rownum));
     }
 
-    // renamed for PEAR
-    // used to be fetchResultField
-    // $fetchmode added
-    // new uses fetchInto
+    // }}}
+    // {{{ fetchField()
+
+    /**
+     * Fetch and return a field of data (it uses fetchInto for that)
+     * renamed for PEAR
+     * used to be fetchResultField
+     * 
+     * @param $result result identifier
+     * @param $row (reference) array where data from the row is stored
+     * @param $fetchmode  format of fetched row array
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
     function fetchField($result, &$value, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         if (!$result) {
@@ -1367,16 +2200,28 @@ class MDB_common extends PEAR
                 $value = $value[0];
             }
         }
-        if(!$this->autofree || $value == null) {
+        if(!$this->autofree || $value == NULL) {
             $this->freeResult($result);
         }
         return ($res);
     }
 
-    // renamed for PEAR
-    // used to be fetchResultRow
-    // $fetchmode added
-    function fetchRow($result, &$row, $fetchmode = DB_FETCHMODE_DEFAULT)
+    // }}}
+    // {{{ fetchRow()
+
+    /**
+     * Fetch and return a row of data (it uses fetchInto for that)
+     * renamed for PEAR
+     * used to be fetchResultRow
+     * 
+     * @param $result result identifier
+     * @param $row (reference) array where data from the row is stored
+     * @param $fetchmode  format of fetched row array
+     * @param $rownum     the absolute row number to fetch
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
+    function fetchRow($result, &$row, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
         if (!$result) {
             return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
@@ -1388,45 +2233,73 @@ class MDB_common extends PEAR
                     'Fetch row: result set is empty');
         }
         $row = array();
-        $res = $this->fetchInto($result, $row, $fetchmode, 0);
-        if(!$this->autofree || $row == null) {
+        $res = $this->fetchInto($result, $row, $fetchmode, $rownum);
+        if(!$this->autofree || $row == NULL) {
             $this->freeResult($result);
         }
         return ($res);
     }
 
-    // renamed for PEAR
-    // used to be fetchResultColumn
-    // $fetchmode added
-    // new uses fetchInto
-    function fetchCol($result, &$column, $fetchmode = DB_FETCHMODE_DEFAULT, $col_num = '0')
+    // }}}
+    // {{{ fetchCol()
+
+    /**
+     * Fetch and return a column of data (it uses fetchInto for that)
+     * renamed for PEAR
+     * used to be fetchResultColumn
+     * 
+     * @param $result result identifier
+     * @param $column (reference) array where data from the column is stored
+     * @param $fetchmode  format of fetched row array
+     * @param $colnum     the absolute column number to fetch
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
+    function fetchCol($result, &$column, $fetchmode = DB_FETCHMODE_DEFAULT, $colnum = '0')
     {
         if (!$result) {
             return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
                     'Fetch column: it was not specified a valid result set');
         }
         $temp = $column = array();
-        while(DB_OK === $res = $this->fetchInto($result, $temp, $fetchmode, null)) {
-            $column[] = $temp[$col_num];
+        while(DB_OK === $res = $this->fetchInto($result, $temp, $fetchmode, NULL)) {
+            $column[] = $temp[$colnum];
         }
         if(!$this->autofree) {
             $this->freeResult($result);
         }
-        if($res != null) {
+        if($res != NULL) {
             return ($res);
         }
         return (DB_OK);
     }
 
-    // renamed for PEAR
-    // used to be fetchResultAll
-    // $fetchmode, $rekey, $force_array, $group added
-    // this is basically a slightly modified version of fetchAll()
-    // the only difference is that the first dimension in the 2 dimensional result set is pop-off each row
-    // this is especially interesting if you need to fetch a large result set and
-    // then jump around in the result set based on some primary key
-    // if the same key is pop-off for multiple rows then the second overwrites the first
-    function fetchAll($result, &$all, $fetchmode = DB_FETCHMODE_DEFAULT, $rekey = false, $force_array = false, $group = false)
+    // }}}
+    // {{{ fetchAll()
+
+    /**
+     * Fetch and return a column of data (it uses fetchInto for that)
+     * renamed for PEAR
+     * used to be fetchResultAll
+     * 
+     * @param $result result identifier
+     * @param $all (reference) array where data is stored
+     * @param $fetchmode  format of fetched row array
+     * @param boolean $rekey     if  set to true the $all will have the first column as its first dimension
+     * @param boolean $force_array    used only when the query returns exactly two columns.  
+     *                                 If true, the values of the returned array
+     *                                 will be one-element arrays instead of scalars.
+     * @param boolean $group if true, the values of the returned array
+     *                       is wrapped in another array.  If the same
+     *                       key value (in the first column) repeats
+     *                       itself, the values will be appended to
+     *                       this array instead of overwriting the
+     *                       existing values.
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     * @see getAssoc()
+     */
+    function fetchAll($result, &$all, $fetchmode = DB_FETCHMODE_DEFAULT, $rekey = FALSE, $force_array = FALSE, $group = FALSE)
     {
         if (!$result) {
             return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
@@ -1442,7 +2315,7 @@ class MDB_common extends PEAR
         }
         $row = 0;
         $all = array();
-        while (DB_OK === $res = $this->fetchInto($result, $array, $fetchmode, null)) {
+        while (DB_OK === $res = $this->fetchInto($result, $array, $fetchmode, NULL)) {
             if ($rekey) {
                 if ($fetchmode == DB_FETCHMODE_ASSOC) {
                     reset($array);
@@ -1467,12 +2340,28 @@ class MDB_common extends PEAR
         if(!$this->autofree) {
             $this->freeResult($result);
         }
-        if($res != null) {
+        if($res != NULL) {
             return ($res);
         }
         return (DB_OK);
     }
 
+    // }}}
+    // {{{ queryField()
+
+    /**
+     * Execute the specified query, fetch the value from the first column of the first
+     * row of the result set into a given variable and then frees the result set.
+     * 
+     * @param $query     the SELECT query statement to be executed.
+     * @param $field     reference to a variable into which the result set field is fetched.
+     *                     If it is NULL this variable is unset.
+     * @param $type        optional argument that specifies the expected datatype of the result
+     *                     set field, so that an eventual conversion may be performed. The
+     *                     default datatype is text, meaning that no conversion is performed
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
     function queryField($query, &$field, $type = "text")
     {
         $result = $this->query($query);
@@ -1489,6 +2378,25 @@ class MDB_common extends PEAR
         return ($this->fetchField($result, $field));
     }
 
+    // }}}
+    // {{{ queryRow()
+
+    /**
+     * Execute the specified query, fetch the value from the first column of the first
+     * row of the result set into a given variable and then frees the result set.
+     * 
+     * @param $query     the SELECT query statement to be executed.
+     * @param $row         reference to an array variable into which the result set row values
+     *                     are fetched. The array positions are filled according to the position
+     *                     of the result set columns starting from 0. Columns with NULL values
+     *                     are not assigned.
+     * @param $types    optional array argument that specifies a list of expected datatypes
+     *                     of the result set columns, so that the eventual conversions may be
+     *                     performed. The default list of datatypes is empty, meaning that no
+     *                     conversion is performed.
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
     function queryRow($query, &$row, $types = "")
     {
         $result = $this->query($query);
@@ -1504,6 +2412,24 @@ class MDB_common extends PEAR
         return ($this->fetchRow($result, $row));
     }
 
+    // }}}
+    // {{{ queryCol()
+
+    /**
+     * Execute the specified query, fetch the value from the first column of the first
+     * row of the result set into a given variable and then frees the result set.
+     * 
+     * @param $query     the SELECT query statement to be executed.
+     * @param $column     reference to an array variable into which the result set column is
+     *                     fetched. The rows on which the first column is NULL are ignored.
+     *                     Therefore, do not rely on the count of entries of the array variable
+     *                     to assume that it is the number of rows in the result set.
+     * @param $type        optional argument that specifies the expected datatype of the result
+     *                     set field, so that an eventual conversion may be performed. The
+     *                     default datatype is text, meaning that no conversion is performed
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
     function queryCol($query, &$column, $type = "text")
     {
         $result = $this->query($query);
@@ -1520,6 +2446,25 @@ class MDB_common extends PEAR
         return ($this->fetchCol($result, $column));
     }
 
+    // }}}
+    // {{{ queryAll()
+
+    /**
+     * Execute the specified query, fetch the value from the first column of the first
+     * row of the result set into a given variable and then frees the result set.
+     * 
+     * @param $query     the SELECT query statement to be executed.
+     * @param $all         reference to a two dimension array variable into which the result
+     *                     set rows and column values are fetched. The array positions are
+     *                     filled according to the position of the result set columns and rows
+     *                     starting from 0. Columns with NULL values are not assigned.
+     * @param $types    optional array argument that specifies a list of expected datatypes
+     *                     of the result set columns, so that the eventual conversions may be
+     *                     performed. The default list of datatypes is empty, meaning that no
+     *                     conversion is performed.
+     *
+     * @return mixed DB_OK on success, a DB error on failure
+     */
     function queryAll($query, &$all, $types = "")
     {
         if (MDB::isError($result = $this->query($query))) {
@@ -1537,25 +2482,79 @@ class MDB_common extends PEAR
     // ********************
     // new methods for PEAR
     // ********************
+    // }}}
+    // {{{ setFetchMode()
 
+    /**
+     * Sets which fetch mode should be used by default on queries
+     * on this connection.
+     *
+     * @param integer $fetchmode DB_FETCHMODE_ORDERED or
+     *        DB_FETCHMODE_ASSOC, possibly bit-wise OR'ed with
+     *        DB_FETCHMODE_FLIPPED.
+     *
+     * @param string $object_class The class of the object
+     *                      to be returned by the fetch methods when
+     *                      the DB_FETCHMODE_OBJECT mode is selected.
+     *                      If no class is specified by default a cast
+     *                      to object from the assoc array row will be done.
+     *                      There is also the posibility to use and extend the
+     *                      'DB_Row' class.
+     *
+     * @see DB_FETCHMODE_ORDERED
+     * @see DB_FETCHMODE_ASSOC
+     * @see DB_FETCHMODE_FLIPPED
+     * @see DB_FETCHMODE_OBJECT
+     * @see DB_Row::DB_Row()
+     * @access public
+     */
+
+    function setFetchMode($fetchmode, $object_class = NULL)
+    {
+        switch ($fetchmode) {
+            case DB_FETCHMODE_OBJECT:
+                if ($object_class) {
+                    $this->fetchmode_object_class = $object_class;
+                }
+            case DB_FETCHMODE_ORDERED:
+            case DB_FETCHMODE_ASSOC:
+                $this->fetchmode = $fetchmode;
+                break;
+            default:
+                return $this->raiseError('invalid fetchmode mode');
+        }
+    }
+
+    // }}}
+    // {{{ limitQuery()
+    /**
+    * Generates a limited query
+    *
+    * @param string  $query query
+    * @param integer $from  the row to start to fetching
+    * @param integer $count the numbers of rows to fetch
+    *
+    * @return mixed a DB_Result object or a DB_Error
+    *
+    * @access public
+    */
     function limitQuery($query, $from, $count)
     {
-        $result = $this->SetSelectedRowRange($from, $count);
-        if (MDB::isError($result))
+        $result = $this->setSelectedRowRange($from, $count);
+        if (MDB::isError($result)) {
             return $result;
+        }
         return $this->query($query);
     }
 
-    function quoteString($string)
-    {
-        $string = $this->quote($string);
-        if ($string{0} == "'") {
-            return substr($string, 1, -1);
-        }
-        return $string;
-    }
-
-    // porting incomplete
+    // }}}
+    // {{{ toString()
+    /**
+    * String conversation
+    *
+    * @return string
+    * @access private
+    */
     function toString()
     {
         $info = get_class($this);
@@ -1568,30 +2567,91 @@ class MDB_common extends PEAR
         return $info;
     }
 
+    // }}}
+    // {{{ errorCode()
+
+    /**
+     * Map native error codes to DB's portable ones.  Requires that
+     * the DB implementation's constructor fills in the $errorcode_map
+     * property.
+     *
+     * @param mixed $nativecode the native error code, as returned by the backend
+     * database extension (string or integer)
+     *
+     * @return int a portable DB error code, or FALSE if this DB
+     * implementation has no mapping for the given error code.
+     *
+     * @access public
+     */
     function errorCode($nativecode)
     {
         if (isset($this->errorcode_map[$nativecode])) {
             return $this->errorcode_map[$nativecode];
         }
-        //php_error(E_WARNING, get_class($this)."::errorCode: no mapping for $nativecode");
         // Fall back to DB_ERROR if there was no mapping.
         return DB_ERROR;
     }
 
+    // }}}
+    // {{{ errorMessage()
+
+    /**
+     * Map a DB error code to a textual message.  This is actually
+     * just a wrapper for DB::errorMessage().
+     *
+     * @param integer $dbcode the DB error code
+     *
+     * @return string the corresponding error message, of FALSE
+     * if the error code was unknown
+     *
+     * @access public
+     */
     function errorMessage($dbcode)
     {
-        return MDB::errorMessage($this->errorcode_map[$dbcode]);
+        return DB::errorMessage($this->errorcode_map[$dbcode]);
     }
 
-    function &raiseError($code = DB_ERROR, $mode = null, $options = null,
-                         $userinfo = null, $nativecode = null)
+    // }}}
+    // {{{ raiseError()
+
+    /**
+     * This method is used to communicate an error and invoke error
+     * callbacks etc.  Basically a wrapper for PEAR::raiseError
+     * without the message string.
+     *
+     * @param mixed    integer error code, or a PEAR error object (all
+     *                 other parameters are ignored if this parameter is
+     *                 an object
+     *
+     * @param int      error mode, see PEAR_Error docs
+     *
+     * @param mixed    If error mode is PEAR_ERROR_TRIGGER, this is the
+     *                 error level (E_USER_NOTICE etc).  If error mode is
+     *                 PEAR_ERROR_CALLBACK, this is the callback function,
+     *                 either as a function name, or as an array of an
+     *                 object and method name.  For other error modes this
+     *                 parameter is ignored.
+     *
+     * @param string   Extra debug information.  Defaults to the last
+     *                 query and native error code.
+     *
+     * @param mixed    Native error code, integer or string depending the
+     *                 backend.
+     *
+     * @return object  a PEAR error object
+     *
+     * @access public
+     * @see PEAR_Error
+     */
+    function &raiseError($code = DB_ERROR, $mode = NULL, $options = NULL,
+                         $userinfo = NULL, $nativecode = NULL)
     {
         // The error is yet a DB error object
         if (is_object($code)) {
-            return PEAR::raiseError($code, null, null, null, null, null, true);
+            return PEAR::raiseError($code, NULL, NULL, NULL, NULL, NULL, TRUE);
         }
 
-        if ($userinfo === null) {
+        if ($userinfo === NULL) {
             $userinfo = $this->last_query;
         }
 
@@ -1599,39 +2659,87 @@ class MDB_common extends PEAR
             $userinfo .= " [nativecode = $nativecode]";
         }
 
-        return PEAR::raiseError(null, $code, $mode, $options, $userinfo,
-                                  'MDB_Error', true);
+        return PEAR::raiseError(NULL, $code, $mode, $options, $userinfo,
+                                  'MDB_Error', TRUE);
     }
 
-    function prepare($query)
-    {
-        return $this->PrepareQuery($query);
-    }
-    
-    function execute($prepared_query, $data = false)
+    // }}}
+    // {{{ execute()
+    /**
+    * Executes a prepared SQL query
+    * With execute() the generic query of prepare is
+    * assigned with the given data array. The values
+    * of the array inserted into the query in the same
+    * order like the array order
+    *
+    * @param resource $prepared_query query handle from prepare()
+    * @param array    $data numeric array containing the
+    *                       data to insert into the query
+    *
+    * @return mixed   a new result handle or a DB_Error when fail
+    *
+    * @access public
+    * @see prepare()
+    */
+    function execute($prepared_query, $data = FALSE)
     {
         $this->querySetArray($prepared_query, $data);
 
         return $this->executeQuery($prepared_query);
     }
 
-    function executeMultiple($prepared_query, &$data )
+    // }}}
+    // {{{ executeMultiple()
+
+    /**
+    * This function does several execute() calls on the same
+    * statement handle.  $data must be an array indexed numerically
+    * from 0, one execute call is done for every "row" in the array.
+    *
+    * If an error occurs during execute(), executeMultiple() does not
+    * execute the unfinished rows, but rather returns that error.
+    *
+    * @param resource $stmt query handle from prepare()
+    * @param array    $data numeric array containing the
+    *                       data to insert into the query
+    *
+     * @return mixed a result handle or DB_OK on success, a DB error on failure
+    *
+    * @access public
+    * @see prepare(), execute()
+    */
+    function executeMultiple($prepared_query, &$data)
     {
-        for($i = 0; $i < sizeof( $data ); $i++) {
+        for($i = 0, $j = count($data); $i < $j; $i++) {
             $result = $this->execute($prepared_query, $data[$i]);
-            //if (MDB::isError($result)) {
-            if (!$result) {
+            if (MDB::isError($result)) {
                 return $result;
             }
         }
         return DB_OK;
     }
 
+    // }}}
+    // {{{ getOne()
+
+    /**
+     * Fetch the first column of the first row of data returned from
+     * a query.  Takes care of doing the query and freeing the results
+     * when finished.
+     *
+     * @param string $query the SQL query
+     * @param array $params if supplied, prepare/execute will be used
+     *        with this array as execute parameters
+     *
+     * @return mixed DB_Error or the returned value of the query
+     *
+     * @access public
+     */
     function &getOne($query, $params = array())
     {
         settype($params, "array");
         if (sizeof($params) > 0) {
-            $prepared_query = $this->prepare($query);
+            $prepared_query = $this->prepareQuery($query);
             if (MDB::isError($prepared_query)) {
                 return $prepared_query;
             }
@@ -1652,19 +2760,35 @@ class MDB_common extends PEAR
 
         if (isset($prepared_query)) {
             $result = $this->freePreparedQuery($prepared_query);
-            if (MDB::isError($result))
+            if (MDB::isError($result)) {
                 return $result;
+            }
         }
 
         return $value;
     }
 
+    // }}}
+    // {{{ getRow()
+
+    /**
+     * Fetch the first row of data returned from a query.  Takes care
+     * of doing the query and freeing the results when finished.
+     *
+     * @param string $query the SQL query
+     * @param integer $fetchmode the fetch mode to use
+     * @param array $params array if supplied, prepare/execute will be used
+     *        with this array as execute parameters
+     * @access public
+     * @return array the first row of results as an array indexed from
+     * 0, or a DB error code.
+     */
     function &getRow($query, $params = array(), $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         $fetchmode = (empty($fetchmode)) ? DB_FETCHMODE_DEFAULT : $fetchmode;
         settype($params, 'array');
         if (sizeof($params) > 0) {
-            $prepared_query = $this->prepare($query);
+            $prepared_query = $this->prepareQuery($query);
             if (MDB::isError($prepared_query)) {
                 return $prepared_query;
             }
@@ -1684,19 +2808,39 @@ class MDB_common extends PEAR
         }
         if (isset($prepared_query)) {
             $result = $this->freePreparedQuery($prepared_query);
-            if (MDB::isError($result))
+            if (MDB::isError($result)) {
                 return $result;
+            }
         }
 
         return $row;
     }
 
+    // }}}
+    // {{{ getCol()
+
+    /**
+     * Fetch a single column from a result set and return it as an
+     * indexed array.
+     *
+     * @param string $query the SQL query
+     *
+     * @param mixed $col which column to return (integer [column number,
+     * starting at 0] or string [column name])
+     *
+     * @param array $params array if supplied, prepare/execute will be used
+     *        with this array as execute parameters
+     * @access public
+     *
+     * @return array an indexed array with the data from the first
+     * row at index 0, or a DB error code.
+     */
     function &getCol($query, $params = array(), $fetchmode = DB_FETCHMODE_DEFAULT, $col_num = '0')
     {
         $fetchmode = (empty($fetchmode)) ? DB_FETCHMODE_DEFAULT : $fetchmode;
         settype($params, "array");
         if (sizeof($params) > 0) {
-            $prepared_query = $this->prepare($query);
+            $prepared_query = $this->prepareQuery($query);
 
             if (MDB::isError($prepared_query)) {
                 return $prepared_query;
@@ -1718,19 +2862,146 @@ class MDB_common extends PEAR
         }
         if (isset($prepared_query)) {
             $result = $this->freePreparedQuery($prepared_query);
-            if (MDB::isError($result))
+            if (MDB::isError($result)) {
                 return $result;
+            }
         }
 
         return $col;
     }
 
+    // }}}
+    // {{{ getAssoc()
+
+    /**
+     * Fetch the entire result set of a query and return it as an
+     * associative array using the first column as the key.
+     *
+     * If the result set contains more than two columns, the value
+     * will be an array of the values from column 2-n.  If the result
+     * set contains only two columns, the returned value will be a
+     * scalar with the value of the second column (unless forced to an
+     * array with the $force_array parameter).  A DB error code is
+     * returned on errors.  If the result set contains fewer than two
+     * columns, a DB_ERROR_TRUNCATED error is returned.
+     *
+     * For example, if the table "mytable" contains:
+     *
+     *  ID      TEXT       DATE
+     * --------------------------------
+     *  1       'one'      944679408
+     *  2       'two'      944679408
+     *  3       'three'    944679408
+     *
+     * Then the call getAssoc('SELECT id,text FROM mytable') returns:
+     *   array(
+     *     '1' => 'one',
+     *     '2' => 'two',
+     *     '3' => 'three',
+     *   )
+     *
+     * ...while the call getAssoc('SELECT id,text,date FROM mytable') returns:
+     *   array(
+     *     '1' => array('one', '944679408'),
+     *     '2' => array('two', '944679408'),
+     *     '3' => array('three', '944679408')
+     *   )
+     *
+     * If the more than one row occurs with the same value in the
+     * first column, the last row overwrites all previous ones by
+     * default.  Use the $group parameter if you don't want to
+     * overwrite like this.  Example:
+     *
+     * getAssoc('SELECT category,id,name FROM mytable', FALSE, NULL,
+     *          DB_FETCHMODE_ASSOC, TRUE) returns:
+     *   array(
+     *     '1' => array(array('id' => '4', 'name' => 'number four'),
+     *                  array('id' => '6', 'name' => 'number six')
+     *            ),
+     *     '9' => array(array('id' => '4', 'name' => 'number four'),
+     *                  array('id' => '6', 'name' => 'number six')
+     *            )
+     *   )
+     *
+     * Keep in mind that database functions in PHP usually return string
+     * values for results regardless of the database's internal type.
+     *
+     * @param string $query the SQL query
+     *
+     * @param boolean $force_array used only when the query returns
+     * exactly two columns.  If true, the values of the returned array
+     * will be one-element arrays instead of scalars.
+     *
+     * @param array $params array if supplied, prepare/execute will be used
+     *        with this array as execute parameters
+     *
+     * @param boolean $group if true, the values of the returned array
+     *                       is wrapped in another array.  If the same
+     *                       key value (in the first column) repeats
+     *                       itself, the values will be appended to
+     *                       this array instead of overwriting the
+     *                       existing values.
+     *
+     * @access public
+     *
+     * @return array associative array with results from the query.
+     */
+    function &getAssoc($query, $force_array = FALSE, $params = array(),
+        $fetchmode = DB_FETCHMODE_ORDERED, $group = FALSE)
+    {
+        $fetchmode = (empty($fetchmode)) ? DB_FETCHMODE_DEFAULT : $fetchmode;
+        settype($params, "array");
+        if (sizeof($params) > 0) {
+            $prepared_query = $this->prepareQuery($query);
+
+            if (MDB::isError($prepared_query)) {
+                return $prepared_query;
+            }
+            $this->querySetArray($prepared_query, $params);
+            $result = $this->execute($prepared_query, $params);
+        } else {
+            $result = $this->query($query);
+        }
+
+        if (MDB::isError($result)) {
+            return $result;
+        }
+
+        $err = $this->fetchAll($result, $all, $fetchmode, TRUE, $force_array, $group);
+        if (MDB::isError($err)) {
+            return $err;
+        }
+        if (isset($prepared_query)) {
+            $result = $this->freePreparedQuery($prepared_query);
+            if (MDB::isError($result)) {
+                return $result;
+            }
+        }
+
+        return $all;
+    }
+
+    // }}}
+    // {{{ getAll()
+
+    /**
+     * Fetch all the rows returned from a query.
+     *
+     * @param string $query the SQL query
+     *
+     * @param array $params array if supplied, prepare/execute will be used
+     *        with this array as execute parameters
+     * @param integer $fetchmode the fetch mode to use
+     *
+     * @access public
+     * @return array an nested array, or a DB error
+     */
     function &getAll($query, $params = array(), $fetchmode = DB_FETCHMODE_DEFAULT)
     {
         $fetchmode = (empty($fetchmode)) ? DB_FETCHMODE_DEFAULT : $fetchmode;
         settype($params, "array");
         if (sizeof($params) > 0) {
-            $prepared_query = $this->prepare($query);
+            $prepared_query = $this->prepareQuery($query);
 
             if (MDB::isError($prepared_query)) {
                 return $prepared_query;
@@ -1751,50 +3022,181 @@ class MDB_common extends PEAR
         }
         if (isset($prepared_query)) {
             $result = $this->freePreparedQuery($prepared_query);
-            if (MDB::isError($result))
+            if (MDB::isError($result)) {
                 return $result;
-        }
-
-        return $all;
-    }
-
-    function &getAssoc($query, $force_array = false, $params = array(),
-        $fetchmode = DB_FETCHMODE_ORDERED, $group = false)
-    {
-        $fetchmode = (empty($fetchmode)) ? DB_FETCHMODE_DEFAULT : $fetchmode;
-        settype($params, "array");
-        if (sizeof($params) > 0) {
-            $prepared_query = $this->prepare($query);
-
-            if (MDB::isError($prepared_query)) {
-                return $prepared_query;
             }
-            $this->querySetArray($prepared_query, $params);
-            $result = $this->execute($prepared_query, $params);
-        } else {
-            $result = $this->query($query);
-        }
-
-        if (MDB::isError($result)) {
-            return $result;
-        }
-
-        $err = $this->fetchAll($result, $all, $fetchmode, true, $force_array, $group);
-        if (MDB::isError($err)) {
-            return $err;
-        }
-        if (isset($prepared_query)) {
-            $result = $this->freePreparedQuery($prepared_query);
-            if (MDB::isError($result))
-                return $result;
         }
 
         return $all;
     }
 
-    function tableInfo($result, $mode = null)
+    // }}}
+    // {{{ tableInfo()
+    /**
+    * returns meta data about the result set
+    *
+    * @param object DB_Result $result the result object to analyse
+    * @param mixed $mode depends on implementation
+    *
+    * @return mixed DB_Error
+    *
+    * @access public
+    */
+    function tableInfo($result, $mode = NULL)
     {
         return $this->raiseError(DB_ERROR_NOT_CAPABLE);
     }
+    
+
+    // }}}
+    // {{{ autoPrepare()
+
+    /**
+    * Make automaticaly an insert or update query and call prepare() with it
+    *
+    * @param string $table name of the table
+    * @param array $table_fields ordered array containing the fields names
+    * @param int $mode type of query to make (DB_AUTOQUERY_INSERT or DB_AUTOQUERY_UPDATE)
+    * @param string $where in case of update queries, this string will be put after the sql WHERE statement
+    * @return resource handle for the query
+    * @see buildManipSQL
+    * @access public
+    */
+    function autoPrepare($table, $table_fields, $mode = DB_AUTOQUERY_INSERT, $where = FALSE)
+    {
+        $query = $this->buildManipSQL($table, $table_fields, $mode, $where);
+        return $this->prepare($query);
+    }
+
+    // {{{
+    // }}} autoExecute()
+
+    /**
+    * Make automaticaly an insert or update query and call prepare() and execute() with it
+    *
+    * @param string $table name of the table
+    * @param array $fields_values assoc ($key=>$value) where $key is a field name and $value its value
+    * @param int $mode type of query to make (DB_AUTOQUERY_INSERT or DB_AUTOQUERY_UPDATE)
+    * @param string $where in case of update queries, this string will be put after the sql WHERE statement
+    * @return mixed  a new DB_Result or a DB_Error when fail
+    * @see buildManipSQL
+    * @see autoPrepare
+    * @access public
+    */
+    function autoExecute($table, $fields_values, $mode = DB_AUTOQUERY_INSERT, $where = FALSE)
+    {
+        $sth = $this->autoPrepare($table, array_keys($fields_values), $mode, $where);
+        return $this->execute($sth, array_values($fields_values));
+    }
+
+    // {{{
+    // }}} buildManipSQL()
+
+    /**
+    * Make automaticaly an sql query for prepare()
+    *
+    * Example : buildManipSQL('table_sql', array('field1', 'field2', 'field3'), DB_AUTOQUERY_INSERT)
+    *           will return the string : INSERT INTO table_sql (field1,field2,field3) VALUES (?,?,?)
+    * NB : This belongs more to a SQL Builder class, but this is a simple facility
+    *
+    * @param string $table name of the table
+    * @param array $table_fields ordered array containing the fields names
+    * @param int $mode type of query to make (DB_AUTOQUERY_INSERT or DB_AUTOQUERY_UPDATE)
+    * @param string $where in case of update queries, this string will be put after the sql WHERE statement
+    * @return string sql query for prepare()
+    * @access public
+    */
+    function buildManipSQL($table, $table_fields, $mode, $where = FALSE)
+    {
+        if (count($table_fields)==0) {
+            $this->raiseError(DB_ERROR_NEED_MORE_DATA);
+        }
+        $first = TRUE;
+        switch($mode) {
+        case DB_AUTOQUERY_INSERT:
+            $values = '';
+            $names = '';
+            while (list(, $value) = each($table_fields)) {
+                if ($first) {
+                    $first = FALSE;
+                } else {
+                    $names .= ',';
+                    $values .= ',';
+                }
+                $names .= $value;
+                $values .= '?';
+            }
+            return "INSERT INTO $table ($names) VALUES ($values)";
+            break;
+        case DB_AUTOQUERY_UPDATE:
+            $set = '';
+            while (list(, $value) = each($table_fields)) {
+                if ($first) {
+                    $first = false;
+                } else {
+                    $set .= ',';
+                }
+                $set .= "$value = ?";
+            }
+            $sql = "UPDATE $table SET $set";
+            if($where) {
+                $sql .= " WHERE $where";
+            }
+            return $sql;
+            break;
+        default:
+            $this->raiseError(DB_ERROR_SYNTAX);
+        }
+    }
+
+    // }}}
+    // {{{ setOption()
+    /**
+    * set the option for the db class
+    *
+    * @param string $option option name
+    * @param mixed  $value value for the option
+    *
+     * @return mixed a result handle or DB_OK on success, a DB error on failure
+    */
+    function setOption($option, $value)
+    {
+        if (isset($this->$option)) {
+            $this->$option = $value;
+            return DB_OK;
+        }
+        return $this->raiseError("unknown option $option");
+    }
+
+    // }}}
+    // {{{ getOption()
+    /**
+    * returns the value of an option
+    *
+    * @param string $option option name
+    *
+    * @return mixed the option value
+    */
+    function getOption($option)
+    {
+        if (isset($this->$option)) {
+            return $this->$option;
+        }
+        return $this->raiseError("unknown option $option");
+    }
 };
+
+// Used by many drivers
+if (!function_exists('array_change_key_case')) {
+    define('CASE_UPPER', 1);
+    define('CASE_LOWER', 0);
+    function &array_change_key_case(&$array, $case) {
+        $casefunc = ($case == CASE_LOWER) ? 'strtolower' : 'strtoupper';
+        $ret = array();
+        foreach ($array as $key => $value) {
+            $ret[$casefunc($key)] = $value;
+        }
+        return $ret;
+    }
+}
 ?>
