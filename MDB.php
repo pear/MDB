@@ -505,7 +505,7 @@ class MDB
                 MDB_ERROR_CANNOT_DELETE      => 'can not delete',
                 MDB_ERROR_CANNOT_DROP        => 'can not drop',
                 MDB_ERROR_CONSTRAINT         => 'constraint violation',
-                MDB_ERROR_CONSTRAINT_NOT_NULL=> 'null value violates not-null constraint'
+                MDB_ERROR_CONSTRAINT_NOT_NULL=> 'null value violates not-null constraint',
                 MDB_ERROR_DIVZERO            => 'division by zero',
                 MDB_ERROR_INVALID            => 'invalid',
                 MDB_ERROR_INVALID_DATE       => 'invalid date or time',
