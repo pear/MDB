@@ -694,29 +694,33 @@ class MDB_oci8 extends MDB_Common
      */
     function endOfResult($result)
     {
-        $result_value = intval($result);
-        if (!isset($this->results[$result_value]['current_row'])) {
-            return $this->raiseError(MDB_ERROR, null, null,
-                'End of result: attempted to check the end of an unknown result');
-        }
-        if (isset($this->rows[$result_value])) {
-            return $this->results[$result_value]['highest_fetched_row'] >= $this->rows[$result_value]-1;
-        }
-        if (isset($this->results[$result_value]['row_buffer'])) {
-            return false;
-        }
-        if (isset($this->limits[$result_value])) {
-            if (MDB::isError($this->_skipLimitOffset($result)) || $this->results[$result_value]['current_row'] + 1 >= $this->limits[$result_value][1]) {
-                $this->rows[$result_value] = 0;
-                return true;
+        if ($this->options['result_buffering']) {
+            $result_value = intval($result);
+            if (!isset($this->results[$result_value]['current_row'])) {
+                return $this->raiseError(MDB_ERROR, null, null,
+                    'End of result: attempted to check the end of an unknown result');
             }
+            if (isset($this->rows[$result_value])) {
+                return $this->results[$result_value]['highest_fetched_row'] >= $this->rows[$result_value]-1;
+            }
+            if (isset($this->results[$result_value]['row_buffer'])) {
+                return false;
+            }
+            if (isset($this->limits[$result_value])) {
+                if (MDB::isError($this->_skipLimitOffset($result)) || $this->results[$result_value]['current_row'] + 1 >= $this->limits[$result_value][1]) {
+                    $this->rows[$result_value] = 0;
+                    return true;
+                }
+            }
+            if (@OCIFetchInto($result, $this->results[$result_value]['row_buffer']), OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS) {
+                return false;
+            }
+            unset($this->results[$result_value]['row_buffer']);
+            $this->rows[$result_value] = $this->results[$result_value]['current_row'] + 1;
+            return true;
         }
-        if (@OCIFetchInto($result, $this->results[$result_value]['row_buffer'])) {
-            return false;
-        }
-        unset($this->results[$result_value]['row_buffer']);
-        $this->rows[$result_value] = $this->results[$result_value]['current_row'] + 1;
-        return true;
+        return $this->raiseError(MDB_ERROR, null, null,
+            'endOfResult: not supported if option "result_buffering" is not enabled');
     }
 
     // }}}
@@ -778,7 +782,12 @@ class MDB_oci8 extends MDB_Common
                         $this->results[$result_value][$this->results[$result_value]['current_row']] = $this->results[$result_value]['row_buffer'];
                         unset($this->results[$result_value]['row_buffer']);
                     }
-                    for(;($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit) && @OCIFetchInto($result, $this->results[$result_value][$this->results[$result_value]['current_row'] + 1]);$this->results[$result_value]['current_row']++);
+                    while (($limit == 0 || $this->results[$result_value]['current_row'] + 1 < $limit)
+                        && @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS)
+                    ) {
+                        $this->results[$result_value][$this->results[$result_value]['current_row'] + 1] = $row;
+                        $this->results[$result_value]['current_row']++);
+                    }
                 }
                 $this->rows[$result_value] = $this->results[$result_value]['current_row'] + 1;
             }
@@ -900,7 +909,11 @@ class MDB_oci8 extends MDB_Common
                 $rownum = $this->results[$result_value]['highest_fetched_row']+1;
             }
             if (isset($this->results[$result_value][$rownum])) {
-                return $this->results[$result_value][$rownum];
+                if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+                    return $this->results[$result_value][$rownum];
+                } else {
+                    return array_values($this->results[$result_value][$rownum]);
+                }
             }
         }
         if (isset($this->limits[$result_value])) {
@@ -920,14 +933,15 @@ class MDB_oci8 extends MDB_Common
                 $this->results[$result_value][$this->results[$result_value]['current_row']] = $this->results[$result_value]['row_buffer'];
                 unset($this->results[$result_value]['row_buffer']);
             }
-            for(;$this->results[$result_value]['current_row'] < $rownum;
-                $this->results[$result_value]['current_row']++
-            ) {
+            while ($this->results[$result_value]['current_row'] < $rownum) {
+                $this->results[$result_value]['current_row']++;
                 if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-                    $moredata = @OCIFetchInto($result, $this->results[$result_value][$this->results[$result_value]['current_row']+1], OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS);
+                    $moredata = @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS);
+                    $row = array_change_key_case($row);
                 } else {
-                    $moredata = @OCIFetchInto($result, $this->results[$result_value][$this->results[$result_value]['current_row']+1], OCI_RETURN_NULLS+OCI_RETURN_LOBS);
+                    $moredata = @OCIFetchInto($result, $row, OCI_RETURN_NULLS+OCI_RETURN_LOBS);
                 }
+                $this->results[$result_value][$this->results[$result_value]['current_row']+1] = $row;
                 if (!$moredata) {
                     if ($this->options['autofree']) {
                         $this->freeResult($result);
@@ -940,6 +954,7 @@ class MDB_oci8 extends MDB_Common
         } else {
             if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                 $moredata = @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS);
+                $row = array_change_key_case($row);
             } else {
                 $moredata = @OCIFetchInto($result, $row, OCI_RETURN_NULLS+OCI_RETURN_LOBS);
             }
