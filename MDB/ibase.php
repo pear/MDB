@@ -285,8 +285,11 @@ class MDB_ibase extends MDB_Common
         if ((!$this->auto_commit) == (!$auto_commit)) {
             return MDB_OK;
         }
-        if ($this->connection && $auto_commit && MDB::isError($commit = $this->commit())) {
-            return($commit);
+        if ($this->connection) {
+            $result = $auto_commit ? $this->commit() : $this->_startTransaction();
+            if (MDB::isError($result)) {
+                return $result;
+            }
         }
         $this->auto_commit = $auto_commit;
         $this->in_transaction = !$auto_commit;
@@ -312,7 +315,8 @@ class MDB_ibase extends MDB_Common
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'Commit: transaction changes are being auto commited'));
         }
-        return @ibase_commit($this->connection);
+        $connection = ($this->auto_commit ? $this->connection : $this->transaction_id);
+        return @ibase_commit($connection);
     }
 
     // }}}
@@ -332,7 +336,7 @@ class MDB_ibase extends MDB_Common
         $this->debug('Rollback Transaction');
         if ($this->auto_commit) {
             return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'Rollback: transactions can not be rolled back when changes are auto commited'));
+                'Rollback: transactions can not be rolled back when changes are auto committed'));
         }
 
         //return ibase_rollback($this->connection);
@@ -341,9 +345,22 @@ class MDB_ibase extends MDB_Common
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'Rollback: Could not rollback a pending transaction: '.@ibase_errmsg()));
         }
+        return $this->_startTransaction();
+    }
+
+    // }}}
+    // {{{
+    
+    /**
+     * Begin a new transaction
+     *
+     * @access private
+     */
+    function _startTransaction()
+    {
         if (!$this->transaction_id = @ibase_trans(IBASE_COMMITTED, $this->connection)) {
             return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'Rollback: Could not start a new transaction: '.@ibase_errmsg()));
+                'Could not start a new transaction: '.@ibase_errmsg()));
         }
         return MDB_OK;
     }
@@ -375,7 +392,7 @@ class MDB_ibase extends MDB_Common
      *
      * @return mixed connection resource on success, MDB_Error on failure
      * @access private
-     **/
+     */
     function _doConnect($database_name, $persistent)
     {
         $function = ($persistent ? 'ibase_pconnect' : 'ibase_connect');
@@ -422,7 +439,7 @@ class MDB_ibase extends MDB_Common
      *
      * @return TRUE on success, MDB_Error on failure
      * @access public
-     **/
+     */
     function connect()
     {
         $port = (isset($this->options['port']) ? $this->options['port'] : '');
@@ -472,7 +489,7 @@ class MDB_ibase extends MDB_Common
      *
      * @return boolean
      * @access private
-     **/
+     */
     function _close()
     {
         if ($this->connection != 0) {
@@ -497,10 +514,16 @@ class MDB_ibase extends MDB_Common
      * @param string $query the SQL query
      * @return mixed result identifier if query executed, else MDB_error
      * @access private
-     **/
+     */
     function _doQuery($query, $first=0, $limit=0, $prepared_query=0)  // function _doQuery($query)
     {
         $connection = ($this->auto_commit ? $this->connection : $this->transaction_id);
+        if (get_resource_type($connection) == 'Unknown') {
+            // WTF???
+            $this->connect();
+            $connection = $this->connection;
+        }
+
         if ($prepared_query
             && isset($this->query_parameters[$prepared_query])
             && count($this->query_parameters[$prepared_query]) > 2)
@@ -551,7 +574,7 @@ class MDB_ibase extends MDB_Common
      *                         the result set
      * @return mixed result identifier if query executed, else MDB_error
      * @access public
-     **/
+     */
     function query($query, $types = NULL)
     {
         $this->debug('Query: '.$query);
@@ -836,6 +859,7 @@ class MDB_ibase extends MDB_Common
                     $this->current_row[$result_value]);
         } else {
             $this->current_row[$result_value] = $rownum;
+            //++$this->current_row[$result_value];
         }
         if (isset($this->results[$result_value][$rownum])
             && $this->results[$result_value][$rownum]
@@ -1733,7 +1757,7 @@ class MDB_ibase extends MDB_Common
          *       you can combine MDB_TABLEINFO_ORDER and
          *       MDB_TABLEINFO_ORDERTABLE with MDB_TABLEINFO_ORDER |
          *       MDB_TABLEINFO_ORDERTABLE * or with MDB_TABLEINFO_FULL
-         **/
+         */
 
         // if $result is a string, then we want information about a
         // table without a resultset
@@ -1802,16 +1826,16 @@ class MDB_ibase extends MDB_Common
      * @return string The flags of the field ('not_null', 'default_xx', 'primary_key',
      *                 'unique' and 'multiple_key' are supported)
      * @access private
-     **/
+     */
     function _ibaseFieldFlags($resource, $num_field, $table_name)
     {
         $field_name = @ibase_field_info($resource, $num_field);
         $field_name = @$field_name['name'];
         $query = 'SELECT  R.RDB$CONSTRAINT_TYPE CTYPE'
-               .' FROM  RDB$INDEX_SEGMENTS I'
-               .' JOIN  RDB$RELATION_CONSTRAINTS R ON I.RDB$INDEX_NAME=R.RDB$INDEX_NAME'
-              .' WHERE  I.RDB$FIELD_NAME=\''.$field_name.'\''
-                 .' AND UPPER(R.RDB$RELATION_NAME)=\''.strtoupper($table_name).'\'';
+                 .' FROM  RDB$INDEX_SEGMENTS I'
+                 .' JOIN  RDB$RELATION_CONSTRAINTS R ON I.RDB$INDEX_NAME=R.RDB$INDEX_NAME'
+                .' WHERE  I.RDB$FIELD_NAME=\''.$field_name.'\''
+                  .' AND  UPPER(R.RDB$RELATION_NAME)=\''.strtoupper($table_name).'\'';
         $result = @ibase_query($this->connection, $query);
         if (empty($result)) {
             return $this->ibaseRaiseError();
@@ -1828,13 +1852,13 @@ class MDB_ibase extends MDB_Common
         }
 
         $query = 'SELECT  R.RDB$NULL_FLAG AS NFLAG,'
-                     .' R.RDB$DEFAULT_SOURCE AS DSOURCE,'
-                     .' F.RDB$FIELD_TYPE AS FTYPE,'
-                     .' F.RDB$COMPUTED_SOURCE AS CSOURCE'
-               .' FROM  RDB$RELATION_FIELDS R '
-               .' JOIN  RDB$FIELDS F ON R.RDB$FIELD_SOURCE=F.RDB$FIELD_NAME'
-              .' WHERE  UPPER(R.RDB$RELATION_NAME)=\''.strtoupper($table_name).'\''
-                .' AND  R.RDB$FIELD_NAME=\''.$field_name.'\'';
+                       .' R.RDB$DEFAULT_SOURCE AS DSOURCE,'
+                       .' F.RDB$FIELD_TYPE AS FTYPE,'
+                       .' F.RDB$COMPUTED_SOURCE AS CSOURCE'
+                 .' FROM  RDB$RELATION_FIELDS R '
+                 .' JOIN  RDB$FIELDS F ON R.RDB$FIELD_SOURCE=F.RDB$FIELD_NAME'
+                .' WHERE  UPPER(R.RDB$RELATION_NAME)=\''.strtoupper($table_name).'\''
+                  .' AND  R.RDB$FIELD_NAME=\''.$field_name.'\'';
         $result = @ibase_query($this->connection, $query);
         if (empty($result)) {
             return $this->ibaseRaiseError();
@@ -1855,7 +1879,7 @@ class MDB_ibase extends MDB_Common
             }
         }
 
-         return trim($flags);
+        return trim($flags);
     }
 }
 
