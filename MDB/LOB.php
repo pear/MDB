@@ -58,8 +58,9 @@ require_once 'PEAR.php';
 * @author  Lukas Smith <smith@dybnet.de>
  */
 
-class MDB_lob extends PEAR
+class MDB_lob
 {
+
     var $database;
     var $lob;
     var $data = '';

@@ -56,7 +56,7 @@ if(!defined('MDB_MANAGER_COMMON_INCLUDED'))
 * @author  Lukas Smith <smith@dybnet.de>
 */
 
-class MDB_manager_common extends PEAR
+class MDB_manager_common
 {
 
     // }}}

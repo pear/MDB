@@ -55,7 +55,9 @@ require_once 'PEAR.php';
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
  */
-class MDB_date extends PEAR {
+class MDB_date
+{
+
     // }}}
     // {{{ mdbNow()
 
