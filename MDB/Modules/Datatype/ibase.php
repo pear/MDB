@@ -424,8 +424,8 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
         if (MDB::isError($connect = $db->connect())) {
             return $connect;
         }
-        $prepared_query = $GLOBALS['_MDB_LOBs'][$clob_stream]->prepared_query;
-        $parameter = $GLOBALS['_MDB_LOBs'][$clob_stream]->parameter;
+        $prepared_query = $GLOBALS['_MDB_LOBs'][$lob]->prepared_query;
+        $parameter = $GLOBALS['_MDB_LOBs'][$lob]->parameter;
         $success = 1;   // REMOVE ME
         $value   = '';  // DEAL WITH ME
         if (!$db->transaction_id = ibase_trans(IBASE_COMMITTED, $db->connection)) {

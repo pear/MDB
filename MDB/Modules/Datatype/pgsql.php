@@ -404,8 +404,8 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
         if (MDB::isError($connect)) {
             return $connect;
         }
-        $prepared_query = $GLOBALS['_MDB_LOBs'][$clob_stream]->prepared_query;
-        $parameter = $GLOBALS['_MDB_LOBs'][$clob_stream]->parameter;
+        $prepared_query = $GLOBALS['_MDB_LOBs'][$lob]->prepared_query;
+        $parameter = $GLOBALS['_MDB_LOBs'][$lob]->parameter;
         if ($db->auto_commit && !@pg_exec($db->connection, 'BEGIN')) {
             return $db->raiseError(MDB_ERROR, null, null,
                 'error starting transaction');
