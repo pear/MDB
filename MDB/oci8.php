@@ -650,7 +650,10 @@ class MDB_oci8 extends MDB_Common {
             $this->columns[$result_value] = array();
             $columns = @OCINumCols($result);
             for($column = 0; $column < $columns; $column++) {
-                $field_name = strtolower(@OCIColumnName($result, $column + 1));
+                $field_name = @OCIColumnName($result, $column + 1);
+                if ($this->options['optimize'] == 'portability') {
+                    $field_name = strtolower($field_name);
+                }
                 $this->columns[$result_value][$field_name] = $column;
             }
         }
@@ -711,7 +714,7 @@ class MDB_oci8 extends MDB_Common {
                 return(TRUE);
             }
         }
-        if (@OCIFetchInto($result, $this->row_buffer[$result_value], OCI_ASSOC+OCI_RETURN_NULLS)) {
+        if (@OCIFetchInto($result, $this->row_buffer[$result_value], OCI_RETURN_NULLS)) {
             return(FALSE);
         }
         $this->row_buffer[$result_value] = FALSE;
@@ -891,7 +894,7 @@ class MDB_oci8 extends MDB_Common {
                 || $this->results[$result_value][$this->highest_fetched_row[$result_value]] !== false
             ) {
                 while((!isset($this->limits[$result_value]) || $this->highest_fetched_row[$result_value] >= $this->limits[$result_value][1])
-                    && @OCIFetchInto($result, $buffer, OCI_ASSOC+OCI_RETURN_NULLS)
+                    && @OCIFetchInto($result, $buffer, OCI_RETURN_NULLS)
                 ) {
                     ++$this->highest_fetched_row[$result_value];
                     $this->results[$result_value][$this->current_row[$result_value]] = $buffer;
@@ -1552,7 +1555,7 @@ class MDB_oci8 extends MDB_Common {
                 || $this->results[$result_value][$this->current_row[$result_value]] !== false
             ) {
                 while($this->current_row[$result_value] < $rownum
-                    && @OCIFetchInto($result, $buffer, OCI_ASSOC+OCI_RETURN_NULLS)
+                    && @OCIFetchInto($result, $buffer, OCI_RETURN_NULLS)
                 ) {
                     $this->current_row[$result_value]++;
                     $this->results[$result_value][$this->current_row[$result_value]] = $buffer;
@@ -1579,12 +1582,12 @@ class MDB_oci8 extends MDB_Common {
             }
             return(NULL);
         }
-        if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-            if ($this->options['optimize'] == 'portability') {
-                $row = array_change_key_case($row, CASE_LOWER);
+        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+            $column_names = $this->getColumnNames($result);
+            foreach($column_names as $name => $i) {
+                $column_names[$name] = $row[$i];
             }
-        } else {
-            $row = array_values($row);
+            $row = $column_names;
         }
         if (isset($this->result_types[$result_value])) {
             $row = $this->convertResultRow($result, $row);
@@ -1736,5 +1739,4 @@ class MDB_oci8 extends MDB_Common {
         return($res);
     }
 }
-
 ?>
