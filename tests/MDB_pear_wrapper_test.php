@@ -20,7 +20,7 @@
     // You can also set to TRUE the second param
     // if you want a persistent connection:
     // $db = DB::connect($dsn, TRUE);
-    $db = DB::connect($dsn);
+    $db =& DB::connect($dsn);
     // With DB::isError you can differentiate between an error or
     // a valid connection.
     //echo Var_Dump::display($db).'<br>';

@@ -226,19 +226,30 @@ class MDB
     {
         @include_once("${type}.php");
 
-        $classname = "DB_${type}";
+        $classname = "MDB_driver_${type}";
 
         if (!class_exists($classname)) {
             return PEAR::raiseError(NULL, DB_ERROR_NOT_FOUND,
                                     NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
-
-        return new $classname;
+        $db =& new $class_name($dsninfo, $options);
+        return $db;
     }
 
     /**
      * Create a new MDB connection object and connect to the specified
      * database
+     *
+     * IMPORTANT: In order for MDB to work properly it is necessary that
+     * you make sure that you work with a reference of the original
+     * object instead of a copy (this is a PHP4 quirk).
+     *
+     * For example:
+     *     $mdb =& MDB::connect($dsn);
+     *          ^^
+     * And not:
+     *     $mdb = MDB::connect($dsn);
+     *          ^^
      *
      * @access  public
      *
@@ -329,13 +340,14 @@ class MDB
                         , 'MDB_Error', TRUE);
                 }
             }
-            include($include_path.$separator.$include);
+            @include_once($include_path.$separator.$include);
         }
         if (!class_exists($class_name)) {
             return PEAR::raiseError(NULL, DB_ERROR_NOT_FOUND,
                 NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
-        return new $class_name($dsninfo, $options);
+        $db =& new $class_name($dsninfo, $options);
+        return $db;
     }
 
     /**
