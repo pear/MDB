@@ -122,7 +122,6 @@ class MDB_Common extends PEAR
     var $escape_quotes = '';
     var $decimal_places = 2;
 
-    var $include_path = '';
     var $manager_included_constant = '';
     var $manager_include = '';
     var $manager_class_name = '';
@@ -191,11 +190,6 @@ class MDB_Common extends PEAR
         }
         if (is_array($options)) {
             $this->options = array_merge($this->options, $options);
-        }
-        if (isset($options['includepath'])) {
-            $this->include_path = $options['includepath'];
-        } else {
-            $this->include_path = '.';
         }
     }
 
