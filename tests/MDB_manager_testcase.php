@@ -117,7 +117,9 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     }
 
     function methodExists(&$class, $name) {
-        if (array_key_exists(strtolower($name), array_flip(get_class_methods($class)))) {
+        if (is_object($class)
+            && array_key_exists(strtolower($name), array_flip(get_class_methods($class)))
+        ) {
             return true;
         }
         $this->assertTrue(false, 'method '. $name.' not implemented in '.get_class($class));
@@ -125,10 +127,10 @@ class MDB_Manager_TestCase extends PHPUnit_TestCase {
     }
 
     function testCreateDatabase() {
-        if (!$this->methodExists($this->manager->database->manager, 'dropDatabase')) {
+        if (!$this->methodExists($this->manager->db->manager, 'dropDatabase')) {
             return;
         }
-        $result = $this->manager->database->manager->dropDatabase($this->manager->database, $this->database);
+        $result = $this->manager->db->manager->dropDatabase($this->database);
         if (!MDB::isError($result) || $result->getCode() != MDB_ERROR_UNSUPPORTED) {
             if (!$this->methodExists($this->manager, 'updateDatabase')) {
                 return;

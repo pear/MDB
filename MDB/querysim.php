@@ -220,11 +220,6 @@ class MDB_querysim extends MDB_Common
 // Few are taken from the corresponding PEAR DB driver.
 // Some are MDB specific.
     var $connection = 0;
-    var $connected_host;
-    var $connected_user;
-    var $connected_password;
-    var $connected_port;
-    var $selected_database = '';
     var $opened_persistent = '';
 
     var $escape_quotes = "\\";
@@ -284,12 +279,12 @@ class MDB_querysim extends MDB_Common
     function connect()
     {
         if ($this->connection != 0) {
-            if (!strcmp($this->selected_database, $this->database_name)
+            if (!strcmp($this->connected_database_name, $this->database_name)
                 && ($this->opened_persistent == $this->options['persistent']))
             {
                 return MDB_OK;
             }
-            if ($this->selected_database) {
+            if ($this->connected_database_name) {
                 $this->_close($this->connection);
             }
             $this->connection = 0;
@@ -323,7 +318,7 @@ class MDB_querysim extends MDB_Common
             }
         }
         $this->connection = $connection;
-        $this->selected_database = $this->database_name;
+        $this->connected_database_name = $this->database_name;
         $this->opened_persistent = $this->options['persistent'];
         return MDB_OK;
     }
@@ -349,7 +344,7 @@ class MDB_querysim extends MDB_Common
             }
             $this->connection = 0;
 
-            $GLOBALS['_MDB_databases'][$this->database] = '';
+            $GLOBALS['_MDB_databases'][$this->db_index] = '';
         }
         return $ret;
     }
@@ -452,7 +447,7 @@ class MDB_querysim extends MDB_Common
                 $buffer .= fgets($this->connection, 1024);
             }
         } else {
-            $this->connection = @fopen($this->selected_database, 'r');
+            $this->connection = @fopen($this->connected_database_name, 'r');
             while (!feof($this->connection)) {
                 $buffer .= fgets($this->connection, 1024);
             }
@@ -707,7 +702,7 @@ class MDB_querysim extends MDB_Common
         }
 
         return $this->raiseError(MDB_ERROR, null, null,
-            'Free result: attemped to free an unknown query result');
+            'freeResult: attemped to free an unknown query result');
     }
     // }}}
 
@@ -733,7 +728,7 @@ class MDB_querysim extends MDB_Common
         }
         $value = $result[1][$rownum][$field];
         if (isset($this->results[$result_value]['types'][$field])) {
-            $value = $this->datatype->convertResult($this, $value, $this->results[$result_value]['types'][$field]);
+            $value = $this->datatype->convertResult($value, $this->results[$result_value]['types'][$field]);
         }
         return $value;
     }
@@ -779,7 +774,7 @@ class MDB_querysim extends MDB_Common
             $row = $arraytemp;
         }
         if (isset($this->results[$result_value]['types'])) {
-            $row = $this->datatype->convertResultRow($this, $result, $row);
+            $row = $this->datatype->convertResultRow($result, $row);
         }
         return $row;
     }

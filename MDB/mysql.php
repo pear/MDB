@@ -73,7 +73,6 @@ class MDB_mysql extends MDB_Common
 
     // MySQL specific class variable
     var $default_table_type = '';
-    var $fixed_float = 0;
     var $dummy_primary_key = 'dummy_primary_key';
 
     // }}}
@@ -98,9 +97,6 @@ class MDB_mysql extends MDB_Common
         $this->supported['LOBs'] = 1;
         $this->supported['replace'] = 1;
         $this->supported['sub_selects'] = 0;
-
-        $this->options['default_table_type'] = false;
-        $this->options['fixed_float'] = false;
 
         $this->errorcode_map = array(
             1004 => MDB_ERROR_CANNOT_CREATE,
@@ -156,7 +152,8 @@ class MDB_mysql extends MDB_Common
         if ($errno == null) {
             $errno = $this->errorCode(mysql_errno($this->connection));
         }
-        return $this->raiseError($errno, null, null, null, @mysql_error($this->connection));
+        return $this->raiseError($errno, null, null, null,
+            @mysql_error($this->connection));
     }
 
     // }}}
@@ -183,7 +180,7 @@ class MDB_mysql extends MDB_Common
         $this->debug(($auto_commit ? 'On' : 'Off'), 'autoCommit');
         if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Auto-commit transactions: transactions are not in use');
+                'autoCommit: transactions are not in use');
         }
         if (!$this->auto_commit == !$auto_commit) {
             return MDB_OK;
@@ -228,11 +225,11 @@ class MDB_mysql extends MDB_Common
         $this->debug('commit transaction', 'commit');
         if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Commit transactions: transactions are not in use');
+                'commit: transactions are not in use');
         }
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null,
-            'Commit transactions: transaction changes are being auto commited');
+            'commit: transaction changes are being auto commited');
         }
         return $this->query('COMMIT');
     }
@@ -255,11 +252,11 @@ class MDB_mysql extends MDB_Common
         $this->debug('rolling back transaction', 'rollback');
         if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Rollback transactions: transactions are not in use');
+                'rollback: transactions are not in use');
         }
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null,
-                'Rollback transactions: transactions can not be rolled back when changes are auto commited');
+                'rollback: transactions can not be rolled back when changes are auto commited');
         }
         return $this->query('ROLLBACK');
     }
@@ -274,14 +271,10 @@ class MDB_mysql extends MDB_Common
      **/
     function connect()
     {
-        $port = (isset($this->port) ? $this->port : '');
         if ($this->connection != 0) {
-            if (!strcmp($this->connected_host, $this->host)
-                && !strcmp($this->connected_user, $this->user)
-                && !strcmp($this->connected_password, $this->password)
-                && !strcmp($this->connected_port, $port)
-                && $this->opened_persistent == $this->options['persistent'])
-            {
+            if (count(array_diff($this->connected_dsn, $this->dsn)) == 0
+                && $this->opened_persistent == $this->options['persistent']
+            ) {
                 return MDB_OK;
             }
             mysql_close($this->connection);
@@ -290,20 +283,53 @@ class MDB_mysql extends MDB_Common
         }
 
         if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return PEAR::raiseError(null, MDB_ERROR_NOT_FOUND,
-                null, null, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', true);
+            return $this->raiseError(MDB_ERROR_NOT_FOUND, null, null,
+                'connect: extension '.$this->phptype.' is not compiled into PHP');
         }
 
-        $use_transactions = $this->options['use_transactions'];
-        if (!MDB::isError($use_transactions) && $use_transactions) {
+        $function = ($this->options['persistent'] ? 'mysql_pconnect' : 'mysql_connect');
+
+        $dsninfo = $this->dsn;
+        if (isset($dsninfo['protocol']) && $dsninfo['protocol'] == 'unix') {
+            $dbhost = ':' . $dsninfo['socket'];
+        } else {
+            $dbhost = $dsninfo['hostspec'] ? $dsninfo['hostspec'] : 'localhost';
+            if (!empty($dsninfo['port'])) {
+                $dbhost .= ':' . $dsninfo['port'];
+            }
+        }
+        $user = $dsninfo['username'];
+        $pw = $dsninfo['password'];
+
+        @ini_set('track_errors', true);
+        if ($dbhost && $user && $pw) {
+            $connection = @$function($dbhost, $user, $pw);
+        } elseif ($dbhost && $user) {
+            $connection = @$function($dbhost, $user);
+        } elseif ($dbhost) {
+            $connection = @$function($dbhost);
+        } else {
+            $connection = 0;
+        }
+        @ini_restore('track_errors');
+        if ($connection <= 0) {
+            return $this->raiseError(MDB_ERROR_CONNECT_FAILED, null, null,
+                $php_errormsg);
+        }
+        $this->connection = $connection;
+        $this->connected_dsn = $this->dsn;
+        $this->connected_database_name = '';
+        $this->opened_persistent = $this->getoption('persistent');
+
+        if ($this->options['use_transactions']) {
             $this->supported['transactions'] = 1;
             $this->default_table_type = 'BDB';
         } else {
             $this->default_table_type = '';
         }
+
         $default_table_type = $this->options['default_table_type'];
-        if (!MDB::isError($default_table_type) && $default_table_type) {
+        if ($default_table_type) {
             switch($this->default_table_type = strtoupper($default_table_type)) {
                 case 'BERKELEYDB':
                     $this->default_table_type = 'BDB';
@@ -327,38 +353,6 @@ class MDB_mysql extends MDB_Common
             }
         }
 
-        $this->fixed_float = 30;
-        $function = ($this->options['persistent'] ? 'mysql_pconnect' : 'mysql_connect');
-        if (!function_exists($function)) {
-            return $this->raiseError(MDB_ERROR_UNSUPPORTED);
-        }
-
-        @ini_set('track_errors', true);
-        $this->connection = @$function(
-            $this->host.(!strcmp($port,'') ? '' : ':'.$port),
-            $this->user, $this->password);
-        @ini_restore('track_errors');
-        if ($this->connection <= 0) {
-            return $this->raiseError(MDB_ERROR_CONNECT_FAILED, null, null,
-                $php_errormsg);
-        }
-
-        if (isset($this->options['fixedfloat'])) {
-            $this->fixed_float = $this->options['fixedfloat'];
-        } else {
-            if (($result = mysql_query('SELECT VERSION()', $this->connection))) {
-                $version = explode('.', mysql_result($result,0,0));
-                $major = intval($version[0]);
-                $minor = intval($version[1]);
-                $revision = intval($version[2]);
-                if ($major > 3 || ($major == 3 && $minor >= 23
-                    && ($minor > 23 || $revision >= 6)))
-                {
-                    $this->fixed_float = 0;
-                }
-                mysql_free_result($result);
-            }
-        }
         if (isset($this->supported['transactions']) && !$this->auto_commit) {
             if (!mysql_query('SET AUTOCOMMIT = 0', $this->connection)) {
                 mysql_close($this->connection);
@@ -368,11 +362,6 @@ class MDB_mysql extends MDB_Common
             }
             $this->in_transaction = true;
         }
-        $this->connected_host = $this->host;
-        $this->connected_user = $this->user;
-        $this->connected_password = $this->password;
-        $this->connected_port = $port;
-        $this->opened_persistent = $this->getoption('persistent');
         return MDB_OK;
     }
 
@@ -398,7 +387,7 @@ class MDB_mysql extends MDB_Common
                 return $result;
             }
 
-            $GLOBALS['_MDB_databases'][$this->database] = '';
+            $GLOBALS['_MDB_databases'][$this->db_index] = '';
             return true;
         }
         return false;
@@ -439,13 +428,18 @@ class MDB_mysql extends MDB_Common
                 $query .= " LIMIT $first,$limit";
             }
         }
-        if ($this->database_name) {
+
+        if ($this->database_name
+            && $this->database_name != $this->connected_database_name
+        ) {
             if (!mysql_select_db($this->database_name, $this->connection)) {
                 return $this->mysqlRaiseError();
             }
+            $this->connected_database_name = $this->database_name;
         }
-        $query_function = $this->options['result_buffering'] ? 'mysql_query' : 'mysql_unbuffered_query';
-        if ($result = $query_function($query, $this->connection)) {
+
+        $function = $this->options['result_buffering'] ? 'mysql_query' : 'mysql_unbuffered_query';
+        if ($result = $function($query, $this->connection)) {
             if ($ismanip) {
                 $this->affected_rows = mysql_affected_rows($this->connection);
                 return MDB_OK;
@@ -595,14 +589,14 @@ class MDB_mysql extends MDB_Common
             if (isset($fields[$name]['key']) && $fields[$name]['key']) {
                 if ($value === 'NULL') {
                     return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, null, null,
-                        $name.': key values may not be NULL');
+                        'replace: key value '.$name.' may not be NULL');
                 }
                 $keys++;
             }
         }
         if ($keys == 0) {
             return $this->raiseError(MDB_ERROR_CANNOT_REPLACE, null, null,
-                'not specified which fields are keys');
+                'replace: not specified which fields are keys');
         }
         return $this->query("REPLACE INTO $table ($query) VALUES ($values)");
     }
@@ -631,7 +625,7 @@ class MDB_mysql extends MDB_Common
         $result_value = intval($result);
         if (!isset($this->results[$result_value]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
-                'Get column names: it was specified an inexisting result set');
+                'getColumnNames: it was specified an inexisting result set');
         }
         if (!isset($this->results[$result_value]['columns'])) {
             $this->results[$result_value]['columns'] = array();
@@ -679,12 +673,12 @@ class MDB_mysql extends MDB_Common
             $result_value = intval($result);
             if (!isset($this->results[$result_value]['highest_fetched_row'])) {
                 return $this->raiseError(MDB_ERROR, null, null,
-                    'End of result: attempted to check the end of an unknown result');
+                    'endOfResult: attempted to check the end of an unknown result');
             }
             $numrows = $this->numRows($result);
             if (MDB::isError($numrows)) {
                 return $this->raiseError(MDB_ERROR, null, null,
-                    'End of result: error when calling numRows: '.$numrows->getUserInfo());
+                    'endOfResult: error when calling numRows: '.$numrows->getUserInfo());
             }
             return $this->results[$result_value]['highest_fetched_row'] >= $numrows-1;
         }
@@ -732,11 +726,11 @@ class MDB_mysql extends MDB_Common
         }
 
         return $this->raiseError(MDB_ERROR, null, null,
-            'Free result: attemped to free an unknown query result');
+            'freeResult: attemped to free an unknown query result');
     }
 
     // }}}
-    // {{{ nextId()
+    // {{{ nextID()
 
     /**
      * returns the next free id of a sequence
@@ -749,7 +743,7 @@ class MDB_mysql extends MDB_Common
      * @return mixed MDB_Error or id
      * @access public
      */
-    function nextId($seq_name, $ondemand = true)
+    function nextID($seq_name, $ondemand = true)
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
@@ -761,7 +755,7 @@ class MDB_mysql extends MDB_Common
                 // Since we are creating the sequence on demand
                 // we know the first id = 1 so initialize the
                 // sequence at 2
-                $result = $this->manager->createSequence($this, $seq_name, 2);
+                $result = $this->manager->createSequence($seq_name, 2);
                 if (MDB::isError($result)) {
                     return $this->raiseError(MDB_ERROR, null, null,
                         'nextID: on demand sequence '.$seq_name.' could not be created');
@@ -783,7 +777,7 @@ class MDB_mysql extends MDB_Common
     }
 
     // }}}
-    // {{{ currId()
+    // {{{ currID()
 
     /**
      * returns the current id of a sequence
@@ -792,7 +786,7 @@ class MDB_mysql extends MDB_Common
      * @return mixed MDB_Error or id
      * @access public
      */
-    function currId($seq_name)
+    function currID($seq_name)
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $result = $this->query("SELECT MAX(sequence) FROM $sequence_name", 'integer', false);
@@ -826,7 +820,7 @@ class MDB_mysql extends MDB_Common
         }
         if (isset($this->results[$result_value]['types'][$field])) {
             $type = $this->results[$result_value]['types'][$field];
-            $value = $this->datatype->convertResult($this, $value, $type);
+            $value = $this->datatype->convertResult($value, $type);
         }
         return $value;
     }
@@ -873,7 +867,7 @@ class MDB_mysql extends MDB_Common
             return null;
         }
         if (isset($this->results[$result_value]['types'])) {
-            $row = $this->datatype->convertResultRow($this, $result, $row);
+            $row = $this->datatype->convertResultRow($result, $row);
         }
         return $row;
     }
@@ -934,8 +928,7 @@ class MDB_mysql extends MDB_Common
         // if $result is a string, then we want information about a
         // table without a resultset
         if (is_string($result)) {
-            $id = @mysql_list_fields($this->database_name,
-                $result, $this->connection);
+            $id = @mysql_list_fields($this->database_name, $result, $this->connection);
             if (empty($id)) {
                 return $this->mysqlRaiseError();
             }

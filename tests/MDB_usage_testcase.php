@@ -525,9 +525,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         for ($start_value = 1; $start_value < 4; $start_value++) {
             $sequence_name = "test_sequence_$start_value";
 
-            $this->db->manager->dropSequence($this->db, $sequence_name);
+            $this->db->manager->dropSequence($sequence_name);
 
-            $result = $this->db->manager->createSequence($this->db, $sequence_name, $start_value);
+            $result = $this->db->manager->createSequence($sequence_name, $start_value);
             $this->assertTrue(!MDB::isError($result), "Error creating sequence $sequence_name with start value $start_value");
 
             for ($sequence_value = $start_value; $sequence_value < ($start_value + 4); $sequence_value++) {
@@ -537,7 +537,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             }
 
-            $result = $this->db->manager->dropSequence($this->db, $sequence_name);
+            $result = $this->db->manager->dropSequence($sequence_name);
 
             if (MDB::isError($result)) {
                 $this->assertTrue(false, "Error dropping sequence $sequence_name : ".$result->getMessage());
@@ -548,7 +548,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         // Test ondemand creation of sequences
         $sequence_name = 'test_ondemand';
 
-        $this->db->manager->dropSequence($this->db, $sequence_name);
+        $this->db->manager->dropSequence($sequence_name);
 
         for ($sequence_value = 1; $sequence_value < 4; $sequence_value++) {
             $value = $this->db->nextId($sequence_name);
@@ -557,7 +557,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         }
 
-        $result = $this->db->manager->dropSequence($this->db, $sequence_name);
+        $result = $this->db->manager->dropSequence($sequence_name);
 
         if (MDB::isError($result)) {
             $this->assertTrue(false, "Error dropping sequence $sequence_name : ".$result->getMessage());
@@ -883,11 +883,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $clob = $row[0];
         if (!MDB::isError($clob)) {
-            for ($value = ''; !$this->db->datatype->endOfLOB($this->db, $clob);) {
-                $this->assertTrue(($this->db->datatype->readLOB($this->db, $clob, $data, 8192) >= 0), 'Could not read CLOB');
+            for ($value = ''; !$this->db->datatype->endOfLOB($clob);) {
+                $this->assertTrue(($this->db->datatype->readLOB($clob, $data, 8192) >= 0), 'Could not read CLOB');
                 $value .= $data;
             }
-            $this->db->datatype->destroyLOB($this->db, $clob);
+            $this->db->datatype->destroyLOB($clob);
 
             $this->assertEquals($character_lob['data'], $value, 'Retrieved character LOB value ("' . $value . '") is different from what was stored ("' . $character_lob['data'] . '")');
         } else {
@@ -896,12 +896,12 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $blob = $row[1];
         if (!MDB::isError($blob)) {
-            for ($value = ''; !$this->db->datatype->endOfLOB($this->db, $blob);) {
-                $this->assertTrue(($this->db->datatype->readLOB($this->db, $blob, $data, 8192) >= 0), 'Could not read BLOB');
+            for ($value = ''; !$this->db->datatype->endOfLOB($blob);) {
+                $this->assertTrue(($this->db->datatype->readLOB($blob, $data, 8192) >= 0), 'Could not read BLOB');
                 $value .= $data;
             }
 
-            $this->db->datatype->destroyLOB($this->db, $blob);
+            $this->db->datatype->destroyLOB($blob);
 
             $this->assertEquals($value, $binary_lob['data'], 'Retrieved binary LOB value ("'.$value.'") is different from what was stored ("'.$binary_lob['data'].'")');
         } else {
@@ -967,9 +967,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $row = $this->db->fetchRow($result);
         $clob = $row[0];
         if (!MDB::isError($clob)) {
-            $clob = $this->db->datatype->setLOBFile($this->db, $clob, $character_data_file);
-            $this->assertTrue(($this->db->datatype->readLOB($this->db, $clob, $data, 0) >= 0), 'Error reading CLOB ');
-            $this->db->datatype->destroyLOB($this->db, $clob);
+            $clob = $this->db->datatype->setLOBFile($clob, $character_data_file);
+            $this->assertTrue(($this->db->datatype->readLOB($clob, $data, 0) >= 0), 'Error reading CLOB ');
+            $this->db->datatype->destroyLOB($clob);
 
             $this->assertTrue(($file = fopen($character_data_file, 'r')), "Error opening character data file: $character_data_file");
             $this->assertEquals(gettype($value = fread($file, filesize($character_data_file))), 'string', "Could not read from character LOB file: $character_data_file");
@@ -982,9 +982,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $blob = $row[1];
         if (!MDB::isError($blob)) {
-            $blob = $this->db->datatype->setLOBFile($this->db, $blob, $binary_data_file);
-            $this->assertTrue(($this->db->datatype->readLOB($this->db, $blob, $data, 0) >= 0), 'Error reading BLOB ');
-            $this->db->datatype->destroyLOB($this->db, $blob);
+            $blob = $this->db->datatype->setLOBFile($blob, $binary_data_file);
+            $this->assertTrue(($this->db->datatype->readLOB($blob, $data, 0) >= 0), 'Error reading BLOB ');
+            $this->db->datatype->destroyLOB($blob);
 
             $this->assertTrue(($file = fopen($binary_data_file, 'rb')), "Error opening binary data file: $binary_data_file");
             $this->assertEquals(gettype($value = fread($file, filesize($binary_data_file))), 'string', "Could not read from binary LOB file: $binary_data_file");

@@ -135,12 +135,12 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     // save some time with this function
     // lets just get all and free the result
     Var_Dump::display($db->loadModule('extended'));
-    $array = $db->extended->queryAll($db, $query);
+    $array = $db->extended->queryAll($query);
     $db->freeResult($result);
     echo('<br>all with just one call:<br>');
     echo(Var_Dump::display($array).'<br>');
     // run the query with the offset 1 and count 1 and get a result handler
-    $result = $db->extended->limitQuery($db, $query, null, 1, 1);
+    $result = $db->extended->limitQuery($query, null, 1, 1);
     // lets just get everything but with an associative array and free the result
     $array = $db->fetchAll($result, MDB_FETCHMODE_ASSOC);
     $db->freeResult($result);
@@ -149,7 +149,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     // lets create a sequence
     echo(Var_Dump::display($db->loadModule('manager')));
     echo('<br>create a new seq with start 3 name real_funky_id<br>');
-    $err = $db->manager->createSequence($db, 'real_funky_id', 3);
+    $err = $db->manager->createSequence('real_funky_id', 3);
     if (MDB::isError($err)) {
             echo('<br>could not create sequence again<br>');
     }
@@ -166,7 +166,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     $prepared_query = $db->prepareQuery('INSERT INTO numbers VALUES(?,?,?)');
     foreach ($alldata as $row) {
             echo('running execute<br>');
-            $db->extended->execute($db, $prepared_query, null, $row, array('integer', 'text', 'text'));
+            $db->extended->execute($prepared_query, null, $row, array('integer', 'text', 'text'));
     }
     // lets try an prepare execute combo
     $alldata = array(
@@ -177,22 +177,22 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     );
     $prepared_query = $db->prepareQuery('INSERT INTO numbers VALUES(?,?,?)');
     echo('running executeMultiple<br>');
-    echo(Var_Dump::display($db->extended->executeMultiple($db, $prepared_query, null, $alldata, array('integer', 'text', 'text'))).'<br>');
+    echo(Var_Dump::display($db->extended->executeMultiple($prepared_query, null, $alldata, array('integer', 'text', 'text'))).'<br>');
     $array = array(4);
     echo('<br>see getOne in action:<br>');
-    echo(Var_Dump::display($db->extended->getOne($db, 'SELECT trans_en FROM numbers WHERE number = ?','text',$array)).'<br>');
+    echo(Var_Dump::display($db->extended->getOne('SELECT trans_en FROM numbers WHERE number = ?','text',$array)).'<br>');
     $db->setFetchmode(MDB_FETCHMODE_ASSOC);
     echo('<br>default fetchmode ist now MDB_FETCHMODE_ASSOC<br>');
     echo('<br>see getRow in action:<br>');
-    echo(Var_Dump::display($db->extended->getRow($db, 'SELECT * FROM numbers WHERE number = ?',array('integer','text','text'),$array)));
+    echo(Var_Dump::display($db->extended->getRow('SELECT * FROM numbers WHERE number = ?',array('integer','text','text'),$array)));
     echo('default fetchmode ist now MDB_FETCHMODE_ORDERED<br>');
     $db->setFetchmode(MDB_FETCHMODE_ORDERED);
-    echo('<br>see getCol in action using static method call:<br>');
-    echo(Var_Dump::display(MDB_Extended::getCol($db, 'SELECT * FROM numbers','text', null, null, 1)).'<br>');
+    echo('<br>see getCol in action:<br>');
+    echo(Var_Dump::display($db->extended->getCol('SELECT * FROM numbers','text', null, null, 1)).'<br>');
     echo('<br>see getAll in action:<br>');
-    echo(Var_Dump::display($db->extended->getAll($db, 'SELECT * FROM test',array('integer','text','text'))).'<br>');
-    echo('<br>see getAssoc in action using static method call:<br>');
-    echo(Var_Dump::display(MDB_Extended::getAll($db, 'SELECT * FROM test',array('integer','text','text'), null, null, MDB_FETCHMODE_ASSOC)).'<br>');
+    echo(Var_Dump::display($db->extended->getAll('SELECT * FROM test',array('integer','text','text'))).'<br>');
+    echo('<br>see getAssoc in action:<br>');
+    echo(Var_Dump::display($db->extended->getAll('SELECT * FROM test',array('integer','text','text'), null, null, MDB_FETCHMODE_ASSOC)).'<br>');
     echo('tableInfo on a string:<br>');
     echo(Var_Dump::display($db->tableInfo('numbers')).'<br>');
     echo('<br>just a simple update query:<br>');
@@ -210,7 +210,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     $db->freeResult($result);
     echo('<br>all with subselect:<br>');
     echo('<br>drop index (will fail if the index was never created):<br>');
-    echo(Var_Dump::display($db->manager->dropIndex($db, 'test', 'test_id_index')).'<br>');
+    echo(Var_Dump::display($db->manager->dropIndex('test', 'test_id_index')).'<br>');
     $index_def = array(
         'fields' => array(
             'test_id' => array(
@@ -219,7 +219,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
         )
     );
     echo('<br>create index:<br>');
-    echo(Var_Dump::display($db->manager->createIndex($db, 'test', 'test_id_index', $index_def)).'<br>');
+    echo(Var_Dump::display($db->manager->createIndex('test', 'test_id_index', $index_def)).'<br>');
 /*
     if ($db_type == 'mysql') {
         $manager->captureDebugOutput(true);

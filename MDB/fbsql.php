@@ -39,7 +39,7 @@
 // | WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE          |
 // | POSSIBILITY OF SUCH DAMAGE.                                          |
 // +----------------------------------------------------------------------+
-// | Author: Lukas Smith <smith@dybnet.de>                                |
+// | Author: Lukas Smith <smith@backendmedia.com>                         |
 // +----------------------------------------------------------------------+
 //
 // $Id$
@@ -52,7 +52,7 @@ require_once 'MDB/Common.php';
  *
  * @package MDB
  * @category Database
- * @author  Lukas Smith <smith@dybnet.de>
+ * @author  Lukas Smith <smith@backendmedia.com>
  * @author  Frank M. Kromann <frank@kromann.info>
  */
 class MDB_fbsql extends MDB_Common
@@ -71,11 +71,6 @@ class MDB_fbsql extends MDB_Common
 
     var $highest_fetched_row = array();
     var $columns = array();
-
-    // MySQL specific class variable
-    var $default_table_type = '';
-    var $fixed_float = 0;
-    var $dummy_primary_key = 'dummy_primary_key';
 
     // }}}
     // {{{ constructor
@@ -155,7 +150,8 @@ class MDB_fbsql extends MDB_Common
         if ($errno == null) {
             $errno = $this->errorCode(fbsql_errno($this->connection));
         }
-        return $this->raiseError($errno, null, null, null, @fbsql_error($this->connection));
+        return $this->raiseError($errno, null, null, null,
+            @fbsql_error($this->connection));
     }
 
     // }}}
@@ -182,7 +178,7 @@ class MDB_fbsql extends MDB_Common
         $this->debug(($auto_commit ? 'On' : 'Off'), 'autoCommit');
         if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Auto-commit transactions: transactions are not in use');
+                'autoCommit: transactions are not in use');
         }
         if (!$this->auto_commit == !$auto_commit) {
             return MDB_OK;
@@ -193,12 +189,12 @@ class MDB_fbsql extends MDB_Common
                 if (MDB::isError($result)) {
                     return $result;
                 }
-                $result = $this->query('SET COMMIT true');
+                $result = $this->query('SET COMMIT TRUE');
                 if (MDB::isError($result)) {
                     return $result;
                 }
             } else {
-                $result = $this->query('SET COMMIT false');
+                $result = $this->query('SET COMMIT FALSE');
                 if (MDB::isError($result)) {
                     return $result;
                 }
@@ -224,14 +220,14 @@ class MDB_fbsql extends MDB_Common
      */
     function commit()
     {
-        $this->debug('commit', 'commiting transaction');
+        $this->debug('commit transaction', 'commit');
         if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Commit transactions: transactions are not in use');
+                'commit: transactions are not in use');
         }
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null,
-            'Commit transactions: transaction changes are being auto commited');
+            'commit: transaction changes are being auto commited');
         }
         return $this->query('COMMIT');
     }
@@ -254,11 +250,11 @@ class MDB_fbsql extends MDB_Common
         $this->debug('rolling back transaction', 'rollback');
         if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Rollback transactions: transactions are not in use');
+                'rollback: transactions are not in use');
         }
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null,
-                'Rollback transactions: transactions can not be rolled back when changes are auto commited');
+                'rollback: transactions can not be rolled back when changes are auto commited');
         }
         return $this->query('ROLLBACK');
     }
@@ -273,61 +269,51 @@ class MDB_fbsql extends MDB_Common
      **/
     function connect()
     {
-        $port = (isset($this->port) ? $this->port : '');
         if ($this->connection != 0) {
-            if (!strcmp($this->connected_host, $this->host)
-                && !strcmp($this->connected_user, $this->user)
-                && !strcmp($this->connected_password, $this->password)
-                && !strcmp($this->connected_port, $port)
-                && $this->opened_persistent == $this->options['persistent'])
-            {
+            if (count(array_diff($this->connected_dsn, $this->dsn)) == 0
+                && $this->opened_persistent == $this->options['persistent']
+            ) {
                 return MDB_OK;
             }
             fbsql_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
         }
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return PEAR::raiseError(null, MDB_ERROR_NOT_FOUND,
-                null, null, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', true);
-        }
 
-        $this->fixed_float = 30;
+        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+            return $this->raiseError(MDB_ERROR_NOT_FOUND, null, null,
+                'connect: extension '.$this->phptype.' is not compiled into PHP');
+        }
 
         $function = ($this->options['persistent'] ? 'fbsql_pconnect' : 'fbsql_connect');
-        if (!function_exists($function)) {
-            return $this->raiseError(MDB_ERROR_UNSUPPORTED);
-        }
+
+        $dsninfo = $this->dsn;
+        $dbhost = $dsninfo['hostspec'] ? $dsninfo['hostspec'] : 'localhost';
+        $user = $dsninfo['username'];
+        $pw = $dsninfo['password'];
 
         @ini_set('track_errors', true);
-        $this->connection = @$function(
-            $this->host.(!strcmp($port,'') ? '' : ':'.$port),
-            $this->user, $this->password);
+        if ($dbhost && $user && $pw) {
+            $connection = @$function($dbhost, $user, $pw);
+        } elseif ($dbhost && $user) {
+            $connection = @$function($dbhost, $user);
+        } elseif ($dbhost) {
+            $connection = @$function($dbhost);
+        } else {
+            $connection = 0;
+        }
         @ini_restore('track_errors');
-        if ($this->connection <= 0) {
+        if ($connection <= 0) {
             return $this->raiseError(MDB_ERROR_CONNECT_FAILED, null, null,
                 $php_errormsg);
         }
+        $this->connection = $connection;
+        $this->connected_dsn = $this->dsn;
+        $this->connected_database_name = '';
+        $this->opened_persistent = $this->getoption('persistent');
 
-        if (isset($this->options['fixedfloat'])) {
-            $this->fixed_float = $this->options['fixedfloat'];
-        } else {
-            if (($result = fbsql_query('SELECT VERSION()', $this->connection))) {
-                $version = explode('.',fbsql_result($result,0,0));
-                $major = intval($version[0]);
-                $minor = intval($version[1]);
-                $revision = intval($version[2]);
-                if ($major > 3 || ($major == 3 && $minor >= 23
-                    && ($minor > 23 || $revision >= 6)))
-                {
-                    $this->fixed_float = 0;
-                }
-                fbsql_free_result($result);
-            }
-        }
         if (isset($this->supported['transactions']) && !$this->auto_commit) {
-            if (!fbsql_query('SET AUTOCOMMIT false', $this->connection)) {
+            if (!fbsql_query('SET AUTOCOMMIT FALSE', $this->connection)) {
                 fbsql_close($this->connection);
                 $this->connection = 0;
                 $this->affected_rows = -1;
@@ -335,11 +321,6 @@ class MDB_fbsql extends MDB_Common
             }
             $this->in_transaction = true;
         }
-        $this->connected_host = $this->host;
-        $this->connected_user = $this->user;
-        $this->connected_password = $this->password;
-        $this->connected_port = $port;
-        $this->opened_persistent = $this->options['persistent'];
         return MDB_OK;
     }
 
@@ -364,7 +345,7 @@ class MDB_fbsql extends MDB_Common
             if (isset($result) && MDB::isError($result)) {
                 return $result;
             }
-            $GLOBALS['_MDB_databases'][$this->database] = '';
+            $GLOBALS['_MDB_databases'][$this->db_index] = '';
             return true;
         }
         return false;
@@ -377,8 +358,8 @@ class MDB_fbsql extends MDB_Common
      * Send a query to the database and return any results
      *
      * @param string  $query  the SQL query
-     * @param array   $types  array that contains the types of the columns in
-     *                        the result set
+     * @param mixed   $types  string or array that contains the types of the
+     *                        columns in the result set
      * @param mixed $result_mode boolean or string which specifies which class to use
      *
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
@@ -404,10 +385,13 @@ class MDB_fbsql extends MDB_Common
             }
         }
 
-        if ($this->database_name != '') {
+        if ($this->database_name
+            && $this->database_name != $this->connected_database_name
+        ) {
             if (!fbsql_select_db($this->database_name, $this->connection)) {
                 return $this->fbsqlRaiseError();
             }
+            $this->connected_database_name = $this->database_name;
         }
 
         // Add ; to the end of the query. This is required by FrontBase
@@ -459,7 +443,7 @@ class MDB_fbsql extends MDB_Common
         $result_value = intval($result);
         if (!isset($this->results[$result_value]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
-                'Get column names: it was specified an inexisting result set');
+                'getColumnNames: it was specified an inexisting result set');
         }
         if (!isset($this->results[$result_value]['columns'])) {
             $this->results[$result_value]['columns'] = array();
@@ -507,12 +491,12 @@ class MDB_fbsql extends MDB_Common
             $result_value = intval($result);
             if (!isset($this->results[$result_value]['highest_fetched_row'])) {
                 return $this->raiseError(MDB_ERROR, null, null,
-                    'End of result: attempted to check the end of an unknown result');
+                    'endOfResult: attempted to check the end of an unknown result');
             }
             $numrows = $this->numRows($result);
             if (MDB::isError($numrows)) {
                 return $this->raiseError(MDB_ERROR, null, null,
-                    'End of result: error when calling numRows: '.$numrows->getUserInfo());
+                    'endOfResult: error when calling numRows: '.$numrows->getUserInfo());
             }
             return $this->results[$result_value]['highest_fetched_row'] >= $numrows-1;
         }
@@ -536,7 +520,7 @@ class MDB_fbsql extends MDB_Common
             return fbsql_num_rows($result);
         }
         return $this->raiseError(MDB_ERROR, null, null,
-            'Number of rows: nut supported if option "result_buffering" is not enabled');
+            'numRows: not supported if option "result_buffering" is not enabled');
     }
 
     // }}}
@@ -560,11 +544,11 @@ class MDB_fbsql extends MDB_Common
         }
 
         return $this->raiseError(MDB_ERROR, null, null,
-            'Free result: attemped to free an unknown query result');
+            'freeResult: attemped to free an unknown query result');
     }
 
     // }}}
-    // {{{ nextId()
+    // {{{ nextID()
 
     /**
      * returns the next free id of a sequence
@@ -577,7 +561,7 @@ class MDB_fbsql extends MDB_Common
      * @return mixed MDB_Error or id
      * @access public
      */
-    function nextId($seq_name, $ondemand = true)
+    function nextID($seq_name, $ondemand = true)
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
@@ -589,10 +573,10 @@ class MDB_fbsql extends MDB_Common
                 // Since we are creating the sequence on demand
                 // we know the first id = 1 so initialize the
                 // sequence at 2
-                $result = $this->manager->createSequence($this, $seq_name, 2);
+                $result = $this->manager->createSequence($seq_name, 2);
                 if (MDB::isError($result)) {
                     return $this->raiseError(MDB_ERROR, null, null,
-                        'Next ID: on demand sequence could not be created');
+                        'nextID: on demand sequence could not be created');
                 } else {
                     // First ID of a newly created sequence is 1
                     return 1;
@@ -600,16 +584,18 @@ class MDB_fbsql extends MDB_Common
             }
             return $result;
         }
-        $value = intval(fbsql_insert_id());
-        $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
-        if (MDB::isError($res)) {
-            $this->warnings[] = 'Next ID: could not delete previous sequence table values';
+        $result = $this->query("SELECT UNIQUE FROM $sequence_name", 'integer', false);
+        $value = $this->fetchOne($result);
+        $this->freeResult($result);
+        $result = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
+        if (MDB::isError($result)) {
+            $this->warnings[] = 'nextID: could not delete previous sequence table values from '.$seq_name;
         }
         return $value;
     }
 
     // }}}
-    // {{{ currId()
+    // {{{ currID()
 
     /**
      * returns the current id of a sequence
@@ -618,7 +604,7 @@ class MDB_fbsql extends MDB_Common
      * @return mixed MDB_Error or id
      * @access public
      */
-    function currId($seq_name)
+    function currID($seq_name)
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $result = $this->query("SELECT MAX(sequence) FROM $sequence_name", 'integer', false);
@@ -652,7 +638,7 @@ class MDB_fbsql extends MDB_Common
         }
         if (isset($this->results[$result_value]['types'][$field])) {
             $type = $this->results[$result_value]['types'][$field];
-            $value = $this->datatype->convertResult($this, $value, $type);
+            $value = $this->datatype->convertResult($value, $type);
         }
         return $value;
     }
@@ -661,12 +647,12 @@ class MDB_fbsql extends MDB_Common
     // {{{ fetchRow()
 
     /**
-     * Fetch a row and return data in an array.
+     * Fetch a row and insert the data into an existing array.
      *
-     * @param resource $result result identifier
-     * @param int $fetchmode ignored
-     * @param int $rownum the row number to fetch
-     * @return mixed data array or null on success, a MDB error on failure
+     * @param resource  $result     result identifier
+     * @param int       $fetchmode  how the array data should be indexed
+     * @param int       $rownum     the row number to fetch
+     * @return int data array on success, a MDB error on failure
      * @access public
      */
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
@@ -676,9 +662,13 @@ class MDB_fbsql extends MDB_Common
             ++$this->results[$result_value]['highest_fetched_row'];
         } else {
             if (!@fbsql_data_seek($result, $rownum)) {
+                if ($this->options['autofree']) {
+                    $this->freeResult($result);
+                }
                 return null;
             }
-            $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
+            $this->results[$result_value]['highest_fetched_row'] =
+                max($this->results[$result_value]['highest_fetched_row'], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
@@ -689,17 +679,13 @@ class MDB_fbsql extends MDB_Common
             $row = @fbsql_fetch_row($result);
         }
         if (!$row) {
-            $errno = @fbsql_errno($this->connection);
-            if (!$errno) {
-                if ($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
-                return null;
+            if ($this->options['autofree']) {
+                $this->freeResult($result);
             }
-            return $this->fbsqlRaiseError($errno);
+            return null;
         }
         if (isset($this->results[$result_value]['types'])) {
-            $row = $this->datatype->convertResultRow($this, $result, $row);
+            $row = $this->datatype->convertResultRow($result, $row);
         }
         return $row;
     }
@@ -775,8 +761,7 @@ class MDB_fbsql extends MDB_Common
         // if $result is a string, then we want information about a
         // table without a resultset
         if (is_string($result)) {
-            $id = @fbsql_list_fields($this->database_name,
-                $result, $this->connection);
+            $id = @fbsql_list_fields($this->database_name, $result, $this->connection);
             if (empty($id)) {
                 return $this->fbsqlRaiseError();
             }

@@ -64,6 +64,19 @@ define('MDB_AUTOQUERY_UPDATE', 2);
  */
 class MDB_Extended
 {
+    var $db_index;
+
+    // }}}
+    // {{{ constructor
+
+    /**
+     * Constructor
+     */
+    function MDB_Extended($db_index)
+    {
+        $this->db_index = $db_index;
+    }
+
     // }}}
     // {{{ queryOne()
 
@@ -72,7 +85,6 @@ class MDB_Extended
      * the first row of the result set and then frees
      * the result set.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $query the SELECT query statement to be executed.
      * @param string $type optional argument that specifies the expected
      *       datatype of the result set field, so that an eventual conversion
@@ -81,8 +93,9 @@ class MDB_Extended
      * @return mixed MDB_OK or field value on success, a MDB error on failure
      * @access public
      */
-    function queryOne(&$db, $query, $type = null)
+    function queryOne($query, $type = null)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($type != null) {
             $type = array($type);
         }
@@ -108,7 +121,6 @@ class MDB_Extended
      * row of the result set into an array and then frees
      * the result set.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $query the SELECT query statement to be executed.
      * @param array $types optional array argument that specifies a list of
      *       expected datatypes of the result set columns, so that the eventual
@@ -118,8 +130,9 @@ class MDB_Extended
      * @return mixed MDB_OK or data array on success, a MDB error on failure
      * @access public
      */
-    function queryRow(&$db, $query, $types = null, $fetchmode = MDB_FETCHMODE_DEFAULT)
+    function queryRow($query, $types = null, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query($query, $types, false);
         if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
@@ -141,7 +154,6 @@ class MDB_Extended
      * Execute the specified query, fetch the value from the first column of
      * each row of the result set into an array and then frees the result set.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $query the SELECT query statement to be executed.
      * @param string $type optional argument that specifies the expected
      *       datatype of the result set field, so that an eventual conversion
@@ -151,8 +163,9 @@ class MDB_Extended
      * @return mixed MDB_OK or data array on success, a MDB error on failure
      * @access public
      */
-    function queryCol(&$db, $query, $type = null, $colnum = 0)
+    function queryCol($query, $type = null, $colnum = 0)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($type != null) {
             $type = array($type);
         }
@@ -177,7 +190,6 @@ class MDB_Extended
      * Execute the specified query, fetch all the rows of the result set into
      * a two dimensional array and then frees the result set.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $query the SELECT query statement to be executed.
      * @param array $types optional array argument that specifies a list of
      *       expected datatypes of the result set columns, so that the eventual
@@ -196,9 +208,10 @@ class MDB_Extended
      * @return mixed MDB_OK or data array on success, a MDB error on failure
      * @access public
      */
-    function queryAll(&$db, $query, $types = null, $fetchmode = MDB_FETCHMODE_DEFAULT,
+    function queryAll($query, $types = null, $fetchmode = MDB_FETCHMODE_DEFAULT,
         $rekey = false, $force_array = false, $group = false)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query($query, $types, false);
         if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
@@ -221,7 +234,6 @@ class MDB_Extended
      * a query.  Takes care of doing the query and freeing the results
      * when finished.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $query the SQL query
      * @param string $type string that contains the type of the column in the
      *       result set
@@ -232,11 +244,12 @@ class MDB_Extended
      * @return mixed MDB_OK or value on success, a MDB error on failure
      * @access public
      */
-    function getOne(&$db, $query, $type = null, $params = array(), $param_types = null)
+    function getOne($query, $type = null, $params = array(), $param_types = null)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         settype($params, 'array');
         if (count($params) == 0) {
-            return MDB_Extended::queryOne($db, $query, $type);
+            return $this->queryOne($query, $type);
         }
 
         if ($type != null) {
@@ -248,7 +261,7 @@ class MDB_Extended
             return $prepared_query;
         }
 
-        $result = MDB_Extended::execute($db, $prepared_query, $type, $params, $param_types);
+        $result = $this->execute($prepared_query, $type, $params, $param_types);
         if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
@@ -271,7 +284,6 @@ class MDB_Extended
      * Fetch the first row of data returned from a query.  Takes care
      * of doing the query and freeing the results when finished.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $query the SQL query
      * @param array $types array that contains the types of the columns in
      *       the result set
@@ -283,12 +295,13 @@ class MDB_Extended
      * @return mixed MDB_OK or data array on success, a MDB error on failure
      * @access public
      */
-    function getRow(&$db, $query, $types = null, $params = array(),
+    function getRow($query, $types = null, $params = array(),
         $param_types = null, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         settype($params, 'array');
         if (count($params) == 0) {
-            return MDB_Extended::queryRow($db, $query, $types, $fetchmode);
+            return $this->queryRow($query, $types, $fetchmode);
         }
 
         $prepared_query = $db->prepareQuery($query);
@@ -296,7 +309,7 @@ class MDB_Extended
             return $prepared_query;
         }
 
-        $result = MDB_Extended::execute($db, $prepared_query, $types, $params, $param_types);
+        $result = $this->execute($prepared_query, $types, $params, $param_types);
         if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
@@ -319,7 +332,6 @@ class MDB_Extended
      * Fetch a single column from a result set and return it as an
      * indexed array.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $query the SQL query
      * @param string $type string that contains the type of the column in the
      *       result set
@@ -331,15 +343,16 @@ class MDB_Extended
      * @return mixed MDB_OK or data array on success, a MDB error on failure
      * @access public
      */
-    function getCol(&$db, $query, $type = null, $params = array(),
+    function getCol($query, $type = null, $params = array(),
         $param_types = null, $colnum = 0)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($type != null) {
             $type = array($type);
         }
         settype($params, 'array');
         if (count($params) > 0) {
-            $result = MDB_Extended::queryCol($db, $query, $type, $colnum);
+            $result = $this->queryCol($query, $type, $colnum);
         }
 
         $prepared_query = $db->prepareQuery($query);
@@ -347,7 +360,7 @@ class MDB_Extended
             return $prepared_query;
         }
 
-        $result = MDB_Extended::execute($db, $prepared_query, $type, $params, $param_types);
+        $result = $this->execute($prepared_query, $type, $params, $param_types);
         if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
@@ -369,7 +382,6 @@ class MDB_Extended
     /**
      * Fetch all the rows returned from a query.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $query the SQL query
      * @param array $types array that contains the types of the columns in
      *       the result set
@@ -390,13 +402,14 @@ class MDB_Extended
      * @return mixed MDB_OK or data array on success, a MDB error on failure
      * @access public
      */
-    function getAll(&$db, $query, $types = null, $params = array(),
+    function getAll($query, $types = null, $params = array(),
         $param_types = null, $fetchmode = MDB_FETCHMODE_DEFAULT,
         $rekey = false, $force_array = false, $group = false)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         settype($params, 'array');
         if (count($params) > 0) {
-            return MDB_Extended::queryAll($db, $query, $types, $fetchmode, $rekey, $force_array, $group);
+            return $this->queryAll($query, $types, $fetchmode, $rekey, $force_array, $group);
         }
 
         $prepared_query = $db->prepareQuery($query);
@@ -404,7 +417,7 @@ class MDB_Extended
             return $prepared_query;
         }
 
-        $result = MDB_Extended::execute($db, $prepared_query, $types, $params, $param_types);
+        $result = $this->execute($prepared_query, $types, $params, $param_types);
         if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
@@ -429,7 +442,6 @@ class MDB_Extended
      * data array. The values of the array inserted into the query in the same
      * order like the array order
      *
-     * @param object    &$db reference to driver MDB object
      * @param resource $prepared_query query handle from prepare()
      * @param array $types array that contains the types of the columns in
      *        the result set
@@ -441,8 +453,10 @@ class MDB_Extended
      * @access public
      * @see prepare()
      */
-    function execute(&$db, $prepared_query, $types = null, $params = false, $param_types = null)
+    function execute($prepared_query, $types = null, $params = false, $param_types = null)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+
         $db->setParamArray($prepared_query, $params, $param_types);
 
         return $db->executeQuery($prepared_query, $types);
@@ -459,7 +473,6 @@ class MDB_Extended
      * If an error occurs during execute(), executeMultiple() does not execute
      * the unfinished rows, but rather returns that error.
      *
-     * @param object    &$db reference to driver MDB object
      * @param resource $prepared_query query handle from prepareQuery()
      * @param array $types array that contains the types of the columns in
      *        the result set
@@ -471,10 +484,11 @@ class MDB_Extended
      * @access public
      * @see prepareQuery(), execute()
      */
-    function executeMultiple(&$db, $prepared_query, $types = null, $params, $param_types = null)
+    function executeMultiple($prepared_query, $types = null, $params, $param_types = null)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         for($i = 0, $j = count($params); $i < $j; $i++) {
-            $result = MDB_Extended::execute($db, $prepared_query, $types, $params[$i], $param_types);
+            $result = $this->execute($prepared_query, $types, $params[$i], $param_types);
             if (MDB::isError($result)) {
                 return $result;
             }
@@ -488,7 +502,6 @@ class MDB_Extended
     /**
      * Make automaticaly an insert or update query and call prepareQuery() with it
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $table name of the table
      * @param array $table_fields ordered array containing the fields names
      * @param int $mode type of query to make (MDB_AUTOQUERY_INSERT or MDB_AUTOQUERY_UPDATE)
@@ -497,9 +510,10 @@ class MDB_Extended
      * @see buildManipSQL
      * @access public
      */
-    function autoPrepare(&$db, $table, $table_fields, $mode = MDB_AUTOQUERY_INSERT, $where = false)
+    function autoPrepare($table, $table_fields, $mode = MDB_AUTOQUERY_INSERT, $where = false)
     {
-        $query = MDB_Extended::buildManipSQL($db, $table, $table_fields, $mode, $where);
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        $query = $this->buildManipSQL($table, $table_fields, $mode, $where);
         return $db->prepareQuery($query);
     }
 
@@ -509,7 +523,6 @@ class MDB_Extended
     /**
      * Make automaticaly an insert or update query and call prepareQuery() and execute() with it
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $table name of the table
      * @param array $fields_values assoc ($key=>$value) where $key is a field name and $value its value
      * @param array $types array that contains the types of the columns in
@@ -523,13 +536,14 @@ class MDB_Extended
      * @see autoPrepare
      * @access public
     */
-    function autoExecute(&$db, $table, $fields_values,
+    function autoExecute($table, $fields_values,
         $types = null, $param_types = null, $mode = MDB_AUTOQUERY_INSERT, $where = false)
     {
-        $prepared_query = MDB_Extended::autoPrepare($db, $table, array_keys($fields_values), $mode, $where);
-        $ret = MDB_Extended::execute($db, $prepared_query, $types, array_values($fields_values), $param_types);
-        $db->freePreparedQuery($sth);
-        return $ret;
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        $prepared_query = $this->autoPrepare($table, array_keys($fields_values), $mode, $where);
+        $result = $this->execute($prepared_query, $types, array_values($fields_values), $param_types);
+        $db->freePreparedQuery($prepared_query);
+        return $result;
     }
 
     // {{{
@@ -544,7 +558,6 @@ class MDB_Extended
      *      - Be carefull ! If you don't give a $where param with an UPDATE query, all
      *        the records of the table will be updated !
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $table name of the table
      * @param array $table_fields ordered array containing the fields names
      * @param int $mode type of query to make (MDB_AUTOQUERY_INSERT or MDB_AUTOQUERY_UPDATE)
@@ -552,8 +565,9 @@ class MDB_Extended
      * @return string sql query for prepareQuery()
      * @access public
      */
-    function buildManipSQL(&$db, $table, $table_fields, $mode, $where = false)
+    function buildManipSQL($table, $table_fields, $mode, $where = false)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (count($table_fields) == 0) {
             $db->raiseError(MDB_ERROR_NEED_MORE_DATA);
         }
@@ -595,10 +609,12 @@ class MDB_Extended
         }
     }
 
+    // {{{
+    // }}} limitQuery()
+
     /**
      * Generates a limited query
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $query query
      * @param array   $types  array that contains the types of the columns in
      *                        the result set
@@ -608,8 +624,9 @@ class MDB_Extended
      * @return mixed a valid ressource pointer or a MDB_Error
      * @access public
      */
-    function limitQuery(&$db, $query, $types, $from, $count, $result_mode = null)
+    function limitQuery($query, $types, $from, $count, $result_mode = null)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->setLimit($from, $count);
         if (MDB::isError($result)) {
             return $result;

@@ -56,7 +56,17 @@ require_once 'MDB/Modules/Manager/Common.php';
  */
 class MDB_Manager_ibase extends MDB_Manager_common
 {
-    
+    // }}}
+    // {{{ constructor
+
+    /**
+     * Constructor
+     */
+    function MDB_Manager_ibase($db_index)
+    {
+        $this->MDB_Manager_Common($db_index);
+    }
+
     // {{{ createDatabase()
 
     /**
@@ -67,8 +77,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      * @return mixed        MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function createDatabase(&$db, $name)
+    function createDatabase($name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return ($db->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Create database',
                 'PHP Interbase API does not support direct queries. You have to '
                 .'create the db manually by using isql command or a similar program'));
@@ -85,8 +96,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      * @return mixed        MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function dropDatabase(&$db, $name)
+    function dropDatabase($name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return ($db->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Drop database',
                 'PHP Interbase API does not support direct queries. You have '
                 .'to drop the db manually by using isql command or a similar program'));
@@ -103,8 +115,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function checkSupportedChanges(&$db, &$changes)
+    function checkSupportedChanges(&$changes)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         for($change=0, reset($changes);
             $change<count($changes);
             next($changes), $change++)
@@ -232,8 +245,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function alterTable(&$db, $name, &$changes, $check)
+    function alterTable($name, &$changes, $check)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($check) {
             for($change=0, reset($changes);
                 $change<count($changes);
@@ -322,6 +336,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function listDatabases(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not supported feature');
     }
 
@@ -337,6 +352,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function listUsers(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not supported feature');
     }
 
@@ -352,6 +368,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function listTables(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not (yet) supported feature');
     }
 
@@ -366,8 +383,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listTableFields(&$db, $table)
+    function listTableFields($table)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query("SELECT RDB$FIELD_SOURCE FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME='$table'", null, false);
         if (MDB::isError($result)) {
             return $result;
@@ -391,6 +409,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function listViews(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
 #        $result = $db->query('SELECT RDB$VIEW_NAME');
 #        if (MDB::isError($result)) {
 #            return $result;
@@ -435,8 +454,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createIndex(&$db, $table, $name, $definition)
+    function createIndex($table, $name, $definition)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         for($query_sort='', $query_fields='', $field=0, reset($definition['fields']);
             $field<count($definition['fields']);
             $field++, next($definition['fields']))
@@ -475,8 +495,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listTableIndexes(&$db, $table)
+    function listTableIndexes($table)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not (yet) supported feature');
     }
 
@@ -492,8 +513,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function createSequence(&$db, $seq_name, $start = 1)
+    function createSequence($seq_name, $start = 1)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $seqname = $db->getSequenceName($seq_name);
         if (MDB::isError($result = $db->query("CREATE GENERATOR $seqname"))) {
             return $result;
@@ -519,8 +541,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function dropSequence(&$db, $seq_name)
+    function dropSequence($seq_name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $seqname = $db->getSequenceName($seq_name);
         return $db->query("DELETE FROM RDB\$GENERATORS WHERE RDB\$GENERATOR_NAME='".strtoupper($seqname)."'");
     }
@@ -537,6 +560,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function listSequences(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query("SELECT RDB\$GENERATOR_NAME FROM RDB\$GENERATORS", null, false);
         if (MDB::isError($result)) {
             return $result;

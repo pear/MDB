@@ -53,7 +53,18 @@ require_once 'MDB/Modules/Manager/Common.php';
  * @category Database
  * @author Lukas Smith <smith@backendmedia.com> 
  */
-class MDB_Manager_oci8 extends MDB_Manager_Common {
+class MDB_Manager_oci8 extends MDB_Manager_Common
+{
+    // }}}
+    // {{{ constructor
+
+    /**
+     * Constructor
+     */
+    function MDB_Manager_oci8($db_index)
+    {
+        $this->MDB_Manager_Common($db_index);
+    }
 
     // {{{ createDatabase()
 
@@ -66,8 +77,9 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      * @access public 
      */
 /*
-    function createDatabase(&$db, $name)
+    function createDatabase($name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $user = $db->getOption('DBAUser');
         if (MDB::isError($user)) {
             return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
@@ -114,8 +126,9 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      * @access public 
      */
 /*
-    function dropDatabase(&$db, $name)
+    function dropDatabase($name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $user = $db->getOption('DBAUser');
         if (MDB::isError($user)) {
             return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
@@ -231,8 +244,9 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      * @access public 
      * @return mixed MDB_OK on success, a MDB error on failure
      */
-    function alterTable(&$db, $name, $changes, $check)
+    function alterTable($name, $changes, $check)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($check) {
             for($change = 0, reset($changes);
                 $change < count($changes);
@@ -338,6 +352,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      */
     function listDatabases(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query("SELECT table_name, tablespace_name FROM user_tables", null, false);
         if (MDB::isError($result)) {
             return $result;
@@ -357,8 +372,9 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public 
      */
-    function createSequence(&$db, $seq_name, $start = 1)
+    function createSequence($seq_name, $start = 1)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $sequence_name = $db->getSequenceName($seq_name);
         return $db->query("CREATE SEQUENCE $sequence_name START WITH $start INCREMENT BY 1"
             .($start < 1 ? " MINVALUE $start" : ''));
@@ -375,8 +391,9 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public 
      */
-    function dropSequence(&$db, $seq_name)
+    function dropSequence($seq_name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $sequence_name = $db->getSequenceName($seq_name);
         return $db->query("DROP SEQUENCE $sequence_name");
     }

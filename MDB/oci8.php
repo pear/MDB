@@ -210,16 +210,16 @@ class MDB_oci8 extends MDB_Common
         $this->debug('commit transaction', 'commit');
         if (!isset($this->supported['transactions'])) {
             return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Commit transactions: transactions are not in use');
+                'commit: transactions are not in use');
         }
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null,
-            'Commit transactions: transaction changes are being auto commited');
+            'commit: transaction changes are being auto commited');
         }
         if ($this->uncommitedqueries) {
             if (!@OCICommit($this->connection)) {
                 return $this->oci8RaiseError(null,
-                    'Commit transactions: Could not commit pending transaction: '."$message. Error: ".$error['code'].' ('.$error['message'].')');
+                    'commit: Could not commit pending transaction: '."$message. Error: ".$error['code'].' ('.$error['message'].')');
             }
             $this->uncommitedqueries = 0;
         }
@@ -243,12 +243,12 @@ class MDB_oci8 extends MDB_Common
         $this->debug('rolling back transaction', 'rollback');
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null,
-                'Rollback transactions: transactions can not be rolled back when changes are auto commited');
+                'rollback: transactions can not be rolled back when changes are auto commited');
         }
         if ($this->uncommitedqueries) {
             if (!@OCIRollback($this->connection)) {
                 return $this->oci8RaiseError(null,
-                    'Rollback transaction: Could not rollback pending transaction');
+                    'rollback: Could not rollback pending transaction');
             }
             $this->uncommitedqueries = 0;
         }
@@ -263,30 +263,20 @@ class MDB_oci8 extends MDB_Common
      * 
      * @return true on success, MDB_Error on failure
      */
-    function connect($user = null , $password = null, $persistent = null)
+    function connect()
     {
-        if ($user === null) {
-            $user = $this->user;
-        }
-        if ($password === null) {
-            $password = $this->password;
-        }
-        if ($persistent === null) {
-            $persistent = $this->options['persistent'];
-        }
-        if (isset($this->host)) {
-            $sid = $this->host;
+        if (isset($this->dsn['hostspec'])) {
+            $sid = $this->dsn['hostspec'];
         } else {
             $sid = getenv('ORACLE_SID');
         }
         if (!strcmp($sid, '')) {
             return $this->raiseError(MDB_ERROR, null, null,
-                'Connect: it was not specified a valid Oracle Service IDentifier (SID)');
+                'connect: it was not specified a valid Oracle Service IDentifier (SID)');
         }
         if ($this->connection != 0) {
-            if (!strcmp($this->connected_user, $user)
-                && !strcmp($this->connected_password, $password)
-                && $this->opened_persistent == $persistent)
+            if (count(array_diff($this->connected_dsn, $this->dsn)) == 0
+                && $this->opened_persistent == $this->options['persistent'])
             {
                 return MDB_OK;
             }
@@ -294,37 +284,33 @@ class MDB_oci8 extends MDB_Common
         }
 
         if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return PEAR::raiseError(null, MDB_ERROR_NOT_FOUND,
-                null, null, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', true);
+            return $this->raiseError(MDB_ERROR_NOT_FOUND, null, null,
+                'connect: extension '.$this->phptype.' is not compiled into PHP');
         }
 
         if (isset($this->options['HOME'])) {
             putenv('ORACLE_HOME='.$this->options['HOME']);
         }
         putenv('ORACLE_SID='.$sid);
-        $function = ($persistent ? 'OCIPLogon' : 'OCINLogon');
-        if (!function_exists($function)) {
-            return $this->raiseError(MDB_ERROR, null, null,
-                'Connect: Oracle OCI API support is not available in this PHP configuration');
-        }
-
-        if (!($this->connection = @$function($user, $password, $sid))) {
+        $function = ($this->options['persistent'] ? 'OCIPLogon' : 'OCINLogon');
+        $connection = $function($this->dsn['username'], $this->dsn['password'], $sid);
+        if (!$connection) {
             return $this->oci8RaiseError(null,
                 'Connect: Could not connect to Oracle server');
         }
-        if (MDB::isError($doquery = $this->_doQuery("ALTER SESSION SET NLS_DATE_FORMAT='YYYY-MM-DD HH24:MI:SS'"))) {
+        $this->connection = $connection;
+        $this->connected_dsn = $this->dsn;
+        $this->opened_persistent = $this->options['persistent'];
+        $doquery = $this->_doQuery("ALTER SESSION SET NLS_DATE_FORMAT='YYYY-MM-DD HH24:MI:SS'");
+        if (MDB::isError($doquery)) {
             $this->_close();
             return $doquery;
         }
-        if (MDB::isError($doquery = $this->_doQuery("ALTER SESSION SET NLS_NUMERIC_CHARACTERS='. '"))) {
+        $doquery = $this->_doQuery("ALTER SESSION SET NLS_NUMERIC_CHARACTERS='. '");
+        if (MDB::isError($doquery)) {
             $this->_close();
             return $doquery;
         }
-
-        $this->connected_user = $user;
-        $this->connected_password = $password;
-        $this->opened_persistent = $persistent;
         return MDB_OK;
     }
 
@@ -372,11 +358,12 @@ class MDB_oci8 extends MDB_Common
                 $clob_stream = key($this->clobs[$prepared_query]);
                 if (!is_object($descriptors[$clob_stream] = @OCINewDescriptor($this->connection, OCI_D_LOB))) {
                     $success = $this->raiseError(MDB_ERROR, null, null,
-                        'Do query: Could not create descriptor for clob parameter');
+                        'Could not create descriptor for clob parameter');
                     break;
                 }
                 $parameter = $GLOBALS['_MDB_LOBs'][$clob_stream]->parameter;
-                $columns.= ($lobs == 0 ? ' RETURNING ' : ',').$this->prepared_queries[$prepared_query-1]['fields'][$parameter-1];
+                $columns.= ($lobs == 0 ? ' RETURNING ' : ',').
+                    $this->prepared_queries[$prepared_query-1]['fields'][$parameter-1];
                 $variables.= ($lobs == 0 ? ' INTO ' : ',').':clob'.$parameter;
                 $lobs++;
             }
@@ -388,11 +375,12 @@ class MDB_oci8 extends MDB_Common
                     $blob_stream = key($this->blobs[$prepared_query]);
                     if (!is_object($descriptors[$blob_stream] = @OCINewDescriptor($this->connection, OCI_D_LOB))) {
                         $success = $this->raiseError(MDB_ERROR, null, null,
-                            'Do query: Could not create descriptor for blob parameter');
+                            'Could not create descriptor for blob parameter');
                         break;
                     }
                     $parameter = $GLOBALS['_MDB_LOBs'][$blob_stream]->parameter;
-                    $columns.= ($lobs == 0 ? ' RETURNING ' : ',').$this->prepared_queries[$prepared_query-1]['fields'][$parameter-1];
+                    $columns.= ($lobs == 0 ? ' RETURNING ' : ',').
+                        $this->prepared_queries[$prepared_query-1]['fields'][$parameter-1];
                     $variables.= ($lobs == 0 ? ' INTO ' : ',').':blob'.$parameter;
                     $lobs++;
                 }
@@ -411,7 +399,7 @@ class MDB_oci8 extends MDB_Common
                         $parameter = $GLOBALS['_MDB_LOBs'][$clob_stream]->parameter;
                         if (!OCIBindByName($statement, ':clob'.$parameter, $descriptors[$clob_stream], -1, OCI_B_CLOB)) {
                             $success = $this->oci8RaiseError(null,
-                                'Do query: Could not bind clob upload descriptor');
+                                'Could not bind clob upload descriptor');
                             break;
                         }
                     }
@@ -424,7 +412,7 @@ class MDB_oci8 extends MDB_Common
                             $parameter = $GLOBALS['_MDB_LOBs'][$blob_stream]->parameter;
                             if (!OCIBindByName($statement, ':blob'.$parameter, $descriptors[$blob_stream], -1, OCI_B_BLOB)) {
                                 $success = $this->oci8RaiseError(null,
-                                    'Do query: Could not bind blob upload descriptor');
+                                    'Could not bind blob upload descriptor');
                                 break;
                             }
                         }
@@ -440,8 +428,8 @@ class MDB_oci8 extends MDB_Common
                                 $clob++, next($this->clobs[$prepared_query]))
                             {
                                 $clob_stream = key($this->clobs[$prepared_query]);
-                                for($value = ''; !$this->datatype->endOfLOB($db, $clob_stream);) {
-                                    if ($this->datatype->readLOB($db, $clob_stream, $data, $this->options['lob_buffer_length']) < 0) {
+                                for($value = ''; !$this->datatype->endOfLOB($clob_stream);) {
+                                    if ($this->datatype->readLOB($clob_stream, $data, $this->options['lob_buffer_length']) < 0) {
                                         $success = $this->raiseError();
                                         break;
                                     }
@@ -449,7 +437,7 @@ class MDB_oci8 extends MDB_Common
                                 }
                                 if (!MDB::isError($success) && !$descriptors[$clob_stream]->save($value)) {
                                     $success = $this->oci8RaiseError(null,
-                                        'Do query: Could not upload clob data');
+                                        'Could not upload clob data');
                                 }
                             }
                             if (!MDB::isError($success)) {
@@ -458,8 +446,8 @@ class MDB_oci8 extends MDB_Common
                                     $blob++, next($this->blobs[$prepared_query])
                                 ) {
                                     $blob_stream = key($this->blobs[$prepared_query]);
-                                    for($value = ''; !$this->datatype->endOfLOB($db, $blob_stream);) {
-                                        if ($this->datatype->readLOB($db, $blob_stream, $data, $this->options['lob_buffer_length']) < 0) {
+                                    for($value = ''; !$this->datatype->endOfLOB($blob_stream);) {
+                                        if ($this->datatype->readLOB($blob_stream, $data, $this->options['lob_buffer_length']) < 0) {
                                             $success = $this->raiseError();
                                             break;
                                         }
@@ -467,7 +455,7 @@ class MDB_oci8 extends MDB_Common
                                     }
                                     if (!MDB::isError($success) && !$descriptors[$blob_stream]->save($value)) {
                                         $success = $this->oci8RaiseError(null,
-                                            'Do query: Could not upload blob data');
+                                            'Could not upload blob data');
                                     }
                                 }
                             }
@@ -477,12 +465,12 @@ class MDB_oci8 extends MDB_Common
                                 if (MDB::isError($success)) {
                                     if (!OCIRollback($this->connection)) {
                                         $success = $this->oci8RaiseError(null,
-                                            'Do query: '.$success->getUserinfo().' and then could not rollback LOB updating transaction');
+                                            $success->getUserinfo().' and then could not rollback LOB updating transaction');
                                     }
                                 } else {
                                     if (!OCICommit($this->connection)) {
                                         $success = $this->oci8RaiseError(null,
-                                            'Do query: Could not commit pending LOB updating transaction');
+                                            'Could not commit pending LOB updating transaction');
                                     }
                                 }
                             }
@@ -507,11 +495,11 @@ class MDB_oci8 extends MDB_Common
                             $result = $statement;
                         }
                     } else {
-                        return $this->oci8RaiseError($statement, 'Do query: Could not execute query');
+                        return $this->oci8RaiseError($statement, 'Could not execute query');
                     }
                 }
             } else {
-                return $this->oci8RaiseError(null, 'Do query: Could not parse query');
+                return $this->oci8RaiseError(null, 'Could not parse query');
             }
         }
         for(reset($descriptors), $descriptor = 0;
@@ -607,11 +595,12 @@ class MDB_oci8 extends MDB_Common
     {
         $result_value = intval($result);
         $first = $this->results[$result_value]['limits'][0];
-        for (;$this->results[$result_value]['limits'][2] < $first;$this->results[$result_value]['limits'][2]++) {
+        while ($this->results[$result_value]['limits'][2] < $first) {
+            $this->results[$result_value]['limits'][2]++;
             if (!@OCIFetch($result)) {
                 $this->results[$result_value]['limits'][2] = $first;
                 return $this->raiseError(MDB_ERROR, null, null,
-                    'Skip first rows: could not skip a query result row');
+                    'could not skip a query result row');
             }
         }
         return MDB_OK;
@@ -634,16 +623,16 @@ class MDB_oci8 extends MDB_Common
         if (MDB::isError($names = $this->getColumnNames($result))) {
             return $names;
         }
-         if (gettype($field) == 'integer') {
+         if (is_int($field)) {
             if (($column = $field) < 0
                 || $column >= count($this->results[$result_value]['columns']))
             {
-                return $this->raiseError('Get column: attempted to fetch an query result column out of range');
+                return $this->raiseError('attempted to fetch an query result column out of range');
             }
         } else {
             $name = strtolower($field);
             if (!isset($this->results[$result_value]['columns'][$name])) {
-                return $this->raiseError('Get column: attempted to fetch an unknown query result column');
+                return $this->raiseError('attempted to fetch an unknown query result column');
             }
             $column = $this->results[$result_value]['columns'][$name];
         }
@@ -674,7 +663,7 @@ class MDB_oci8 extends MDB_Common
         $result_value = intval($result);
         if (!isset($this->results[$result_value]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR, null, null,
-                'Get column names: it was specified an inexisting result set');
+                'getColumnNames: it was specified an inexisting result set');
         }
         if (!isset($this->results[$result_value]['columns'])) {
             $this->results[$result_value]['columns'] = array();
@@ -701,7 +690,7 @@ class MDB_oci8 extends MDB_Common
     {
         if (!isset($this->results[intval($result)]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR, null, null,
-                'Number of columns: it was specified an inexisting result set');
+                'numCols: it was specified an inexisting result set');
         }
         return @OCINumCols($result);
     }
@@ -823,7 +812,7 @@ class MDB_oci8 extends MDB_Common
             return $this->results[$result_value]['rows'];
         }
         return $this->raiseError(MDB_ERROR, null, null,
-            'Number of rows: nut supported if option "result_buffering" is not enabled');
+            'numRows: nut supported if option "result_buffering" is not enabled');
     }
 
     // }}}
@@ -847,11 +836,11 @@ class MDB_oci8 extends MDB_Common
         }
 
         return $this->raiseError(MDB_ERROR, null, null,
-            'Free result: attemped to free an unknown query result');
+            'freeResult: attemped to free an unknown query result');
     }
 
     // }}}
-    // {{{ nextId()
+    // {{{ nextID()
 
     /**
      * returns the next free id of a sequence
@@ -863,7 +852,7 @@ class MDB_oci8 extends MDB_Common
      * @return mixed MDB_Error or id
      * @access public 
      */
-    function nextId($seq_name, $ondemand = true)
+    function nextID($seq_name, $ondemand = true)
     {
         if (MDB::isError($connect = $this->connect())) {
             return $connect;
@@ -878,10 +867,10 @@ class MDB_oci8 extends MDB_Common
                 // Since we are creating the sequence on demand
                 // we know the first id = 1 so initialize the
                 // sequence at 2
-                $result = $this->manager->createSequence($this, $seq_name, 2);
+                $result = $this->manager->createSequence($seq_name, 2);
                 if (MDB::isError($result)) {
                     return $this->raiseError(MDB_ERROR, null, null,
-                        'Next ID: on demand sequence could not be created');
+                        'nextID: on demand sequence could not be created');
                 } else {
                     // First ID of a newly created sequence is 1
                     return 1;
@@ -946,7 +935,7 @@ class MDB_oci8 extends MDB_Common
                     $row = array_values($this->results[$result_value][$rownum]);
                 }
                 if (isset($this->results[intval($result)]['types'])) {
-                    $row = $this->datatype->convertResultRow($this, $result, $row);
+                    $row = $this->datatype->convertResultRow($result, $row);
                 }
                 return $row;
             }
@@ -1007,7 +996,7 @@ class MDB_oci8 extends MDB_Common
             }
         }
         if (isset($this->results[intval($result)]['types'])) {
-            $row = $this->datatype->convertResultRow($this, $result, $row);
+            $row = $this->datatype->convertResultRow($result, $row);
         }
         return $row;
     }

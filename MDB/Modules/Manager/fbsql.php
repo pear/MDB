@@ -39,7 +39,7 @@
 // | WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE          |
 // | POSSIBILITY OF SUCH DAMAGE.                                          |
 // +----------------------------------------------------------------------+
-// | Author: Lukas Smith <smith@dybnet.de>                                |
+// | Author: Lukas Smith <smith@backendmedia.com>                         |
 // +----------------------------------------------------------------------+
 //
 // $Id$
@@ -53,77 +53,20 @@ require_once 'MDB/Modules/Manager/Common.php';
  * @package MDB
  * @category Database
  * @access private
- * @author  Lukas Smith <smith@dybnet.de>
+ * @author  Lukas Smith <smith@backendmedia.com>
  * @author  Frank M. Kromann <frank@kromann.info>
  */
 class MDB_Manager_fbsql extends MDB_Manager_Common
 {
-    // {{{ properties
-    var $verified_table_types = array();
-
     // }}}
-    // {{{ _verifyTransactionalTableType()
+    // {{{ constructor
 
     /**
-     * verify that chosen transactional table hanlder is available in the database
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param string $table_type name of the table handler
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access private
+     * Constructor
      */
-    function _verifyTransactionalTableType(&$db, $table_type)
+    function MDB_Manager_fbsql($db_index)
     {
-        switch(strtoupper($table_type)) {
-            case 'BERKELEYDB':
-            case 'BDB':
-                $check = 'have_bdb';
-                break;
-            case 'INNODB':
-                $check = 'have_innobase';
-                break;
-            case 'GEMINI':
-                $check = 'have_gemini';
-                break;
-            case 'HEAP':
-            case 'ISAM':
-            case 'MERGE':
-            case 'MRG_MYISAM':
-            case 'MYISAM':
-            case '':
-                return MDB_OK;
-            default:
-                return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                    'Verify transactional table',
-                    $table_type.' is not a supported table type');
-        }
-        if (MDB::isError($connect = $db->connect())) {
-            return $connect;
-        }
-        if (isset($this->verified_table_types[$table_type])
-            && $this->verified_table_types[$table_type] == $db->connection)
-        {
-            return MDB_OK;
-        }
-        $result = $db->query("SHOW VARIABLES LIKE '$check'", null, false);
-        if (MDB::isError($result)) {
-            return $db->raiseError();
-        }
-        $has = $db->fetchAll($result, MDB_FETCHMODE_ORDERED);
-        if (MDB::isError($has)) {
-            return $db->raiseError();
-        }
-        if (count($has) == 0) {
-            return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Verify transactional table','could not tell if '.$table_type.' is a supported table type');
-        }
-        if (strcmp($has[0][1], 'YES')) {
-            return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Verify transactional table',
-                $table_type.' is not a supported table type by this FrontBase database server');
-        }
-        $this->verified_table_types[$table_type] = $db->connection;
-        return MDB_OK;
+        $this->MDB_Manager_Common($db_index);
     }
 
     // }}}
@@ -137,8 +80,9 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createDatabase(&$db, $name)
+    function createDatabase($name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (MDB::isError($result = $db->connect())) {
             return $result;
         }
@@ -160,8 +104,9 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function dropDatabase(&$db, $name)
+    function dropDatabase($name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (MDB::isError($result = $db->connect())) {
             return $result;
         }
@@ -205,18 +150,19 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createTable(&$db, $name, $fields)
+    function createTable($name, $fields)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (!isset($name) || !strcmp($name, '')) {
             return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no valid table name specified');
         }
         if (count($fields) == 0) {
             return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no fields specified for table "'.$name.'"');
         }
-        if (MDB::isError($verify = $this->_verifyTransactionalTableType($db, $db->default_table_type))) {
+        if (MDB::isError($verify = $this->_verifyTransactionalTableType($db->default_table_type))) {
             return $verify;
         }
-        if (MDB::isError($query_fields = $this->getFieldDeclarationList($db, $fields))) {
+        if (MDB::isError($query_fields = $this->getFieldDeclarationList($fields))) {
             return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'unkown error');
         }
         if (isset($db->supported['transactions'])
@@ -329,8 +275,9 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      *
       * @return mixed MDB_OK on success, a MDB error on failure
      */
-    function alterTable(&$db, $name, $changes, $check)
+    function alterTable($name, $changes, $check)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($check) {
             for($change = 0,reset($changes);
                 $change < count($changes);
@@ -432,6 +379,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listDatabases(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query('SHOW DATABASES', null, false);
         if (MDB::isError($result)) {
             return $result;
@@ -455,11 +403,12 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listUsers(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query('SELECT DISTINCT USER FROM USER', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->extended->fetchCol($result);
+        return $db->fetchCol($result);
     }
 
     // }}}
@@ -474,6 +423,8 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listTables(&$db)
     {
+        
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query('SHOW TABLES', null, false);
         if (MDB::isError($result)) {
             return $result;
@@ -501,8 +452,10 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listTableFields(&$db, $table)
+    function listTableFields($table)
     {
+        
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query("SHOW COLUMNS FROM $table", null, false);
         if (MDB::isError($result)) {
             return $result;
@@ -563,8 +516,9 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createIndex(&$db, $table, $name, $definition)
+    function createIndex($table, $name, $definition)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $query = "ALTER TABLE $table ADD ".(isset($definition['unique']) ? 'UNIQUE' : 'INDEX')." $name (";
         for($field = 0, reset($definition['fields']);
             $field < count($definition['fields']);
@@ -591,8 +545,9 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function dropIndex(&$db, $table, $name)
+    function dropIndex($table, $name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->query("ALTER TABLE $table DROP INDEX $name");
     }
 
@@ -607,8 +562,9 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listTableIndexes(&$db, $table)
+    function listTableIndexes($table)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (MDB::isError($result = $db->query("SHOW INDEX FROM $table", 'text', false))) {
             return $result;
         }
@@ -639,8 +595,9 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createSequence(&$db, $seq_name, $start = 1)
+    function createSequence($seq_name, $start = 1)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $sequence_name = $db->getSequenceName($seq_name);
         $res = $db->query("CREATE TABLE $sequence_name
             (sequence INTEGER UNSIGNED NOT NULL AUTO_INCREMENT, PRIMARY KEY(sequence))");
@@ -677,8 +634,9 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function dropSequence(&$db, $seq_name)
+    function dropSequence($seq_name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $sequence_name = $db->getSequenceName($seq_name);
         return $db->query("DROP TABLE $sequence_name");
     }
@@ -695,6 +653,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listSequences(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query('SHOW TABLES', 'text', false);
         if (MDB::isError($result)) {
             return $result;

@@ -57,6 +57,17 @@ require_once 'MDB/Modules/Manager/Common.php';
 class MDB_Manager_mssql extends MDB_Manager_Common
 {
     // }}}
+    // {{{ constructor
+
+    /**
+     * Constructor
+     */
+    function MDB_Manager_mssql($db_index)
+    {
+        $this->MDB_Manager_Common($db_index);
+    }
+
+    // }}}
     // {{{ createDatabase()
 
     /**
@@ -67,8 +78,9 @@ class MDB_Manager_mssql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createDatabase(&$db, $name)
+    function createDatabase($name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $DatabaseDevice = isset($db->options['database_device']) ? $db->options['database_device'] : 'DEFAULT';
         $DatabaseSize = isset($db->options['database_size']) ? "=".$db->options['database_size'] : '';
         return $db->standaloneQuery("CREATE DATABASE $name ON ".$DatabaseDevice.$DatabaseSize);
@@ -85,8 +97,9 @@ class MDB_Manager_mssql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function dropDatabase(&$db, $name)
+    function dropDatabase($name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->standaloneQuery("DROP DATABASE $name");
     }
 
@@ -190,8 +203,9 @@ class MDB_Manager_mssql extends MDB_Manager_Common
      *
       * @return mixed MDB_OK on success, a MDB error on failure
      */
-    function alterTable(&$db, $name, $changes, $check)
+    function alterTable($name, $changes, $check)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($check) {
             for ($change = 0, reset($changes);
                 $change < count($changes);
@@ -252,8 +266,9 @@ class MDB_Manager_mssql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createSequence(&$db, $seq_name, $start = 1)
+    function createSequence($seq_name, $start = 1)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $sequence_name = $db->getSequenceName($seq_name);
         return $db->query("CREATE TABLE $sequence_name (sequence INT NOT NULL IDENTITY($start,1) PRIMARY KEY CLUSTERED)");
     }
@@ -269,8 +284,9 @@ class MDB_Manager_mssql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function dropSequence(&$db, $seq_name)
+    function dropSequence($seq_name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $sequence_name = $db->getSequenceName($seq_name);
         return $db->Query("DROP TABLE $sequence_name");
     }

@@ -58,25 +58,31 @@ require_once 'MDB/Modules/Datatype/Common.php';
 class MDB_Datatype_fbsql extends MDB_Datatype_Common
 {
     // }}}
+    // {{{ constructor
+
+    /**
+     * Constructor
+     */
+    function MDB_Datatype_fbsql($db_index)
+    {
+        $this->MDB_Datatype_Common($db_index);
+    }
+
+    // }}}
     // {{{ convertResult()
 
     /**
      * convert a value to a RDBMS indepdenant MDB type
      *
-     * @param object    &$db reference to driver MDB object
      * @param mixed  $value   value to be converted
      * @param int    $type    constant that specifies which type to convert to
      * @return mixed converted value
      * @access public
      */
-    function convertResult(&$db, $value, $type)
+    function convertResult($value, $type)
     {
-        switch($type) {
-            case MDB_TYPE_DECIMAL:
-                return sprintf('%.'.$db->decimal_places.'f', doubleval($value)/$db->decimal_factor);
-            default:
-                return $this->_baseConvertResult($db, $value, $type);
-        }
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        return $this->_baseConvertResult($value, $type);
     }
 
     // }}}
@@ -86,7 +92,6 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an integer type
      * field to be used in statements like CREATE TABLE.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -109,11 +114,12 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getIntegerDeclaration(&$db, $name, $field)
+    function getIntegerDeclaration($name, $field)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $unsigned = isset($field['unsigned']) ? ' UNSIGNED' : '';
         $default = isset($field['default']) ? ' DEFAULT '.
-            $this->getIntegerValue($db, $field['default']) : '';
+            $this->getIntegerValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
         return $name.' INT'.$unsigned.$default.$notnull;
     }
@@ -125,7 +131,6 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an character
      * large object type field to be used in statements like CREATE TABLE.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the
      *                        properties of the field being declared as array
@@ -145,8 +150,9 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getCLOBDeclaration(&$db, $name, $field)
+    function getCLOBDeclaration($name, $field)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (isset($field['length'])) {
             $type = 'VARCHAR('.$field['length'].')';
         } else {
@@ -163,7 +169,6 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an binary large
      * object type field to be used in statements like CREATE TABLE.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -183,8 +188,9 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getBLOBDeclaration(&$db, $name, $field)
+    function getBLOBDeclaration($name, $field)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (isset($field['length'])) {
             $type = 'BLOB('.$field['length'].')';
         } else {
@@ -201,7 +207,6 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an date type
      * field to be used in statements like CREATE TABLE.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -218,10 +223,11 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getDateDeclaration(&$db, $name, $field)
+    function getDateDeclaration($name, $field)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $default = isset($field['default']) ? ' DEFAULT DATE '.
-            $this->getDateValue($db, $field['default']) : '';
+            $this->getDateValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
         return $name.' DATE'.$default.$notnull;
     }
@@ -233,7 +239,6 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an timestamp
      * type field to be used in statements like CREATE TABLE.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -251,12 +256,13 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getTimestampDeclaration(&$db, $name, $field)
+    function getTimestampDeclaration($name, $field)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $default = isset($field['default']) ? ' DEFAULT TIMESTAMP '.
-            $this->getTimestampValue($db, $field['default']) : '';
+            $this->getTimestampValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' DATETIME'.$default.$notnull;
+        return $name.' TIMESTAMP'.$default.$notnull;
     }
 
     // }}}
@@ -266,7 +272,6 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an time type
      * field to be used in statements like CREATE TABLE.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -283,10 +288,11 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getTimeDeclaration(&$db, $name, $field)
+    function getTimeDeclaration($name, $field)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $default = isset($field['default']) ? ' DEFAULT TIME '.
-            $this->getTimeValue($db, $field['default']) : '';
+            $this->getTimeValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
         return $name.' TIME'.$default.$notnull;
     }
@@ -298,7 +304,6 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an float type
      * field to be used in statements like CREATE TABLE.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -316,19 +321,12 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getFloatDeclaration(&$db, $name, $field)
+    function getFloatDeclaration($name, $field)
     {
-        if (isset($db->options['fixed_float'])) {
-            $db->fixed_float = $db->options['fixed_float'];
-        } else {
-            if ($db->connection == 0) {
-                // XXX needs more checking
-                $db->connect();
-            }
-        }
-        $type = 'DOUBLE'.($db->fixed_float ? '('.($db->fixed_float + 2).','.$db->fixed_float.')' : '');
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        $type = 'DOUBLE PRECISION';
         $default = isset($field['default']) ? ' DEFAULT '.
-            $this->getFloatValue($db, $field['default']) : '';
+            $this->getFloatValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
         return $name.' '.$type.$default.$notnull;
     }
@@ -340,7 +338,6 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an decimal type
      * field to be used in statements like CREATE TABLE.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -358,12 +355,14 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getDecimalDeclaration(&$db, $name, $field)
+    function getDecimalDeclaration($name, $field)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        $type = 'DECIMAL(18,'.$db->decimal_places.')';
         $default = isset($field['default']) ? ' DEFAULT '.
-            $this->getDecimalValue($db, $field['default']) : '';
+            $this->getDecimalValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' REAL'.$default.$notnull;
+        return $name.' '.$type.$default.$notnull;
     }
 
     // }}}
@@ -373,25 +372,25 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
-     * @param object    &$db reference to driver MDB object
      * @param           $clob
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      * @access public
      */
-    function getCLOBValue(&$db, $clob)
+    function getCLOBValue($clob)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($clob === null) {
             return 'NULL';
         }
         $value = "'";
         $data = null;
-        while(!$this->endOfLOB($db, $clob)) {
-            $result = $this->readLOB($db, $clob, $data, $db->options['lob_buffer_length']);
+        while(!$this->endOfLOB($clob)) {
+            $result = $this->readLOB($clob, $data, $db->options['lob_buffer_length']);
             if (MDB::isError($result)) {
                 return $result;
             }
-            $value .= $db->quote($data);
+            $value .= $db->escape($data);
         }
         $value .= "'";
         return $value;
@@ -403,12 +402,12 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
     /**
      * free a character large object
      *
-     * @param object    &$db reference to driver MDB object
      * @param string    $clob
      * @access public
      */
-    function freeCLOBValue(&$db, $clob)
+    function freeCLOBValue($clob)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         unset($db->lobs[$clob]);
     }
 
@@ -419,21 +418,21 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
-     * @param object    &$db reference to driver MDB object
      * @param           $blob
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      * @access public
      */
-    function getBLOBValue(&$db, $blob)
+    function getBLOBValue($blob)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($blob === null) {
             return 'NULL';
         }
         $value = "'";
         $data = null;
-        while(!$this->endOfLOB($db, $blob)) {
-            $result = $result = $this->readLOB($db, $blob, $data, $db->options['lob_buffer_length']);
+        while(!$this->endOfLOB($blob)) {
+            $result = $this->readLOB($blob, $data, $db->options['lob_buffer_length']);
             if (MDB::isError($result)) {
                 return $result;
             }
@@ -449,12 +448,12 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
     /**
      * free a binary large object
      *
-     * @param object    &$db reference to driver MDB object
      * @param string    $blob
      * @access public
      */
-    function freeBLOBValue(&$db, $blob)
+    function freeBLOBValue($blob)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         unset($db->lobs[$blob]);
     }
 
@@ -465,14 +464,14 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string  $value text string value that is intended to be converted.
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      * @access public
      */
-    function getFloatValue(&$db, $value)
+    function getFloatValue($value)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return ($value === null) ? 'NULL' : (float)$value;
     }
 
@@ -483,15 +482,15 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
-     * @param object    &$db reference to driver MDB object
      * @param string  $value text string value that is intended to be converted.
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      * @access public
      */
-    function getDecimalValue(&$db, $value)
+    function getDecimalValue($value)
     {
-        return ($value === null) ? 'NULL' : strval(round(doubleval($value)*$db->decimal_factor));
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        return ($value === null) ? 'NULL' : $value;
     }
 }
 

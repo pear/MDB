@@ -56,6 +56,17 @@ require_once 'MDB/Modules/Manager/Common.php';
  */
 class MDB_Manager_pgsql extends MDB_Manager_common
 {
+    // }}}
+    // {{{ constructor
+
+    /**
+     * Constructor
+     */
+    function MDB_Manager_pgsql($db_index)
+    {
+        $this->MDB_Manager_Common($db_index);
+    }
+
     // {{{ createDatabase()
 
     /**
@@ -66,8 +77,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function createDatabase(&$db, $name)
+    function createDatabase($name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->_standaloneQuery("CREATE DATABASE $name");
     }
 
@@ -82,8 +94,10 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function dropDatabase(&$db, $name)
+    function dropDatabase($name)
     {
+        
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->_standaloneQuery("DROP DATABASE $name");
     }
 
@@ -121,8 +135,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function createTable(&$db, $name, $fields)
+    function createTable($name, $fields)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (!isset($name) || !strcmp($name, '')) {
             return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no valid table name specified');
         }
@@ -130,7 +145,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no fields specified for table "'.$name.'"');
         }
         $query_fields = '';
-        if (MDB::isError($query_fields = $this->getFieldDeclarationList($db, $fields))) {
+        if (MDB::isError($query_fields = $this->getFieldDeclarationList($fields))) {
             return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'unkown error');
         }
         return $db->query("CREATE TABLE $name ($query_fields)");
@@ -234,8 +249,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function alterTable(&$db, $name, &$changes, $check)
+    function alterTable($name, &$changes, $check)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($check) {
             for ($change = 0, reset($changes); $change < count($changes); next($changes), $change++) {
                 switch (key($changes)) {
@@ -296,6 +312,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listDatabases(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query('SELECT datname FROM pg_database', null, false);
         if (MDB::isError($result)) {
             return $result;
@@ -315,6 +332,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listUsers(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query('SELECT usename FROM pg_user', null, false);
         if (MDB::isError($result)) {
             return $result;
@@ -334,6 +352,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listTables(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
         $sql = 'SELECT c.relname as "Name"
             FROM pg_class c, pg_user u
@@ -367,8 +386,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listTableFields(&$db, $table)
+    function listTableFields($table)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query("SELECT * FROM $table", null, false);
         if (MDB::isError($result)) {
             return $result;
@@ -392,6 +412,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listViews(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
         $result = $db->query('SELECT viewname FROM pg_views', null, false);
         if (MDB::isError($result)) {
@@ -411,7 +432,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listTableIndexes(&$db, $table) {
+    function listTableIndexes($table)
+    {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query("SELECT relname 
                                 FROM pg_class WHERE oid IN
                                   (SELECR indexrelid FROM pg_index, pg_class 
@@ -432,8 +455,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function createSequence(&$db, $seq_name, $start = 1)
+    function createSequence($seq_name, $start = 1)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $seqname = $db->getSequenceName($seq_name);
         return $db->query("CREATE SEQUENCE $seqname INCREMENT 1".($start < 1 ? " MINVALUE $start" : '')
             ." START $start");
@@ -450,8 +474,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function dropSequence(&$db, $seq_name)
+    function dropSequence($seq_name)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $seqname = $db->getSequenceName($seq_name);
         return $db->query("DROP SEQUENCE $seqname");
     }
@@ -468,6 +493,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listSequences(&$db)
     {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         // gratuitously stolen and adapted from PEAR DB _getSpecialQuery in pgsql.php
         $sql = 'SELECT c.relname as "Name"
             FROM pg_class c, pg_user u

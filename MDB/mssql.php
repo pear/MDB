@@ -60,11 +60,6 @@ class MDB_mssql extends MDB_Common
     // {{{ properties
 
     var $connection = 0;
-    var $connected_host;
-    var $connected_user;
-    var $connected_password;
-    var $connected_port;
-    var $selected_database = '';
     var $opened_persistent = '';
 
     var $escape_quotes = "'";
@@ -147,7 +142,8 @@ class MDB_mssql extends MDB_Common
                 $code = MDB_ERROR;
             }
         }
-        return $this->raiseError($code, null, null, null, $native_code.' - '.$native_msg);
+        return $this->raiseError($code, null, null, null,
+            $native_code.' - '.$native_msg);
     }
 
     // }}}
@@ -262,12 +258,8 @@ class MDB_mssql extends MDB_Common
      **/
     function connect()
     {
-        $port = (isset($this->port) ? $this->port : '');
         if ($this->connection != 0) {
-            if (!strcmp($this->connected_host, $this->host)
-                && !strcmp($this->connected_user, $this->user)
-                && !strcmp($this->connected_password, $this->password)
-                && !strcmp($this->connected_port, $port)
+            if (count(array_diff($this->connected_dsn, $this->dsn)) == 0
                 && $this->opened_persistent == $this->options['persistent'])
             {
                 return MDB_OK;
@@ -278,40 +270,48 @@ class MDB_mssql extends MDB_Common
         }
 
         if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return PEAR::raiseError(null, MDB_ERROR_NOT_FOUND,
-                null, null, 'connect: extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', true);
+            return $this->raiseError(null, MDB_ERROR_NOT_FOUND, null, null,
+                'connect: extension '.$this->phptype.' is not compiled into PHP');
         }
 
         $function = ($this->options['persistent'] ? 'mssql_pconnect' : 'mssql_connect');
-        if (!function_exists($function)) {
-            return $this->raiseError(MDB_ERROR_UNSUPPORTED);
-        }
+
+        $this->dsn = $dsninfo;
+        $user = $dsninfo['username'];
+        $pw = $dsninfo['password'];
+        $dbhost = $dsninfo['hostspec'] ? $dsninfo['hostspec'] : 'localhost';
+        $port   = $dsninfo['port'] ? ':' . $dsninfo['port'] : '';
+        $dbhost .= $port;
 
         @ini_set('track_errors', true);
-        $this->connection = @$function(
-            $this->host.(!strcmp($port,'') ? '' : ':'.$port),
-            $this->user, $this->password);
+        if ($dbhost && $user && $pw) {
+            $connection = @$function($dbhost, $user, $pw);
+        } elseif ($dbhost && $user) {
+            $connection = @$function($dbhost, $user);
+        } elseif ($dbhost) {
+            $connection = @$function($dbhost);
+        } else {
+            $connection = 0;
+        }
         @ini_restore('track_errors');
-        if ($this->connection <= 0) {
+        if ($connection <= 0) {
             return $this->raiseError(MDB_ERROR_CONNECT_FAILED, null, null,
                 $php_errormsg);
         }
+        $this->connection = $connection;
+        $this->connected_dsn = $this->dsn;
+        $this->connected_database_name = '';
+        $this->opened_persistent = $this->getoption('persistent');
 
         if (isset($this->supported['transactions'])
             && !$this->auto_commit
-            && !$this->_doQuery('BEGIN TRANSACTION')
+            && MDB::isError($this->_doQuery('BEGIN TRANSACTION'))
         ) {
             mssql_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
             return $this->raiseError('connect: Could not begin the initial transaction');
         }
-        $this->connected_host = $this->host;
-        $this->connected_user = $this->user;
-        $this->connected_password = $this->password;
-        $this->connected_port = $port;
-        $this->opened_persistent = $this->options['persistent'];
         return MDB_OK;
     }
 
@@ -337,7 +337,7 @@ class MDB_mssql extends MDB_Common
                 return $result;
             }
 
-            $GLOBALS['_MDB_databases'][$this->database] = '';
+            $GLOBALS['_MDB_databases'][$this->db_index] = '';
             return true;
         }
         return false;
@@ -345,10 +345,11 @@ class MDB_mssql extends MDB_Common
 
     function standaloneQuery($query)
     {
-        if (!function_exists('mssql_connect')) {
-            return $this->raiseError('standaloneQuery: Microsoft SQL server support is not available in this PHP configuration');
+        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+            return $this->raiseError(null, MDB_ERROR_NOT_FOUND, null, null,
+                'standaloneQuery: extension '.$this->phptype.' is not compiled into PHP');
         }
-        $connection = mssql_connect($this->host,$this->user,$this->password);
+        $connection = mssql_connect($this->dsn['hostspec'],$this->dsn['username'],$this->dsn['password']);
         if ($connection == 0) {
             return $this->mssqlRaiseError('standaloneQuery: Could not connect to the Microsoft SQL server');
         }
@@ -395,13 +396,13 @@ class MDB_mssql extends MDB_Common
                     preg_replace("/^SELECT/", "SELECT TOP $limit", $query);
                 }
             }
-            if ( $last_connection != $this->connection
-                || !strcmp($this->selected_database, '')
-                || strcmp($this->selected_database, $this->database_name))
-            {
+            if ($this->database_name
+                && $this->database_name != $this->connected_database_name
+            ) {
                 if (!mssql_select_db($this->database_name, $this->connection)) {
                     return $this->mssqlRaiseError();
                 }
+                $this->connected_database_name = $this->database_name;
             }
             if ($result = $this->_doQuery($query)) {
                 if ($ismanip) {
@@ -413,7 +414,7 @@ class MDB_mssql extends MDB_Common
                         if (!is_array($types)) {
                             $types = array($types);
                         }
-                        $err = $this->setResultTypes($result, $types)
+                        $err = $this->setResultTypes($result, $types);
                         if (MDB::isError($err)) {
                             $this->freeResult($result);
                             return $err;
@@ -529,7 +530,7 @@ class MDB_mssql extends MDB_Common
     {
         if ($this->options['result_buffering']) {
             $result_value = intval($result);
-            if (isset($this->results[$result_value]['ranges']) {
+            if (isset($this->results[$result_value]['ranges'])) {
                 return count($this->results[$result_value]['ranges']);
             }
             return mssql_num_rows($result);
@@ -563,7 +564,7 @@ class MDB_mssql extends MDB_Common
     }
 
     // }}}
-    // {{{ nextId()
+    // {{{ nextID()
 
     /**
      * returns the next free id of a sequence
@@ -576,7 +577,7 @@ class MDB_mssql extends MDB_Common
      * @return mixed MDB_Error or id
      * @access public
      */
-    function nextId($seq_name, $ondemand = true)
+    function nextID($seq_name, $ondemand = true)
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
@@ -588,7 +589,7 @@ class MDB_mssql extends MDB_Common
                 // Since we are creating the sequence on demand
                 // we know the first id = 1 so initialize the
                 // sequence at 2
-                $result = $this->manager->createSequence($this, $seq_name, 2);
+                $result = $this->manager->createSequence($seq_name, 2);
                 if (MDB::isError($result)) {
                     return $this->raiseError(MDB_ERROR, null, null,
                         'nextID: on demand sequence could not be created');
@@ -610,7 +611,7 @@ class MDB_mssql extends MDB_Common
     }
 
     // }}}
-    // {{{ currId()
+    // {{{ currID()
 
     /**
      * returns the current id of a sequence
@@ -619,7 +620,7 @@ class MDB_mssql extends MDB_Common
      * @return mixed MDB_Error or id
      * @access public
      */
-    function currId($seq_name)
+    function currID($seq_name)
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $result = $this->query("SELECT MAX(sequence) FROM $sequence_name", 'integer', false);
@@ -653,7 +654,7 @@ class MDB_mssql extends MDB_Common
         }
         if (isset($this->results[$result_value]['types'][$field])) {
             $type = $this->results[$result_value]['types'][$field];
-            $value = $this->datatype->convertResult($this, $value, $type);
+            $value = $this->datatype->convertResult($value, $type);
         }
         return $value;
     }
@@ -697,7 +698,7 @@ class MDB_mssql extends MDB_Common
             return null;
         }
         if (isset($this->results[$result_value]['types'])) {
-            $row = $this->datatype->convertResultRow($this, $result, $row);
+            $row = $this->datatype->convertResultRow($result, $row);
         }
         return $row;
     }
