@@ -48,11 +48,12 @@
 MDB::loadExtension('Date');
 
 /**
-* Wrapper that makes MDB behave like Metabase
-*
-* @package MDB
-* @author  Lukas Smith <smith@dybnet.de>
-*/
+ * Wrapper that makes MDB behave like Metabase
+ *
+ * @package MDB
+ * @category Database
+ * @author  Lukas Smith <smith@dybnet.de>
+ */
 
 $lob_error = '';
 

@@ -52,14 +52,14 @@ define('MDB_MANAGER_DUMP_STRUCTURE',    1);
 define('MDB_MANAGER_DUMP_CONTENT',      2);
 
 /**
-* The database manager is a class that provides a set of database
-* management services like installing, altering and dumping the data
-* structures of databases.
-*
-* @package MDB
-* @author  Lukas Smith <smith@dybnet.de>
+ * The database manager is a class that provides a set of database
+ * management services like installing, altering and dumping the data
+ * structures of databases.
+ *
+ * @package MDB
+ * @category Database
+ * @author  Lukas Smith <smith@dybnet.de>
  */
-
 class MDB_Manager extends PEAR
 {
     // {{{ properties

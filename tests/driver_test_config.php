@@ -45,11 +45,12 @@
 // $Id$
 
 /**
-* Configuration file for the Metabase test suite
-*
-* @package MDB
-* @author  Manuel Lemos <mlemos@acm.org>>
-*/
+ * Configuration file for the Metabase test suite
+ *
+ * @package MDB
+ * @category Databse
+ * @author  Manuel Lemos <mlemos@acm.org>>
+ */
 
     $driver_arguments["Type"]="mysql";
     $driver_arguments["DontCaptureDebug"]=1;

@@ -111,12 +111,12 @@ define('DB_AUTOQUERY_INSERT', 1);
 define('DB_AUTOQUERY_UPDATE', 2);
 
 /**
-* Wrapper that makes MDB behave like PEAR DB
-*
-* @package MDB
-* @author  Lukas Smith <smith@dybnet.de>
-*/
-
+ * Wrapper that makes MDB behave like PEAR DB
+ *
+ * @package MDB
+ * @category Database
+ * @author  Lukas Smith <smith@dybnet.de>
+ */
 class DB
 {
     function &factory($type)
@@ -177,6 +177,14 @@ class DB
     }
 }
 
+/**
+ * MDB_Error implements a class for reporting portable database error
+ * messages.
+ *
+ * @package MDB
+ * @category Database
+ * @author  Stig Bakken <ssb@fast.no>
+ */
 class DB_Error extends PEAR_Error
 {
     function DB_Error($code = DB_ERROR, $mode = PEAR_ERROR_RETURN,
@@ -190,6 +198,13 @@ class DB_Error extends PEAR_Error
     }
 }
 
+/**
+ * Wrapper that makes MDB behave like PEAR DB
+ *
+ * @package MDB
+ * @category Database
+ * @author  Lukas Smith <smith@dybnet.de>
+ */
 class DB_result
 {
     var $dbh;

@@ -48,12 +48,12 @@
 require_once 'MDB/Common.php';
 
 /**
-* MDB MySQL driver
-*
-* @package MDB
-* @author  Lukas Smith <smith@dybnet.de>
-*/
-
+ * MDB MySQL driver
+ *
+ * @package MDB
+ * @category Database
+ * @author  Lukas Smith <smith@dybnet.de>
+ */
 class MDB_mysql extends MDB_Common
 {
     // {{{ properties

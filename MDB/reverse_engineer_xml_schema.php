@@ -46,10 +46,11 @@
 //
 
 /**
-* MDB reverse engineering of xml schemas script.
-*
-* @package MDB
-* @author  Lukas Smith <smith@dybnet.de>
+ * MDB reverse engineering of xml schemas script.
+ *
+ * @package MDB
+ * @category Database
+ * @author  Lukas Smith <smith@dybnet.de>
  */
 
 echo ('

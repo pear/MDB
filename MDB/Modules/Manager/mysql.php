@@ -52,12 +52,12 @@ if(!defined('MDB_MANAGER_MYSQL_INCLUDED'))
 require_once 'MDB/Modules/Manager/Common.php';
 
 /**
-* MDB MySQL driver for the management modules
-*
-* @package MDB
-* @author  Lukas Smith <smith@dybnet.de>
-*/
-
+ * MDB MySQL driver for the management modules
+ *
+ * @package MDB
+ * @category Database
+ * @author  Lukas Smith <smith@dybnet.de>
+ */
 class MDB_Manager_mysql extends MDB_Manager_Common
 {
     // {{{ properties

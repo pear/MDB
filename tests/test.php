@@ -45,7 +45,7 @@
 
 /*
  This is a small test suite for MDB using PHPUnit
-*/
+ */
 
 ini_set('include_path', '../:'.ini_get('include_path'));
 

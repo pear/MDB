@@ -51,12 +51,12 @@ if(!defined('MDB_MANAGER_PGSQL_INCLUDED'))
 require_once 'MDB/Modules/Manager/Common.php';
 
 /**
-* MDB MySQL driver for the management modules
-*
-* @package MDB
-* @author  Paul Cooper <pgc@ucecom.com>
-*/
-
+ * MDB MySQL driver for the management modules
+ *
+ * @package MDB
+ * @category Database
+ * @author  Paul Cooper <pgc@ucecom.com>
+ */
 class MDB_Manager_pgsql extends MDB_Manager_common
 {
     // {{{ createDatabase()

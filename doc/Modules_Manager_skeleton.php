@@ -39,7 +39,7 @@
 // | WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE          |
 // | POSSIBILITY OF SUCH DAMAGE.                                          |
 // +----------------------------------------------------------------------+
-// | Author: Lukas Smith <smith@dybnet.de>                                |
+// | Author: YOUR NAME <YOUR EMAIL>                                       |
 // +----------------------------------------------------------------------+
 //
 // $Id$
@@ -64,13 +64,15 @@ if(!defined('MDB_MANAGER_XXX_INCLUDED'))
 {
     define('MDB_MANAGER_XXX_INCLUDED',1);
 
-/**
-* MDB Xxx driver for the management modules
-*
-* @package MDB
-* @author  Lukas Smith <smith@dybnet.de>
-*/
+require_once 'MDB/Modules/Manager/Common.php';
 
+/**
+ * MDB Xxx driver for the management modules
+ *
+ * @package MDB
+ * @category Database
+ * @author  YOUR NAME <YOUR EMAIL>
+ */
 class MDB_Manager_xxx_ extends MDB_Manager_Common
 {
     // }}}

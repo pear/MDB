@@ -186,25 +186,31 @@ define('MDB_TYPE_BLOB'      , 9);
  *
  * The object model of DB is as follows (indentation means inheritance):
  *
- * MDB           The main DB class.  This is simply a utility class
- *               with some 'static' methods for creating MDB objects as
- *               well as common utility functions for other MDB classes.
+ * MDB          The main DB class.  This is simply a utility class
+ *              with some 'static' methods for creating MDB objects as
+ *              well as common utility functions for other MDB classes.
  *
- * MDB_common    The base for each DB implementation.  Provides default
- * |             implementations (in OO lingo virtual methods) for
- * |             the actual DB implementations as well as a bunch of
- * |             query utility functions.
+ * MDB_common   The base for each DB implementation.  Provides default
+ * |            implementations (in OO lingo virtual methods) for
+ * |            the actual DB implementations as well as a bunch of
+ * |            query utility functions.
  * |
- * +-MDB_mysql   The DB implementation for MySQL. Inherits MDB_Common.
- *               When calling MDB::factory or MDB::connect for MySQL
- *               connections, the object returned is an instance of this
- *               class.
- * +-MDB_pgsql   The DB implementation for PostGreSQL. Inherits MDB_Common.
- *               When calling MDB::factory or MDB::connect for PostGreSQL
- *               connections, the object returned is an instance of this
- *               class.
+ * +-MDB_mysql  The DB implementation for MySQL. Inherits MDB_Common.
+ *              When calling MDB::factory or MDB::connect for MySQL
+ *              connections, the object returned is an instance of this
+ *              class.
+ * +-MDB_pgsql  The DB implementation for PostGreSQL. Inherits MDB_Common.
+ *              When calling MDB::factory or MDB::connect for PostGreSQL
+ *              connections, the object returned is an instance of this
+ *              class.
+ *
+ * MDB_Date     This class provides several method to convert from and to
+ *              MDB timestamps.
+ *
+ * MDB_Manager  This class handles the xml schema management.
  *
  * @package  MDB
+ * @category Database
  * @author   Lukas Smith <smith@dybnet.de>
  */
 class MDB
@@ -591,6 +597,7 @@ class MDB
  * messages.
  *
  * @package MDB
+ * @category Database
  * @author  Stig Bakken <ssb@fast.no>
  */
 class MDB_Error extends PEAR_Error

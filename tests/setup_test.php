@@ -45,15 +45,17 @@
 // $Id$
 //
 
-require("manager.php");
-require("metabase_wrapper.php");
+require 'MDB.php';
+MDB::loadExtension('Manager');
+MDB::loadExtension('metabase_wrapper');
 
 /**
-* Part of Metabase test suite
-*
-* @package MDB
-* @author  Manuel Lemos <mlemos@acm.org>>
-*/
+ * Part of Metabase test suite
+ *
+ * @package MDB
+ * @category Database
+ * @author  Manuel Lemos <mlemos@acm.org>>
+ */
 
 function Output($message)
 {

@@ -66,12 +66,12 @@ if (!defined('MDB_XXX_INCLUDED')) {
 require_once 'MDB/Common.php';
 
 /**
-* MDB XXX driver
-*
-* @package MDB
-* @author  YOUR NAME <YOUR EMAIL>
-*/
-
+ * MDB XXX driver
+ *
+ * @package MDB
+ * @category Database
+ * @author  YOUR NAME <YOUR EMAIL>
+ */
 class MDB_xxx extends MDB_Common
 {
 // Most of the class variables are taken from the corresponding Metabase driver.

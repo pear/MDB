@@ -48,12 +48,14 @@
 require_once 'XML/Parser.php';
 
 /**
-* Parses an XML schema file
-*
-* @package MDB
-* @author  Christian Dickmann <dickmann@php.net>
-*/
-class MDB_Parser extends XML_Parser {
+ * Parses an XML schema file
+ *
+ * @package MDB
+ * @category Database
+ * @author  Christian Dickmann <dickmann@php.net>
+ */
+class MDB_Parser extends XML_Parser
+{
     var $database_definition = array();
     var $elements = array();
     var $element = '';

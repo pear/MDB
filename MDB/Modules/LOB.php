@@ -50,10 +50,11 @@ if(!defined('MDB_LOB_INCLUDED'))
     define('MDB_LOB_INCLUDED', 1);
 
 /**
-* MDB Large Object (BLOB/CLOB) classes
-*
-* @package MDB
-* @author  Lukas Smith <smith@dybnet.de>
+ * MDB Large Object (BLOB/CLOB) classes
+ *
+ * @package MDB
+ * @category Database
+ * @author  Lukas Smith <smith@dybnet.de>
  */
 class MDB_LOB
 {

@@ -47,11 +47,12 @@
 require_once 'MDB/Common.php';
 
 /**
-* MDB PostGreSQL driver
-*
-* @package MDB
-* @author  Paul Cooper <pgc@ucecom.com>
-*/
+ * MDB PostGreSQL driver
+ *
+ * @package MDB
+ * @category Database
+ * @author  Paul Cooper <pgc@ucecom.com>
+ */
 
 class MDB_pgsql extends MDB_common
 {

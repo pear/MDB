@@ -96,9 +96,9 @@ function MDB_defaultDebugOutput($database, $message)
  * MDB_Common: Base class that is extended by each MDB driver
  *
  * @package MDB
+ * @category Database
  * @author Lukas Smith <smith@dybnet.de>
  */
-
 class MDB_Common extends PEAR
 {
     var $database = 0;
