@@ -1228,7 +1228,7 @@ class MDB_Common extends PEAR
     }
 
     // }}}
-    // {{{ freePreparedQuery()
+    // {{{ freePrepared()
 
     /**
      * Release resources allocated for the specified prepared query.
@@ -1238,7 +1238,7 @@ class MDB_Common extends PEAR
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function freePreparedQuery($prepared_query)
+    function freePrepared($prepared_query)
     {
         $result = $this->_validatePrepared($prepared_query);
         if (MDB::isError($result)) {
@@ -1305,64 +1305,57 @@ class MDB_Common extends PEAR
             } else {
                 $value = $this->prepared_queries[$index]['values'][$position];
                 $type = $this->prepared_queries[$index]['types'][$position];
-                if (is_array($value) && ($type == 'clob' || $type == 'blob')) {
-                    $value['database'] = &$this;
-                    $value['prepared_query'] = $prepared_query;
-                    $value['parameter'] = $position + 1;
-                    $this->prepared_queries[$index]['fields'][$position] = $value['field'];
-                    $value = $this->datatype->createLOB($value);
-                    if (MDB::isError($value)) {
-                        return $value;
+                if ($type == 'clob' || $type == 'blob') {
+                    if (is_array($value)) {
+                        $value['database'] = &$this;
+                        $value['prepared_query'] = $prepared_query;
+                        $value['parameter'] = $position + 1;
+                        $this->prepared_queries[$index]['fields'][$position] = $value['field'];
+                        $value = $this->datatype->createLOB($value);
+                        if (MDB::isError($value)) {
+                            return $value;
+                        }
                     }
                 }
-                $success = $this->getValue($type, $value);
-                if (MDB::isError($success)) {
-                    return $success;
+                $value_quoted = $this->getValue($type, $value);
+                if (MDB::isError($value_quoted)) {
+                    return $value_quoted;
                 }
-                if ($value && $type == 'clob') {
-                    $this->clobs[$prepared_query][$value] = $success;
-                } elseif ($value && $type == 'blob') {
-                    $this->blobs[$prepared_query][$value] = $success;
+                if (is_numeric($value)) {
+                    if($type == 'clob') {
+                        $this->clobs[$prepared_query][$value] = $value_quoted;
+                    } elseif ($type == 'blob') {
+                        $this->blobs[$prepared_query][$value] = $value_quoted;
+                    }
                 }
             }
-            $query .= $success;
+            $query .= $value_quoted;
             $last_position = $current_position + 1;
         }
 
-        if (!isset($success) || !MDB::isError($success)) {
-            $query .= substr($this->prepared_queries[$index]['query'], $last_position);
-            if ($this->selected_row_limit > 0) {
-                $this->prepared_queries[$index]['first'] = $this->first_selected_row;
-                $this->prepared_queries[$index]['limit'] = $this->selected_row_limit;
-            }
-            if (isset($this->prepared_queries[$index]['limit'])
-                && $this->prepared_queries[$index]['limit'] > 0
-            ) {
-                $this->first_selected_row = $this->prepared_queries[$index]['first'];
-                $this->selected_row_limit = $this->prepared_queries[$index]['limit'];
-            } else {
-                $this->first_selected_row = $this->selected_row_limit = 0;
-            }
-            $success = $this->_executePrepared($prepared_query, $query, $types, $result_mode);
+        $query .= substr($this->prepared_queries[$index]['query'], $last_position);
+        if ($this->selected_row_limit > 0) {
+            $this->prepared_queries[$index]['first'] = $this->first_selected_row;
+            $this->prepared_queries[$index]['limit'] = $this->selected_row_limit;
         }
-        reset($this->clobs[$prepared_query]);
-        for ($clob = 0, $count = count($this->clobs[$prepared_query]);
-             $clob < $count;
-             $clob++, next($this->clobs[$prepared_query])
+        if (isset($this->prepared_queries[$index]['limit'])
+            && $this->prepared_queries[$index]['limit'] > 0
         ) {
-             $clob_stream = key($this->clobs[$prepared_query]);
-             $this->datatype->destroyLOB($clob_stream);
-             $this->datatype->freeCLOBValue($clob_stream, $this->clobs[$prepared_query][$clob_stream]);
+            $this->first_selected_row = $this->prepared_queries[$index]['first'];
+            $this->selected_row_limit = $this->prepared_queries[$index]['limit'];
+        } else {
+            $this->first_selected_row = $this->selected_row_limit = 0;
+        }
+        $success = $this->_executePrepared($prepared_query, $query, $types, $result_mode);
+
+        foreach ($this->clobs[$prepared_query] as $key => $value) {
+             $this->datatype->destroyLOB($key);
+             $this->datatype->freeCLOBValue($key, $value);
         }
         unset($this->clobs[$prepared_query]);
-        reset($this->blobs[$prepared_query]);
-        for ($blob = 0, $count = count($this->blobs[$prepared_query]);
-             $blob < $count;
-             $blob++, next($this->blobs[$prepared_query])
-        ) {
-             $blob_stream = key($this->blobs[$prepared_query]);
-             $this->datatype->destroyLOB($blob_stream);
-             $this->datatype->freeBLOBValue($blob_stream, $this->blobs[$prepared_query][$blob_stream]);
+        foreach ($this->blobs[$prepared_query] as $key => $value) {
+             $this->datatype->destroyLOB($key);
+             $this->datatype->freeBLOBValue($key, $value);
         }
         unset($this->blobs[$prepared_query]);
         return $success;
@@ -1646,9 +1639,9 @@ class MDB_Common extends PEAR
     {
         $this->warnings[] = 'database does not support getting current
             sequence value, the sequence value was incremented';
-        expectError(MDB_ERROR_NOT_CAPABLE);
+        $this->expectError(MDB_ERROR_NOT_CAPABLE);
         $id = $this->nextID($seq_name);
-        popExpectError(MDB_ERROR_NOT_CAPABLE);
+        $this->popExpectError(MDB_ERROR_NOT_CAPABLE);
         if (MDB::isError($id)) {
             if ($id->getCode() == MDB_ERROR_NOT_CAPABLE) {
                 return $this->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
