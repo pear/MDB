@@ -274,7 +274,7 @@ class MDB_ibase extends MDB_Common
      */
     function autoCommit($auto_commit)
     {
-        $this->debug('autoCommit', ($auto_commit ? "On" : "Off"));
+        $this->debug('autoCommit', ($auto_commit ? 'On' : 'Off'));
         if ((!$this->auto_commit) == (!$auto_commit)) {
             return MDB_OK;
         }
@@ -879,19 +879,22 @@ class MDB_ibase extends MDB_Common
         $this->pushErrorHandling(PEAR_ERROR_RETURN);
         $result = $this->_doQuery("SELECT GEN_ID($sequence_name, 1) as the_value FROM RDB\$DATABASE");
         $this->popErrorHandling();
-        if ($ondemand && MDB::isError($result)) {
-            $this->loadManager();
-            // Since we are creating the sequence on demand
-            // we know the first id = 1 so initialize the
-            // sequence at 2
-            $result = $this->manager->createSequence($this, $seq_name, 2);
-            if (MDB::isError($result)) {
-                return $this->raiseError(MDB_ERROR, null, null,
-                    'Next ID: on demand sequence could not be created');
-            } else {
-                // First ID of a newly created sequence is 1
-                return 1;
+        if (MDB::isError($result)) {
+            if ($ondemand) {
+                $this->loadManager();
+                // Since we are creating the sequence on demand
+                // we know the first id = 1 so initialize the
+                // sequence at 2
+                $result = $this->manager->createSequence($this, $seq_name, 2);
+                if (MDB::isError($result)) {
+                    return $this->raiseError(MDB_ERROR, null, null,
+                        'Next ID: on demand sequence could not be created');
+                } else {
+                    // First ID of a newly created sequence is 1
+                    return 1;
+                }
             }
+            return $result;
         }
         $value = $this->fetchOne($result);
         $this->freeResult($result);

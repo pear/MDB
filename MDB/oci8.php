@@ -181,7 +181,7 @@ class MDB_oci8 extends MDB_Common
      */
     function autoCommit($auto_commit)
     {
-        $this->debug('autoCommit', ($auto_commit ? "On" : "Off"));
+        $this->debug('autoCommit', ($auto_commit ? 'On' : 'Off'));
         if (!$this->auto_commit == !$auto_commit) {
             return MDB_OK;
         }
@@ -834,21 +834,22 @@ class MDB_oci8 extends MDB_Common
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
         $result = $this->_doQuery("SELECT $sequence_name.nextval FROM DUAL");
         $this->popExpect();
-        if ($ondemand && MDB::isError($result)
-            && $result->getCode() == MDB_ERROR_NOSUCHTABLE
-        ) {
-            $this->loadManager();
-            // Since we are creating the sequence on demand
-            // we know the first id = 1 so initialize the
-            // sequence at 2
-            $result = $this->manager->createSequence($this, $seq_name, 2);
-            if (MDB::isError($result)) {
-                return $this->raiseError(MDB_ERROR, null, null,
-                    'Next ID: on demand sequence could not be created');
-            } else {
-                // First ID of a newly created sequence is 1
-                return 1;
+        if (MDB::isError($result)) {
+            if ($ondemand && $result->getCode() == MDB_ERROR_NOSUCHTABLE) {
+                $this->loadManager();
+                // Since we are creating the sequence on demand
+                // we know the first id = 1 so initialize the
+                // sequence at 2
+                $result = $this->manager->createSequence($this, $seq_name, 2);
+                if (MDB::isError($result)) {
+                    return $this->raiseError(MDB_ERROR, null, null,
+                        'Next ID: on demand sequence could not be created');
+                } else {
+                    // First ID of a newly created sequence is 1
+                    return 1;
+                }
             }
+            return $result;
         }
         $value = $this->fetchOne($result);
         $this->freeResult($result);

@@ -568,21 +568,22 @@ class MDB_fbsql extends MDB_Common
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
         $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
         $this->popExpect();
-        if ($ondemand && MDB::isError($result)
-            && $result->getCode() == MDB_ERROR_NOSUCHTABLE
-        ) {
-            $this->loadManager();
-            // Since we are creating the sequence on demand
-            // we know the first id = 1 so initialize the
-            // sequence at 2
-            $result = $this->manager->createSequence($this, $seq_name, 2);
-            if (MDB::isError($result)) {
-                return $this->raiseError(MDB_ERROR, null, null,
-                    'Next ID: on demand sequence could not be created');
-            } else {
-                // First ID of a newly created sequence is 1
-                return 1;
+        if (MDB::isError($result)) {
+            if ($ondemand && $result->getCode() == MDB_ERROR_NOSUCHTABLE) {
+                $this->loadManager();
+                // Since we are creating the sequence on demand
+                // we know the first id = 1 so initialize the
+                // sequence at 2
+                $result = $this->manager->createSequence($this, $seq_name, 2);
+                if (MDB::isError($result)) {
+                    return $this->raiseError(MDB_ERROR, null, null,
+                        'Next ID: on demand sequence could not be created');
+                } else {
+                    // First ID of a newly created sequence is 1
+                    return 1;
+                }
             }
+            return $result;
         }
         $value = intval(fbsql_insert_id());
         $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
