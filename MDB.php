@@ -282,15 +282,17 @@ class MDB
                 'MDB_Error', TRUE));
         }
         
-        if (is_array($options) && isset($options['debug']) &&
-            $options['debug'] >= 2) {
+        if (is_array($options)
+            && isset($options['debug'])
+            && $options['debug'] >= 2
+        ) {
             // expose php errors with sufficient debug level
             include_once($include);
         } else {
             @include_once($include);
         }
         
-        if (!class_exists($class_name)) {
+        if(!class_exists($class_name)) {
             return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND, NULL, NULL,
                 'Unable to include the '.$include.' file',
                 'MDB_Error', TRUE));
@@ -298,7 +300,29 @@ class MDB
         
         @$db =& new $class_name($dsninfo, $options);
         
-        if(!MDB::isError($db) && isset($dsninfo['database'])) {
+        if(is_array($options)) {
+            foreach($options as $option => $value) {
+                $test = $obj->setOption($option, $value);
+                if (MDB::isError($test)) {
+                    return $test;
+                }
+            }
+        } else {
+            $obj->setOption('persistent', $options);
+        }
+        $include_lob = $db->getOption('includelob');
+        if(!MDB::isError($include_lob) && $include_lob) {
+            $db->loadLob('load at start');
+        }
+        $includemanager = $db->getOption('includemanager');
+        if(!MDB::isError($includemanager) && $includemanager) {
+            $db->loadManager('load at start');
+        }
+        $debug = $db->getOption('debug');
+        if(!MDB::isError($debug) && $debug) {
+            $db->captureDebugOutput(TRUE);
+        }
+        if(isset($dsninfo['database'])) {
             $db->setDatabase($dsninfo['database']);
             $err = $db->connect();
             if (MDB::isError($err)) {
