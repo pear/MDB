@@ -1,10 +1,25 @@
 <?php
-/*
- * pgsql.php
- *
- * @(#) $Header$
- *
- */
+/* vim: set expandtab tabstop=4 shiftwidth=4: */
+// +----------------------------------------------------------------------+
+// | PHP Version 4                                                        |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 1997-2002 The PHP Group                                |
+// +----------------------------------------------------------------------+
+// | This source file is subject to version 2.02 of the PHP license,      |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.php.net/license/2_02.txt.                                 |
+// | If you did not receive a copy of the PHP license and are unable to   |
+// | obtain it through the world-wide-web, please send a note to          |
+// | license@php.net so we can mail you a copy immediately.               |
+// +----------------------------------------------------------------------+
+// | Author: Paul Cooper <pgc@ucecom.com>                                 |
+// +----------------------------------------------------------------------+
+// 
+// $Id$
+//
+// MDB postgresql driver.
+//
 
 if (!defined("MDB_PGSQL_INCLUDED")) {
     define("MDB_PGSQL_INCLUDED", 1);
@@ -24,6 +39,9 @@ class MDB_pgsql extends MDB_common
     var $highest_fetchd_row = array();
     var $columns = array();
     var $escape_quotes = "\\";
+    var $manager_class_name = "MDB_manager_pgsql_class";
+    var $manager_include = "manager_pgsql.php";
+    var $manager_included_constant = "MDB_MANAGER_PGSQL_INCLUDED";
 
     // }}}
     // {{{ constructor
@@ -35,41 +53,51 @@ class MDB_pgsql extends MDB_common
         $this->MDB_common();
         $this->phptype = 'pgsql';
         $this->dbsyntax = 'pgsql';
-    
+
+        if (!function_exists("pg_connect")) {
+            return("PostgreSQL support is not available in this PHP configuration");
+        }
         $this->supported["Sequences"] = 1;
         $this->supported["Indexes"] = 1;
-        $this->supported["AffectedRows"] = 1;
-        $this->supported["Summaryfunctions"] = 1;
+        $this->supported["SummaryFunctions"] = 1;
         $this->supported["OrderByText"] = 1;
-        $this->supported["currId"] = 1;
+        $this->supported["Transactions"] = 1;
+        $this->supported["CurrId"] = 1;
         $this->supported["SelectRowRanges"] = 1;
         $this->supported["LOBs"] = 1;
         $this->supported["Replace"] = 1;
         $this->supported["SubSelects"] = 1;
-
-        if (isset($this->options["UseTransactions"])
-            && $this->options["UseTransactions"]) {
-            $this->supported["Transactions"] = 1;
+        
+        if (function_exists("pg_cmdTuples"))
+        {
+            $connection = $this->_doConnect("template1", 0);
+            if (!MDB::isError($connection))
+            {
+                if(($result = @pg_Exec($connection,"BEGIN")))
+                {
+                    $error_reporting = error_reporting(63);
+                    @pg_cmdTuples($result);
+                    if (!isset($php_errormsg)
+                        || strcmp($php_errormsg, "This compilation does not support pg_cmdtuples()"))
+                    {
+                        $this->supported["AffectedRows"] = 1;
+                    }
+                    error_reporting($error_reporting);
+                } else {
+                    $err = $this->raiseError(DB_ERROR, NULL, NULL, "Setup: ".pg_ErrorMessage($connection));
+                }
+                pg_Close($connection);
+            } else {
+                $err = $this->raiseError(DB_ERROR, NULL, NULL, "Setup: could not execute BEGIN");
+            }
+            if (MDB::isError($err)) {
+                return($err);
+            }
         }
+
         $this->decimal_factor = pow(10.0, $this->decimal_places);
-    
-        $this->errorcode_map = array(
-                                     1004 => DB_ERROR_CANNOT_CREATE,
-                                     1005 => DB_ERROR_CANNOT_CREATE,
-                                     1006 => DB_ERROR_CANNOT_CREATE,
-                                     1007 => DB_ERROR_ALREADY_EXISTS,
-                                     1008 => DB_ERROR_CANNOT_DROP,
-                                     1046 => DB_ERROR_NODBSELECTED,
-                                     1050 => DB_ERROR_ALREADY_EXISTS,
-                                     1051 => DB_ERROR_NOSUCHTABLE,
-                                     1054 => DB_ERROR_NOSUCHFIELD,
-                                     1062 => DB_ERROR_ALREADY_EXISTS,
-                                     1064 => DB_ERROR_SYNTAX,
-                                     1100 => DB_ERROR_NOT_LOCKED,
-                                     1136 => DB_ERROR_VALUE_COUNT_ON_ROW,
-                                     1146 => DB_ERROR_NOSUCHTABLE,
-                                     1048 => DB_ERROR_CONSTRAINT,
-                                     );
+
+        $this->errorcode_map = array();
     }
 
 
@@ -138,7 +166,7 @@ class MDB_pgsql extends MDB_common
         $this->connected_port = $port;
         $this->selected_database = $this->database_name;
         $this->opened_persistent = $this->persistent;
-        return(1);
+        return(DB_OK);
     }
 
     // }}}
@@ -193,8 +221,7 @@ class MDB_pgsql extends MDB_common
      */
     function query($query, $types = NULL)
     {
-        $this->last_query = $query;
-        $this->debug("Query: $query");
+        $ismanip = MDB::isManip($query);
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;
         $this->first_selected_row = $this->selected_row_limit=0;
@@ -239,19 +266,23 @@ class MDB_pgsql extends MDB_common
         if (!MDB::isError($result) && $select) {
             $this->highest_fetched_row[$result] = -1;
         }
-        if (is_resource($result)) {
-            if ($types != NULL) {
-                if (!is_array($types)) {
-                    $types = array($types);
-                }
-                if (MDB::isError($err = $this->setResultTypes($result, $types))) {
-                    $this->freeResult($result);
-                    return $err;
-                }
-            }
+        if ($ismanip) {
+            $this->affected_rows = @pg_cmdtuples($result);
+            return DB_OK;
+        } elseif (preg_match('/^\s*\(?\s*SELECT\s+/si', $query) &&
+                  !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query)) {
+            /* PostgreSQL commands:
+               ABORT, ALTER, BEGIN, CLOSE, CLUSTER, COMMIT, COPY,
+               CREATE, DECLARE, DELETE, DROP TABLE, EXPLAIN, FETCH,
+               GRANT, INSERT, LISTEN, LOAD, LOCK, MOVE, NOTIFY, RESET,
+               REVOKE, ROLLBACK, SELECT, SELECT INTO, SET, SHOW,
+               UNLISTEN, UPDATE, VACUUM
+            */
             return $result;
+        } else {
+            $this->affected_rows = 0;
+            return DB_OK;
         }
-        return DB_OK;
     }
 
     function endOfResult($result)
