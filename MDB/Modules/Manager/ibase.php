@@ -492,7 +492,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function createSequence(&$db, $seq_name, $start)
+    function createSequence(&$db, $seq_name, $start = 1)
     {
         $seqname = $db->getSequenceName($seq_name);
         if (MDB::isError($result = $db->query("CREATE GENERATOR $seqname"))) {

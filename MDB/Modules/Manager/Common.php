@@ -567,7 +567,7 @@ class MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createSequence(&$db, $name, $start)
+    function createSequence(&$db, $name, $start = 1)
     {
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
             'Create Sequence: sequence creation not supported');

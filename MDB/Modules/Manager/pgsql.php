@@ -424,10 +424,11 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
-    function createSequence(&$db, $seq_name, $start)
+    function createSequence(&$db, $seq_name, $start = 1)
     {
         $seqname = $db->getSequenceName($seq_name);
-        return $db->query("CREATE SEQUENCE $seqname INCREMENT 1".($start < 1 ? " MINVALUE $start" : '')." START $start");
+        return $db->query("CREATE SEQUENCE $seqname INCREMENT 1".($start < 1 ? " MINVALUE $start" : '')
+            ." START $start");
     }
 
     // }}}

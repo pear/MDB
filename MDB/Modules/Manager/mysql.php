@@ -632,7 +632,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function createSequence(&$db, $seq_name, $start)
+    function createSequence(&$db, $seq_name, $start = 1)
     {
         $sequence_name = $db->getSequenceName($seq_name);
         $res = $db->query("CREATE TABLE $sequence_name
