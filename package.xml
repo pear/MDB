@@ -4,17 +4,17 @@
   <name>MDB</name>
   <summary>database abstraction layer</summary>
   <description>
-Documentation can be found at: http://pear.php.net/manual/en/package.database.mdb.php
-More information available at: http://www.backendmedia.com/MDB/docs/
-
     PEAR MDB is a merge of the PEAR DB and Metabase php database abstraction layers.
 
-    It provides a common API for all support RDBMS. The main difference to most other DB abstraction packages is that MDB goes much further to ensure portability. Among other things MDB features:
+    It provides a common API for all support RDBMS. The main difference to most
+    other DB abstraction packages is that MDB goes much further to ensure
+    portability. Among other things MDB features:
     * An OO-style query API
     * A DSN (data source name) or array format for specifying database servers
     * Datatype abstraction and on demand datatype conversion
     * Portable error codes
     * Sequential and non sequential row fetching as well as bulk fetching
+    * Ability to make buffered and unbuffered queries
     * Ordered array and associative array for the fetched rows
     * Prepare/execute (bind) emulation
     * Sequence emulation
@@ -27,9 +27,6 @@ More information available at: http://www.backendmedia.com/MDB/docs/
     * Module Framework to load advanced functionality on demand
     * Table information interface
     * RDBMS management methods (creating, dropping, altering)
-    * RDBMS independent xml based schema definition management
-    * Altering of a DB from a changed xml schema
-    * Reverse engineering of xml schemas from an existing DB (currently only MySQL)
     * Full integration into the PEAR Framework
     * Wrappers for the PEAR DB and Metabase APIs
     * PHPDoc API documentation
