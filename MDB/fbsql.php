@@ -648,12 +648,13 @@ class MDB_fbsql extends MDB_Common
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
         $value = @fbsql_result($result, $rownum, $field);
         if ($value === false && $value != null) {
-            return($this->fbsqlRaiseError($errno));
+            return $this->fbsqlRaiseError($errno);
         }
         if (isset($this->results[$result_value]['types'][$field])) {
-            $value = $this->datatype->convertResult($this, $value, $this->results[$result_value]['types'][$field]);
+            $type = $this->results[$result_value]['types'][$field];
+            $value = $this->datatype->convertResult($this, $value, $type);
         }
-        return($value);
+        return $value;
     }
 
     // }}}
