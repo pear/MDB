@@ -64,13 +64,8 @@ define('MDB_MANAGER_DUMP_CONTENT',      2);
 
 class MDB_manager extends PEAR
 {
-    var $warnings = array();
     var $database;
-    var $database_definition = array(
-        'name' => '',
-        'create' => 0,
-        'TABLES' => array()
-    );
+
     var $options = array(
             'fail_on_invalid_names' => 1,
             'debug' => 0
@@ -101,6 +96,15 @@ class MDB_manager extends PEAR
         'date' => '0001-01-01',
         'time' => '00:00:00'
     );
+
+    var $warnings = array();
+
+    var $database_definition = array(
+        'name' => '',
+        'create' => 0,
+        'TABLES' => array()
+    );
+
     // }}}
     // {{{ raiseError()
 

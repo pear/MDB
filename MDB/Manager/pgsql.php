@@ -55,7 +55,8 @@ if (!defined('MDB_MANAGER_PGSQL_INCLUDED')) {
 * @author  Paul Cooper <pgc@ucecom.com>
 */
 
-class MDB_manager_pgsql_class extends MDB_manager_common {
+class MDB_manager_pgsql_class extends MDB_manager_common
+{
 
     // }}}
     // {{{ createDatabase()
