@@ -77,7 +77,7 @@ class MDB_driver_pgsql extends MDB_common {
     /**
      * Constructor
      **/
-    function MDB_driver_pgsql($dsninfo, $options)
+    function MDB_driver_pgsql($dsninfo = NULL, $options = NULL)
     {
         if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
             return $common_contructor;
@@ -98,9 +98,9 @@ class MDB_driver_pgsql extends MDB_common {
         $this->supported['LOBs'] = 1;
         $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 1;
-
+        
         $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
-
+        
         if (function_exists('pg_cmdTuples')) {
             $connection = $this->_doConnect('template1', 0);
             if (!MDB::isError($connection)) {
@@ -313,7 +313,7 @@ class MDB_driver_pgsql extends MDB_common {
             return $connection;
         }
         $this->connection = $connection;
-
+        
         if (!$this->auto_commit && MDB::isError($trans_result = $this->_doQuery('BEGIN'))) {
             pg_Close($this->connection);
             $this->connection = 0;
@@ -344,7 +344,7 @@ class MDB_driver_pgsql extends MDB_common {
             pg_Close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
-
+            
             global $databases;
             $databases[$this->database] = '';
             return TRUE;
@@ -395,7 +395,7 @@ class MDB_driver_pgsql extends MDB_common {
         if (MDB::isError($connected)) {
             return $connected;
         }
-
+        
         if (!$ismanip && $limit > 0 &&
             substr(strtolower(ltrim($query)),
             0, 6) == 'select')
@@ -1047,7 +1047,7 @@ class MDB_driver_pgsql extends MDB_common {
      */
     function getDecimalValue($value)
     {
-        return (!strcmp($value,'NULL') ? 'NULL' : strval(round($value*$this->decimal_factor)));
+        return (!strcmp($value, 'NULL') ? 'NULL' : strval(round($value*$this->decimal_factor)));
     }
 
     // }}}
@@ -1150,7 +1150,7 @@ class MDB_driver_pgsql extends MDB_common {
         $repeat = 0;
         do {
             $this->pushErrorHandling(PEAR_ERROR_RETURN);
-            $result = $this->query("SELECT NEXTVAL('${seqname}')");
+            $result = $this->query("SELECT NEXTVAL('$seqname')");
             $this->popErrorHandling();
             if ($ondemand && MDB::isError($result) && $result->getCode() == DB_ERROR_NOSUCHTABLE) {
                 $repeat = 1;
@@ -1181,19 +1181,16 @@ class MDB_driver_pgsql extends MDB_common {
      * @return mixed DB_Error or id
      * @access public
      */
-    function currId($name)
+    function currId($seq_name)
     {
         $seqname = $this->getSequenceName($seq_name);
-        if (MDB::isError($result = $this->query("SELECT last_value FROM $seqname"))) {
+        if (MDB::isError($result = $this->queryOne("SELECT last_value FROM $seqname"))) {
             return $this->raiseError(DB_ERROR, NULL, NULL, 'currId: Unable to select from ' . $seqname) ;
         }
-        if ($this->numRows($result) == 0) {
-            $this->freeResult($result);
+        if (!is_int($result)) {
             return ($this->raiseError(DB_ERROR, NULL, NULL, 'currId: could not find value in sequence table'));
         }
-        $value = intval($this->fetch($result, 0, 0));
-        $this->freeResult($result);
-        return ($value);
+        return ($result);
     }
 
     // }}}
@@ -1249,7 +1246,7 @@ class MDB_driver_pgsql extends MDB_common {
         $count = 0;
         $id = 0;
         $res = array();
-
+        
         /**
          * depending on $mode, metadata returns the following values:
          *
@@ -1286,7 +1283,7 @@ class MDB_driver_pgsql extends MDB_common {
          *       DB_TABLEINFO_ORDERTABLE with DB_TABLEINFO_ORDER |
          *       DB_TABLEINFO_ORDERTABLE * or with DB_TABLEINFO_FULL
          **/
-
+        
         // if $result is a string, then we want information about a
         // table without a resultset
         if (is_string($result)) {
@@ -1300,9 +1297,9 @@ class MDB_driver_pgsql extends MDB_common {
                 return $this->pgsqlRaiseError();
             }
         }
-
+        
         $count = @pg_numfields($id);
-
+        
         // made this IF due to performance (one if is faster than $count if's)
         if (empty($mode)) {
             for ($i = 0; $i < $count; $i++) {
@@ -1314,7 +1311,7 @@ class MDB_driver_pgsql extends MDB_common {
             }
         } else { // full
             $res['num_fields'] = $count;
-
+            
             for ($i = 0; $i < $count; $i++) {
                 $res[$i]['table'] = (is_string($result)) ? $result : '';
                 $res[$i]['name'] = @pg_fieldname ($id, $i);
@@ -1329,7 +1326,7 @@ class MDB_driver_pgsql extends MDB_common {
                 }
             }
         }
-
+        
         // free the result only if we were called on a table
         if (is_resource($id)) {
             @pg_freeresult($id);
@@ -1399,7 +1396,7 @@ class MDB_driver_pgsql extends MDB_common {
     function _pgFieldFlags($resource, $num_field, $table_name)
     {
         $field_name = @pg_fieldname($resource, $num_field);
-
+        
         $result = pg_exec($this->connection, "SELECT f.attnotnull, f.atthasdef
             FROM pg_attribute f, pg_class tab, pg_type typ
             WHERE tab.relname = typ.typname
@@ -1409,7 +1406,7 @@ class MDB_driver_pgsql extends MDB_common {
         if (pg_numrows($result) > 0) {
             $row = pg_fetch_row($result, 0);
             $flags = ($row[0] == 't') ? 'not_NULL ' : '';
-
+            
             if ($row[1] == 't') {
                 $result = pg_exec($this->connection, "SELECT a.adsrc
                     FROM pg_attribute f, pg_class tab, pg_type typ, pg_attrdef a
@@ -1418,7 +1415,7 @@ class MDB_driver_pgsql extends MDB_common {
                     AND tab.relname = '$table_name'");
                 $row = pg_fetch_row($result, 0);
                 $num = str_replace('\'', '', $row[0]);
-
+                
                 $flags .= "default_$num ";
             }
         }
@@ -1430,11 +1427,11 @@ class MDB_driver_pgsql extends MDB_common {
             AND f.attname = '$field_name'
             AND tab.relname = '$table_name'");
         $count = pg_numrows($result);
-
+        
         for ($i = 0; $i < $count ; $i++) {
             $row = pg_fetch_row($result, $i);
             $keys = explode(' ', $row[2]);
-
+            
             if (in_array($num_field + 1, $keys)) {
                 $flags .= ($row[0] == 't') ? 'unique ' : '';
                 $flags .= ($row[1] == 't') ? 'primary ' : '';
@@ -1442,7 +1439,7 @@ class MDB_driver_pgsql extends MDB_common {
                     $flags .= 'multiple_key ';
             }
         }
-
+        
         return trim($flags);
     }
 }
