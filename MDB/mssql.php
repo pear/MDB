@@ -533,9 +533,9 @@ class MDB_mssql extends MDB_Common
     function numRows($result)
     {
         if ($this->options['result_buffering']) {
-            $result_value = intval($result);
-            if (isset($this->results[$result_value]['ranges'])) {
-                return count($this->results[$result_value]['ranges']);
+            if (!isset($this->results[intval($result)])) {
+                return $this->raiseError(MDB_ERROR, null, null,
+                    'numRows: attempted to check the end of an unknown result');
             }
             return mssql_num_rows($result);
         }

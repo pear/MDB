@@ -506,6 +506,10 @@ class MDB_fbsql extends MDB_Common
     function numRows($result)
     {
         if ($this->options['result_buffering']) {
+            if (!isset($this->results[intval($result)])) {
+                return $this->raiseError(MDB_ERROR, null, null,
+                    'numRows: attempted to check the end of an unknown result');
+            }
             return fbsql_num_rows($result);
         }
         return $this->raiseError(MDB_ERROR, null, null,
