@@ -92,12 +92,6 @@ class MDB_fbsql extends MDB_Common
         $this->phptype = 'fbsql';
         $this->dbsyntax = 'fbsql';
         
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', TRUE));
-        }
-        
         $this->supported['Sequences'] = 1;
         $this->supported['Indexes'] = 1;
         $this->supported['AffectedRows'] = 1;
@@ -325,6 +319,12 @@ class MDB_fbsql extends MDB_Common
             fbsql_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
+        }
+
+        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
+                NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
+                'MDB_Error', TRUE));
         }
         $this->fixed_float = 30;
         $function = ($this->options['persistent'] ? 'fbsql_pconnect' : 'fbsql_connect');

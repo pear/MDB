@@ -81,13 +81,7 @@ class MDB_pgsql extends MDB_common
         }
         $this->phptype = 'pgsql';
         $this->dbsyntax = 'pgsql';
-        
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', TRUE));
-        }
-        
+
         if (!function_exists('pg_connect')) {
             return('PostgreSQL support is not available in this PHP configuration');
         }
@@ -343,6 +337,12 @@ class MDB_pgsql extends MDB_common
             $this->affected_rows = -1;
             $this->connection = 0;
         }
+        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
+                NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
+                'MDB_Error', TRUE));
+        }
+
         $connection = $this->_doConnect($this->database_name, $this->options['persistent']);
         if (MDB::isError($connection)) {
             return($connection);

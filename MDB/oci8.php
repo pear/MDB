@@ -87,12 +87,6 @@ class MDB_oci8 extends MDB_Common {
         $this->phptype = 'oci8';
         $this->dbsyntax = 'oci8';
 
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', TRUE));
-        }
-
         $this->supported['Sequences'] = 1;
         $this->supported['Indexes'] = 1;
         $this->supported['SummaryFunctions'] = 1;
@@ -298,6 +292,12 @@ class MDB_oci8 extends MDB_Common {
             }
             $this->_close();
         }
+        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
+                NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
+                'MDB_Error', TRUE));
+        }
+
         if (isset($this->options['HOME'])) {
             putenv('ORACLE_HOME='.$this->options['HOME']);
         }
