@@ -45,21 +45,6 @@
 // $Id$
 //
 
-// This is just a skeleton MDB driver.
-
-// In each of the listed methods I have added comments that tell you where
-// to look for a "reference" implementation.
-// Many of the methods below are taken from Metabase. Most of the methods
-// marked as "new in MDB" are actually taken from the latest beta files of
-// Metabase. However these beta files only include a version for MySQL.
-// Some of these methods have been expanded or changed slightly in MDB.
-// Looking in the relevant MDB Wrapper should give you some pointers, some
-// other difference you will only discover by looking at one of the existing
-// MDB driver or the common implementation in common.php.
-// One thing that will definately have to be modified in all "reference"
-// implementations of Metabase methods is the error handling.
-// Anyways don't worry if you are having problems: Lukas Smith is here to help!
-
 if(!defined('MDB_MANAGER_MSSQL_INCLUDED'))
 {
     define('MDB_MANAGER_MSSQL_INCLUDED',1);
