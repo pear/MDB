@@ -1424,13 +1424,19 @@ class MDB_Common extends PEAR
     // {{{ subSelect()
 
     /**
-     * simple subselect emulation
+     * simple subselect emulation: leaves the query untouched for all RDBMS
+     * that support subselects
      *
-     * @param string $query the SQL query for the subselect
-     * @return string the query
      * @access public
+     *
+     * @param string $query the SQL query for the subselect that may only
+     *                      return a column
+     * @param string $quote determines if the data needs to be quoted before
+     *                      being returned
+     *
+     * @return string the query
      */
-    function subSelect($query)
+    function subSelect($query, $quote = FALSE)
     {
         if ($this->supported['SubSelects'] == 1) {
             return ($query);
