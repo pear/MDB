@@ -221,7 +221,6 @@ class MDB_ibase extends MDB_Common
      * @access public
      * @see PEAR_Error
      */
-
     function ibaseRaiseError($db_errno = NULL)
     {
         $native_errmsg = $this->errorNative();
@@ -233,7 +232,7 @@ class MDB_ibase extends MDB_Common
             $native_errno = NULL;
         }
         // try to map the native error to the DB one
-        if ($db_errno === NULL) {
+        if (is_null($db_errno)) {
             if ($native_errno) {
                 // try to interpret Interbase error code (that's why we need ibase_errno()
                 // in the interbase module to return the real error code)
@@ -247,23 +246,7 @@ class MDB_ibase extends MDB_Common
                         $db_errno = $this->errorCode($native_errno);
                 }
             } else {
-                $error_regexps = array(
-                    '/[tT]able not found/' => MDB_ERROR_NOSUCHTABLE,
-                    '/[tT]able .* already exists/' => MDB_ERROR_ALREADY_EXISTS,
-                    '/violation of [\w ]+ constraint/' => MDB_ERROR_CONSTRAINT,
-                    '/conversion error from string/' => MDB_ERROR_INVALID_NUMBER,
-                    '/no permission for/' => MDB_ERROR_ACCESS_VIOLATION,
-                    '/arithmetic exception, numeric overflow, or string truncation/' => MDB_ERROR_DIVZERO,
-                    '/deadlock/' => MDB_ERROR_DEADLOCK,
-                    '/attempt to store duplicate value/' => MDB_ERROR_CONSTRAINT
-                );
-                foreach ($error_regexps as $regexp => $code) {
-                    if (preg_match($regexp, $native_errmsg, $m)) {
-                        $db_errno = $code;
-                        $native_errno = NULL;
-                        break;
-                    }
-                }
+                $db_errno = $this->errorCode($native_errmsg);
             }
         }
         return $this->raiseError($db_errno, NULL, NULL, NULL, $native_errmsg);
