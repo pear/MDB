@@ -214,7 +214,7 @@ class MDB_mysql extends MDB_common
         return ($this->highest_fetched_row[$result] >= $this->numRows($result)-1);
     }
 
-    function fetchResult($result, $row, $field)
+    function fetch($result, $row, $field)
     {
         $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
         return (mysql_result($result, $row, $field));
@@ -314,7 +314,7 @@ class MDB_mysql extends MDB_common
         return (1);
     }
 
-    function getClobFieldTypeDeclaration($name, &$field)
+    function getClobDeclaration($name, &$field)
     {
         if (isset($field["length"])) {
             $length = $field["length"];
@@ -337,7 +337,7 @@ class MDB_mysql extends MDB_common
         return ("$name $type".(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getBLobFieldTypeDeclaration($name, &$field)
+    function getBLobDeclaration($name, &$field)
     {
         if (isset($field["length"])) {
             $length = $field["length"];
@@ -361,27 +361,27 @@ class MDB_mysql extends MDB_common
         return ("$name $type".(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getIntegerFieldTypeDeclaration($name, &$field)
+    function getIntegerDeclaration($name, &$field)
     {
         return ("$name ".(isset($field["unsigned"]) ? "INT UNSIGNED" : "INT").(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getDateFieldTypeDeclaration($name, &$field)
+    function getDateDeclaration($name, &$field)
     {
         return ($name." DATE".(isset($field["default"]) ? " DEFAULT '".$field["default"]."'" : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getTimestampFieldTypeDeclaration($name, &$field)
+    function getTimestampDeclaration($name, &$field)
     {
         return ($name." DATETIME".(isset($field["default"]) ? " DEFAULT '".$field["default"]."'" : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getTimeFieldTypeDeclaration($name, &$field)
+    function getTimeDeclaration($name, &$field)
     {
         return ($name." TIME".(isset($field["default"]) ? " DEFAULT '".$field["default"]."'" : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getFloatFieldTypeDeclaration($name, &$field)
+    function getFloatDeclaration($name, &$field)
     {
         if (isset($this->options["FixedFloat"])) {
             $this->fixed_float = $this->options["FixedFloat"];
@@ -393,7 +393,7 @@ class MDB_mysql extends MDB_common
         return ("$name DOUBLE".($this->fixed_float ? "(".($this->fixed_float+2).",".$this->fixed_float.")" : "").(isset($field["default"]) ? " DEFAULT ".$this->getFloatFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
 
-    function getDecimalFieldTypeDeclaration($name, &$field)
+    function getDecimalDeclaration($name, &$field)
     {
         return ("$name BIGINT".(isset($field["default"]) ? " DEFAULT ".$this->getDecimalFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
     }
@@ -624,7 +624,7 @@ class MDB_mysql extends MDB_common
         if (($result = $this->Query("SELECT MAX(sequence) FROM _sequence_$name")) == 0) {
             return (0);
         }
-        $value = intval($this->fetchResult($result,0,0));
+        $value = intval($this->fetch($result,0,0));
         $this->FreeResult($result);
         return ($value);
     }
@@ -676,7 +676,7 @@ class MDB_mysql extends MDB_common
 
     function commitTransaction()
     {
-         $this->debug("Commit Transaction");
+        $this->debug("Commit Transaction");
         if (!isset($this->supported["Transactions"])) {
             return ($this->setError("Commit transaction",
                 "transactions are not in use"));
@@ -690,7 +690,7 @@ class MDB_mysql extends MDB_common
 
     function rollbackTransaction()
     {
-         $this->debug("Rollback Transaction");
+        $this->debug("Rollback Transaction");
         if (!isset($this->supported["Transactions"])) {
             return ($this->setError("Rollback transaction", "transactions are not in use"));
         }
