@@ -916,7 +916,11 @@ class MDB_ibase extends MDB_Common
     function currId($seq_name)
     {
         $seqname = $this->getSequenceName($seq_name);
-        if (MDB::isError($result = $this->queryOne("SELECT RDB\$GENERATOR_ID FROM RDB\$GENERATORS WHERE RDB\$GENERATOR_NAME='$seqname'"))) {
+        $result = $this->query("SELECT RDB\$GENERATOR_ID FROM RDB\$GENERATORS WHERE RDB\$GENERATOR_NAME='$seqname'", null, false);
+        if (MDB::isError($result)) {
+            return $this->raiseError(MDB_ERROR, null, null, 'currId: Unable to select from ' . $seqname) ;
+        }
+        if (MDB::isError($result = $this->fetchOne($result))) {
             return $this->raiseError(MDB_ERROR, null, null, 'currId: Unable to select from ' . $seqname) ;
         }
         if (!is_numeric($result)) {

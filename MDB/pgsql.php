@@ -697,7 +697,11 @@ class MDB_pgsql extends MDB_Common
     function currId($seq_name)
     {
         $seqname = $this->getSequenceName($seq_name);
-        if (MDB::isError($result = $this->queryOne("SELECT last_value FROM $seqname"))) {
+        $result = $this->query("SELECT last_value FROM $seqname", null, false);
+        if (MDB::isError($result)) {
+            return $this->raiseError(MDB_ERROR, null, null, 'currId: Unable to select from ' . $seqname) ;
+        }
+        if (MDB::isError($result = $this->fetchOne($result))) {
             return $this->raiseError(MDB_ERROR, null, null, 'currId: Unable to select from ' . $seqname) ;
         }
         if (!is_numeric($result)) {

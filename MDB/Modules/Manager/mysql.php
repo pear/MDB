@@ -471,7 +471,11 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      */
     function listTables(&$db)
     {
-        $table_names = $db->extended->queryCol($db, 'SHOW TABLES');
+        $result = $db->query('SHOW TABLES', null, false);
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        $table_names = $db->fetchCol($result);
         if (MDB::isError($table_names)) {
             return $table_names;
         }
@@ -688,7 +692,11 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      */
     function listSequences(&$db)
     {
-        $table_names = $db->extended->queryCol($db, 'SHOW TABLES');
+        $result = $db->query('SHOW TABLES', null, false);
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        $table_names = $db->fetchCol($result);
         if (MDB::isError($table_names)) {
             return $table_names;
         }
