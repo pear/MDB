@@ -654,7 +654,7 @@ class MDB_ibase extends MDB_Common
             $columns = @ibase_num_fields($result);
             for ($column=0; $column < $columns; $column++) {
                 $column_info = @ibase_field_info($result, $column);
-                $field_name = $column_info['name'];
+                $field_name = $column_info['alias'];
                 if ($this->options['optimize'] == 'portability') {
                     $field_name = strtolower($field_name);
                 }
