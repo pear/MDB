@@ -837,7 +837,9 @@ class MDB_ibase extends MDB_Common
             $row[$key] = rtrim($value_with_space, ' ');
         }
         if ($fetchmode == MDB_FETCHMODE_ASSOC) {
-            $row = array_change_key_case($row);
+            if ($this->options['optimize'] == 'portability') {
+                $row = array_change_key_case($row, CASE_LOWER);
+            }
         } else {
             $row = array_values($row);
         }

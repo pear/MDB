@@ -1223,24 +1223,23 @@ class MDB_fbsql extends MDB_Common
             $fetchmode = $this->fetchmode;
         }
         if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-            $array = @fbsql_fetch_array($result, FBSQL_ASSOC);
-        } else {
-            $array = @fbsql_fetch_row($result);
-        }
-        if (!$array) {
-            $errno = @fbsql_errno($this->connection);
-            if (!$errno) {
-                if($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
-                return(NULL);
+            $row = @fbsql_fetch_assoc($result);
+            if (is_array($row) && $this->options['optimize'] == 'portability') {
+                $row = array_change_key_case($row, CASE_LOWER);
             }
-            return($this->fbsqlRaiseError($errno));
+        } else {
+            $row = @fbsql_fetch_row($result);
+        }
+        if (!$row) {
+            if($this->options['autofree']) {
+                $this->freeResult($result);
+            }
+            return(NULL);
         }
         if (isset($this->result_types[$result])) {
-            $array = $this->convertResultRow($result, $array);
+            $row = $this->convertResultRow($result, $row);
         }
-        return($array);
+        return($row);
     }
 
     // }}}

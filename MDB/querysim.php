@@ -760,23 +760,27 @@ class MDB_querysim extends MDB_Common
             if (!isset($result[1][$rownum])) {
                 return null;
             }
-            $this->highest_fetched_row[$result_link] = max($this->highest_fetched_row[$result_link], $rownum);
+            $this->highest_fetched_row[$result_link] =
+                max($this->highest_fetched_row[$result_link], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
         // get row
-        if(!$array = @$result[1][$rownum]) {
+        if(!$row = @$result[1][$rownum]) {
             return null;
         }
         // make row associative
-        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-            foreach ($array as $key => $value) {
+        if (is_array($row) && $fetchmode & MDB_FETCHMODE_ASSOC) {
+            foreach ($row as $key => $value) {
                 $arraytemp[$result[0][$key]] = $value;
             }
-            $array = $arraytemp;
+            $row = $arraytemp;
+            if ($this->options['optimize'] == 'portability') {
+                $row = array_change_key_case($row, CASE_LOWER);
+            }
         }
-        return $array;
+        return $row;
     }
     // }}}
 

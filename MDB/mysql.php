@@ -581,7 +581,7 @@ class MDB_mysql extends MDB_Common
             next($fields), $field++)
         {
             $name = key($fields);
-            if ($field>0) {
+            if ($field > 0) {
                 $query .= ',';
                 $values .= ',';
             }
@@ -728,7 +728,8 @@ class MDB_mysql extends MDB_Common
     */
     function fetch($result, $row, $field)
     {
-        $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
+        $this->highest_fetched_row[$result] =
+            max($this->highest_fetched_row[$result], $row);
         $res = @mysql_result($result, $row, $field);
         if ($res === FALSE && $res != NULL) {
             return($this->mysqlRaiseError($errno));
@@ -1347,32 +1348,30 @@ class MDB_mysql extends MDB_Common
             if (!@mysql_data_seek($result, $rownum)) {
                 return(NULL);
             }
-            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
+            $this->highest_fetched_row[$result] =
+                max($this->highest_fetched_row[$result], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
         if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-            $array = @mysql_fetch_array($result, MYSQL_ASSOC);
+            $row = @mysql_fetch_assoc($result);
+            if (is_array($row) && $this->options['optimize'] == 'portability') {
+                $row = array_change_key_case($row, CASE_LOWER);
+            }
         } else {
-            $array = @mysql_fetch_row($result);
+            $row = @mysql_fetch_row($result);
         }
-        if (!$array) {
-            // See: http://bugs.php.net/bug.php?id=22328
-            // for why we can't check errors on fetching
-#            $errno = @mysql_errno($this->connection);
-#            if (!$errno) {
-                if($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
-                return(NULL);
-#            }
-            return($this->mysqlRaiseError($errno));
+        if (!$row) {
+            if($this->options['autofree']) {
+                $this->freeResult($result);
+            }
+            return(NULL);
         }
         if (isset($this->result_types[$result])) {
-            $array = $this->convertResultRow($result, $array);
+            $row = $this->convertResultRow($result, $row);
         }
-        return($array);
+        return($row);
     }
 
     // }}}

@@ -1240,28 +1240,34 @@ class MDB_pgsql extends MDB_Common
             ++$this->highest_fetched_row[$result];
             $rownum = $this->highest_fetched_row[$result];
             if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-                $array = @pg_fetch_assoc($result);
+                $row = @pg_fetch_assoc($result);
+                if (is_array($row) && $this->options['optimize'] == 'portability') {
+                    $row = array_change_key_case($row, CASE_LOWER);
+                }
             } else {
-                $array = @pg_fetch_row($result);
+                $row = @pg_fetch_row($result);
             }
         } else {
             $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
             if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-                $array = @pg_fetch_assoc($result, $rownum);
+                $row = @pg_fetch_assoc($result, $rownum);
+                if (is_array($row) && $this->options['optimize'] == 'portability') {
+                    $row = array_change_key_case($row, CASE_LOWER);
+                }
             } else {
-                $array = @pg_fetch_row($result, $rownum);
+                $row = @pg_fetch_row($result, $rownum);
             }
         }
-        if (!$array) {
+        if (!$row) {
             if ($this->options['autofree']) {
                 $this->freeResult($result);
             }
             return(NULL);
         }
         if (isset($this->result_types[$result])) {
-            $array = $this->convertResultRow($result, $array);
+            $row = $this->convertResultRow($result, $row);
         }
-        return($array);
+        return($row);
     }
 
     // }}}
