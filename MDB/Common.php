@@ -1061,7 +1061,8 @@ class MDB_Common extends PEAR
         $this->debug($query, 'prepareQuery');
         $positions = array();
         for($position = 0;
-            $position < strlen($query) && is_int($question = strpos($query, '?', $position));) {
+            $position < strlen($query) && is_int($question = strpos($query, '?', $position));
+        ) {
             if (is_int($quote = strpos($query, "'", $position)) && $quote < $question) {
                 if (!is_int($end_quote = strpos($query, "'", $quote + 1))) {
                     return $this->raiseError(MDB_ERROR_SYNTAX, null, null,
@@ -1104,7 +1105,7 @@ class MDB_Common extends PEAR
     }
 
     // }}}
-    // {{{ _validatePreparedQuery()
+    // {{{ _validatePrepared()
 
     /**
      * validate that a handle is infact a prepared query
@@ -1113,7 +1114,7 @@ class MDB_Common extends PEAR
      *       the function prepare()
      * @access private
      */
-    function _validatePreparedQuery($prepared_query)
+    function _validatePrepared($prepared_query)
     {
         if ($prepared_query < 1 || $prepared_query > count($this->prepared_queries)) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
@@ -1154,7 +1155,7 @@ class MDB_Common extends PEAR
             }
         }
 
-        $result = $this->_validatePreparedQuery($prepared_query);
+        $result = $this->_validatePrepared($prepared_query);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -1226,7 +1227,7 @@ class MDB_Common extends PEAR
      */
     function freePreparedQuery($prepared_query)
     {
-        $result = $this->_validatePreparedQuery($prepared_query);
+        $result = $this->_validatePrepared($prepared_query);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -1268,7 +1269,7 @@ class MDB_Common extends PEAR
      */
     function execute($prepared_query, $types = null)
     {
-        $result = $this->_validatePreparedQuery($prepared_query);
+        $result = $this->_validatePrepared($prepared_query);
         if (MDB::isError($result)) {
             return $result;
         }

@@ -174,14 +174,11 @@ class MDB_mssql extends MDB_Common
         if ($this->connection) {
             if ($auto_commit) {
                 $result = $this->query('COMMIT TRANSACTION');
-                if (MDB::isError($result)) {
-                    return $result;
-                }
             } else {
                 $result = $this->query('BEGIN TRANSACTION');
-                if (MDB::isError($result)) {
-                    return $result;
-                }
+            }
+            if (MDB::isError($result)) {
+                return $result;
             }
         }
         $this->auto_commit = $auto_commit;
