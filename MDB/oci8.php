@@ -97,6 +97,7 @@ class MDB_oci8 extends MDB_Common {
         $this->supported['Indexes'] = 1;
         $this->supported['SummaryFunctions'] = 1;
         $this->supported['OrderByText'] = 1;
+        $this->supported["AffectedRows"]= 1;
         $this->supported['Transactions'] = 1;
         $this->supported['SelectRowRanges'] = 1;
         $this->supported['LOBs'] = 1;
@@ -108,6 +109,7 @@ class MDB_oci8 extends MDB_Common {
             904 => MDB_ERROR_NOSUCHFIELD,
             923 => MDB_ERROR_SYNTAX,
             942 => MDB_ERROR_NOSUCHTABLE,
+            2289 => MDB_ERROR_NOSUCHTABLE,
             955 => MDB_ERROR_ALREADY_EXISTS,
             1476 => MDB_ERROR_DIVZERO,
             1722 => MDB_ERROR_INVALID_NUMBER,
@@ -418,8 +420,8 @@ class MDB_oci8 extends MDB_Common {
                             {
                                 $position = key($this->clobs[$prepared_query]);
                                 $clob_stream = $this->prepared_queries[$prepared_query-1]['Values'][$position-1];
-                                for($value = '';!$this_>endOfLOB($clob_stream);) {
-                                    if ($this->readLOB($clob_stream, $data, $this->lob_buffer_length) < 0) {
+                                for($value = '';!$this->endOfLOB($clob_stream);) {
+                                    if ($this->readLOB($clob_stream, $data, $this->getOption('lob_buffer_length')) < 0) {
                                         $success = $this->raiseError();
                                         break;
                                     }
@@ -435,7 +437,7 @@ class MDB_oci8 extends MDB_Common {
                                     $position = key($this->blobs[$prepared_query]);
                                     $blob_stream = $this->prepared_queries[$prepared_query-1]['Values'][$position-1];
                                     for($value = '';!$this->endOfLOB($blob_stream);) {
-                                        if ($this->readLOB($blob_stream, $data, $this->lob_buffer_length) < 0) {
+                                        if ($this->readLOB($blob_stream, $data, $this->getOption('lob_buffer_length')) < 0) {
                                             $success = $this->raiseError();
                                             break;
                                         }
@@ -1303,8 +1305,7 @@ class MDB_oci8 extends MDB_Common {
      */
     function getClobValue($prepared_query, $parameter, $clob)
     {
-        $value = 'EMPTY_CLOB()';
-        return(MDB_OK);
+        return('EMPTY_CLOB()');
     }
 
     // }}}
@@ -1339,8 +1340,7 @@ class MDB_oci8 extends MDB_Common {
      */
     function getBlobValue($prepared_query, $parameter, $blob)
     {
-        $value = 'EMPTY_BLOB()';
-        return(MDB_OK);
+        return('EMPTY_BLOB()');
     }
 
     // }}}
@@ -1457,32 +1457,31 @@ class MDB_oci8 extends MDB_Common {
      * @return mixed MDB_Error or id
      * @access public 
      */
-    function nextId($seq_name, $ondemand = FALSE)
+    function nextId($seq_name, $ondemand = TRUE)
     {
         if (MDB::isError($connect = $this->connect())) {
             return($connect);
         }
         $sequence_name = $this->getSequenceName($seq_name);
-        $repeat = 0;
-        do {
-            $this->expectError(MDB_ERROR_NOSUCHTABLE);
-            $result = $this->_doQuery("SELECT ${sequence_name}.nextval FROM dual", 0, 0);
-            $this->popExpect();
-            if ($ondemand && MDB::isError($result) &&
-                $result->getCode() == MDB_ERROR_NOSUCHTABLE) {
-                $repeat = 1;
-                $result = $this->createSequence($seq_name);
-                if (MDB::isError($result)) {
-                    return($this->raiseError($result));
-                }
+        $this->expectError(MDB_ERROR_NOSUCHTABLE);
+        $result = $this->_doQuery("SELECT $sequence_name.nextval FROM DUAL");
+        $this->popExpect();
+        if ($ondemand && MDB::isError($result) &&
+            $result->getCode() == MDB_ERROR_NOSUCHTABLE)
+        {
+            // Since we are create the sequence on demand
+            // we know the first id = 1 so initialize the
+            // sequence at 2
+            $result = $this->createSequence($seq_name, 2);
+            if (MDB::isError($result)) {
+                return($this->raiseError(MDB_ERROR, '', '',
+                    'Next ID: on demand sequence could not be created'));
             } else {
-                $repeat = 0;
+                // First ID of a newly created sequence is 1
+                return(1);
             }
-        } while ($repeat);
-        if (MDB::isError($result)) {
-            return($this->raiseError($result));
         }
-        return($this->fetchOne($result, 'integer'));
+        return($this->fetchOne($result));
     }
 
     // }}}
@@ -1510,13 +1509,14 @@ class MDB_oci8 extends MDB_Common {
             return($this->results[$result_value][$rownum]);
         }
         if(isset($this->rows[$result_value])) {
-            return($this->raiseError('Fetch row: there are no more rows to retrieve'));
+            #return($this->raiseError('Fetch row: there are no more rows to retrieve'));
         }
         if(isset($this->limits[$result_value])) {
             if($rownum >= $this->limits[$result_value][1]) {
-                return($this->raiseError('Fetch row: attempted to fetch a row beyhond the number rows available in the query result'));
+                return(NULL);
+                #return($this->raiseError('Fetch row: attempted to fetch a row beyhond the number rows available in the query result'));
             }
-            if(!MDB::isError($this->_skipLimitOffset($result))) {
+            if(MDB::isError($this->_skipLimitOffset($result))) {
                 if($this->options['autofree']) {
                     $this->freeResult($result);
                 }
