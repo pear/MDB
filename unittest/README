@@ -13,6 +13,8 @@ are already created.
 
 To setup the tests
 
+* requires PHPUnit and HTML_IT to be installed
+
 * copy the file test_setup.php.dist to test_setup.php
 
 * edit test_setup.php. The array $testarray specifies which testcases
