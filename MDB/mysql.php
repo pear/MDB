@@ -727,7 +727,11 @@ class MDB_mysql extends MDB_Common
     */
     function numRows($result)
     {
-        return mysql_num_rows($result);
+        if ($this->options['result_buffering']) {
+            return mysql_num_rows($result);
+        }
+        return $this->raiseError(MDB_ERROR, null, null,
+            'Number of rows: nut supported if option "result_buffering" is not enabled');
     }
 
     // }}}
@@ -783,7 +787,7 @@ class MDB_mysql extends MDB_Common
                 $result = $this->manager->createSequence($this, $seq_name, 2);
                 if (MDB::isError($result)) {
                     return $this->raiseError(MDB_ERROR, null, null,
-                        'Next ID: on demand sequence could not be created');
+                        'nextID: on demand sequence '.$seq_name.' could not be created');
                 } else {
                     // First ID of a newly created sequence is 1
                     return 1;
@@ -791,10 +795,12 @@ class MDB_mysql extends MDB_Common
             }
             return $result;
         }
-        $value = intval(mysql_insert_id($this->connection));
-        $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
-        if (MDB::isError($res)) {
-            $this->warnings[] = 'Next ID: could not delete previous sequence table values';
+        $result = $this->query("SELECT last_insert_id()");
+        $value = $this->fetchOne($result);
+        $this->freeResult($result);
+        $result = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
+        if (MDB::isError($result)) {
+            $this->warnings[] = 'nextID: could not delete previous sequence table values from '.$seq_name;
         }
         return $value;
     }
@@ -818,6 +824,30 @@ class MDB_mysql extends MDB_Common
         }
 
         return $this->fetchOne($result);
+    }
+
+    // }}}
+    // {{{ fetch()
+
+    /**
+    * fetch value from a result set
+    *
+    * @param resource    $result result identifier
+    * @param int    $rownum    number of the row where the data can be found
+    * @param int    $field    field number where the data can be found
+    * @return mixed string on success, a MDB error on failure
+    * @access public
+    */
+    function fetch($result, $rownum, $field)
+    {
+        $result_value = intval($result);
+        $this->results[$result_value]['highest_fetched_row'] =
+            max($this->results[$result_value]['highest_fetched_row'], $rownum);
+        $value = @mysql_result($result, $rownum, $field);
+        if ($value === FALSE && $value != NULL) {
+            return($this->mysqlRaiseError($errno));
+        }
+        return($value);
     }
 
     // }}}
