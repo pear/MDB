@@ -19,7 +19,7 @@ class DB
         if (!is_array($options) && $options) {
             $$options["persistent"] = true;
         }
-		$db = MDB::connect($dsn, $options);
+        $db = MDB::connect($dsn, $options);
         if(PEAR::isError($db))
         {
             return $db;
@@ -189,12 +189,14 @@ class MDB_PEAR_PROXY
 
     function quoteString($string)
     {
-        return $this->MDB_object->quoteString($string);
+        $this->MDB_object->quoteString($string);
+        return $string;
     }
 
     function quote($string)
     {
-        return $this->MDB_object->quote($string);
+        $this->MDB_object->quote($string);
+        return $string;
     }
 
     function provides($feature)
