@@ -322,9 +322,9 @@ class MDB_PEAR_PROXY
     function quote($string)
     {
         if ($string === null) {
-            return 'null';
+            return 'NULL';
         }
-        return $this->MDB_object->quote($string);
+        return "'".$this->MDB_object->quote($string)."'";
     }
 
     function provides($feature)
