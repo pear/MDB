@@ -155,6 +155,7 @@
     echo Var_Dump::display($db->query("DELETE FROM numbers"))."<br>";
     // subselect test
     $sub_select = $db->subSelect("SELECT test_name from test WHERE test_name = ".$db->getTextFieldValue('gummihuhn'), TRUE);
+    echo Var_Dump::display($sub_select)."<br>";
     $query_with_subselect = "SELECT * FROM test WHERE test_name IN (".$sub_select.")";
     // run the query and get a result handler
     echo $query_with_subselect."<br>";
