@@ -3651,7 +3651,7 @@ class MDB_Common extends PEAR
             $rownum = $this->highest_fetched_row[$result_value];
         } else {
             $this->highest_fetched_row[$result_value] =
-                max($this->highest_fetched_row[$result_value], $row);
+                max($this->highest_fetched_row[$result_value], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
@@ -3663,6 +3663,7 @@ class MDB_Common extends PEAR
         if ($fetchmode & MDB_FETCHMODE_ASSOC) {
             $column_names = $this->getColumnNames($result);
         }
+        $row = array();
         for($column = 0; $column < $columns; $column++) {
             if (!$this->resultIsNull($result, $rownum, $column)) {
                 $value = $this->fetch($result, $rownum, $column);
