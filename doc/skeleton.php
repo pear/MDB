@@ -108,6 +108,12 @@ class MDB_xxx extends MDB_Common
         $this->phptype = 'xxx';
         $this->dbsyntax = 'xxx';
         
+        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
+                NULL, NULL, 'extension {$type} is not compiled into PHP',
+                'MDB_Error', TRUE);
+        }
+        
         // most of the following codes needs to be taken from the corresponding Metabase driver setup() methods
         
         // the error code maps from corresponding PEAR DB driver constructor
