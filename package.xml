@@ -80,13 +80,11 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.1.0</version>
+    <version>1.1.0pl1</version>
     <state>devel</state>
     <date>2002-11-25</date>
     <notes>
-PEAR-ized directory structure and class names
-Added PHPUnit test suite (browser and cli)
-Minor bugfixes and API changes
+Fixed issue of metapear_test_db.schema being in the wrong dir
 </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
