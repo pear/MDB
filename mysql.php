@@ -179,28 +179,28 @@ class MDB_mysql extends MDB_common
                 }
                 switch(isset($fields[$name]["Type"]) ? $fields[$name]["Type"] : "text") {
                     case "text":
-                        $value = $this->GetTextFieldValue($fields[$name]["Value"]);
+                        $value = $this->getTextFieldValue($fields[$name]["Value"]);
                         break;
                     case "boolean":
-                        $value = $this->GetBooleanFieldValue($fields[$name]["Value"]);
+                        $value = $this->getBooleanFieldValue($fields[$name]["Value"]);
                         break;
                     case "integer":
                         $value = strval($fields[$name]["Value"]);
                         break;
                     case "decimal":
-                        $value = $this->GetDecimalFieldValue($fields[$name]["Value"]);
+                        $value = $this->getDecimalFieldValue($fields[$name]["Value"]);
                         break;
                     case "float":
-                        $value = $this->GetFloatFieldValue($fields[$name]["Value"]);
+                        $value = $this->getFloatFieldValue($fields[$name]["Value"]);
                         break;
                     case "date":
-                        $value = $this->GetDateFieldValue($fields[$name]["Value"]);
+                        $value = $this->getDateFieldValue($fields[$name]["Value"]);
                         break;
                     case "time":
-                        $value = $this->GetTimeFieldValue($fields[$name]["Value"]);
+                        $value = $this->getTimeFieldValue($fields[$name]["Value"]);
                         break;
                     case "timestamp":
-                        $value = $this->GetTimestampFieldValue($fields[$name]["Value"]);
+                        $value = $this->getTimestampFieldValue($fields[$name]["Value"]);
                         break;
                     default:
                         return $this->raiseError(DB_ERROR_CANNOT_REPLACE, "", "", 
@@ -433,17 +433,17 @@ class MDB_mysql extends MDB_common
             $value .= $data;
         }
         $value .= "'";
-        return (1);            
+        return (1);
     }
 
-    function FreeClobValue($prepared_query, $clob, &$value, $success)
+    function freeClobValue($prepared_query, $clob, &$value, $success)
     {
         unset($value);
     }
 
     function getBLobFieldValue($prepared_query, $parameter, $blob, &$value)
     {
-        for($value = "'";!endOfLob($blob);)    {
+        for($value = "'";!endOfLob($blob);) {
             if (!readLob($blob, $data, $this->lob_buffer_length)) {
                 $value = "";
                 return $this->raiseError(DB_ERROR, "", "", 
@@ -452,7 +452,7 @@ class MDB_mysql extends MDB_common
             $value .= addslashes($data);
         }
         $value .= "'";
-        return (1);            
+        return (1);
     }
 
     function freeBLobValue($prepared_query, $blob, &$value, $success)
@@ -890,4 +890,4 @@ class MDB_mysql extends MDB_common
     }
 };
 }
-?>
+?> 
