@@ -565,8 +565,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         // Test currId()
         $sequence_name = 'test_currid';
 
-        $result = $this->db->createSequence($sequence_name);
-
         $next = $this->db->nextId($sequence_name);
         $curr = $this->db->currId($sequence_name);
 
