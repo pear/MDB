@@ -241,9 +241,9 @@ class MDB_querysim extends MDB_Common
     /**
     * Constructor
     */
-    function MDB_querysim($dsninfo = null, $options = null)
+    function MDB_querysim()
     {
-        $this->MDB_common($dsninfo, $options);
+        $this->MDB_common();
         $this->phptype  = 'querysim';
         $this->dbsyntax = 'querysim';
         

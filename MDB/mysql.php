@@ -82,12 +82,9 @@ class MDB_mysql extends MDB_Common
     /**
     * Constructor
     */
-    function MDB_mysql($dsninfo = NULL, $options = NULL)
+    function MDB_mysql()
     {
-        if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
-            return($common_contructor);
-        }
-        
+        $this->MDB_common($dsninfo);
         $this->phptype = 'mysql';
         $this->dbsyntax = 'mysql';
 
@@ -101,37 +98,6 @@ class MDB_mysql extends MDB_Common
         $this->supported['LOBs'] = 1;
         $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 0;
-        if(isset($this->options['UseTransactions'])
-            && $this->options['UseTransactions'])
-        {
-            $this->supported['Transactions'] = 1;
-            $this->default_table_type = 'BDB';
-        } else {
-            $this->default_table_type = '';
-        }
-        if(isset($this->options['DefaultTableType'])) {
-            switch($this->default_table_type = strtoupper($this->options['DefaultTableType'])) {
-                case 'BERKELEYDB':
-                    $this->default_table_type = 'BDB';
-                case 'BDB':
-                case 'INNODB':
-                case 'GEMINI':
-                    break;
-                case 'HEAP':
-                case 'ISAM':
-                case 'MERGE':
-                case 'MRG_MYISAM':
-                case 'MYISAM':
-                    if(isset($this->supported['Transactions'])) {
-                        $this->warnings[] = $this->options['DefaultTableType']
-                            .' is not a transaction-safe default table type';
-                    }
-                    break;
-                default:
-                    $this->warnings[] = $this->options['DefaultTableType']
-                        .' is not a supported default table type';
-            }
-        }
         
         $this->decimal_factor = pow(10.0, $this->decimal_places);
         
@@ -306,7 +272,7 @@ class MDB_mysql extends MDB_Common
     function connect()
     {
         $port = (isset($this->port) ? $this->port : '');
-        if ($this->connection != 0) {
+        if($this->connection != 0) {
             if (!strcmp($this->connected_host, $this->host)
                 && !strcmp($this->connected_user, $this->user)
                 && !strcmp($this->connected_password, $this->password)
@@ -319,10 +285,43 @@ class MDB_mysql extends MDB_Common
             $this->connection = 0;
             $this->affected_rows = -1;
         }
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+
+        if(PEAR::isError(PEAR::loadExtension($this->phptype))) {
             return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
                 NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
                 'MDB_Error', TRUE));
+        }
+
+        $UseTransactions = $this->getOption('UseTransactions');
+        if(!MDB::isError($UseTransactions) && $UseTransactions) {
+            $this->supported['Transactions'] = 1;
+            $this->default_table_type = 'BDB';
+        } else {
+            $this->default_table_type = '';
+        }
+        $DefaultTableType = $this->getOption('DefaultTableType');
+        if(!MDB::isError($DefaultTableType) && $DefaultTableType) {
+            switch($this->default_table_type = strtoupper($DefaultTableType)) {
+                case 'BERKELEYDB':
+                    $this->default_table_type = 'BDB';
+                case 'BDB':
+                case 'INNODB':
+                case 'GEMINI':
+                    break;
+                case 'HEAP':
+                case 'ISAM':
+                case 'MERGE':
+                case 'MRG_MYISAM':
+                case 'MYISAM':
+                    if(isset($this->supported['Transactions'])) {
+                        $this->warnings[] = $DefaultTableType
+                            .' is not a transaction-safe default table type';
+                    }
+                    break;
+                default:
+                    $this->warnings[] = $DefaultTableType
+                        .' is not a supported default table type';
+            }
         }
 
         $this->fixed_float = 30;
@@ -370,7 +369,7 @@ class MDB_mysql extends MDB_Common
         $this->connected_user = $this->user;
         $this->connected_password = $this->password;
         $this->connected_port = $port;
-        $this->opened_persistent = $this->options['persistent'];
+        $this->opened_persistent = $this->getoption('persistent');
         return(MDB_OK);
     }
 

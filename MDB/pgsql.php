@@ -74,17 +74,12 @@ class MDB_pgsql extends MDB_common
     /**
     * Constructor
     */
-    function MDB_pgsql($dsninfo = NULL, $options = NULL)
+    function MDB_pgsql()
     {
-        if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
-            return($common_contructor);
-        }
+        $this->MDB_common();
         $this->phptype = 'pgsql';
         $this->dbsyntax = 'pgsql';
 
-        if (!function_exists('pg_connect')) {
-            return('PostgreSQL support is not available in this PHP configuration');
-        }
         $this->supported['Sequences'] = 1;
         $this->supported['Indexes'] = 1;
         $this->supported['SummaryFunctions'] = 1;
@@ -97,28 +92,6 @@ class MDB_pgsql extends MDB_common
         $this->supported['SubSelects'] = 1;
         
         $this->decimal_factor = pow(10.0, $this->decimal_places);
-        
-        if (function_exists('pg_cmdTuples')) {
-            $connection = $this->_doConnect('template1', 0);
-            if (!MDB::isError($connection)) {
-                if (($result = @pg_Exec($connection, 'BEGIN'))) {
-                    $error_reporting = error_reporting(63);
-                    @pg_cmdTuples($result);
-                    if (!isset($php_errormsg) || strcmp($php_errormsg, 'This compilation does not support pg_cmdtuples()')) {
-                        $this->supported['AffectedRows'] = 1;
-                    }
-                    error_reporting($error_reporting);
-                } else {
-                    $err = $this->raiseError(MDB_ERROR, NULL, NULL, 'Setup: '.pg_ErrorMessage($connection));
-                }
-                pg_Close($connection);
-            } else {
-                $err = $this->raiseError(MDB_ERROR, NULL, NULL, 'Setup: could not execute BEGIN');
-            }
-            if (isset($err) && MDB::isError($err)) {
-                return($err);
-            }
-        }
     }
 
     // }}}
@@ -325,7 +298,7 @@ class MDB_pgsql extends MDB_common
     function connect()
     {
         $port = (isset($this->options['port']) ? $this->options['port'] : '');
-        if ($this->connection != 0) {
+        if($this->connection != 0) {
             if (!strcmp($this->connected_host, $this->host)
                 && !strcmp($this->connected_port, $port)
                 && !strcmp($this->selected_database, $this->database_name)
@@ -337,12 +310,34 @@ class MDB_pgsql extends MDB_common
             $this->affected_rows = -1;
             $this->connection = 0;
         }
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+
+        if(PEAR::isError(PEAR::loadExtension($this->phptype))) {
             return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
                 NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
                 'MDB_Error', TRUE));
         }
 
+        if(function_exists('pg_cmdTuples')) {
+            $connection = $this->_doConnect('template1', 0);
+            if (!MDB::isError($connection)) {
+                if (($result = @pg_Exec($connection, 'BEGIN'))) {
+                    $error_reporting = error_reporting(63);
+                    @pg_cmdTuples($result);
+                    if (!isset($php_errormsg) || strcmp($php_errormsg, 'This compilation does not support pg_cmdtuples()')) {
+                        $this->supported['AffectedRows'] = 1;
+                    }
+                    error_reporting($error_reporting);
+                } else {
+                    $err = $this->raiseError(MDB_ERROR, NULL, NULL, 'Setup: '.pg_ErrorMessage($connection));
+                }
+                pg_Close($connection);
+            } else {
+                $err = $this->raiseError(MDB_ERROR, NULL, NULL, 'Setup: could not execute BEGIN');
+            }
+            if (isset($err) && MDB::isError($err)) {
+                return($err);
+            }
+        }
         $connection = $this->_doConnect($this->database_name, $this->options['persistent']);
         if (MDB::isError($connection)) {
             return($connection);

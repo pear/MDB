@@ -79,11 +79,9 @@ class MDB_oci8 extends MDB_Common {
     /**
      * Constructor
      */
-    function MDB_oci8($dsninfo = NULL, $options = NULL)
+    function MDB_oci8()
     {
-        if (MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
-            return($common_contructor);
-        }
+        $this->MDB_common();
         $this->phptype = 'oci8';
         $this->dbsyntax = 'oci8';
 
@@ -279,11 +277,11 @@ class MDB_oci8 extends MDB_Common {
         } else {
             $sid = getenv('ORACLE_SID');
         }
-        if (!strcmp($sid, '')) {
+        if(!strcmp($sid, '')) {
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'Connect: it was not specified a valid Oracle Service IDentifier (SID)'));
         }
-        if ($this->connection != 0) {
+        if($this->connection != 0) {
             if (!strcmp($this->connected_user, $user)
                 && !strcmp($this->connected_password, $password)
                 && $this->opened_persistent == $persistent)
@@ -292,7 +290,8 @@ class MDB_oci8 extends MDB_Common {
             }
             $this->_close();
         }
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+
+        if(PEAR::isError(PEAR::loadExtension($this->phptype))) {
             return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
                 NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
                 'MDB_Error', TRUE));
