@@ -187,9 +187,8 @@ class MDB
                     return $test;
                 }
             }
-        } else {
-            $db->setOption('persistent', $options);
         }
+
         $include_lob = $db->getOption('include_lob');
         if (!MDB::isError($include_lob) && $include_lob) {
             MDB::loadFile('LOB');
