@@ -244,10 +244,6 @@ class MDB
         if (!MDB::isError($include_manager) && $include_manager) {
             $db->loadModule('manager');
         }
-        $debug = $db->getOption('debug');
-        if (!MDB::isError($debug) && $debug) {
-            $db->captureDebugOutput(true);
-        }
     }
 
     // }}}
