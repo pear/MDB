@@ -191,7 +191,7 @@ class MDB_parser extends PEAR
         return(1);
     }
 
-    function ValidateFieldValue(&$field, &$value, $value_type, $path)
+    function validateFieldValue(&$field, &$value, $value_type, $path)
     {
         switch($field["type"])
         {
@@ -397,6 +397,7 @@ class MDB_parser extends PEAR
                 {
                     return($this->setParserError("0", "it were not specified any database tables"));
                 }
+                
                 for($table = 0; $table < $tables; $table++)    {
                     $table_definition = array("FIELDS" => array());
                     if (!$this->parseProperties($database_tags["table"][$table],
@@ -720,7 +721,7 @@ class MDB_parser extends PEAR
                             $instruction_element < $instruction_elements;
                             $instruction_element++)
                         {
-                            $instruction_element_path = $table_tags["initialization"][0].", $instruction_element";
+                            $instruction_element_path = $table_tags["initialization"][0].",$instruction_element";
                             $data = $this->xml_parser->structure[$instruction_element_path];
                             if (gettype($data) == "array") {
                                 switch($data["Tag"]) {
