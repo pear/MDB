@@ -1404,7 +1404,7 @@ class MDB_Common extends PEAR
      * Define the list of types to be associated with the columns of a given
      * result set.
      *
-     * This function may be called before invoking fetchInto(), fetchOne(),
+     * This function may be called before invoking fetchOne(),
      * fetchRow(), fetchCol() and fetchAll() so that the necessary data type
      * conversions are performed on the data to be retrieved by them. If this
      * function is not called, the type of all result set columns is assumed
@@ -1709,68 +1709,10 @@ class MDB_Common extends PEAR
     }
 
     // }}}
-    // {{{ fetchInto()
-
-    /**
-     * Fetch a row and return data in an array.
-     *
-     * @param resource $result result identifier
-     * @param int $fetchmode ignored
-     * @param int $rownum the row number to fetch
-     * @return mixed data array or null on success, a MDB error on failure
-     * @access public
-     */
-    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
-    {
-        if (MDB::isError($result)) {
-            return $this->raiseError(MDB_ERROR_NEED_MORE_DATA, null, null,
-                'Fetch field: it was not specified a valid result set');
-        }
-        if (MDB::isError($this->endOfResult($result))) {
-            $this->freeResult($result);
-            $result = $this->raiseError(MDB_ERROR_NEED_MORE_DATA, null, null,
-                'Fetch field: result set is empty');
-        }
-        if ($rownum == null) {
-            ++$this->highest_fetched_row[$result];
-            $rownum = $this->highest_fetched_row[$result];
-        } else {
-            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $row);
-        }
-        if ($rownum + 1 > $this->numRows($result)) {
-            return null;
-        }
-        $columns = $this->numCols($result);
-        if (MDB::isError($columns)) {
-            return $columns;
-        }
-        for($column = 0; $column < $columns; $column++) {
-            if (!$this->resultIsNull($result, $rownum, $column)) {
-                $result = $this->fetch($result, $rownum, $column);
-                if (MDB::isError($result)) {
-                    if ($result->getMessage() == '') {
-                        if ($this->options['autofree']) {
-                            $this->freeResult($result);
-                        }
-                        return null;
-                    } else {
-                        return $result;
-                    }
-                }
-            }
-            $array[$column] = $result;
-        }
-        if (isset($this->result_types[$result])) {
-            $array = $this->convertResultRow($result, $array);
-        }
-        return $array;
-    }
-
-    // }}}
     // {{{ fetchOne()
 
     /**
-     * Fetch and return a field of data (it uses fetchInto for that)
+     * Fetch and return a field of data (it uses fetchRow for that)
      *
      * @param resource $result result identifier
      * @return mixed data on success, a MDB error on failure
@@ -1778,7 +1720,7 @@ class MDB_Common extends PEAR
      */
     function fetchOne($result)
     {
-        $row = $this->fetchInto($result, MDB_FETCHMODE_ORDERED);
+        $row = $this->fetchRow($result, MDB_FETCHMODE_ORDERED);
         if (!$this->options['autofree'] || $row != null) {
             $this->freeResult($result);
         }
@@ -1792,7 +1734,7 @@ class MDB_Common extends PEAR
     // {{{ fetchRow()
 
     /**
-     * Fetch and return a row of data (it uses fetchInto for that)
+     * Fetch and return a row of data
      *
      * @param resource $result result identifier
      * @param int $fetchmode how the array data should be indexed
@@ -1800,20 +1742,47 @@ class MDB_Common extends PEAR
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
+    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
-        $row = $this->fetchInto($result, $fetchmode, $rownum);
-        if (!$this->options['autofree'] || $row != null) {
+        if (MDB::isError($this->endOfResult($result))) {
             $this->freeResult($result);
+            return null;
         }
-        return $row;
+
+        $columns = $this->numCols($result);
+        if (MDB::isError($columns)) {
+            return $columns;
+        }
+        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+            $column_names = $this->getColumnNames($result);
+            if (MDB::isError($column_names)) {
+                return $column_names;
+            }
+        }
+        for($column = 0; $column < $columns; $column++) {
+            if (!$this->resultIsNull($result, $rownum, $column)) {
+                $result = $this->fetch($result, $rownum, $column);
+                if ($result == null) {
+                    return null;
+                }
+            }
+            if (isset()) {
+                $array[$column_names[$column]] = $result;
+            } else {
+                $array[$column] = $result;
+            }
+        }
+        if (isset($this->results[$result]['types'])) {
+            $array = $this->datatype->convertResultRow($this, $result, $array);
+        }
+        return $array;
     }
 
     // }}}
     // {{{ fetchCol()
 
     /**
-     * Fetch and return a column of data (it uses fetchInto for that)
+     * Fetch and return a column of data (it uses fetchRow for that)
      *
      * @param resource $result result identifier
      * @param int $colnum the row number to fetch
@@ -1825,12 +1794,12 @@ class MDB_Common extends PEAR
         $fetchmode = is_numeric($colnum) ? MDB_FETCHMODE_ORDERED : MDB_FETCHMODE_ASSOC;
         $column = array();
         $rownum = 0;
-        $row = $this->fetchInto($result, $fetchmode, $rownum);
+        $row = $this->fetchRow($result, $fetchmode, $rownum);
         if (is_array($row)) {
             if (isset($row[$colnum])) {
                 $column[] = $row[$colnum];
                 ++$rownum;
-                while (is_array($row = $this->fetchInto($result, $fetchmode, $rownum))) {
+                while (is_array($row = $this->fetchRow($result, $fetchmode, $rownum))) {
                     $column[] = $row[$colnum];
                     ++$rownum;
                 }
@@ -1839,9 +1808,7 @@ class MDB_Common extends PEAR
                 return $this->raiseError(MDB_ERROR_TRUNCATED);
             }
         }
-        if (!$this->options['autofree']) {
-            $this->freeResult($result);
-        }
+
         if (MDB::isError($row)) {
             return $row;
         }
@@ -1852,7 +1819,7 @@ class MDB_Common extends PEAR
     // {{{ fetchAll()
 
     /**
-     * Fetch and return a column of data (it uses fetchInto for that)
+     * Fetch and return a column of data (it uses fetchRow for that)
      *
      * @param resource $result result identifier
      * @param int $fetchmode how the array data should be indexed
@@ -1882,7 +1849,7 @@ class MDB_Common extends PEAR
         }
         $all = array();
         $rownum = 0;
-        while (is_array($row = $this->fetchInto($result, $fetchmode, $rownum))) {
+        while (is_array($row = $this->fetchRow($result, $fetchmode, $rownum))) {
             if ($rekey) {
                 if ($fetchmode & MDB_FETCHMODE_ASSOC) {
                     $key = reset($row);
@@ -1909,9 +1876,7 @@ class MDB_Common extends PEAR
             }
             ++$rownum;
         }
-        if (!$this->options['autofree']) {
-            $this->freeResult($result);
-        }
+
         if (MDB::isError($row)) {
             return $row;
         }

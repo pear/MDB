@@ -82,7 +82,7 @@
         <history author="Alan Richmond" email="arichmond@bigfoot.com" type="Create" date="10-July-2002">
             Rewrote in PHP as an extention to the PEAR DB API.
             Functions supported:
-                connect, disconnect, query, fetchRow, fetchInto, freeResult,
+                connect, disconnect, query, fetchRow, freeResult,
                 numCols, numRows, getSpecialQuery
             David Huyck (bombusbee.com) added ability to escape special
                 characters (i.e., delimiters) using a '\'.
@@ -140,7 +140,7 @@
             Ported to PEAR MDB.
             Methods supported:
                 connect, query, getColumnNames, numCols, endOfResult, fetch,
-                numRows, freeResult, fetchInto, nextResult, setLimit
+                numRows, freeResult, fetchRow, nextResult, setLimit
                 (inherited).
         </history>
         <history
@@ -716,7 +716,7 @@ class MDB_querysim extends MDB_Common
     }
     // }}}
 
-    // {{{ fetchInto()
+    // {{{ fetchRow()
 
     /**
      * Fetch a row and return data in an array.
@@ -727,7 +727,7 @@ class MDB_querysim extends MDB_Common
      * @return mixed data array or null on success, a MDB error on failure
      * @access public
      */
-    function fetchInto(&$result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
+    function fetchRow(&$result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_link = $this->_querySimSignature($result);
         //if specific rownum request
@@ -753,6 +753,9 @@ class MDB_querysim extends MDB_Common
                 $arraytemp[$result[0][$key]] = $value;
             }
             $array = $arraytemp;
+        }
+        if (isset($this->results[$result]['types'])) {
+            $array = $this->datatype->convertResultRow($this, $result, $array);
         }
         return $array;
     }

@@ -738,8 +738,8 @@ class MDB_oci8 extends MDB_Common
         if (MDB::isError($column = $this->_getColumn($result, $field))) {
             return $column;
         }
-        if (MDB::isError($fetchinto = $this->fetchInto($result, MDB_FETCHMODE_ORDERED, $row))) {
-            return $fetchInto;
+        if (MDB::isError($fetchrow = $this->fetchRow($result, MDB_FETCHMODE_ORDERED, $row))) {
+            return $fetchrow;
         }
         $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $row);
         return !isset($this->results[$result_value][$row][$column]);
@@ -805,8 +805,8 @@ class MDB_oci8 extends MDB_Common
            return $this->raiseError(MDB_ERROR, null, null,
                'Free result: attemped to free an unknown query result');
         }
-        if (isset($this->highest_fetched_row[$result])) {
-            unset($this->highest_fetched_row[$result]);
+        if (isset($this->results[$result])) {
+            unset($this->results[$result]);
         }
         if (isset($this->row_buffer[$result_value])) {
             unset($this->row_buffer[$result_value]);
@@ -820,14 +820,8 @@ class MDB_oci8 extends MDB_Common
         if (isset($this->results[$result_value])) {
             unset($this->results[$result_value]);
         }
-        if (isset($this->columns[$result])) {
-            unset($this->columns[$result]);
-        }
         if (isset($this->rows[$result_value])) {
             unset($this->rows[$result_value]);
-        }
-        if (isset($this->result_types[$result])) {
-            unset($this->result_types[$result]);
         }
         return @OCIFreeCursor($result);
     }
@@ -857,7 +851,7 @@ class MDB_oci8 extends MDB_Common
     }
 
     // }}}
-    // {{{ fetchInto()
+    // {{{ fetchRow()
 
     /**
      * Fetch a row and insert the data into an existing array.
@@ -868,7 +862,7 @@ class MDB_oci8 extends MDB_Common
      * @return int data array on success, a MDB error on failure
      * @access public 
      */
-    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
+    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_value = intval($result);
         if (!isset($this->current_row[$result_value])) {
@@ -918,8 +912,8 @@ class MDB_oci8 extends MDB_Common
         $result_value = intval($result);
         $array = $this->results[$result_value][$rownum];
         $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $rownum);
-        if (isset($this->result_types[$result])) {
-            $array = $this->convertResultRow($result, $array);
+        if (isset($this->results[$result]['types'])) {
+            $array = $this->datatype->convertResultRow($this, $result, $array);
         }
         return $array;
     }

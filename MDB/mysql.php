@@ -450,7 +450,7 @@ class MDB_mysql extends MDB_Common
                 $this->affected_rows = mysql_affected_rows($this->connection);
                 return MDB_OK;
             } else {
-                $this->highest_fetched_row[$result] = -1;
+                $this->results[$result]['highest_fetched_row'] = -1;
                 if ($types != null) {
                     if (!is_array($types)) {
                         $types = array($types);
@@ -702,11 +702,11 @@ class MDB_mysql extends MDB_Common
     */
     function endOfResult($result)
     {
-        if (!isset($this->highest_fetched_row[$result])) {
+        if (!isset($this->results[$result]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'End of result: attempted to check the end of an unknown result');
         }
-        return $this->highest_fetched_row[$result] >= $this->numRows($result)-1;
+        return $this->results[$result]['highest_fetched_row'] >= $this->numRows($result)-1;
     }
 
     // }}}
@@ -736,14 +736,8 @@ class MDB_mysql extends MDB_Common
      */
     function freeResult($result)
     {
-        if (isset($this->highest_fetched_row[$result])) {
-            unset($this->highest_fetched_row[$result]);
-        }
-        if (isset($this->columns[$result])) {
-            unset($this->columns[$result]);
-        }
-        if (isset($this->result_types[$result])) {
-            unset($this->result_types[$result]);
+        if (isset($this->results[$result])) {
+            unset($this->results[$result]);
         }
         return mysql_free_result($result);
     }
@@ -794,7 +788,7 @@ class MDB_mysql extends MDB_Common
     }
 
     // }}}
-    // {{{ fetchInto()
+    // {{{ fetchRow()
 
     /**
      * Fetch a row and insert the data into an existing array.
@@ -805,15 +799,15 @@ class MDB_mysql extends MDB_Common
      * @return int data array on success, a MDB error on failure
      * @access public
      */
-    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
+    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         if ($rownum == null) {
-            ++$this->highest_fetched_row[$result];
+            ++$this->results[$result]['highest_fetched_row'];
         } else {
             if (!@mysql_data_seek($result, $rownum)) {
                 return null;
             }
-            $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
+            $this->results[$result]['highest_fetched_row'] = max($this->results[$result]['highest_fetched_row'], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
@@ -833,8 +827,8 @@ class MDB_mysql extends MDB_Common
             }
             return $this->mysqlRaiseError($errno);
         }
-        if (isset($this->result_types[$result])) {
-            $array = $this->convertResultRow($result, $array);
+        if (isset($this->results[$result]['types'])) {
+            $array = $this->datatype->convertResultRow($this, $result, $array);
         }
         return $array;
     }

@@ -664,18 +664,18 @@ class MDB_ibase extends MDB_Common
         //return 1;
 
         /*
-        if (!isset($this->highest_fetched_row[$result])) {
+        if (!isset($this->results[$result]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR, null, null, 'Get Column Names: specified an nonexistant result set');
         }
-        if (!isset($this->columns[$result])) {
-            $this->columns[$result] = array();
+        if (!isset($this->results[$result]['columns'])) {
+            $this->results[$result]['columns'] = array();
             $columns = ibase_num_fields($result);
             for ($column = 0; $column < $columns; $column++) {
                 $_fieldInfo = ibase_field_info($result, $column);
-                $this->columns[$result][strtolower($_fieldInfo['name'])] = $column;
+                $this->results[$result]['columns'][strtolower($_fieldInfo['name'])] = $column;
             }
         }
-        return $this->columns[$result];
+        return $this->results[$result]['columns'];
         */
     }
 
@@ -760,7 +760,7 @@ class MDB_ibase extends MDB_Common
     }
 
     // }}}
-    // {{{ fetchInto()
+    // {{{ fetchRow()
 
     /**
      * Fetch a row and return data in an array.
@@ -771,27 +771,7 @@ class MDB_ibase extends MDB_Common
      * @return mixed data array or null on success, a MDB error on failure
      * @access public
      */
-    function fetchInto($result, $fetchmode=MDB_FETCHMODE_DEFAULT, $rownum=null)
-    {
-        if (MDB::isError($err = $this->fetchResultRow($result, $rownum))) {
-            //echo '<span style="background-color:red">fetchInto ERROR!</span>';
-            return $err;
-        }
-        $result_value = intval($result);
-
-        //Should I do this? Why default value is null and not 0?
-        if ($rownum === null) {
-            $rownum = 0;
-        }
-        $array = $this->results[$result_value][$rownum];
-        $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $rownum);
-        return $this->convertResultRow($result, $array);
-    }
-
-    // }}}
-    // {{{ fetchResultRow()
-
-    function fetchResultRow($result, $rownum = null)
+    function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         //should I do this? Why $rownum is null by default and not 0?
         if (is_null($rownum)) {
@@ -830,9 +810,14 @@ class MDB_ibase extends MDB_Common
                     $this->results[$result_value][$this->current_row[$result_value]+1][$key] = rtrim($valueWithSpace);
                 }
             }
-
         }
-        return MDB_OK;
+
+        $array = $this->results[$result_value][$rownum];
+        $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $rownum);
+        if (isset($this->results[$result]['types'])) {
+            $array = $this->datatype->convertResultRow($this, $result, $array);
+        }
+        return $array;
     }
 
     // }}}
@@ -895,8 +880,8 @@ class MDB_ibase extends MDB_Common
            return $this->raiseError(MDB_ERROR, null, null,
                'Free result: attemped to free an unknown query result');
         }
-        if (isset($this->highest_fetched_row[$result])) {
-            unset($this->highest_fetched_row[$result]);
+        if (isset($this->results[$result])) {
+            unset($this->results[$result]);
         }
         if (isset($this->row_buffer[$result_value])) {
             unset($this->row_buffer[$result_value]);
@@ -910,14 +895,8 @@ class MDB_ibase extends MDB_Common
         if (isset($this->results[$result_value])) {
             unset($this->results[$result_value]);
         }
-        if (isset($this->columns[$result])) {
-            unset($this->columns[$result]);
-        }
         if (isset($this->rows[$result_value])) {
             unset($this->rows[$result_value]);
-        }
-        if (isset($this->result_types[$result])) {
-            unset($this->result_types[$result]);
         }
         if (is_resource($result)) {
             return @ibase_free_result($result);
