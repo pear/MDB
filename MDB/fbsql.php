@@ -1186,9 +1186,9 @@ class MDB_fbsql extends MDB_Common
      * @return int data array on success, a MDB error on failure
      * @access public
      */
-    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = 0)
+    function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        if ($rownum == 0) {
+        if ($rownum == NULL) {
             ++$this->highest_fetched_row[$result];
         } else {
             if (!@fbsql_data_seek($result, $rownum)) {
