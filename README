@@ -53,17 +53,9 @@ portability. Among other things MDB features:
 * Wrappers for the PEAR DB and Metabase APIs
 * PHPDoc API documentation
 
-Currently supported RDBMS:
-MySQL
-PostGreSQL
-Oracle (beta)
-Frontbase SQL (alpha)
-Querysim
-Other soon to follow. 
-
 ** Getting started:
 
-I would first recommend taking a look at MDB_test.php.
+I would first recommend taking a look at example.php.
 This should give you a general feel of how to interact with MDB.
 
 After that you may want to take a look at the rather large API
@@ -76,53 +68,23 @@ just recently ported from Metabase, so it may contain errors).
 The current release can be found at the PEAR webpage:
   http://pear.php.net/package-info.php?package=MDB
 
------------------------------------ WARNING -----------------------------------
-MDB is still undergoing active development and therefore its API might
-change slightly until drivers for ODBC and Sybase/MS-SQL have been added. But
-since MDB is heavily based on PEAR DB and Metabase who both have drivers for
-these RDBMS this is probably fairly unlikely to happen or have large effects.
-It is unlikely that BC specific code will be written to maintain BC for only
-release prior to this version.
+The core of MDB is quite stable. In order to bring MDB to the next level the
+development of MDB 2.0 which will break BC has begun.
 
-Furthermore the manager might see some drastic changes in the future which would
-affect the manager.php and the get*Definition() methods in the manager_*.php.
-However this will most likely be extending the functionality and not changing
-existing functionality.
------------------------------------ WARNING -----------------------------------
-
-All but the MySQL driver are still missing the reverse engineering of xml schemas.
-
-The core of MDB is very stable since quite sometime, with very few bugs that
-had to be fixed or API changes that had to be made. The manager is still in a
-bit of flux as the API is still not final and some methods still need to be
-split up into smaller methods to improve readability and flexability. Also
-new features will be added as needed by the MDB_frontend project.
-
-The 1.0 of MDB can be considered stable for the RDBMS it currently
-supports. As with any software there is the possiblity of bugs which I am
-commited to fix quickly. As explained above there may be changes in the API
-that may break BC until we hit 1.1. The version number 1.0 was just a natural
-progression from the initial version number of 0.9. This 1.0 release is a
-definite milestone and the version number reflects this. The next milestone
-will be 1.1 to be expected in Fall 2002 (see the Roadmap for details).
+The API for MDB 1.x can therefore also be considered to be stable. The source
+of the MDB 1.x releases can be found in the MDB_1 branch.
 
 ** Package Content:
 
 As a user the only php script you will need to include is MDB.php which will
 install to your PEAR root directory. All other files and their containing
-classes will be included via MDB::factory(), MDB::connect(), MDB::loadFile().
+classes will be included via MDB::factory(), MDB::connect(), MDB::loadModule().
 
 Currently the supported drivers are mysql and pgsql.
 File you may include are:
-peardb_wrapper (PEAR DB Wrapper)
-metabase_wrapper (Metabase Wrapper)
+peardb (PEAR DB Wrapper)
+metabase (Metabase Wrapper)
 Date (MDB_Date class which helps in converting MDB Timestamps to other formats)
-Manager (MDB_Manager class which does the XML schema handling)
-
-The only exception to this rule is reverse_engineer_xml_schema.php which you
-have to call directly from a browser. This very simple script will help you
-with handling schema files and create schema files from existing databases. This
-script requires PEAR::Var_Dump package.
 
 The package also contains various files that explain how MDB works. These files
 will install into your docs dir found in the PEAR root dir.
@@ -134,7 +96,11 @@ PEAR root dir.
 
 ** Documentation:
 
-PHPDoc generated documentation can be found at: http://www.backendmedia.com/MDB/docs/
+You can find the still incomplete documentation for MDB 1.0 here:
+http://pear.php.net/manual/en/package.database.mdb.php
+
+PHPDoc generated documentation can be found at:
+http://www.backendmedia.com/MDB_2/docs/
 
 The entire "public" API and most of the "private" methods (except for some of
 the lob classes) have been documented with PHPDoc comments. Most of the API
@@ -165,10 +131,10 @@ driver_test.php: Is the testing suite provided by Metabase you will need
 to configure what driver to test and the relevant section in the array found in
 driver_test_config.php to fit your enviornment.
 
-MDB_test.php: Several test calls to MDB's native API.
-MDB_pear_wrapper_test.php: Several test calls to MDB's PEAR DB Wrapper.
+example.php: Several test calls to MDB's native API.
+pear_db_wrapper_example.php: Several test calls to MDB's PEAR DB Wrapper.
 
-MDB_test.php and MDB_pear_wrapper_test.php require PEAR::VAR_Dump package and
+example.php and pear_db_wrapper_example.php require PEAR::VAR_Dump package and
 are configured to use the following settings:
 username = metapear
 password = funky
