@@ -39,6 +39,8 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     Oracle
     Frontbase
     Querysim
+    Interbase
+    Firebird
     Other soon to follow.
   </description>
   <license>
@@ -89,14 +91,15 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.1.2-RC1</version>
+    <version>1.1.2-RC2</version>
     <state>devel</state>
-    <date>2003-04-08</date>
+    <date>2003-04-22</date>
     <notes>
 - This is mainly a bug fix release
-- 3 new driver were added
+- 4 new driver were added
     Oracle (still Beta)
     Frontbase (still Alpha)
+    Interbase/Firebird (Management methods missing; still Beta)
     Querysim
 - All get*Value() methods (excet get*lobValue() for now) will convert a php NULL into an SQL NULL
   (resulting in API changes in the NULL handling of the get*Value() and replace() methods)
@@ -104,6 +107,7 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
 - Moved code from the Common constructor into MDB::connect()
 - Moved code from the Driver constructor into the drivers connect method
 - PostGreSQL reverse engineering partly implemented
+- Made the MDB_Date classe behave more similar to PEAR::Date (especially in regards to daylight saving time)
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
@@ -113,6 +117,7 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
       <dir name="MDB">
         <file role="php">Common.php</file>
         <file role="php">querysim.php</file>
+        <file role="php">ibase.php</file>
         <file role="php">oci8.php</file>
         <file role="php">fbsql.php</file>
         <file role="php">mysql.php</file>
