@@ -715,9 +715,6 @@ class MDB_pgsql extends MDB_Common
         } else {
             $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
         }
-        if ($rownum + 1 > $this->numRows($result)) {
-            return null;
-        }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }

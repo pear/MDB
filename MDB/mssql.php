@@ -321,7 +321,7 @@ class MDB_mssql extends MDB_Common
         $this->connected_user = $this->user;
         $this->connected_password = $this->password;
         $this->connected_port = $port;
-        $this->opened_persistent = $this->getoption('persistent');
+        $this->opened_persistent = $this->options['persistent'];
         return MDB_OK;
     }
 
