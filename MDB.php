@@ -219,6 +219,43 @@ class MDB
 {
     
     // }}}
+    // {{{ setOptions()
+    
+    /**
+     * set option array in an exiting database object
+     *
+     * @param   object  $db       MDB object
+     * @param   mixed   $options  An associative array of option names and
+     *                            their values.
+     * @access  public
+     */
+    function setOptions(&$db, $options)
+    {
+        if(is_array($options)) {
+            foreach($options as $option => $value) {
+                $test = $db->setOption($option, $value);
+                if(MDB::isError($test)) {
+                    return $test;
+                }
+            }
+        } else {
+            $db->setOption('persistent', $options);
+        }
+        $include_lob = $db->getOption('includelob');
+        if(!MDB::isError($include_lob) && $include_lob) {
+            $db->loadLob('load at start');
+        }
+        $includemanager = $db->getOption('includemanager');
+        if(!MDB::isError($includemanager) && $includemanager) {
+            $db->loadManager('load at start');
+        }
+        $debug = $db->getOption('debug');
+        if(!MDB::isError($debug) && $debug) {
+            $db->captureDebugOutput(TRUE);
+        }
+    }
+    
+    // }}}
     // {{{ factory()
     
     /**
@@ -303,28 +340,8 @@ class MDB
         
         $db->setDSN($dsninfo);
         
-        if(is_array($options)) {
-            foreach($options as $option => $value) {
-                $test = $db->setOption($option, $value);
-                if(MDB::isError($test)) {
-                    return $test;
-                }
-            }
-        } else {
-            $db->setOption('persistent', $options);
-        }
-        $include_lob = $db->getOption('includelob');
-        if(!MDB::isError($include_lob) && $include_lob) {
-            $db->loadLob('load at start');
-        }
-        $includemanager = $db->getOption('includemanager');
-        if(!MDB::isError($includemanager) && $includemanager) {
-            $db->loadManager('load at start');
-        }
-        $debug = $db->getOption('debug');
-        if(!MDB::isError($debug) && $debug) {
-            $db->captureDebugOutput(TRUE);
-        }
+        MDB::setOptions($db, $options);
+        
         if(isset($dsninfo['database'])) {
             $err = $db->connect();
             if (MDB::isError($err)) {
@@ -334,6 +351,63 @@ class MDB
             }
         }
         return($db);
+    }
+    
+    // }}}
+    // {{{ connect()
+    
+    /**
+     * Returns a MDB connection with the requested DSN.
+     * A newnew MDB connection object is only created if no object with the 
+     * reuested DSN exists yet.
+     *
+     * IMPORTANT: In order for MDB to work properly it is necessary that
+     * you make sure that you work with a reference of the original
+     * object instead of a copy (this is a PHP4 quirk).
+     *
+     * For example:
+     *     $mdb =& MDB::sngleton($dsn);
+     *          ^^
+     * And not:
+     *     $mdb = MDB::singleton($dsn);
+     *          ^^
+     *
+     * @param   mixed   $dsn      'data source name', see the MDB::parseDSN
+     *                            method for a description of the dsn format.
+     *                            Can also be specified as an array of the
+     *                            format returned by MDB::parseDSN.
+     * @param   mixed   $options  An associative array of option names and
+     *                            their values.
+     * @return  mixed   a newly created MDB connection object, or a MDB
+     *                  error object on error
+     * @access  public
+     * @see     MDB::parseDSN
+     */
+    function &singleton($dsn, $options = FALSE)
+    {
+        $dsninfo = MDB::parseDSN($dsn);
+        $dsninfo = array_merge(
+            array(
+                'phptype' => NULL,
+                'username' => NULL,
+                'password' => NULL,
+                'hostspec' => NULL,
+                'database' => NULL)
+            , $dsninfo);
+        global $_MDB_databases;
+        for($i=1, $j=count($_MDB_databases)+1; $i<$j; ++$i) {
+            $tmp_dsn = $_MDB_databases[$i]->getDSN('array');
+            if ($dsninfo['phptype'] == $tmp_dsn['phptype']
+                && $dsninfo['username'] == $tmp_dsn['username']
+                && $dsninfo['password'] == $tmp_dsn['password']
+                && $dsninfo['hostspec'] == $tmp_dsn['hostspec']
+                && $dsninfo['database'] == $tmp_dsn['database'])
+            {
+                MDB::setOptions($_MDB_databases[$i], $options);
+                return $_MDB_databases[$i];
+            }
+        }
+        return MDB::connect($dsn, $options);
     }
     
     // }}}
