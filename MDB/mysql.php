@@ -1300,7 +1300,7 @@ class MDB_mysql extends MDB_Common
                 return(1);
             }
         }
-        $value = intval(mysql_insert_id());
+        $value = intval(mysql_insert_id($this->connection));
         $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($res)) {
             $this->warnings[] = 'Next ID: could not delete previous sequence table values';
