@@ -1893,14 +1893,14 @@ class MDB_common extends PEAR {
      *           clob, blob
      * @param mixed $value value that is meant to be assigned to specified
      *       parameter. The type of the value depends on the $type argument.
-     * @param boolean $is_NULL flag that indicates whether whether the
+     * @param boolean $is_null flag that indicates whether whether the
      *       parameter is a NULL
      * @param string $field name of the field that is meant to be assigned
      *       with this parameter value when it is of type clob or blob
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function setParam($prepared_query, $parameter, $type, $value, $is_NULL = 0, $field = '')
+    function setParam($prepared_query, $parameter, $type, $value, $is_null = 0, $field = '')
     {
         $result = $this->_validatePreparedQuery($prepared_query);
         if (MDB::isError($result)) {
@@ -1914,7 +1914,7 @@ class MDB_common extends PEAR {
         $this->prepared_queries[$index]['Values'][$parameter-1] = $value;
         $this->prepared_queries[$index]['Types'][$parameter-1] = $type;
         $this->prepared_queries[$index]['Fields'][$parameter-1] = $field;
-        $this->prepared_queries[$index]['IsNULL'][$parameter-1] = $is_NULL;
+        $this->prepared_queries[$index]['IsNULL'][$parameter-1] = $is_null;
         return (MDB_OK);
     }
 
