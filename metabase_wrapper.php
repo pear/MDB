@@ -982,7 +982,7 @@ function MetabaseDropSequence($database, $name)
 function MetabaseGetSequenceNextValue($database, $name, &$value)
 {
     global $metabase_databases;
-    $result = $metabase_databases[$database]->nextId($name, false);
+    $result = $metabase_databases[$database]->nextId($name, FALSE);
     if (MDB::isError($result)) {
         $metabase_databases[$database]->setError('', $result->getMessage());
         return(0);
@@ -1271,7 +1271,7 @@ class Metabase_manager_class
         
         $options["includedconstant"] = $arguments["IncludedConstant"];
         if (isset($arguments["Persistent"])) {
-            $options["persistent"] = true;
+            $options["persistent"] = TRUE;
         }
         if (isset($arguments["IncludePath"])) {
              $options["includepath"] = $arguments["IncludePath"];
@@ -1395,7 +1395,7 @@ class Metabase_manager_class
         
         $options["includedconstant"] = $arguments["IncludedConstant"];
         if (isset($arguments["Persistent"])) {
-            $options["persistent"] = true;
+            $options["persistent"] = TRUE;
         }
         if (isset($arguments["IncludePath"])) {
              $options["includepath"] = $arguments["IncludePath"];
