@@ -104,8 +104,13 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         {
             return MDB_OK;
         }
-        if (MDB::isError($has = $db->extended->queryAll($db, "SHOW VARIABLES LIKE '$check'", null, MDB_FETCHMODE_ORDERED))) {
-            return $has;
+        $result = $db->query("SHOW VARIABLES LIKE '$check'", null);
+        if (MDB::isError($result)) {
+            return $db->raiseError();
+        }
+        $has = $db->fetchAll($result, MDB_FETCHMODE_ORDERED);
+        if (MDB::isError($has)) {
+            return $db->raiseError();
         }
         if (count($has) == 0) {
             return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
@@ -428,11 +433,11 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      */
     function listDatabases(&$db)
     {
-        $result = $db->extended->queryCol($db, 'SHOW DATABASES');
+        $result = $db->query('SHOW DATABASES');
         if (MDB::isError($result)) {
             return $result;
         }
-        return $result;
+        return $db->fetchCol($result);
     }
 
     // }}}
@@ -447,11 +452,11 @@ class MDB_Manager_mysql extends MDB_Manager_Common
      */
     function listUsers(&$db)
     {
-        $result = $db->extended->queryCol($db, 'SELECT DISTINCT USER FROM USER');
+        $result = $db->query('SELECT DISTINCT USER FROM USER');
         if (MDB::isError($result)) {
             return $result;
         }
-        return $result;
+        return $db->fetchCol($result);
     }
 
     // }}}

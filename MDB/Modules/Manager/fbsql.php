@@ -105,7 +105,12 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
         {
             return MDB_OK;
         }
-        if (MDB::isError($has = $db->extended->queryAll($db, "SHOW VARIABLES LIKE '$check'", null, MDB_FETCHMODE_ORDERED))) {
+        $result = $db->query("SHOW VARIABLES LIKE '$check'", null);
+        if (MDB::isError($result)) {
+            return $db->raiseError();
+        }
+        $has = $db->fetchAll($result, MDB_FETCHMODE_ORDERED);
+        if (MDB::isError($has)) {
             return $db->raiseError();
         }
         if (count($has) == 0) {
@@ -427,7 +432,11 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listDatabases(&$db)
     {
-        $result = $db->extended->queryCol($db, 'SHOW DATABASES');
+        $result = $db->query('SHOW DATABASES');
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        $result = $db->fetchCol($result);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -446,11 +455,11 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listUsers(&$db)
     {
-        $result = $db->extended->queryCol($db, 'SELECT DISTINCT USER FROM USER');
+        $result = $db->query('SELECT DISTINCT USER FROM USER');
         if (MDB::isError($result)) {
             return $result;
         }
-        return $result;
+        return $db->extended->fetchCol($result);
     }
 
     // }}}
@@ -465,7 +474,11 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listTables(&$db)
     {
-        $table_names = $db->extended->queryCol($db, 'SHOW TABLES');
+        $result = $db->query('SHOW TABLES');
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        $table_names= $db->fetchCol($result);
         if (MDB::isError($table_names)) {
             return $table_names;
         }
@@ -682,7 +695,11 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
      */
     function listSequences(&$db)
     {
-        $table_names = $db->extended->queryCol($db, 'SHOW TABLES');
+        $result = $db->query('SHOW TABLES');
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        $table_names = $db->fetchCol($result);
         if (MDB::isError($table_names)) {
             return $table_names;
         }

@@ -288,7 +288,11 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listDatabases(&$db)
     {
-        return $db->extended->queryCol($db, 'SELECT datname FROM pg_database');
+        $result = $db->query('SELECT datname FROM pg_database');
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        return $db->fetchCol($result);
     }
 
     // }}}
@@ -303,7 +307,11 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listUsers(&$db)
     {
-        return $db->extended->queryCol($db, 'SELECT usename FROM pg_user');
+        $result = $db->query('SELECT usename FROM pg_user');
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        return $db->fetchCol($result);
     }
 
     // }}}
@@ -333,7 +341,11 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
             AND c.relname !~ \'^pg_\'
             AND c.relname !~ \'^pga_\'';
-        return $db->extended->queryCol($db, $sql);
+        $result = $db->query($sql);
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        return $db->fetchCol($result);
     }
 
     // }}}
@@ -373,7 +385,11 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     function listViews(&$db)
     {
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
-        return $db->extended->queryCol($db, 'SELECT viewname FROM pg_views');
+        $result = $db->query('SELECT viewname FROM pg_views');
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        return $db->fetchCol($result);
     }
 
     // }}}
@@ -456,7 +472,12 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             AND not exists (select 1 from pg_views where viewname = c.relname)
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
             AND c.relname !~ \'^pg_\'';
-        return $db->extended->queryCol($db, $sql);
+
+        $result = $db->query($sql);
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        return $db->fetchCol($result);
     }
 }
 ?>

@@ -338,14 +338,11 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
      */
     function listDatabases(&$db)
     {
-        $this->queryCol("SELECT table_name, tablespace_name FROM user_tables");
-        $result = array();
-        for ($i=0; $this->next_record(); $i++) {
-            $result[$i]['table_name']      = $this->m_record['table_name'];
-            $result[$i]['tablespace_name'] = $this->m_record['tablespace_name'];
-            $result[$i]['database']        = $this->m_database;
+        $result = $db->query("SELECT table_name, tablespace_name FROM user_tables");
+        if (MDB::isError($result)) {
+            return $result;
         }
-        return $result;
+        return $db->fetchCol($result);
     }
 
     // }}}
