@@ -189,7 +189,7 @@ class MDB_pgsql extends MDB_Common
      */
     function autoCommit($auto_commit)
     {
-        $this->debug('autoCommit', ($auto_commit ? "On" : "Off"));
+        $this->debug('autoCommit', ($auto_commit ? 'On' : 'Off'));
         if (!$this->auto_commit == !$auto_commit) {
             return MDB_OK;
         }
@@ -646,18 +646,15 @@ class MDB_pgsql extends MDB_Common
      */
     function nextId($seq_name, $ondemand = true)
     {
-        if (MDB::isError($connect = $this->connect())) {
-            return $connect;
-        }
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
-        $result = $this->query("SELECT NEXTVAL('$seqname')");
+        $result = $this->query("SELECT NEXTVAL('$sequence_name')");
         $this->popExpect();
-        if ($ondemand && MDB::isError($result) &&
-            $result->getCode() == MDB_ERROR_NOSUCHTABLE)
-        {
+        if ($ondemand && MDB::isError($result)
+            && $result->getCode() == MDB_ERROR_NOSUCHTABLE
+        ) {
             $this->loadManager();
-            // Since we are create the sequence on demand
+            // Since we are creating the sequence on demand
             // we know the first id = 1 so initialize the
             // sequence at 2
             $result = $this->manager->createSequence($this, $seq_name, 2);
