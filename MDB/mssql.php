@@ -58,14 +58,7 @@ require_once 'MDB/Common.php';
 class MDB_mssql extends MDB_Common
 {
     // {{{ properties
-
-    var $connection = 0;
-    var $opened_persistent = '';
-
     var $escape_quotes = "'";
-
-    var $highest_fetched_row = array();
-    var $columns = array();
 
     // }}}
     // {{{ constructor

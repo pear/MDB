@@ -55,14 +55,9 @@ require_once 'MDB/Common.php';
  */
 class MDB_pgsql extends MDB_Common
 {
-    var $connection = 0;
-    var $opened_persistent = '';
-
+    // {{{ properties
     var $escape_quotes = "\\";
     var $decimal_factor = 1.0;
-
-    var $highest_fetched_row = array();
-    var $columns = array();
 
     // }}}
     // {{{ constructor

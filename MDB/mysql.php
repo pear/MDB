@@ -58,20 +58,8 @@ require_once 'MDB/Common.php';
 class MDB_mysql extends MDB_Common
 {
     // {{{ properties
-
-    var $connection = 0;
-    var $connected_host;
-    var $connected_user;
-    var $connected_password;
-    var $connected_port;
-    var $opened_persistent = '';
-
     var $escape_quotes = "\\";
 
-    var $highest_fetched_row = array();
-    var $columns = array();
-
-    // MySQL specific class variable
     var $default_table_type = '';
     var $dummy_primary_key = 'dummy_primary_key';
 

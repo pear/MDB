@@ -56,8 +56,7 @@ require_once 'MDB/Common.php';
 
 class MDB_ibase extends MDB_Common
 {
-    var $connection = 0;
-    var $opened_persistent = '';
+    // {{{ properties
     var $transaction_id = 0;
     var $auto_commit = true;
 
@@ -70,6 +69,7 @@ class MDB_ibase extends MDB_Common
     var $query_parameters = array();
     var $query_parameter_values = array();
 
+    // }}}
     // {{{ constructor
 
     /**

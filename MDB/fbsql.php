@@ -58,19 +58,8 @@ require_once 'MDB/Common.php';
 class MDB_fbsql extends MDB_Common
 {
     // {{{ properties
-
-    var $connection = 0;
-    var $connected_host;
-    var $connected_user;
-    var $connected_password;
-    var $connected_port;
-    var $opened_persistent = '';
-
     var $escape_quotes = "\\";
     var $decimal_factor = 1.0;
-
-    var $highest_fetched_row = array();
-    var $columns = array();
 
     // }}}
     // {{{ constructor

@@ -55,13 +55,13 @@ require_once 'MDB/Common.php';
  */
 class MDB_oci8 extends MDB_Common
 {
-    var $connection = 0;
-
+    // {{{ properties
     var $escape_quotes = "'";
 
     var $auto_commit = 1;
     var $uncommitedqueries = 0;
 
+    // }}}
     // {{{ constructor
 
     /**

@@ -216,16 +216,8 @@ require_once 'MDB/Common.php';
  */
 class MDB_querysim extends MDB_Common
 {
-// Most of the class variables are taken from the corresponding Metabase driver.
-// Few are taken from the corresponding PEAR DB driver.
-// Some are MDB specific.
-    var $connection = 0;
-    var $opened_persistent = '';
-
+    // {{{ properties
     var $escape_quotes = "\\";
-
-    var $highest_fetched_row = array();
-    var $columns = array();
     // }}}
 
     // {{{ constructor
