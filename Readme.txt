@@ -64,28 +64,18 @@ Other soon to follow.
 The current release can be found at the PEAR webpage:
   http://pear.php.net/package-info.php?package=MDB
 
-MDB is still in beta at the moment.
+MDB is still currently in the release cylce for 1.0. Once a release candidate
+s found to be stable MDB 1.0 will be released.
 
-MDB is based on Metabase but has been reworked severely to better match
-the PEAR DB API and PEAR CS. Currently there is a MySQL and a PostGreSQL
+Currently there is a MySQL and a PostGreSQL
 driver available. The PostGreSQL driver is still missing some management
 features (like handling Indexes and reverse engineering of xml schemas).
 
-The approach I have taken so far is to take DB.php from
-PEAR DB and make it create a Metabase object. I have changed the
-Metabase structure slightly. The formatting has been reworked
-considerably to better fit the final structure (MDB standalone with a
-BC-wrapper for Metabase and PEAR DB), to fit the PEAR CS and to make it
-easier for other people to contribute.
-
-The metabase_interface.php was been renamed to metabase_wrapper.php and
-now only serves as a wrapper to keep BC with Metabase. A wrapper will
-have to be created for PEAR DB as well.
-
-Basically the result is a Metabase that is really close to the PEAR DB
-structure. I have also added any missing methods from PEAR DB. Work on
-moving the error handling to PEAR error handling is under way but still
-needs some work.
+The core of MDB is very stable since quite sometime, with very few bugs that
+had to be fixed or API changes that had to be made. The manager is still in a
+bit of flux as the API is still not final and some methods still need to be
+split up into smaller methods to improve readability and flexability. Also
+new features will be added as needed by the MDB_frontend project.
 
 A word of warning: Since quite some time my testing has only comprised
 of running the three test scripts (see below). Obviously those do not test
@@ -124,6 +114,7 @@ The important pieces for testing right now are:
 Other Included Files
   Var_Dump.php (used in MDB_test.php and MDB_pear_wrapper_test.php
                 to display test results)
+  xml_schema.xsl (XSL to render xml schema files to HTML)
   xml_schema_documentation.html (This document describe the format of
                                  the xml schema files)
   Readme.txt (you are reading it currently)
@@ -133,9 +124,9 @@ PHPDoc generated documentation can be found at: http://www.dybnet.de/MDB/docs/
 
 The entire "public" API and most of the "private" methods (except for some of
 the lob classes) have been documented with PHPDoc comments. Most of the API
-is borrowed from PEAR DB, so you can look there for documentation. Since there
-are a large number of new methods available thanks to the Metabase heritage
-of MDB you will also have to take a look in the Metabase documentation
+is borrowed from PEAR DB, so you can look there for detailed documentation.
+Since there are a large number of new methods available thanks to the Metabase
+heritage of MDB you will also have to take a look in the Metabase documentation
 (which can be found at the URL mentioned above, but does require that
 you register with phpclasses). Most of these Metabase functions have
 been renamed. Looking at the metabase_wrapper.php file should help finding
@@ -168,9 +159,9 @@ MDB_pear_wrapper_test.php: Several test calls to MDB's PEAR DB Wrapper.
 MDB is mostly based in Metabase. The method naming and formatting is
 changed to better match the PEAR CS however. Therefore the best starting
 point is to first take one of the Metabase drivers (metabase_[DRIVER NAME].php)
-and compare it with a corresponding MDB's driver ([DRIVER NAME].php)
-This will give a good idea what changes you have to make to an existing
-Metabase driver in order to make it MDB compatible.
+and compare it with a corresponding MDB driver ([DRIVER NAME].php and
+manager_[DRIVER NAME].php). This will give a good idea what changes you have to
+make to an existing Metabase driver in order to make it MDB compatible.
 
 (Note: In order to get the Metabase code you will need to download it from
 phpclasses using the URL provided at the top).
@@ -182,7 +173,7 @@ at the metabase_wrapper.php file.
 Please also note that some methods have been taken from PEAR DB so for some
 missing methods you can check the PEAR DB driver.
 
-Another alternative would be to take an MDB driver and hack it to fit
+Another alternative would be to take a MDB driver and hack it to fit
 the new RDBMS. I would however recommend working with the existing
 Metabase driver for that RDBMS when doing those changes. This will
 surely be faster and it will ensure that the new driver takes full
@@ -190,7 +181,8 @@ advantage of the MDB framework (which is to large parts based on
 Metabase).
 
 In order to test the results driver_test.php will be the most
-comprehensive. This test suite uses the Metabase Wrapper.
+comprehensive. This test suite uses the Metabase Wrapper however. Also
+this test suite requires alot of the management method to be in place as well.
 Therefore, I recommend getting MDB_test.php to work first and after that
 worry about driver_test.php. Also keep in mind that you will have to
 modify driver_test_config.php before running driver_test.php with the
@@ -204,7 +196,7 @@ new driver.
 - Finish PHPDoc comments (lsmith)
 - Add support for more RDBMS (you)
 - Finish reverse engineering parts of the pgsql driver (pgc)
-- Add testing suite
+- Add testing suite (pgc)
   (currently there is only the test suite provided by Metabase)
 - Add missing features to the manager needed for the MDB_frontend project
     - Add ability to snyc two databases (structure and/or content)
@@ -223,6 +215,30 @@ Sometime
   (moved to seperate project MDB_frontend)
 - SQL Funtion Abstraction (for example SUBSTRING() and SUBSTR())
 - Different modes: performance, portability
+
+** History
+
+MDB was started after Manuel broad be into the discussion about getting the
+features of Metabase into PEAR that was going on (again) in December 2001. He
+suggested that I could take on this project. After alot of discussion about
+how when and if etc I started development in February 2002.
+
+MDB is based on Metabase but has been reworked severely to better match
+the PEAR DB API and PEAR CS. The approach I have taken so far is to take DB.php
+from PEAR DB and make it create a Metabase object. I have changed the
+Metabase structure slightly. The formatting has been reworked
+considerably to better fit the final structure (MDB standalone with a
+BC-wrapper for Metabase and PEAR DB), to fit the PEAR CS and to make it
+easier for other people to contribute.
+
+The metabase_interface.php was been renamed to metabase_wrapper.php and
+now only serves as a wrapper to keep BC with Metabase. A wrapper will
+have to be created for PEAR DB as well.
+
+Basically the result is a Metabase that is really close to the PEAR DB
+structure. I have also added any missing methods from PEAR DB. Work on
+moving the error handling to PEAR error handling is under way but still
+needs some work.
 
 ** Credits (never to early for those huh? :-)  ):
 
