@@ -401,7 +401,7 @@ class MDB_common extends PEAR
      * @access public
      * @see PEAR_Error
      */
-    function &raiseError($code = MDB_ERROR, $mode = NULL, $options = NULL,
+    function &raiseError($code = DB_ERROR, $mode = NULL, $options = NULL,
                          $userinfo = NULL, $nativecode = NULL)
     {
         // The error is yet a DB error object
@@ -1960,7 +1960,7 @@ class MDB_common extends PEAR
             } else {
                 switch($this->prepared_queries[$index]['Types'][$position]) {
                     case 'clob':
-                        if (!MDB::isError($success = $this->getCLOBValue($prepared_query, $position+1, $value))) {
+                        if (!MDB::isError($success = $this->getClobValue($prepared_query, $position+1, $value))) {
                             $this->clobs[$prepared_query][$position+1] = $success;
                             $query .= $this->clobs[$prepared_query][$position+1];
                         }
@@ -1996,7 +1996,7 @@ class MDB_common extends PEAR
         }
         for(reset($this->clobs[$prepared_query]), $clob = 0;
             $clob < count($this->clobs[$prepared_query]);
-            $clob++,next($this->clobs[$prepared_query]))
+            $clob++, next($this->clobs[$prepared_query]))
         {
             $this->freeClobValue($prepared_query, key($this->clobs[$prepared_query]), $this->clobs[$prepared_query][key($this->clobs[$prepared_query])], $success);
         }
@@ -2005,7 +2005,7 @@ class MDB_common extends PEAR
             $blob < count($this->blobs[$prepared_query]);
             $blob++, next($this->blobs[$prepared_query]))
         {
-            $this->freeBlobValue($prepared_query,key($this->blobs[$prepared_query]), $this->blobs[$prepared_query][key($this->blobs[$prepared_query])], $success);
+            $this->freeBlobValue($prepared_query, key($this->blobs[$prepared_query]), $this->blobs[$prepared_query][key($this->blobs[$prepared_query])], $success);
         }
         unset($this->blobs[$prepared_query]);
         return ($success);
@@ -2209,7 +2209,7 @@ class MDB_common extends PEAR
         }
         $index = $prepared_query - 1;
         if ($parameter < 1
-            || $parameter>count($this->prepared_queries[$index]['Positions']))
+            || $parameter > count($this->prepared_queries[$index]['Positions']))
         {
             return $this->raiseError(DB_ERROR_SYNTAX, '', '',
                 'Query set: it was not specified a valid argument number');
@@ -2760,7 +2760,7 @@ class MDB_common extends PEAR
             'Type' => 'resultlob',
             'ResultLOB' => $lob
         );
-        if (!createLob($character_lob, $clob)) {
+        if (MDB::isError($clob = $this->createLob($character_lob))) {
             return $this->raiseError(DB_ERROR, '', '',
                 'Fetch LOB result: '. $character_lob['Error']);
         }
@@ -4116,8 +4116,8 @@ class MDB_common extends PEAR
      */
     function &getOne($query, $type = NULL, $params = array(), $param_types = NULL)
     {
-        if ($types != NULL) {
-            $types = array($type);
+        if ($type != NULL) {
+            $type = array($type);
         }
         settype($params, 'array');
         if (sizeof($params) > 0) {
@@ -4434,6 +4434,245 @@ class MDB_common extends PEAR
     function tableInfo($result, $mode = NULL)
     {
         return $this->raiseError(DB_ERROR_NOT_CAPABLE);
+    }
+
+    // }}}
+    // {{{ createLob()
+    /**
+     * Create a handler object of a specified class with functions to
+     * retrieve data from a large object data stream.
+     *
+     * @param array $arguments	An associative array with parameters to create
+     * 					the handler object. The array indexes are the names of
+     *					the parameters and the array values are the respective
+     *					parameter values.
+     *
+     * 					Some parameters are specific of the class of each type
+     *					of handler object that is created. The following
+     *					parameters are common to all handler object classes:
+     *					
+     *					Type
+     *					
+     *						Name of the type of the built-in supported class
+     *						that will be used to create the handler object.
+     *						There are currently four built-in types of handler
+     *						object classes: data, resultlob, inputfile and
+     *						outputfile.
+     *
+     *						The data handler class is the default class. It
+     *						simply reads data from a given data string.
+     *
+     *						The resultlob handler class is meant to read data
+     *						from a large object retrieved from a query result.
+     *						This class is not used directly by applications.
+     *
+     *						The inputfile handler class is meant to read data
+     *						from a file to use in prepared queries with large
+     *						object field parameters.
+     *
+     *						The outputfile handler class is meant to write to
+     *						a file data from result columns with large object
+     *						fields. The functions to read from this type of
+     *						large object do not return any data. Instead, the
+     *						data is just written to the output file with the
+     *						data retrieved from a specified large object handle.
+     *
+     *					Class
+     *
+     *						Name of the class of the handler object that will be
+     *						created if the Type argument is not specified. This
+     *						argument should be used when you need to specify a
+     *						custom handler class.
+     *
+     *					Database
+     *
+     *						Database object as returned by MDB::connect.
+     *						This is an option argument needed by some handler
+     *						classes like resultlob.
+     *
+     *					Data
+     *
+     *						String of data that will be returned by the class
+     *						when it requested with the readLOB() method.
+     *
+     *					The following argument is specific of the resultlob
+     *					handler class:
+     *
+     *						ResultLOB
+     *
+     *							Integer handle value of a large object result
+     *							row field.
+     *
+     *						The following arguments are specific of the
+     *							inputfile handler class:
+     *
+     *						File
+     *
+     *							Integer handle value of a file already opened
+     *							for reading.
+     *
+     *						FileName
+     *
+     *							Name of a file to be opened for reading if the
+     *							File argument is not specified.
+     *
+     *					The following arguments are specific of the outputfile
+     *					handler class:
+     *
+     *						File
+     *
+     *							Integer handle value of a file already opened
+     <p>
+*							
+</p>for writing.
+     *
+     *						FileName
+     *
+     *							Name of a file to be opened for writing if the
+     *							File argument is not specified.
+     *
+     *						BufferLength
+     *
+     *							Integer value that specifies the length of a
+     *							buffer that will be used to read from the
+     *							specified large object.
+     *
+     *						LOB
+     *
+     *							Integer handle value that specifies a large
+     *							object from which the data to be stored in the
+     *							output file will be written.
+     *
+     *						Result
+     *
+     *							Integer handle value as returned by the function
+     *							MDB::query() or MDB::executeQuery() that specifies
+     *							the result set that contains the large object value
+     *							to be retrieved. If the LOB argument is specified,
+     *							this argument is ignored.
+     *
+     *						Row
+     *
+     *							Integer value that specifies the number of the
+     *							row of the result set that contains the large
+     *							object value to be retrieved. If the LOB
+     *							argument is specified, this argument is ignored.
+     *
+     *						Field
+     *
+     *							Integer or string value that specifies the
+     *							number or the name of the column of the result
+     *							set that contains the large object value to be
+     *							retrieved. If the LOB argument is specified,
+     *							this argument is ignored.
+     *
+     *						Binary
+     *
+     *							Boolean value that specifies whether the large
+     *							object column to be retrieved is of binary type
+     *							(blob) or otherwise is of character type (clob).
+     *							If the LOB argument is specified, this argument
+     *							is ignored.
+     *
+     * @return integer handle value that should be passed as argument insubsequent
+     * calls to functions that retrieve data from the large object input stream.
+     * @access public
+     */
+    function createLob($arguments)
+    {
+        $class_name = 'MDB_lob';
+        if(isset($arguments['Type'])) {
+            switch($arguments['Type']) {
+                case 'resultlob':
+                    $class_name = 'MDB_lob_result';
+                    break;
+                case 'inputfile':
+                    $class_name = 'MDB_lob_input_file';
+                    break;
+                case 'outputfile':
+                    $class_name = 'MDB_lob_output_file';
+                    break;
+                default:
+                    if(isset($arguments['Error'])) {
+                        $arguments['Error'] = $arguments['Type'].' is not a valid type of large object';
+                    }
+                    return(0);
+            }
+        } else {
+            if(isset($arguments['Class'])) {
+                $class = $arguments['Class'];
+            }
+        }
+        global $lobs;
+        $lob = count($lobs)+1;
+        $lobs[$lob] =& new $class_name;
+        if(isset($arguments['Database'])) {
+            $lobs[$lob]->database = $arguments['Database'];
+        }
+        if(MDB::isError($result = $lobs[$lob]->create($arguments))) {
+            $lobs[$lob]->database->destroyLob($lob);
+            return $result;
+        }
+        return ($lob);
+    }
+
+    // }}}
+    // {{{ readLob()
+    /**
+     * Read data from large object input stream.
+     *
+     * @param integer	$lob	argument handle that is returned by the
+     *							MDB::createLob() method.
+     * @param string	$data	reference to a variable that will hold data
+     *							to be read from the large object input stream
+     * @paraminteger	$length	value that indicates the largest ammount ofdata
+     *							to be read from the large object input stream.
+     *
+     * @return mixed	the effective number of bytes read from the large object
+     *					input stream on sucess or an MDB error object.
+     * @access public
+     * @see endOfLob()
+     */
+    function readLob($lob, &$data, $length)
+    {
+        global $lobs;
+        return($lobs[$lob]->readLob($data, $length));
+    }
+
+    // }}}
+    // {{{ endOfLob()
+    /**
+     * Determine whether it was reached the end of the large object and
+     * therefore there is no more data to be read for the its input stream.
+     *
+     * @param integer	$lob	argument handle that is returned by the
+     *							MDB::createLob() method.
+     *
+     * @access public
+     * @return boolean flag that indicates whether it was reached the end of the large object input stream
+     */
+    function endOfLob($lob)
+    {
+        global $lobs;
+        return($lobs[$lob]->endOfLob());
+    }
+
+    // }}}
+    // {{{ destroyLob()
+    /**
+     * Free any resources allocated during the lifetime of the large object
+     * handler object.
+     *
+     * @param integer	$lob	argument handle that is returned by the
+     *							MDB::createLob() method.
+     *
+     * @access public
+     */
+    function destroyLob($lob)
+    {
+        global $lobs;
+        $lobs[$lob]->destroy();
+        unset($lobs[$lob]);
     }
 };
 
