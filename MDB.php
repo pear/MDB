@@ -336,10 +336,7 @@ class MDB
                 null, null, null, 'MDB_Error', true);
         }
         $db = new $class_name;
-        $db->include_path=$include_path;
-        if (isset($dsninfo["phptype"])) {
-            $db->phptype = $dsninfo["phptype"];
-        }
+        $db->include_path = $include_path;
         if (isset($dsninfo["hostspec"])) {
             $db->host = $dsninfo["hostspec"];
         }
@@ -355,6 +352,9 @@ class MDB
         if (isset($options["debug"])) {
             $db->debug = $options["debug"];
         }
+        if (isset($options["autofree"])) {
+            $db->autofree = $options["autofree"];
+        }
         $db->decimal_places = (isset($options["decimalplaces"]) ? $options["decimalplaces"] : 2);
         $db->lob_buffer_length = (isset($options["LOBbufferlength"]) ? $options["LOBbufferlength"] : 8000);
         if (isset($options["loglinebreak"])) {
@@ -363,7 +363,7 @@ class MDB
         if (isset($options["options"])) {
             $db->options = $options["options"];
         }
-        $db->setup();
+
         if(isset($dsninfo["database"])) {
             $db->setDatabase($dsninfo["database"]);
             $err = $db->connect();
