@@ -56,6 +56,9 @@ portability. Among other things MDB features:
 Currently supported RDBMS:
 MySQL
 PostGreSQL
+Oracle (beta)
+Frontbase SQL (alpha)
+Querysim
 Other soon to follow. 
 
 ** Getting started:
@@ -75,7 +78,7 @@ The current release can be found at the PEAR webpage:
 
 ----------------------------------- WARNING -----------------------------------
 MDB is still undergoing active development and therefore its API might
-change slightly until drivers for Oracle and Sybase/MS-SQL have been added. But
+change slightly until drivers for ODBC and Sybase/MS-SQL have been added. But
 since MDB is heavily based on PEAR DB and Metabase who both have drivers for
 these RDBMS this is probably fairly unlikely to happen or have large effects.
 It is unlikely that BC specific code will be written to maintain BC for only
@@ -87,8 +90,7 @@ However this will most likely be extending the functionality and not changing
 existing functionality.
 ----------------------------------- WARNING -----------------------------------
 
-Currently there is a MySQL and a PostGreSQL driver available.
-The PostGreSQL driver is still missing the reverse engineering of xml schemas.
+All but the MySQL driver are still missing the reverse engineering of xml schemas.
 
 The core of MDB is very stable since quite sometime, with very few bugs that
 had to be fixed or API changes that had to be made. The manager is still in a
@@ -202,31 +204,6 @@ Metabase).
 
 In order to check compliance of the driver with MDB you can use the testing
 suite (see the "testing" section above)
-
-** Roadmap:
-
-1.2
-- Add Oracle and ODBC driver
-
-Sometime
-- Restructure the manager
-    - Change dumpDatabase to not have the intention levels of to be dumped tags
-      hardcoded in the method.
-    - Seperate xml reverse engineering from the other methods
-    - Add missing features to the manager needed for the MDB_frontend project
-        - Add ability to snyc two databases (structure and/or content)
-        - Add ability to dump just one table
-        - Improve reservse engineering of existing DB's to xml schema files
-- Extend the bulk fetching methods to be able to handle LOB's
-- Write Docbook documentation
-- Add support for more RDBMS (you)
-- Store the contents of LOB fields into seperate files when dumping
-- Fix directory structure to better match other similar PEAR packages
-- Interactive Application for Schema Reverse Engineering to better handle
-  ambiguities that cannot be resolved automatically
-  (moved to seperate project MDB_frontend)
-- SQL Funtion Abstraction (for example SUBSTRING() and SUBSTR())
-- Different modes: performance, portability
 
 ** History
 
