@@ -7,13 +7,18 @@ driver_test.php is still very useful for testing the metabase
 compatability.
 
 Usage:
-
-Currently the tests assume that the test tables from driver_test.php
-are already created. 
+In order for the tests to work they need to access a database called
+"driver_test". This database is created in the manager test. If you have
+problems running the manager test or the driver you are using does not yet
+provide the necessary methods you may create the database manually. In the
+future we will probably provide SQL files for every supported database.
 
 To setup the tests
 
 * requires PHPUnit to be installed
+
+* requires MDB to be installed in a php include path or the tests need to be
+  moved into the MDB root path.
 
 * copy the file test_setup.php.dist to test_setup.php
 
