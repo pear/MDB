@@ -49,6 +49,12 @@
  * @author Lukas Smith <smith@backendmedia.com>
  */
 
+/*
+ * Used by autoPrepare()
+ */
+define('MDB_AUTOQUERY_INSERT', 1);
+define('MDB_AUTOQUERY_UPDATE', 2);
+
 /**
  * MDB_Extended: class which adds several high level methods to MDB
  *
@@ -426,7 +432,7 @@ class MDB_Extended
      * the unfinished rows, but rather returns that error.
      *
      * @param object    &$db reference to driver MDB object
-     * @param resource $prepared_query query handle from prepare()
+     * @param resource $prepared_query query handle from prepareQuery()
      * @param array $types array that contains the types of the columns in
      *        the result set
      * @param array $params numeric array containing the
@@ -435,7 +441,7 @@ class MDB_Extended
      *        defined in $params
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
      * @access public
-     * @see prepare(), execute()
+     * @see prepareQuery(), execute()
      */
     function executeMultiple(&$db, $prepared_query, $types = null, $params, $param_types = null)
     {
@@ -448,5 +454,114 @@ class MDB_Extended
         return MDB_OK;
     }
 
+
+    // }}}
+    // {{{ autoPrepare()
+
+    /**
+     * Make automaticaly an insert or update query and call prepareQuery() with it
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param string $table name of the table
+     * @param array $table_fields ordered array containing the fields names
+     * @param int $mode type of query to make (MDB_AUTOQUERY_INSERT or MDB_AUTOQUERY_UPDATE)
+     * @param string $where in case of update queries, this string will be put after the sql WHERE statement
+     * @return resource handle for the query
+     * @see buildManipSQL
+     * @access public
+     */
+    function autoPrepare(&$db, $table, $table_fields, $mode = MDB_AUTOQUERY_INSERT, $where = false)
+    {
+        $query = $this->buildManipSQL($db, $table, $table_fields, $mode, $where);
+        return $db->prepareQuery($query);
+    }
+
+    // {{{
+    // }}} autoExecute()
+
+    /**
+     * Make automaticaly an insert or update query and call prepareQuery() and execute() with it
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param string $table name of the table
+     * @param array $fields_values assoc ($key=>$value) where $key is a field name and $value its value
+     * @param int $mode type of query to make (MDB_AUTOQUERY_INSERT or MDB_AUTOQUERY_UPDATE)
+     * @param string $where in case of update queries, this string will be put after the sql WHERE statement
+     * @return mixed  a new MDB_Result or a MDB_Error when fail
+     * @see buildManipSQL
+     * @see autoPrepare
+     * @access public
+    */
+    function autoExecute(&$db, $table, $fields_values, $mode = MDB_AUTOQUERY_INSERT, $where = false)
+    {
+        $sth = $this->autoPrepare($db, $table, array_keys($fields_values), $mode, $where);
+        $ret = $db->execute($sth, null, array_values($fields_values));
+        $db->freePreparedQuery($sth);
+        return $ret;
+
+    }
+
+    // {{{
+    // }}} buildManipSQL()
+
+    /**
+     * Make automaticaly an sql query for prepareQuery()
+     *
+     * Example : buildManipSQL('table_sql', array('field1', 'field2', 'field3'), MDB_AUTOQUERY_INSERT)
+     *           will return the string : INSERT INTO table_sql (field1,field2,field3) VALUES (?,?,?)
+     * NB : - This belongs more to a SQL Builder class, but this is a simple facility
+     *      - Be carefull ! If you don't give a $where param with an UPDATE query, all
+     *        the records of the table will be updated !
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param string $table name of the table
+     * @param array $table_fields ordered array containing the fields names
+     * @param int $mode type of query to make (MDB_AUTOQUERY_INSERT or MDB_AUTOQUERY_UPDATE)
+     * @param string $where in case of update queries, this string will be put after the sql WHERE statement
+     * @return string sql query for prepareQuery()
+     * @access public
+     */
+    function buildManipSQL(&$db, $table, $table_fields, $mode, $where = false)
+    {
+        if (count($table_fields) == 0) {
+            $db->raiseError(MDB_ERROR_NEED_MORE_DATA);
+        }
+        $first = true;
+        switch ($mode) {
+            case MDB_AUTOQUERY_INSERT:
+                $values = '';
+                $names = '';
+                while (list(, $value) = each($table_fields)) {
+                    if ($first) {
+                        $first = false;
+                    } else {
+                        $names .= ',';
+                        $values .= ',';
+                    }
+                    $names .= $value;
+                    $values .= '?';
+                }
+                return "INSERT INTO $table ($names) VALUES ($values)";
+                break;
+            case MDB_AUTOQUERY_UPDATE:
+                $set = '';
+                while (list(, $value) = each($table_fields)) {
+                    if ($first) {
+                        $first = false;
+                    } else {
+                        $set .= ',';
+                    }
+                    $set .= "$value = ?";
+                }
+                $sql = "UPDATE $table SET $set";
+                if ($where) {
+                    $sql .= " WHERE $where";
+                }
+                return $sql;
+                break;
+            default:
+                $db->raiseError(MDB_ERROR_SYNTAX);
+        }
+    }
 }
 ?>
