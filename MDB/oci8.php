@@ -191,6 +191,7 @@ class MDB_oci8 extends MDB_Common {
             return($commit);
         }
         $this->auto_commit = $auto_commit;
+        $this->in_transaction = !$auto_commit;
         return(MDB_OK);
     }
 

@@ -1710,7 +1710,8 @@ class MDB_Common extends PEAR
             return($this->raiseError(MDB_ERROR_CANNOT_REPLACE, NULL, NULL,
                 'not specified which fields are keys'));
         }
-        if (!($in_transaction = $this->in_transaction) && MDB::isError($result = $this->autoCommit(FALSE))) {
+        $in_transaction = $this->in_transaction;
+        if (!$in_transaction && MDB::isError($result = $this->autoCommit(FALSE))) {
             return($result);
         }
         $success = $this->query("DELETE FROM $table$condition");

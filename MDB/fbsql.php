@@ -205,6 +205,7 @@ class MDB_fbsql extends MDB_Common
             }
         }
         $this->auto_commit = $auto_commit;
+        $this->in_transaction = !$auto_commit;
         return(MDB_OK);
     }
 
@@ -306,7 +307,7 @@ class MDB_fbsql extends MDB_Common
         @ini_restore('track_errors');
         if ($this->connection <= 0) {
             return($this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL,
-                    $php_errormsg));
+                $php_errormsg));
         }
 
         if (isset($this->options['fixedfloat'])) {
@@ -332,6 +333,7 @@ class MDB_fbsql extends MDB_Common
                 $this->affected_rows = -1;
                 return($this->raiseError());
             }
+            $this->in_transaction = TRUE;
         }
         $this->connected_host = $this->host;
         $this->connected_user = $this->user;

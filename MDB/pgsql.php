@@ -198,6 +198,7 @@ class MDB_pgsql extends MDB_Common
                 return($result);
         }
         $this->auto_commit = $auto_commit;
+        $this->in_transaction = !$auto_commit;
         return(MDB_OK);
     }
 

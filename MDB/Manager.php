@@ -662,6 +662,7 @@ class MDB_Manager extends PEAR
         ) {
             return($result);
         }
+
         $created_objects = 0;
         if(isset($this->database_definition['TABLES'])
             && is_array($this->database_definition['TABLES'])
@@ -2094,16 +2095,14 @@ class MDB_Manager extends PEAR
         $this->database_definition = $database_definition;
         $copy = 0;
 /*
+        $this->expectError(MDB_ERROR_UNSUPPORTED);
         $databases = $this->database->listDatabases();
-        if(MDB::isError($databases)) {
-            return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                'Could not verify if database allready exists: '.$databases->getUserinfo()));
-        }
-        if(is_array($databases) && in_array($this->database_definition['name'], $databases)
-            && $previous_schema_file && file_exists($previous_schema_file)
-*/
-        if($previous_schema_file && file_exists($previous_schema_file))
+        $this->popExpect();
+        if((MDB::isError($databases) || (is_array($databases) && in_array($this->database_definition['name'], $databases)))
+            && $previous_schema_file && file_exists($previous_schema_file))
         {
+*/
+        if($previous_schema_file && file_exists($previous_schema_file)) {
             $previous_definition = $this->parseDatabaseDefinitionFile($previous_schema_file, $variables, 0);
             if(MDB::isError($previous_definition)) {
                 return($previous_definition);
