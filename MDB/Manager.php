@@ -327,7 +327,7 @@ class MDB_Manager extends PEAR
     {
         $this->expectError(MDB_ERROR_ALREADY_EXISTS);
         $result = $this->database->createTable($table_name, $table['FIELDS']);
-        $this->popExpect(MDB_ERROR_ALREADY_EXISTS);
+        $this->popExpect();
         if (MDB::isError($result)) {
             if($result->getCode() === MDB_ERROR_ALREADY_EXISTS) {
                 $this->warnings[] = 'Table already exists: '.$table_name;
@@ -463,7 +463,7 @@ class MDB_Manager extends PEAR
             foreach($table['INDEXES'] as $index_name => $index) {
                 $this->expectError(MDB_ERROR_ALREADY_EXISTS);
                 $result = $this->database->createIndex($table_name, $index_name, $index);
-                $this->popExpect(MDB_ERROR_ALREADY_EXISTS);
+                $this->popExpect();
                 if (MDB::isError($result)) {
                     if($result->getCode() === MDB_ERROR_ALREADY_EXISTS) {
                         $this->warnings[] = 'Index already exists: '.$index_name;
@@ -559,7 +559,7 @@ class MDB_Manager extends PEAR
         
         $this->expectError(MDB_ERROR_ALREADY_EXISTS);
         $result = $this->database->createSequence($sequence_name, $start);
-        $this->popExpect(MDB_ERROR_ALREADY_EXISTS);
+        $this->popExpect();
         if (MDB::isError($result)) {
             if($result->getCode() === MDB_ERROR_ALREADY_EXISTS) {
                 $this->warnings[] = 'Sequence already exists: '.$sequence_name;
@@ -634,7 +634,7 @@ class MDB_Manager extends PEAR
             $this->database->debug('Create database: '.$this->database_definition['name']);
             $this->expectError(MDB_ERROR_ALREADY_EXISTS);
             $result = $this->database->createDatabase($this->database_definition['name']);
-            $this->popExpect(MDB_ERROR_ALREADY_EXISTS);
+            $this->popExpect();
             if (MDB::isError($result)) {
                 if($result->getCode() === MDB_ERROR_ALREADY_EXISTS) {
                     $this->warnings[] = 'Database already exists: '.$this->database_definition['name'];
@@ -2089,13 +2089,16 @@ class MDB_Manager extends PEAR
         }
         $this->database_definition = $database_definition;
         $copy = 0;
+/*
         $databases = $this->database->listDatabases();
         if (MDB::isError($databases)) {
             return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                'Could not verify if database allready exists'));
+                'Could not verify if database allready exists: '.$databases->getUserinfo()));
         }
         if (is_array($databases) && in_array($this->database_definition['name'], $databases)
             && $previous_schema_file && file_exists($previous_schema_file))
+*/
+        if ($previous_schema_file && file_exists($previous_schema_file))
         {
             $previous_definition = $this->parseDatabaseDefinitionFile($previous_schema_file, $variables, 0);
             if (MDB::isError($previous_definition)) {
