@@ -9,17 +9,17 @@ class HTML_TestListener extends PHPUnit_TestListener {
     function addFailure(&$test, &$t) {
         $this->_fails += 1;
         if ($this->_fails == 1) {
-            echo('<div class="failure">');
+            echo("\n<div class=\"failure\">");
         }
-        echo("Failure $this->_fails : $t<br>");
+        echo("Failure $this->_fails : $t<br>\n");
     }
 
     function endTest(&$test) {
         if ($this->_fails == 0 && $this->_errors == 0) {
             echo(' Test passed');
         } else {
-            echo("There were $this->_fails failures for ".$test->getName().'</br>');
-            echo("There were $this->_errors errors for ".$test->getName().'</div>');
+            echo("There were $this->_fails failures for ".$test->getName()."</br>\n");
+            echo("There were $this->_errors errors for ".$test->getName()."</div>\n");
         }
         echo('</div>');
     }
@@ -27,7 +27,7 @@ class HTML_TestListener extends PHPUnit_TestListener {
     function startTest(&$test) {
         $this->_fails = 0;
         $this->_errors = 0;
-        echo("\n<div class=\"test\">".get_class($test).' : Starting '.$test->getName().' ...');
+        echo("\n<div class=\"testcase\">".get_class($test).' : Starting '.$test->getName().' ...');
     }
 }
 

@@ -71,6 +71,7 @@ require_once('PHPUnit.php');
 require_once('test_setup.php');
 require_once('testUtils.php');
 require_once('MDB.php');
+require_once('Console_TestListener.php');
 
 MDB::loadFile('Manager');
 MDB::loadFile('Date');
@@ -100,15 +101,18 @@ if (!is_array($testmethods)) {
     }
 }
 
-$suite = new PHPUnit_TestSuite();
-
 foreach ($dbarray as $db) {
     $dsn = $db['dsn'];
     // if the database name isn't set in the dsn use the default
-    if (empty($dsn['database']) {
+    if (empty($dsn['database'])) {
         $dsn['database'] = $database;
     }
     $options = $db['options'];
+
+    $display_dsn = $dsn['phptype'] . "://" . $dsn['username'] . ":" . $dsn['password'] . "@" . $dsn['hostspec'] . "/" . $dsn['database'];
+    echo "=== Start test of $display_dsn ===\n";
+
+    $suite = new PHPUnit_TestSuite();
 
     foreach ($testcases as $testcase) {
         if (is_array($testmethods[$testcase])) {
@@ -118,11 +122,13 @@ foreach ($dbarray as $db) {
             }
         }
     }
+
+    $result = new PHPUnit_TestResult;
+    $result->addListener(new Console_TestListener);
+    
+    $suite->run($result);
+
+    echo "=== End test of $display_dsn ===\n\n";
 }
 
-require_once('Console_TestListener.php');
-$result = new PHPUnit_TestResult;
-$result->addListener(new Console_TestListener);
-
-$suite->run($result);
 ?>

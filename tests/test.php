@@ -61,6 +61,7 @@ require_once('PHPUnit.php');
 require_once('test_setup.php');
 require_once('testUtils.php');
 require_once('MDB.php');
+require_once('HTML_TestListener.php');
 
 // you may need to uncomment the line and modify the multiplier as you see fit
 // set_time_limit(120*count($dbarray));
@@ -82,7 +83,14 @@ if (!is_array($testmethods)) {
     }
 }
 
-$suite = new PHPUnit_TestSuite();
+?>
+<html>
+<head>
+<title>MDB Tests</title>
+<link href="tests.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<?php
 
 foreach ($dbarray as $db) {
     $dsn = $db['dsn'];
@@ -92,6 +100,12 @@ foreach ($dbarray as $db) {
     }
     $options = $db['options'];
 
+    $display_dsn = $dsn['phptype'] . "://" . $dsn['username'] . ":" . $dsn['password'] . "@" . $dsn['hostspec'] . "/" . $dsn['database'];
+    echo "<div class=\"test\">\n";
+    echo "<div class=\"title\">Testing $display_dsn</div>\n";
+
+    $suite = new PHPUnit_TestSuite();
+
     foreach ($testcases as $testcase) {
         if (is_array($testmethods[$testcase])) {
             $methods = array_keys($testmethods[$testcase]);
@@ -100,23 +114,12 @@ foreach ($dbarray as $db) {
             }
         }
     }
+
+    $result = new PHPUnit_TestResult;
+    $result->addListener(new HTML_TestListener);
+    $suite->run($result);
+    echo "\n</div>\n";
 }
-
-require_once('HTML_TestListener.php');
-$result = new PHPUnit_TestResult;
-$result->addListener(new HTML_TestListener);
-
 ?>
-<html>
-<head>
-<title>MDB Tests</title>
-<link href="tests.css" rel="stylesheet" type="text/css">
-</head>
-<body>
-
-<?php
-$suite->run($result);
-?>
-
 </body>
 </html>
