@@ -78,6 +78,7 @@ class MDB_driver_mysql extends MDB_common
 
     // }}}
     // {{{ constructor
+
     /**
     * Constructor
     */
@@ -867,7 +868,7 @@ class MDB_driver_mysql extends MDB_common
     }
 
     // }}}
-    // {{{ getCLOBDeclaration()
+    // {{{ getClobDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an character
