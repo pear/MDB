@@ -13,7 +13,7 @@
 // | obtain it through the world-wide-web, please send a note to          |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Authors: Lukas Smith <smith@dybnet.de>                                   |
+// | Authors: Lukas Smith <smith@dybnet.de>                               |
 // |                                                                      |
 // +----------------------------------------------------------------------+
 //
@@ -37,24 +37,24 @@ define("MDB_TYPE_BLOB",9);
 
 $registered_transactions_shutdown = 0;
 
-function shutdownTransactions($databases_array = '')
+function shutdownTransactions($databases = '')
 {
     // BC support for Metabase
-    if($databases_array == '')
+    if($databases == '')
     {
-        global $databases;
-        $databases_array = $databases;
+        global $metabase_databases;
+        $databases = $metabase_databases;
     }
     
-    for(reset($databases_array), $i = 0, $j = count($databases_array);
+    for(reset($databases), $i = 0, $j = count($databases);
         $i < $j;
-        next($databases_array), ++$i)
+        next($databases), ++$i)
     {
-        $database = key($databases_array);
-        if ($databases_array[$database]->in_transaction
-            && !MDB::is_Error($databases_array[$database]->rollbackTransaction($database)))
+        $database = key($databases);
+        if ($databases[$database]->in_transaction
+            && !MDB::is_Error($databases[$database]->rollbackTransaction($database)))
         {
-            $databases_array[$database]->autoCommitTransactions($database,1);
+            $databases[$database]->autoCommitTransactions($database,1);
         }
     }
 }
@@ -1681,4 +1681,4 @@ class MDB_common extends PEAR
     }
 };
 
-?> 
+?>
