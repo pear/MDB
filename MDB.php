@@ -204,12 +204,11 @@ class MDB
     // {{{ factory()
 
     /**
-     * Create a new DB connection object for the specified database
+     * Create a new MDB object for the specified database type
      * type
      *
      * @param   string  $type   database type, for example 'mysql'
-     * @return  mixed   a newly created MDB connection object, or a MDB
-     *                  error object on error
+     * @return  mixed   a newly created MDB object, or false on error
      * @access  public
      */
     function &factory($type)
