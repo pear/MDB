@@ -80,12 +80,21 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.1.0pl1</version>
-    <state>devel</state>
-    <date>2002-11-25</date>
+    <version>1.1.1</version>
+    <state>stable</state>
+    <date>2002-11-26</date>
     <notes>
-Fixed issue of metapear_test_db.schema being in the wrong dir
-</notes>
+Since the changelog for the 1.1.0 release was incomplete here follows the complete list of changes from the 1.0 release:
+Minor bugfixes and PHPDoc enhancements
+PEAR-ized directory structure and class names
+Added PHPUnit test suite (browser and cli)
+Manager.php does not load MDB.php anymore (include MDB.php instead and use MDB::loadFile())
+MDB::connect() does not need to be modified anymore to add support for a new driver
+API changes:
+- MDB_common::loadExtension renamed to MDB_common::loadModule
+- MDB::assertExtension was dropped in favor of PEAR::loadExtension
+- MDB::loadFile was added to load additional files (from now on only MDB.php will be included directly)
+    </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
       <file role="doc">README</file>
@@ -117,16 +126,17 @@ Fixed issue of metapear_test_db.schema being in the wrong dir
         <file role="doc">Modules_Manager_skeleton.php</file>
       </dir>
       <dir name="tests">
-        <file role="test">driver_test.schema</file>
-        <file role="test">lob_test.schema</file>
+        <file role="test">README</file>
+        <file role="test">test.php</file>
+        <file role="test">clitest.php</file>
+        <file role="test">testchoose.php</file>
         <file role="test">MDB_api_testcase.php</file>
         <file role="test">MDB_manager_testcase.php</file>
         <file role="test">MDB_usage_testcase.php</file>
         <file role="test">MDB_bugs_testcase.php</file>
-        <file role="test">README</file>
-        <file role="test">test.php</file>
+        <file role="test">HTML_TestListener.php</file>
+        <file role="test">Console_TestListener.php</file>
         <file role="test">tests.css</file>
-        <file role="test">testchoose.php</file>
         <file role="test">testUtils.php</file>
         <file role="test">test_setup.php.dist</file>
         <file role="test">test.schema</file>
@@ -136,6 +146,8 @@ Fixed issue of metapear_test_db.schema being in the wrong dir
         <file role="test">driver_test_config.php</file>
         <file role="test">driver_test.php</file>
         <file role="test">setup_test.php</file>
+        <file role="test">driver_test.schema</file>
+        <file role="test">lob_test.schema</file>
         <dir name="templates">
           <file role="test">results.tpl</file>
         </dir>
@@ -143,7 +155,7 @@ Fixed issue of metapear_test_db.schema being in the wrong dir
     </filelist>
     <deps>
         <dep type="php" rel="ge" version="4.1.0" />
-        <dep type="pkg" rel="has" version="0.91-dev">PEAR</dep>
+        <dep type="pkg" rel="ge" version="1.0b1">PEAR</dep>
         <dep type="pkg" rel="has">XML_Parser</dep>
     </deps>
   </release>
