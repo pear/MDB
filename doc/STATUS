@@ -4,44 +4,6 @@ STATUS OF THE PEAR MDB PACKAGE
 $Id$
 ------------------------------------------------------------------------
 
-MDB Driver Feature Matrix
--------------------------
-Symbols:
-  x  =  implemented, but without tests
-  t  =  implemented, but one or more tests fail
-  T  =  implemented, passing all tests
-  e  =  emulated, without tests
-  l  =  emulated, but one or more tests fail
-  E  =  emulated, passing all tests
-  n  =  returns "not capable"
-  -  =  no implementation of this feature or status unknown
-
-                    fbsql      ifx      mssql     mysqli     odbc     sqlite
-FEATURE        dbase  |  ibase  |  msql   |  mysql  |   oci8  |  pgsql  |  sybase
-simpleQuery      -    -    T    -    -    -    -    -    -    -    -    -    -
-numCols          -    -    T    -    -    -    -    -    -    -    -    -    -
-numRows          -    -    T    -    -    -    -    -    -    -    -    -    -
-errorNative      -    -    x    -    -    -    -    -    -    -    -    -    -
-prepare/execute  -    -    T    -    -    -    -    -    -    -    -    -    -
-sequences        -    -   [1]   -    -    -    -    -    -    -    -    -    -
-affectedRows     -    -    l    -    -    -    -    -    -    -    -    -    -
-fetch modes      -    -    x    -    -    -    -    -    -    -    -    -    -
-fetch row by no  -    -    e    -    -    -    -    -    -    -    -    -    -
-transactions     -    -    T    -    -    -    -    -    -    -    -    -    -
-auto-commit      -    -    T    -    -    -    -    -    -    -    -    -    -
-error mapping    -    -    x    -    -    -    -    -    -    -    -    -    -
-tableInfo        -    -    T    -    -    -    -    -    -    -    -    -    -
-
-TYPE (getListOf)
-tables           -    -    -    -    -    -    -    -    -    -    -    -    -
-views            -    -    -    -    -    -    -    -    -    -    -    -    -
-users            -    -    -    -    -    -    -    -    -    -    -    -    -
-databases        -    -    -    -    -    -    -    -    -    -    -    -    -
-functions        -    -    -    -    -    -    -    -    -    -    -    -    -
-
-[1] sequences are working, but not currId().
-
-
 Test Conformance
 ----------------
 Symbols:
@@ -69,16 +31,16 @@ storage          -    -    o    -    -    -    -    -    -    -    -    -    -
 bulkfetch        -    -    o    -    -    -    -    -    -    -    -    -    -
 preparedqueries  -    -    o    -    -    -    -    -    -    -    -    -    -
 metadata         -    -    o    -    -    -    -    -    -    -    -    -    -
-nulls            -    -    X    -    -    -    -    -    -    -    -    -    -
+nulls            -    -    o    -    -    -    -    -    -    -    -    -    -
 escapesequences  -    -    o    -    -    -    -    -    -    -    -    -    -
 ranges           -    -    o    -    -    -    -    -    -    -    -    -    -
-sequences        -    -    o    -    -    -    -    -    -    -    -    -    -
+sequences        -    -   [1]   -    -    -    -    -    -    -    -    -    -
 replace          -    -    o    -    -    -    -    -    -    -    -    -    -
-affectedrows     -    -    X    -    -    -    -    -    -    -    -    -    -
+affectedrows     -    -   [2]   -    -    -    -    -    -    -    -    -    -
 transactions     -    -    o    -    -    -    -    -    -    -    -    -    -
 lobstorage       -    -    o    -    -    -    -    -    -    -    -    -    -
 lobfiles         -    -    o    -    -    -    -    -    -    -    -    -    -
-lobnulls         -    -    X    -    -    -    -    -    -    -    -    -    -
+lobnulls         -    -    o    -    -    -    -    -    -    -    -    -    -
 **[ BUGS ]********************************************************************
 fetchmodebug     -    -    X    -    -    -    -    -    -    -    -    -    -
 bug22328         -    -    o    -    -    -    -    -    -    -    -    -    -
@@ -90,3 +52,5 @@ bug946           -    -    o    -    -    -    -    -    -    -    -    -    -
 createdatabase   -    -    -    -    -    -    -    -    -    -    -    -    -
 updatedatabase   -    -    o    -    -    -    -    -    -    -    -    -    -
 
+[1] sequences are working, but not currId().
+[2] affectedrows only works on PHP 5
