@@ -49,8 +49,6 @@ if(!defined('MDB_LOB_INCLUDED'))
 {
     define('MDB_LOB_INCLUDED', 1);
 
-require_once 'PEAR.php';
-
 /**
 * MDB Large Object (BLOB/CLOB) classes
 *
