@@ -94,6 +94,7 @@ class MDB_LOB
 class MDB_LOB_Result extends MDB_LOB
 {
     var $result_lob = 0;
+    var $buffer_length = 8000;
 
     function create(&$arguments)
     {
@@ -101,6 +102,14 @@ class MDB_LOB_Result extends MDB_LOB
             return(PEAR::raiseError(NULL, MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
                 'it was not specified a result Lob identifier',
                 'MDB_Error', TRUE));
+        }
+        if(isset($arguments['BufferLength'])) {
+            if($arguments['BufferLength'] <= 0) {
+                return(PEAR::raiseError(NULL, MDB_ERROR_INVALID, NULL, NULL,
+                    'it was specified an invalid buffer length',
+                    'MDB_Error', TRUE));
+            }
+            $this->buffer_length = $arguments['BufferLength'];
         }
         $this->result_lob = $arguments['ResultLOB'];
         return(MDB_OK);
@@ -118,16 +127,22 @@ class MDB_LOB_Result extends MDB_LOB
 
     function readLob(&$data, $length)
     {
-        $read_length = $this->database->_readResultLob($this->result_lob, $data, $length);
-        if (MDB::isError($read_length)) {
-            return($read_length);
-        }
-        if($read_length < 0) {
+        $buffer_length = ($length == 0 ? $this->buffer_length : $length);
+        $read_full = 0;
+        do
+        {
+            $read = $this->database->_readResultLob($this->result_lob, $data, $buffer_length);
+            if (MDB::isError($read)) {
+                return($read);
+            }
+            $read_full += $read;
+        } while($length == 0 && !$this->database->endOfLob($this->result_lob));
+        if($read < 0) {
             return(PEAR::raiseError(NULL, MDB_ERROR_INVALID, NULL, NULL,
                 'data was read beyond end of data source',
                 'MDB_Error', TRUE));
-        }
-        return($read_length);
+         }
+        return($read_full);
     }
 };
 
