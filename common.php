@@ -13,8 +13,7 @@
 // | obtain it through the world-wide-web, please send a note to          |
 // | license@php.net so we can mail you a copy immediately.               |
 // +----------------------------------------------------------------------+
-// | Authors: Lukas Smith <smith@dybnet.de>                               |
-// |                                                                      |
+// | Author: Lukas Smith <smith@dybnet.de>                               |
 // +----------------------------------------------------------------------+
 //
 // $Id$
@@ -105,6 +104,8 @@ class MDB_common extends PEAR
     var $lob_buffer_length = 8000;
     var $escape_quotes = "";
     var $log_line_break = "\n";
+    var $last_query = "";
+    var $autofree = FALSE;
 
     /* PRIVATE DATA */
     
@@ -123,10 +124,6 @@ class MDB_common extends PEAR
     var $manager_included_constant = "";
     var $manager_include = "";
     var $manager_class_name = "";
-
-    // new for PEAR
-    var $last_query = "";
-    var $autofree = FALSE;
 
     // }}}
     // {{{ constructor
@@ -643,8 +640,9 @@ class MDB_common extends PEAR
     function disconnect()
     {
         if ($this->in_transaction
-        && !MDB::isError($this->rollback())
-        && !MDB::isError($this->autoCommit(TRUE))) {
+            && !MDB::isError($this->rollback())
+            && !MDB::isError($this->autoCommit(TRUE)))
+        {
             $this->in_transaction = FALSE;
         }
         return $this->close();
