@@ -111,7 +111,7 @@ foreach ($dbarray as $db) {
     $suite = new PHPUnit_TestSuite();
 
     foreach ($testcases as $testcase) {
-        if (is_array($testmethods[$testcase])) {
+        if (isset($testmethods[$testcase]) && is_array($testmethods[$testcase])) {
             $methods = array_keys($testmethods[$testcase]);
             foreach ($methods as $method) {
                 $suite->addTest(new $testcase($method));
