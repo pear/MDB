@@ -45,8 +45,6 @@
 // $Id$
 //
 
-require_once 'MDB.php';
-
 /*
  * The method mapErrorCode in each MDB_dbtype implementation maps
  * native error codes to one of these.
