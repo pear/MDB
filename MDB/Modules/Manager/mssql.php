@@ -199,8 +199,8 @@ class MDB_Manager_mssql extends MDB_Manager_Common
         if ($check) {
             for ($change = 0, reset($changes);
                 $change < count($changes);
-                next($changes), $change++)
-            {
+                next($changes), $change++
+            ) {
                 switch (key($changes)) {
                     case "AddedFields":
                         break;
@@ -218,8 +218,8 @@ class MDB_Manager_mssql extends MDB_Manager_Common
             if (isset($changes[$change = 'RemovedFields'])
                 || isset($changes[$change = 'name'])
                 || isset($changes[$change = 'RenamedFields'])
-                || isset($changes[$change = 'ChangedFields']))
-            {
+                || isset($changes[$change = 'ChangedFields'])
+            ) {
                 return($db->raiseError(MDB_ERROR_CANNOT_ALTER, NULL, NULL,
                     'Alter table: change type "'.$change.'" is not supported by the server"'));
             }
@@ -234,7 +234,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
                     $field < count($fields);
                     next($fields), $field++)
                 {
-                    if(strcmp($query, '')) {
+                    if (strcmp($query, '')) {
                         $query.= ', ';
                     }
                     $query.= $fields[key($fields)]['Declaration'];
@@ -311,16 +311,15 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     {
         $columns = $db->queryRow("EXEC sp_columns @table_name='$table',
                    @column_name='$field_name'", NULL, MDB_FETCHMODE_ASSOC );
-        if (MDB::isError($columns))
-        {
+        if (MDB::isError($columns)) {
             return($columns);
         }
-        if (!$db->options['optimize'] == 'portability') {
+        if ($db->options['optimize'] != 'portability') {
             array_change_key_case($columns);
         }
         if (!isset($columns[$column = 'column_name'])
-            || !isset($columns[$column = 'type_name']))
-        {
+            || !isset($columns[$column = 'type_name'])
+        ) {
             return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
                 'Get table field definition: no result, please check table '.
                 $table.' and field '.$field_name.' are correct'));
@@ -328,22 +327,19 @@ class MDB_Manager_mssql extends MDB_Manager_Common
         $field_column = $columns['column_name'];
         $type_column = $columns['type_name'];
         $db_type = strtolower($type_column);
-        if (strpos($type_column, ' ') !== FALSE)
-        {
+        if (strpos($type_column, ' ') !== FALSE) {
             $db_type = strtok($db_type, ' ');
         }
         $length = $columns['precision'];
         $decimal = $columns['scale'];
         $type = array();
-        switch($db_type)
-        {
+        switch ($db_type) {
             case 'bigint':
             case 'int':
             case 'smallint':
             case 'tinyint':
                 $type[0] = 'integer';
-                if ($length == '1')
-                {
+                if ($length == '1') {
                     $type[1] = 'boolean';
                 }
                 break;
@@ -373,8 +369,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
             case 'nchar':
             case 'nvarchar':
                 $type[0] = 'text';
-                if ($length == '1')
-                {
+                if ($length == '1') {
                     $type[1] = 'boolean';
                 }
                 break;
@@ -396,46 +391,38 @@ class MDB_Manager_mssql extends MDB_Manager_Common
                     'List table fields: unknown database attribute type'));
         }
         unset($notnull);
-        if ($columns['nullable'] == 0)
-        {
+        if ($columns['nullable'] == 0) {
             $notnull = 1;
         }
         unset($default);
-        if (isset($columns['column_def']) && ($columns['column_def'] != NULL))
-        {
-            if (($type[0] = 'integer') OR ($type[0] = 'boolean'))
-            {
+        if (isset($columns['column_def']) && ($columns['column_def'] != NULL)) {
+            if (($type[0] = 'integer') OR ($type[0] = 'boolean')) {
                 $columns['column_def'] = str_replace( '(', '', $columns['column_def'] );
                 $columns['column_def'] = str_replace( ')', '', $columns['column_def'] );
             }
             $default = $columns['column_def'];
         }
         $definition = array();
-        for ($field_choices = array(), $datatype = 0; $datatype < count($type); $datatype++)
-        {
+        for ($field_choices = array(), $datatype = 0; $datatype < count($type); $datatype++) {
             $field_choices[$datatype] = array('type' => $type[$datatype]);
-            if (isset($notnull))
-            {
+            if (isset($notnull)) {
                 $field_choices[$datatype]['notnull'] = 1;
             }
-            if (isset($default))
-            {
+            if (isset($default)) {
                 $field_choices[$datatype]['default'] = $default;
             }
             if ($type[$datatype] != 'boolean'
                 && $type[$datatype] != 'time'
                 && $type[$datatype] != 'date'
-                && $type[$datatype] != 'timestamp')
-            {
-                if (strlen($length))
-                {
+                && $type[$datatype] != 'timestamp'
+            ) {
+                if (strlen($length)) {
                     $field_choices[$datatype]['length'] = $length;
                 }
             }
         }
         $definition[0] = $field_choices;
-        if (strpos($type_column, 'identity') !== FALSE)
-        {
+        if (strpos($type_column, 'identity') !== FALSE) {
             $implicit_sequence = array();
             $implicit_sequence['on'] = array();
             $implicit_sequence['on']['table'] = $table;
@@ -448,19 +435,15 @@ class MDB_Manager_mssql extends MDB_Manager_Common
         {
             return $indexes;
         }
-        if ($indexes != NULL)
-        {
+        if ($indexes != NULL) {
             $is_primary = FALSE;
-            foreach ($indexes as $index)
-            {
-                if ($index['column_name'] == $field_name)
-                {
+            foreach ($indexes as $index) {
+                if ($index['column_name'] == $field_name) {
                     $is_primary = TRUE;
                     break;
                 }
             }
-            if ($is_primary)
-            {
+            if ($is_primary) {
                 $implicit_index = array();
                 $implicit_index['unique'] = 1;
                 $implicit_index['FIELDS'][$field_name] = '';

@@ -833,7 +833,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             return($result);
         }
         $key_name = 'Key_name';
-        if (!$db->options['optimize'] == 'portability') {
+        if ($db->options['optimize'] != 'portability') {
             $key_name = strtolower($key_name);
         }
         $indexes_all = $db->fetchCol($result, $key_name);
