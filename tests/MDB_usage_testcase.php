@@ -1070,6 +1070,35 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->db->freeResult($result);
     }
-}
 
+    /**
+     * test tableInfo()
+     */
+    function testTableInfo()
+    {
+        if (!$this->methodExists('tableInfo')) {
+            return;
+        }
+        if (MDB::isError($connect = $this->db->connect())) {
+            $this->assertTrue(false, 'Cannot connect to the db'.$connect->getMessage());
+        }
+
+        $table_info = $this->db->tableInfo('users');
+        //mydebug($table_info);
+        if (MDB::isError($table_info)) {
+            $this->assertTrue(false, 'Error in tableInfo(): '.$table_info->getMessage());
+        } else {
+
+
+            $this->assertEquals(count($table_info), count($this->fields), 'The number of fields retrieved ('.count($table_info).') is different from the expected one ('.count($this->fields).')');
+            foreach ($table_info as $field_info) {
+                $this->assertEquals($field_info['table'], 'users', "the table name is not correct (expected: 'users'; actual: $field_info[table])");
+                if (!in_array(strtolower($field_info['name']), $this->fields)) {
+                    $this->assertTrue(false, 'Field names do not match ('.$field_info['name'].' not recognized');
+                }
+                //add check on types...
+            }
+        }
+    }
+}
 ?>
