@@ -321,7 +321,7 @@ class MDB
         ) {
             include_once $include;
         } else {
-            include_once $include;
+            @include_once $include;
         }
 
         if (!class_exists($class_name)) {
