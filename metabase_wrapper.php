@@ -122,8 +122,8 @@ function _convertArguments($arguments, &$dsninfo, &$options)
         $options["loglinebreak"] = $arguments["LogLineBreak"];
     }
 
-    if(isset($arguments['options']) && is_array($arguments['options'])) {
-       $options = array_merge($options, $arguments['options']);
+    if(isset($arguments['Options']) && is_array($arguments['Options'])) {
+       $options = array_merge($options, $arguments['Options']);
     }
     $options['seqname_format'] = '_sequence_%s';
 }
@@ -1033,7 +1033,7 @@ function MetabaseGetTableFieldDefinition($database, $table, $field, &$definition
         $databases[$database]->setError('GetTableFieldDefinition', $result->getMessage());
         return(0);
     } else {
-        $definition = $result;
+        $definition = $result[0];
         return(1);
     }
 }
@@ -1190,7 +1190,7 @@ function MetabaseListTableIndex($database, $table, &$index)
 function MetabaseGetTableIndexDefinition($database, $table, $index, &$definition)
 {
     global $databases;
-    $result = $databases[$database]->getTableFieldDefinition($table, $index);
+    $result = $databases[$database]->getTableIndexDefinition($table, $index);
     if (MDB::isError($result)) {
         $databases[$database]->setError('GetTableIndexDefinition', $result->getMessage());
         return(0);
