@@ -1,6 +1,6 @@
 <?php
 /*
- * metabase_wrapper.php
+ * Metabase_wrapper.php
  *
  * @(#) $Header$
  *
@@ -9,31 +9,44 @@ require_once("MDB.php");
 
 $databases = array();
 
-function metabasesetupInterface(&$arguments, &$db)
-{
-    return(setupInterface(&$arguments, &$db));
-}
-
-function metabaseSetupDatabase($arguments, &$database)
+function MetabaseSetupDatabase($arguments, &$database)
 {
     global $databases;
+	$database=count($metabase_databases)+1;
+    $dsninfo["phptype"] = $arguments["Type"];
+    $dsninfo["username"] = $arguments["User"];
+    $dsninfo["password"] = $arguments["Password"];
+    $dsninfo["hostspec"] = $arguments["Host"];
+	
+	$options["includedconstant"] = $arguments["IncludedConstant"];
+    $options["includepath"] = $arguments["IncludePath"];
+    $options["debug"] = $arguments["Debug"];
+	$options["decimalplaces"] = $arguments["DecimalPlaces"];
+	$options["LOBbufferlength"] = $arguments["LOBBufferLength"];
+	$options["loglinebreak"] = $arguments["LogLineBreak"];
+	$options["options"] = $arguments["Options"];
 
-    $database = count($databases)+1;
-    if (strcmp($error = setupInterface($arguments, $databases[$database]),"")) {
-        unset($databases[$database]);
-        $database = 0;
+	$db = MDB::connect($dsninfo, $options);
+    
+	if (MDB::isError($db) || !is_object($db)) {
+		$database=0;
+		$error = $db;
     } else {
-        $databases[$database]->database = $database;
-    }
+		$databases[$database] = $db;
+		$databases[$database]->database=$database;
+	}
     return($error);
 }
 
-function metabaseSetupDatabaseObject($arguments, &$db)
+function MetabaseSetupDatabaseObject($arguments, &$db)
 {
-    return(setupDatabaseObject($arguments, &$db));
+    global $databases;
+	$error = MetabaseSetupDatabase($arguments, &$database);
+	$db = $databases[$database];
+	return($error);
 }
 
-function metabaseCloseSetup($database)
+function MetabaseCloseSetup($database)
 {
     global $databases;
 
@@ -41,154 +54,154 @@ function metabaseCloseSetup($database)
     $databases[$database] = "";
 }
 
-function metabaseQuery($database, $query)
+function MetabaseQuery($database, $query)
 {
     global $databases;
 
     return($databases[$database]->query($query));    
 }
 
-function metabaseQueryField($database, $query, &$field, $type = "text")
+function MetabaseQueryField($database, $query, &$field, $type = "text")
 {
     global $databases;
 
     return($databases[$database]->queryField($query, $field, $type));
 }
 
-function metabaseQueryRow($database, $query, &$row, $types = "")
+function MetabaseQueryRow($database, $query, &$row, $types = "")
 {
     global $databases;
 
     return($databases[$database]->queryRow($query, $row, $types));
 }
 
-function metabaseQueryColumn($database, $query, &$column, $type = "text")
+function MetabaseQueryColumn($database, $query, &$column, $type = "text")
 {
     global $databases;
 
     return($databases[$database]->queryColumn($query, $column, $type));
 }
 
-function metabaseQueryAll($database, $query, &$all, $types = "")
+function MetabaseQueryAll($database, $query, &$all, $types = "")
 {
     global $databases;
 
     return($databases[$database]->queryAll($query, $all, $types));
 }
 
-function metabaseReplace($database, $table, &$fields)
+function MetabaseReplace($database, $table, &$fields)
 {
     global $databases;
 
     return($databases[$database]->replace($table, $fields));
 }
 
-function metabasePrepareQuery($database, $query)
+function MetabasePrepareQuery($database, $query)
 {
     global $databases;
 
     return($databases[$database]->prepareQuery($query));
 }
 
-function metabaseFreePreparedQuery($database, $prepared_query)
+function MetabaseFreePreparedQuery($database, $prepared_query)
 {
     global $databases;
 
     return($databases[$database]->freePreparedQuery($prepared_query));
 }
 
-function metabaseExecuteQuery($database, $prepared_query)
+function MetabaseExecuteQuery($database, $prepared_query)
 {
     global $databases;
 
     return($databases[$database]->executeQuery($prepared_query));
 }
 
-function metabaseQuerySet($database, $prepared_query, $parameter, $type, $value, $is_null = 0, $field = "")
+function MetabaseQuerySet($database, $prepared_query, $parameter, $type, $value, $is_null = 0, $field = "")
 {
     global $databases;
 
     return($databases[$database]->querySet($prepared_query, $parameter, $type, $value, $is_null, $field));
 }
 
-function metabaseQuerySetNull($database, $prepared_query, $parameter, $type)
+function MetabaseQuerySetNull($database, $prepared_query, $parameter, $type)
 {
     global $databases;
 
     return($databases[$database]->querySetNull($prepared_query, $parameter, $type));
 }
 
-function metabaseQuerySetText($database, $prepared_query, $parameter, $value)
+function MetabaseQuerySetText($database, $prepared_query, $parameter, $value)
 {
     global $databases;
 
     return($databases[$database]->querySetText($prepared_query, $parameter, $value));
 }
 
-function metabaseQuerySetCLob($database, $prepared_query, $parameter, $value, $field)
+function MetabaseQuerySetCLob($database, $prepared_query, $parameter, $value, $field)
 {
     global $databases;
 
     return($databases[$database]->querySetCLob($prepared_query, $parameter, $value, $field));
 }
 
-function metabaseQuerySetBLob($database, $prepared_query, $parameter, $value, $field)
+function MetabaseQuerySetBLob($database, $prepared_query, $parameter, $value, $field)
 {
     global $databases;
 
     return($databases[$database]->querySetBLob($prepared_query, $parameter, $value, $field));
 }
 
-function metabaseQuerySetInteger($database, $prepared_query, $parameter, $value)
+function MetabaseQuerySetInteger($database, $prepared_query, $parameter, $value)
 {
     global $databases;
 
     return($databases[$database]->querySetInteger($prepared_query, $parameter, $value));
 }
 
-function metabaseQuerySetBoolean($database, $prepared_query, $parameter, $value)
+function MetabaseQuerySetBoolean($database, $prepared_query, $parameter, $value)
 {
     global $databases;
 
     return($databases[$database]->querySetBoolean($prepared_query, $parameter, $value));
 }
 
-function metabaseQuerySetDate($database, $prepared_query, $parameter, $value)
+function MetabaseQuerySetDate($database, $prepared_query, $parameter, $value)
 {
     global $databases;
 
     return($databases[$database]->querySetDate($prepared_query, $parameter, $value));
 }
 
-function metabaseQuerySetTimestamp($database, $prepared_query, $parameter, $value)
+function MetabaseQuerySetTimestamp($database, $prepared_query, $parameter, $value)
 {
     global $databases;
 
     return($databases[$database]->querySetTimestamp($prepared_query, $parameter, $value));
 }
 
-function metabaseQuerySetTime($database, $prepared_query, $parameter, $value)
+function MetabaseQuerySetTime($database, $prepared_query, $parameter, $value)
 {
     global $databases;
 
     return($databases[$database]->querySetTime($prepared_query, $parameter, $value));
 }
 
-function metabaseQuerySetFloat($database, $prepared_query, $parameter, $value)
+function MetabaseQuerySetFloat($database, $prepared_query, $parameter, $value)
 {
     global $databases;
 
     return($databases[$database]->querySetFloat($prepared_query, $parameter, $value));
 }
 
-function metabaseQuerySetDecimal($database, $prepared_query, $parameter, $value)
+function MetabaseQuerySetDecimal($database, $prepared_query, $parameter, $value)
 {
     global $databases;
 
     return($databases[$database]->querySetDecimal($prepared_query, $parameter, $value));
 }
 
-function metabaseAffectedRows($database, &$affected_rows)
+function MetabaseAffectedRows($database, &$affected_rows)
 {
     global $databases;
     
@@ -202,372 +215,372 @@ function metabaseAffectedRows($database, &$affected_rows)
     }
 }
 
-function metabaseFetchResult($database, $result, $row, $field)
+function MetabaseFetchResult($database, $result, $row, $field)
 {
     global $databases;
 
-    return($databases[$database]->fetchResult($result, $row, $field));
+    return($databases[$database]->fetch($result, $row, $field));
 }
 
-function metabaseFetchClobResult($database, $result, $row, $field)
+function MetabaseFetchClobResult($database, $result, $row, $field)
 {
     global $databases;
 
     return($databases[$database]->fetchClobResult($result, $row, $field));
 }
 
-function metabaseFetchBlobResult($database, $result, $row, $field)
+function MetabaseFetchBlobResult($database, $result, $row, $field)
 {
     global $databases;
 
     return($databases[$database]->fetchBlobResult($result, $row, $field));
 }
 
-function metabaseDestroyResultLob($database, $lob)
+function MetabaseDestroyResultLob($database, $lob)
 {
     global $databases;
 
     return($databases[$database]->destroyResultLob($lob));
 }
 
-function metabaseEndOfResultLob($database, $lob)
+function MetabaseEndOfResultLob($database, $lob)
 {
     global $databases;
 
     return($databases[$database]->endOfResultLob($lob));
 }
 
-function metabaseReadResultLob($database, $lob, &$data, $length)
+function MetabaseReadResultLob($database, $lob, &$data, $length)
 {
     global $databases;
 
     return($databases[$database]->readResultLob($lob, $data, $length));
 }
 
-function metabaseResultIsNull($database, $result, $row, $field)
+function MetabaseResultIsNull($database, $result, $row, $field)
 {
     global $databases;
 
     return($databases[$database]->resultIsNull($result, $row, $field));
 }
 
-function metabaseFetchDateResult($database, $result, $row, $field)
+function MetabaseFetchDateResult($database, $result, $row, $field)
 {
     global $databases;
-    $value = $databases[$database]->fetchResult($result, $row, $field);
+    $value = $databases[$database]->fetch($result, $row, $field);
     $databases[$database]->ConvertResult($value, MDB_TYPE_DATE);
     return($value);
 }
 
-function metabaseFetchTimestampResult($database, $result, $row, $field)
+function MetabaseFetchTimestampResult($database, $result, $row, $field)
 {
     global $databases;
-    $value = $databases[$database]->fetchResult($result, $row, $field);
+    $value = $databases[$database]->fetch($result, $row, $field);
     $databases[$database]->convertResult($value, MDB_TYPE_TIMESTAMP);
     return($value);
 }
 
-function metabaseFetchTimeResult($database, $result, $row, $field)
+function MetabaseFetchTimeResult($database, $result, $row, $field)
 {
     global $databases;
-    $value = $databases[$database]->fetchResult($result, $row, $field);
+    $value = $databases[$database]->fetch($result, $row, $field);
     $databases[$database]->ConvertResult($value, MDB_TYPE_TIME);
     return($value);
 }
 
-function metabaseFetchBooleanResult($database, $result, $row, $field)
+function MetabaseFetchBooleanResult($database, $result, $row, $field)
 {
     global $databases;
-    $value = $databases[$database]->fetchResult($result, $row, $field);
+    $value = $databases[$database]->fetch($result, $row, $field);
     $databases[$database]->ConvertResult($value, MDB_TYPE_BOOLEAN);
     return($value);
 }
 
-function metabaseFetchFloatResult($database, $result, $row, $field)
+function MetabaseFetchFloatResult($database, $result, $row, $field)
 {
     global $databases;
-    $value = $databases[$database]->fetchResult($result, $row, $field);
+    $value = $databases[$database]->fetch($result, $row, $field);
     $databases[$database]->ConvertResult($value, MDB_TYPE_FLOAT);
     return($value);
 }
 
-function metabaseFetchDecimalResult($database, $result, $row, $field)
+function MetabaseFetchDecimalResult($database, $result, $row, $field)
 {
     global $databases;
-    $value = $databases[$database]->fetchResult($result, $row, $field);
+    $value = $databases[$database]->fetch($result, $row, $field);
     $databases[$database]->ConvertResult($value, MDB_TYPE_DECIMAL);
     return($value);
 }
 
-function metabaseFetchResultField($database, $result, &$field)
+function MetabaseFetchResultField($database, $result, &$field)
 {
     global $databases;
 
-    return($databases[$database]->fetchResultField($result, $field));
+    return($databases[$database]->fetchField($result, $field));
 }
 
-function metabaseFetchResultArray($database, $result, &$array, $row)
+function MetabaseFetchResultArray($database, $result, &$array, $row)
 {
     global $databases;
 
     return($databases[$database]->fetchInto($result, $array, "NULL", $row));
 }
 
-function metabaseFetchResultRow($database, $result, &$row)
+function MetabaseFetchResultRow($database, $result, &$row)
 {
     global $databases;
 
-    return($databases[$database]->fetchResultRow($result, $row));
+    return($databases[$database]->fetchRow($result, $row));
 }
 
-function metabaseFetchResultColumn($database, $result, &$column)
+function MetabaseFetchResultColumn($database, $result, &$column)
 {
     global $databases;
 
-    return($databases[$database]->fetchResultColumn($result, $column));
+    return($databases[$database]->fetchColumn($result, $column));
 }
 
-function metabaseFetchResultAll($database, $result, &$all)
+function MetabaseFetchResultAll($database, $result, &$all)
 {
     global $databases;
 
-    return($databases[$database]->fetchResultAll($result, $all));
+    return($databases[$database]->fetchAll($result, $all));
 }
 
-function metabaseNumberOfRows($database, $result)
+function MetabaseNumberOfRows($database, $result)
 {
     global $databases;
 
     return($databases[$database]->numRows($result));
 }
 
-function metabaseNumberOfColumns($database, $result)
+function MetabaseNumberOfColumns($database, $result)
 {
     global $databases;
 
     return($databases[$database]->numCols($result));
 }
 
-function metabaseGetColumnNames($database, $result, &$column_names)
+function MetabaseGetColumnNames($database, $result, &$column_names)
 {
     global $databases;
 
     return($databases[$database]->getColumnNames($result, $column_names));
 }
 
-function metabaseSetResultTypes($database, $result, &$types)
+function MetabaseSetResultTypes($database, $result, &$types)
 {
     global $databases;
 
     return($databases[$database]->setResultTypes($result, $types));
 }
 
-function metabaseFreeResult($database, $result)
+function MetabaseFreeResult($database, $result)
 {
     global $databases;
 
     return($databases[$database]->freeResult($result));
 }
 
-function metabaseError($database)
+function MetabaseError($database)
 {
     global $databases;
 
     return($databases[$database]->error());
 }
 
-function metabaseSetErrorHandler($database, $function)
+function MetabaseSetErrorHandler($database, $function)
 {
     global $databases;
 
     return($databases[$database]->setErrorHandler($function));
 }
 
-function metabaseCreateDatabase($database, $name)
+function MetabaseCreateDatabase($database, $name)
 {
     global $databases;
     $result  =  $databases[$database]->createDatabase($name);
     if (MDB::isError($result)) {
         switch ($result->getCode()) {
-			default:
-				$this->setError("Create database", $result->getMessage());
-				break;
-		}
+            default:
+                $this->setError("Create database", $result->getMessage());
+                break;
+        }
     } else {
         return(1);
     }
 }
 
-function metabaseDropDatabase($database, $name)
+function MetabaseDropDatabase($database, $name)
 {
     global $databases;
     $result  =  $databases[$database]->dropDatabase($name);
     if (MDB::isError($result)) {
         switch ($result->getCode()) {
-			default:
-				$this->setError("Drop database", $result->getMessage());
-				break;
-		}
+            default:
+                $this->setError("Drop database", $result->getMessage());
+                break;
+        }
     } else {
         return(1);
     }
 }
 
-function metabaseSetDatabase($database, $name)
+function MetabaseSetDatabase($database, $name)
 {
     global $databases;
 
     return($databases[$database]->setDatabase($name));
 }
 
-function metabaseGetIntegerFieldTypeDeclaration($database, $name, &$field)
+function MetabaseGetIntegerFieldTypeDeclaration($database, $name, &$field)
 {
     global $databases;
 
-    return($databases[$database]->getIntegerFieldTypeDeclaration($name, $field));
+    return($databases[$database]->getIntegerDeclaration($name, $field));
 }
 
-function metabaseGetTextFieldTypeDeclaration($database, $name, &$field)
+function MetabaseGetTextFieldTypeDeclaration($database, $name, &$field)
 {
     global $databases;
 
-    return($databases[$database]->getTextFieldTypeDeclaration($name, $field));
+    return($databases[$database]->getTextDeclaration($name, $field));
 }
 
-function metabaseGetClobFieldTypeDeclaration($database, $name, &$field)
+function MetabaseGetClobFieldTypeDeclaration($database, $name, &$field)
 {
     global $databases;
 
-    return($databases[$database]->getClobFieldTypeDeclaration($name, $field));
+    return($databases[$database]->getClobDeclaration($name, $field));
 }
 
-function metabaseGetBlobFieldTypeDeclaration($database, $name, &$field)
+function MetabaseGetBlobFieldTypeDeclaration($database, $name, &$field)
 {
     global $databases;
 
-    return($databases[$database]->getBlobFieldTypeDeclaration($name, $field));
+    return($databases[$database]->getBlobDeclaration($name, $field));
 }
 
-function metabaseGetBooleanFieldTypeDeclaration($database, $name, &$field)
+function MetabaseGetBooleanFieldTypeDeclaration($database, $name, &$field)
 {
     global $databases;
 
-    return($databases[$database]->getBooleanFieldTypeDeclaration($name, $field));
+    return($databases[$database]->getBooleanDeclaration($name, $field));
 }
 
-function metabaseGetDateFieldTypeDeclaration($database, $name, &$field)
+function MetabaseGetDateFieldTypeDeclaration($database, $name, &$field)
 {
     global $databases;
 
-    return($databases[$database]->getDateFieldTypeDeclaration($name, $field));
+    return($databases[$database]->getDateDeclaration($name, $field));
 }
 
-function metabaseGetTimestampFieldTypeDeclaration($database, $name, &$field)
+function MetabaseGetTimestampFieldTypeDeclaration($database, $name, &$field)
 {
     global $databases;
 
-    return($databases[$database]->getTimestampFieldTypeDeclaration($name, $field));
+    return($databases[$database]->getTimestampDeclaration($name, $field));
 }
 
-function metabaseGetTimeFieldTypeDeclaration($database, $name, &$field)
+function MetabaseGetTimeFieldTypeDeclaration($database, $name, &$field)
 {
     global $databases;
 
-    return($databases[$database]->getTimeFieldTypeDeclaration($name, $field));
+    return($databases[$database]->getTimeDeclaration($name, $field));
 }
 
-function metabaseGetFloatFieldTypeDeclaration($database, $name, &$field)
+function MetabaseGetFloatFieldTypeDeclaration($database, $name, &$field)
 {
     global $databases;
 
-    return($databases[$database]->getFloatFieldTypeDeclaration($name, $field));
+    return($databases[$database]->getFloatDeclaration($name, $field));
 }
 
-function metabaseGetDecimalFieldTypeDeclaration($database, $name, &$field)
+function MetabaseGetDecimalFieldTypeDeclaration($database, $name, &$field)
 {
     global $databases;
 
-    return($databases[$database]->getDecimalFieldTypeDeclaration($name, $field));
+    return($databases[$database]->getDecimalDeclaration($name, $field));
 }
 
-function metabaseGetTextFieldValue($database, $value)
+function MetabaseGetTextFieldValue($database, $value)
 {
     global $databases;
 
     return($databases[$database]->getTextFieldValue($value));
 }
 
-function metabaseGetBooleanFieldValue($database, $value)
+function MetabaseGetBooleanFieldValue($database, $value)
 {
     global $databases;
 
     return($databases[$database]->getBooleanFieldValue($value));
 }
 
-function metabaseGetDateFieldValue($database, $value)
+function MetabaseGetDateFieldValue($database, $value)
 {
     global $databases;
 
     return($databases[$database]->getDateFieldValue($value));
 }
 
-function metabaseGetTimestampFieldValue($database, $value)
+function MetabaseGetTimestampFieldValue($database, $value)
 {
     global $databases;
 
     return($databases[$database]->getTimestampFieldValue($value));
 }
 
-function metabaseGetTimeFieldValue($database, $value)
+function MetabaseGetTimeFieldValue($database, $value)
 {
     global $databases;
 
     return($databases[$database]->getTimeFieldValue($value));
 }
 
-function metabaseGetFloatFieldValue($database, $value)
+function MetabaseGetFloatFieldValue($database, $value)
 {
     global $databases;
 
     return($databases[$database]->getFloatFieldValue($value));
 }
 
-function metabaseGetDecimalFieldValue($database, $value)
+function MetabaseGetDecimalFieldValue($database, $value)
 {
     global $databases;
 
     return($databases[$database]->getDecimalFieldValue($value));
 }
 
-function metabaseSupport($database, $feature)
+function MetabaseSupport($database, $feature)
 {
     global $databases;
 
     return($databases[$database]->support($feature));
 }
 
-function metabaseCreateTable($database, $name, &$fields)
+function MetabaseCreateTable($database, $name, &$fields)
 {
     global $databases;
 
     return($databases[$database]->createTable($name, $fields));
 }
 
-function metabaseDropTable($database, $name)
+function MetabaseDropTable($database, $name)
 {
     global $databases;
 
     return($databases[$database]->dropTable($name));
 }
 
-function metabaseAlterTable($database, $name, &$changes, $check = 0)
+function MetabaseAlterTable($database, $name, &$changes, $check = 0)
 {
     global $databases;
 
     return($databases[$database]->alterTable($name, $changes, $check));
 }
 
-function metabaseCreateSequence($database, $name, $start)
+function MetabaseCreateSequence($database, $name, $start)
 {
     global $databases;
 
@@ -579,7 +592,7 @@ function metabaseCreateSequence($database, $name, $start)
     }
 }
 
-function metabaseDropSequence($database, $name)
+function MetabaseDropSequence($database, $name)
 {
     global $databases;
 
@@ -591,7 +604,7 @@ function metabaseDropSequence($database, $name)
     }
 }
 
-function metabaseGetSequenceNextValue($database, $name, &$value)
+function MetabaseGetSequenceNextValue($database, $name, &$value)
 {
     global $databases;
 
@@ -603,7 +616,7 @@ function metabaseGetSequenceNextValue($database, $name, &$value)
     }
 }
 
-function metabaseGetSequenceCurrentValue($database, $name, &$value)
+function MetabaseGetSequenceCurrentValue($database, $name, &$value)
 {
     global $databases;
 
@@ -615,129 +628,285 @@ function metabaseGetSequenceCurrentValue($database, $name, &$value)
     }
 }
 
-function metabaseAutoCommitTransactions($database, $auto_commit)
+function MetabaseAutoCommitTransactions($database, $auto_commit)
 {
     global $databases;
 
     return($databases[$database]->autoCommitTransactions($auto_commit));
 }
 
-function metabaseCommitTransaction($database)
+function MetabaseCommitTransaction($database)
 {
     global $databases;
 
     return($databases[$database]->commitTransaction());
 }
 
-function metabaseRollbackTransaction($database)
+function MetabaseRollbackTransaction($database)
 {
     global $databases;
 
     return($databases[$database]->rollbackTransaction());
 }
 
-function metabaseCreateIndex($database, $table, $name, $definition)
+function MetabaseCreateIndex($database, $table, $name, $definition)
 {
     global $databases;
 
     return($databases[$database]->createIndex($table, $name, $definition));
 }
 
-function metabaseDropIndex($database, $table, $name)
+function MetabaseDropIndex($database, $table, $name)
 {
     global $databases;
 
     return($databases[$database]->dropIndex($table, $name));
 }
 
-function metabaseNow()
+function MetabaseNow()
 {
     return(strftime("%Y-%m-%d %H:%M:%S"));
 }
 
-function metabaseToday()
+function MetabaseToday()
 {
     return(strftime("%Y-%m-%d"));
 }
 
-function metabaseTime()
+function MetabaseTime()
 {
     return(strftime("%H:%M:%S"));
 }
 
-function metabaseSetSelectedRowRange($database, $first, $limit)
+function MetabaseSetSelectedRowRange($database, $first, $limit)
 {
     global $databases;
 
     return($databases[$database]->setSelectedRowRange($first, $limit));
 }
 
-function metabaseEndOfResult($database, $result)
+function MetabaseEndOfResult($database, $result)
 {
     global $databases;
 
     return($databases[$database]->endOfResult($result));
 }
 
-function metabaseCaptureDebugOutput($database, $capture)
+function MetabaseCaptureDebugOutput($database, $capture)
 {
     global $databases;
 
     $databases[$database]->captureDebugOutput($capture);
 }
 
-function metabaseDebugOutput($database)
+function MetabaseDebugOutput($database)
 {
     global $databases;
 
     return($databases[$database]->debugOutput());
 }
 
-function metabaseDebug($database, $message)
+function MetabaseDebug($database, $message)
 {
     global $databases;
 
     return($databases[$database]->debug($message));
 }
 
-function metabaseShutdownTransactions()
+function MetabaseShutdownTransactions()
 {
     shutdownTransactions();
 }
 
-function metabaseDefaultDebugOutput($database, $message)
+function MetabaseDefaultDebugOutput($database, $message)
 {
     defaultDebugOutput($database, $message);
 }
 
-function metabaseCreateLob(&$arguments, &$lob)
+function MetabaseCreateLob(&$arguments, &$lob)
 {
     return(createLob(&$arguments, &$lob));
 }
 
-function metabaseCreateLobError(&$arguments, &$lob)
+function MetabaseCreateLobError(&$arguments, &$lob)
 {
     return(createLobError(&$arguments, &$lob));
 }
 
-function metabaseDestroyLob($lob)
+function MetabaseDestroyLob($lob)
 {
     destroyLob($lob);
 }
 
-function metabaseEndOfLob($lob)
+function MetabaseEndOfLob($lob)
 {
     return(endOfLob($lob));
 }
 
-function metabaseReadLob($lob, &$data, $length)
+function MetabaseReadLob($lob, &$data, $length)
 {
     return(readLob($lob, &$data, $length));
 }
 
-function metabaseLobError($lob)
+function MetabaseLobError($lob)
 {
     return(lobError($lob));
 }
+
+class Metabase_manager_class
+{
+    var $MDB_manager_object;
+	
+    var $fail_on_invalid_names = 1;
+    var $error = "";
+    var $warnings = array();
+    var $database = 0;
+    var $database_definition = array(
+        "name" => "",
+        "create" => 0,
+        "TABLES" => array()
+    );
+	
+    function Metabase_manager_class()
+    {
+		global $databases;
+		$this->MDB_manager_object = new MDB_manager;
+		$this->database = count($databases)+1;
+		$this->MDB_manager_object->fail_on_invalid_names = $this->fail_on_invalid_names;
+		$this->MDB_manager_object->error = $this->error;
+		$this->MDB_manager_object->warnings = $this->warnings;
+		$this->MDB_manager_object->database_definition = $this->database_definition;
+    }
+	
+	function SetupDatabase(&$arguments)
+	{
+		$dsninfo["phptype"] = $arguments["Type"];
+        $dsninfo["username"] = $arguments["User"];
+        $dsninfo["password"] = $arguments["Password"];
+        $dsninfo["hostspec"] = $arguments["Host"];
+        if (isset($arguments["Persistent"])) {
+            $options["persistent"] = true;
+        }
+        if (isset($arguments["IncludePath"])) {
+             $options["includepath"] = $arguments["IncludePath"];
+        }
+		
+		if (isset($arguments["Debug"])) {
+             $options["debug"] = $arguments["Debug"];
+        }
+		
+		return($this->MDB_manager_object->setupDatabase($dsninfo, $options));
+	}
+
+	function CloseSetup()
+	{
+		return($this->MDB_manager_object->closeSetup());
+	}
+
+	function GetField(&$field,$field_name,$declaration,&$query)
+	{
+		return($this->MDB_manager_object->getField(&$field,$field_name,$declaration,&$query));
+	}
+
+	function GetFieldList($fields,$declaration,&$query_fields)
+	{
+		return($this->MDB_manager_object->getFieldList($fields,$declaration,&$query_fields));
+	}
+
+	function GetFields($table,&$fields)
+	{
+		return($this->MDB_manager_object->getFields($table,&$fields));
+	}
+
+	function CreateTable($table_name,$table)
+	{
+		return($this->MDB_manager_object->createTable($table_name,$table));
+	}
+
+	function DropTable($table_name)
+	{
+		return($this->MDB_manager_object->dropTable($table_name));
+	}
+
+	function CreateSequence($sequence_name,$sequence,$created_on_table)
+	{
+		return($this->MDB_manager_object->createSequence($sequence_name,$sequence,$created_on_table));
+	}
+
+	function DropSequence($sequence_name)
+	{
+		return($this->MDB_manager_object->dropSequence($sequence_name));
+	}
+
+	function CreateDatabase()
+	{
+		return($this->MDB_manager_object->createDatabase());
+	}
+
+	function AddDefinitionChange(&$changes,$definition,$item,$change)
+	{
+		return($this->MDB_manager_object->addDefinitionChange(&$changes,$definition,$item,$change));
+	}
+
+	function CompareDefinitions(&$previous_definition,&$changes)
+	{
+		return($this->MDB_manager_object->compareDefinitions(&$previous_definition,&$changes));
+	}
+
+	function AlterDatabase(&$previous_definition,&$changes)
+	{
+		return($this->MDB_manager_object->alterDatabase(&$previous_definition,&$changes));
+	}
+
+	function EscapeSpecialCharacters($string)
+	{
+		return($this->MDB_manager_object->escapeSpecialCharacters($string));
+	}
+
+	function DumpSequence($sequence_name,$output,$eol,$dump_definition)
+	{
+		return($this->MDB_manager_object->dumpSequence($sequence_name,$output,$eol,$dump_definition));
+	}
+
+	function DumpDatabase($arguments)
+	{
+		return($this->MDB_manager_object->dumpDatabase($arguments));
+	}
+
+	function ParseDatabaseDefinitionFile($input_file,&$database_definition,&$variables,$fail_on_invalid_names=1)
+	{
+		return($this->MDB_manager_object->parseDatabaseDefinitionFile($input_file,&$database_definition,&$variables,$fail_on_invalid_names=1));
+	}
+
+	function DumpDatabaseChanges(&$changes)
+	{
+		return($this->MDB_manager_object->dumpDatabaseChanges(&$changes));
+	}
+
+	function UpdateDatabase($current_schema_file,$previous_schema_file,&$arguments,&$variables)
+	{
+		$dsninfo["phptype"] = $arguments["Type"];
+        $dsninfo["username"] = $arguments["User"];
+        $dsninfo["password"] = $arguments["Password"];
+        $dsninfo["hostspec"] = $arguments["Host"];
+        if (isset($arguments["Persistent"])) {
+            $options["persistent"] = true;
+        }
+        if (isset($arguments["IncludePath"])) {
+             $options["includepath"] = $arguments["IncludePath"];
+        }
+		
+		if (isset($arguments["Debug"])) {
+             $options["debug"] = $arguments["Debug"];
+        }
+		
+		return($this->MDB_manager_object->updateDatabase($current_schema_file,$previous_schema_file,&$dsninfo,&$variables,$options));
+	}
+
+	function DumpDatabaseContents($schema_file,&$setup_arguments,&$dump_arguments,&$variables)
+	{
+		return($this->MDB_manager_object->dumpDatabaseContents($schema_file,&$setup_arguments,&$dump_arguments,&$variables));
+	}
+};
 
 ?>
