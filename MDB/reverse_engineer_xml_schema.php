@@ -52,35 +52,35 @@
 * @author  Lukas Smith <smith@dybnet.de>
  */
 
-    echo ('
+echo ('
 <html>
 <body>
-    ');
+');
 
-    if($submit && $file != '') {
+    if(isset($_REQUEST['submit']) && $_REQUEST['file'] != '') {
         require_once('manager.php');
         require_once('Var_Dump.php');
 
-        $dsn = "$type://$user:$pass@$host/$name";
+        $dsn = $_REQUEST['type'].'://'.$_REQUEST['user'].':'.$_REQUEST['pass'].'@'.$_REQUEST['host'].'/'.$_REQUEST['name'];
 
         $manager = new MDB_manager;
         $err = $manager->connect($dsn);
         if(MDB::isError($err)) {
             $error = $err->getMessage();
         } else {
-            if($action) {
+            if($_REQUEST['action']) {
                 set_time_limit(0);
             }
-            if($action == 'dump') {
+            if($_REQUEST['action'] == 'dump') {
                 Var_Dump::display($manager->dumpDatabase(
                     array(
                         'Output_Mode' => 'file',
-                        'Output' => $file
+                        'Output' => $_REQUEST['file']
                     ),
                     MDB_MANAGER_DUMP_ALL
                 ));
-            } else if($action == 'create') {
-                Var_Dump::display($manager->updateDatabase($file));
+            } else if($_REQUEST['action'] == 'create') {
+                Var_Dump::display($manager->updateDatabase($_REQUEST['file']));
             } else {
                 $error = 'no action selected';
             }
@@ -93,8 +93,8 @@
         }
     }
     
-    if (!isset($submit) || isset($error)) {
-        if ($error) {
+    if (!isset($_REQUEST['submit']) || isset($error)) {
+        if (isset($error) && $error) {
             echo $error.'<br>';
         }
         echo ('
@@ -102,24 +102,24 @@
             Database Type:
             <select name="type">
                 <option value="mysql"');
-                if($type == 'mysql') {echo ('selected');}
+                if(isset($_REQUEST['type']) && $_REQUEST['type'] == 'mysql') {echo ('selected');}
                 echo ('>MySQL</option>
             </select>
             <br />
             Username:
-            <input type="text" name="user" value="'.$user.'" />
+            <input type="text" name="user" value="'.(isset($_REQUEST['user']) ? $_REQUEST['user'] : '').'" />
             <br />
             Password:
-            <input type="text" name="pass" value="'.$pass.'" />
+            <input type="text" name="pass" value="'.(isset($_REQUEST['pass']) ? $_REQUEST['pass'] : '').'" />
             <br />
             Host:
-            <input type="text" name="host" value="'.$host.'" />
+            <input type="text" name="host" value="'.(isset($_REQUEST['host']) ? $_REQUEST['host'] : '').'" />
             <br />
             Databasename:
-            <input type="text" name="name" value="'.$name.'" />
+            <input type="text" name="name" value="'.(isset($_REQUEST['name']) ? $_REQUEST['name'] : '').'" />
             <br />
             Filename:
-            <input type="text" name="file" value="'.$file.'" />
+            <input type="text" name="file" value="'.(isset($_REQUEST['file']) ? $_REQUEST['file'] : '').'" />
             <br />
             Dump:
             <input type="radio" name="action" value="dump" />
