@@ -228,6 +228,9 @@ class MDB_mysql extends MDB_common
         if (MDB::isError($result)) {
             return $result;
         }
+        if(!is_array($col) || count($col) == 0) {
+            return "NULL";
+        }
         if($quote) {
             for($i = 0, $j = count($col); $i < $j; ++$i) {
                 $col[$i] = $this->getTextFieldValue($col[$i]);
