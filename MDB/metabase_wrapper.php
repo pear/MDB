@@ -1131,7 +1131,7 @@ function MetabaseRollbackTransaction($database)
         $databases[$database]->setError('RollbackTransaction', $result->getMessage());
         return(0);
     } else {
-        return(1);
+        return($result);
     }
 }
 
@@ -1368,7 +1368,7 @@ class Metabase_manager_class
     {
         _convertArguments($arguments, $dsninfo, $options);
         
-        $result = $this->MDB_manager_object->setupDatabase($dsninfo, $options);
+        $result = $this->MDB_manager_object->connect($dsninfo, $options);
         if (MDB::isError($result)) {
             return $result->getMessage();
         }
@@ -1378,88 +1378,193 @@ class Metabase_manager_class
 
     function CloseSetup()
     {
-        return($this->MDB_manager_object->_close());
+        $result = $this->MDB_manager_object->_close();
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return(1);
+        }
     }
 
     function GetField(&$field, $field_name, $declaration, &$query)
     {
-        $query = $this->MDB_manager_object->getFieldDeclaration($field, $field_name, $declaration);
-        return $query;
+        if($declaration) {
+            $result = $this->MDB_manager_object->database->getFieldDeclaration($field, $field_name, $declaration);
+        } else {
+            $result = $field_name;
+        }
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            $query = $result;
+            return(1);
+        }
     }
 
     function GetFieldList($fields, $declaration, &$query_fields)
     {
-        return($this->MDB_manager_object->getFieldList($fields, $declaration, $query_fields));
+        if($declaration) {
+            $result = $this->MDB_manager_object->database->getFieldDeclarationList($fields);
+        } else {
+            for(reset($fields), $i = 0;
+                $field_number < count($fields);
+                $i++, next($fields))
+            {
+                if ($i > 0) {
+                    $query_fields .= ", ";
+                }
+                $result .= key($fields);
+            }
+        }
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            $query_fields = $result;
+            return(1);
+        }
     }
 
     function GetFields($table, &$fields)
     {
-        return($this->MDB_manager_object->getFields($table, $fields));
+        $result = $this->MDB_manager_object->database->getFieldDeclarationList($this->database_definition["TABLES"][$table]["FIELDS"]);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            $fields = $result;
+            return(1);
+        }
     }
 
     function CreateTable($table_name, $table)
     {
-        return($this->MDB_manager_object->createTable($table_name, $table));
+        $result = $this->MDB_manager_object->createTable($table_name, $table);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return(1);
+        }
     }
 
     function DropTable($table_name)
     {
-        return($this->MDB_manager_object->dropTable($table_name));
+        $result = $this->MDB_manager_object->dropTable($table_name);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return(1);
+        }
     }
 
     function CreateSequence($sequence_name, $sequence, $created_on_table)
     {
-        return($this->MDB_manager_object->createSequence($sequence_name, $sequence, $created_on_table));
+        $result = $this->MDB_manager_object->createSequence($sequence_name, $sequence, $created_on_table);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return(1);
+        }
     }
 
     function DropSequence($sequence_name)
     {
-        return($this->MDB_manager_object->dropSequence($sequence_name));
+        $result = $this->MDB_manager_object->dropSequence($sequence_name);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return(1);
+        }
     }
 
     function CreateDatabase()
     {
-        return($this->MDB_manager_object->createDatabase());
+        $result = $this->MDB_manager_object->createDatabase();
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return(1);
+        }
     }
 
     function AddDefinitionChange(&$changes, $definition, $item, $change)
     {
-        return($this->MDB_manager_object->addDefinitionChange($changes, $definition, $item, $change));
+        $result = $this->MDB_manager_object->addDefinitionChange($changes, $definition, $item, $change);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return(1);
+        }
     }
 
     function CompareDefinitions(&$previous_definition, &$changes)
     {
-        return($this->MDB_manager_object->compareDefinitions($previous_definition, $changes));
+        $result = $this->MDB_manager_object->compareDefinitions($previous_definition);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            $changes = $result;
+            return(1);
+        }
     }
 
     function AlterDatabase(&$previous_definition, &$changes)
     {
-        return($this->MDB_manager_object->alterDatabase($previous_definition, $changes));
+        $result = $this->MDB_manager_object->alterDatabase($previous_definition, $changes);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return(1);
+        }
     }
 
     function EscapeSpecialCharacters($string)
     {
-        return($this->MDB_manager_object->escapeSpecialCharacters($string));
+        $result = $this->MDB_manager_object->escapeSpecialCharacters($string);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return($result);
+        }
     }
 
     function DumpSequence($sequence_name, $output, $eol, $dump_definition)
     {
-        return($this->MDB_manager_object->dumpSequence($sequence_name, $output, $eol, $dump_definition));
+        $result = $this->MDB_manager_object->dumpSequence($sequence_name, $output, $eol, $dump_definition);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return(1);
+        }
     }
 
     function DumpDatabase($arguments)
     {
-        return($this->MDB_manager_object->dumpDatabase($arguments));
+        $result = $this->MDB_manager_object->dumpDatabase($arguments);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return(1);
+        }
     }
 
     function ParseDatabaseDefinitionFile($input_file, &$database_definition, &$variables, $fail_on_invalid_names = 1)
     {
-        return($this->MDB_manager_object->parseDatabaseDefinitionFile($input_file, $database_definition, $variables, $fail_on_invalid_names));
+        $result = $this->MDB_manager_object->parseDatabaseDefinitionFile($input_file, $variables, $fail_on_invalid_names);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            $database_definition = $result;
+            return(1);
+        }
     }
 
     function DumpDatabaseChanges(&$changes)
     {
-        return($this->MDB_manager_object->dumpDatabaseChanges($changes));
+        $result = $this->MDB_manager_object->dumpDatabaseChanges($changes);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return(1);
+        }
     }
 
     function UpdateDatabase($current_schema_file, $previous_schema_file, &$arguments, &$variables)
@@ -1476,7 +1581,13 @@ class Metabase_manager_class
 
     function DumpDatabaseContents($schema_file, &$setup_arguments, &$dump_arguments, &$variables)
     {
-        return($this->MDB_manager_object->dumpDatabaseContents($schema_file, $setup_arguments, $dump_arguments, $variables));
+        $result = $this->MDB_manager_object->dumpDatabaseContents($schema_file, $setup_arguments, $dump_arguments, $variables);
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            $database_definition = $result;
+            return($result);
+        }
     }
 };
 ?>
