@@ -69,6 +69,7 @@ class MDB_driver_mysql extends MDB_common
     var $manager_class_name = "MDB_manager_mysql_class";
     var $manager_include = "manager_mysql.php";
     var $manager_included_constant = "MDB_MANAGER_MYSQL_INCLUDED"; 
+    var $default_table_type = "";
 
     // }}}
     // {{{ constructor
@@ -96,6 +97,39 @@ class MDB_driver_mysql extends MDB_common
         if ($this->options["UseTransactions"]) {
             $this->supported["Transactions"] = 1;
         }
+        if(isset($this->options["UseTransactions"])
+            && $this->options["UseTransactions"])
+        {
+            $this->supported["Transactions"] = 1;
+            $this->default_table_type = "BDB";
+        } else {
+            $this->default_table_type="";
+        }
+        if(isset($this->options["DefaultTableType"]))
+        {
+            switch($this->default_table_type = strtoupper($this->options["DefaultTableType"])) {
+                case "BERKELEYDB":
+                    $this->default_table_type = "BDB";
+                case "BDB":
+                case "INNODB":
+                case "GEMINI":
+                    break;
+                case "HEAP":
+                case "ISAM":
+                case "MERGE":
+                case "MRG_MYISAM":
+                case "MYISAM":
+                    if(isset($this->supported["Transactions"])) {
+                        $this->warnings[] = $this->options["DefaultTableType"]
+                            ." is not a transaction-safe default table type";
+                    }
+                    break;
+                default:
+                    $this->warnings[] = $this->options["DefaultTableType"]
+                        ." is not a supported default table type";
+            }
+        }
+
         $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
         
         $this->errorcode_map = array(
@@ -163,7 +197,6 @@ class MDB_driver_mysql extends MDB_common
      */ 
     function autoCommit($auto_commit)
     {
-        $this->debug("AutoCommit: ".($auto_commit ? "On" : "Off"));
         if (!isset($this->supported["Transactions"])) {
             return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
                 'Auto-commit transactions: transactions are not in use');
@@ -207,7 +240,6 @@ class MDB_driver_mysql extends MDB_common
      */ 
     function commit()
     {
-        $this->debug("Commit Transaction");
         if (!isset($this->supported["Transactions"])) {
             return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
                 'Commit transactions: transactions are not in use');
@@ -234,7 +266,6 @@ class MDB_driver_mysql extends MDB_common
      */ 
     function rollback()
     {
-        $this->debug("Rollback Transaction");
         if (!isset($this->supported["Transactions"])) {
             return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
                 'Rollback transactions: transactions are not in use');
