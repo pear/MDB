@@ -515,6 +515,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $this->assertTrue($this->db->endOfResult($result), 'the query result did not seem to have reached the end of result as expected');
 
         $this->db->freeResult($result);
+        
+        //setSelectedRowRange() is ignored by the get*() and query*() methods...
+        $this->db->setSelectedRowRange(0, 2);
+        $result = $this->db->queryAll('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users ORDER BY user_id', $this->types);
+        $this->assertEquals(2, count($result));
     }
 
     /**
