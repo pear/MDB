@@ -700,7 +700,7 @@ class MDB_ibase extends MDB_Common
         if (MDB::isError($names = $this->getColumnNames($result))) {
             return $names;
         }
-         if (is_integer($field)) {
+         if (is_numeric($field)) {
             if (($column = $field) < 0
                 || $column >= count($this->columns[$result_value]))
             {
@@ -723,7 +723,7 @@ class MDB_ibase extends MDB_Common
      * fetch value from a result set
      *
      * @param resource $result result identifier
-     * @param int $row number of the row where the data can be found
+     * @param int $rownum number of the row where the data can be found
      * @param int $field field number where the data can be found
      * @return mixed string on success, a MDB error on failure
      * @access public
@@ -740,7 +740,8 @@ class MDB_ibase extends MDB_Common
         if (!isset($row[$column])) {
             return null;
         }
-        return rtrim($row[$column], ' ');
+        //return rtrim($row[$column], ' ');
+        return $row[$column];
     }
 
     // }}}
@@ -750,7 +751,7 @@ class MDB_ibase extends MDB_Common
      * Fetch a row and return data in an array.
      *
      * @param resource $result result identifier
-     * @param int $fetchmode ignored
+     * @param int $fetchmode how the array data should be indexed
      * @param int $rownum the row number to fetch
      * @return mixed data array or NULL on success, a MDB error on failure
      * @access public
@@ -802,9 +803,7 @@ class MDB_ibase extends MDB_Common
         if ($fetchmode == MDB_FETCHMODE_ASSOC) {
             $row = array_change_key_case($row);
         } else {
-            if (!isset($enumarated)) {  //Where do this var come from?
-                $row = array_values($row);
-            }
+            $row = array_values($row);
         }
         if (isset($this->result_types[$result])) {
             $row = $this->convertResultRow($result, $row);
@@ -834,9 +833,9 @@ class MDB_ibase extends MDB_Common
                                                       $this->lobs[$lob]['Row'],
                                                       $this->lobs[$lob]['Field']);
 
-            echo '<pre>';
-            print_r($this->lobs);
-            exit;
+            //echo '<pre>';
+            //print_r($this->lobs);
+            //exit;
             if (!$this->lobs[$lob]['Handle'] = ibase_blob_open($this->lobs[$lob]['Value'])) {
                 unset($this->lobs[$lob]['Value']);
                 return($this->raiseError(MDB_ERROR, NULL, NULL,
@@ -988,14 +987,14 @@ class MDB_ibase extends MDB_Common
      *    field is a NULL.
      *
      * @param resource $result result identifier
-     * @param int $row number of the row where the data can be found
+     * @param int $rownum number of the row where the data can be found
      * @param int $field field number where the data can be found
      * @return mixed TRUE or FALSE on success, a MDB error on failure
      * @access public
      */
-    function resultIsNull($result, $row, $field)
+    function resultIsNull($result, $rownum, $field)
     {
-        $value = $this->fetch($result, $row, $field);
+        $value = $this->fetch($result, $rownum, $field);
         if (MDB::isError($value)) {
             return $value;
         }
@@ -1484,7 +1483,7 @@ class MDB_ibase extends MDB_Common
      */
     function getDecimalValue($value)
     {
-        return (($value === NULL) ? 'NULL' : strval(round($value*$this->decimal_factor)));
+        return (($value === null) ? 'NULL' : strval(round($value*$this->decimal_factor)));
     }
 
     // }}}
@@ -1500,8 +1499,11 @@ class MDB_ibase extends MDB_Common
      * @return mixed MDB_Error or id
      * @access public
      */
-    function nextId($seq_name, $ondemand = TRUE)
+    function nextId($seq_name, $ondemand = true)
     {
+        if (MDB::isError($connect = $this->connect())) {
+            return $connect;
+        }
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
         $result = $this->_doQuery("SELECT GEN_ID($sequence_name, 1) as the_value FROM RDB\$DATABASE");
