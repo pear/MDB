@@ -227,17 +227,17 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $this->db->freePreparedQuery($prepared_query);
 
-        $total_fields =  count($this->fields);
+        $total_fields = count($this->fields);
         for ($i = 0; $i < $total_fields; $i++) {
             $field = $this->fields[$i];
             for ($row = 0; $row < $total_rows; $row++) {
                 $result = $this->db->query('SELECT '.$field.' FROM users WHERE user_id='.$row, $this->types[$i]);
                 $value = $this->db->fetchOne($result);
-                $this->db->freeResult($result);
                 if (MDB::isError($value)) {
                     $this->assertTrue(false, 'Error fetching row '.$row.' for field '.$field.' of type '.$this->types[$i]);
                 } else {
                     $this->assertEquals(strval(trim($value)), strval($data[$row][$field]), 'the query field '.$field.' of type '.$this->types[$i].' for row '.$row.' was returned as "'.$value.'" unlike "'.$data[$row][$field].'" as expected');
+                    $this->db->freeResult($result);
                 }
             }
         }
@@ -882,7 +882,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result too soon.');
 
         $row = $this->db->fetchRow($result);
-        $this->db->freeResult($result);
 
         $clob = $row[0];
         if (!MDB::isError($clob)) {
@@ -968,7 +967,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result too soon.');
 
         $row = $this->db->fetchRow($result);
-        $this->db->freeResult($result);
         $clob = $row[0];
         if (!MDB::isError($clob)) {
             $clob = $this->db->datatype->setLOBFile($clob, $character_data_file);
