@@ -82,6 +82,47 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     }
 
     // }}}
+    // {{{ getTypeDeclaration()
+
+    /**
+     * Obtain DBMS specific native datatype as a string
+     * 
+     * @param object    &$db reference to driver MDB object
+     * @param string $field associative array with the name of the properties
+     *        of the field being declared as array indexes. Currently, the types
+     *        of supported field properties are as follows:
+     * 
+     * @return string with the correct RDBMS native type
+     * @access public 
+     */
+    function getTypeDeclaration(&$db, $field)
+    {
+        switch ($field['type']) {
+            case 'integer':
+                return 'INTEGER';
+            case 'text':
+                return 'VARCHAR ('.(isset($field['length']) ? $field['length'] : (isset($db->options['DefaultTextFieldLength']) ? $db->options['DefaultTextFieldLength'] : 4000)).')';
+            case 'clob':
+                return('BLOB SUB_TYPE 1');
+            case 'blob':
+                return('BLOB SUB_TYPE 0');
+            case 'boolean':
+                return 'CHAR (1)';
+            case 'date':
+                return 'DATE';
+            case 'time':
+                return 'TIME';
+            case 'timestamp':
+                return 'TIMESTAMP';
+            case 'float':
+                return 'DOUBLE PRECISION';
+            case 'decimal':
+                return 'DECIMAL(18,'.$this->decimal_places .')';
+        }
+        return '';
+    }
+
+    // }}}
     // {{{ getTextDeclaration()
 
     /**
@@ -112,7 +153,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     function getTextDeclaration(&$db, $name, $field)
     {
         return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['default']) ? ' DEFAULT '.$this->getValue('text', $field['default']) : '')
+               .(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($field['default']) : '')
                .(IsSet($field['notnull']) ? ' NOT NULL' : '');
     }
 
