@@ -2403,7 +2403,8 @@ class MDB_Common extends PEAR
      */
     function setResultTypes($result, $types)
     {
-        if (isset($this->result_types[$result])) {
+        $result_value = intval($result);
+        if (isset($this->result_types[$result_value])) {
             return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
                 'Set result types: attempted to redefine the types of the columns of a result set'));
         }
@@ -2432,10 +2433,10 @@ class MDB_Common extends PEAR
                 return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                     'Set result types: ' . $types[$column] . ' is not a supported column type'));
             }
-            $this->result_types[$result][$column] = $valid_types[$types[$column]];
+            $this->result_types[$result_value][$column] = $valid_types[$types[$column]];
         }
         while ($column < $columns) {
-            $this->result_types[$result][$column] = MDB_TYPE_TEXT;
+            $this->result_types[$result_value][$column] = MDB_TYPE_TEXT;
             $column++;
         }
         return(MDB_OK);
@@ -2809,16 +2810,17 @@ class MDB_Common extends PEAR
      */
     function convertResultRow($result, $row)
     {
-        if (isset($this->result_types[$result])) {
+        $result_value = intval($result);
+        if (isset($this->result_types[$result_value])) {
             $current_column = -1;
             foreach($row as $key => $column) {
                 ++$current_column;
-                if (!isset($this->result_types[$result][$current_column])
+                if (!isset($this->result_types[$result_value][$current_column])
                    ||!isset($column)
                 ) {
                     continue;
                 }
-                switch ($type = $this->result_types[$result][$current_column]) {
+                switch ($type = $this->result_types[$result_value][$current_column]) {
                     case MDB_TYPE_TEXT:
                     case MDB_TYPE_BLOB:
                     case MDB_TYPE_CLOB:
@@ -3587,21 +3589,18 @@ class MDB_Common extends PEAR
      */
     function fetchInto($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = NULL)
     {
-        if (MDB::isError($result)) {
-            return($this->raiseError(MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
-                'Fetch field: it was not specified a valid result set'));
-        }
+        $result_value = intval($result);
         if (MDB::isError($this->endOfResult($result))) {
             $this->freeResult($result);
             $result = $this->raiseError(MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
                 'Fetch field: result set is empty');
         }
         if ($rownum == NULL) {
-            ++$this->highest_fetched_row[$result];
-            $rownum = $this->highest_fetched_row[$result];
+            ++$this->highest_fetched_row[$result_value];
+            $rownum = $this->highest_fetched_row[$result_value];
         } else {
-            $this->highest_fetched_row[$result] =
-                max($this->highest_fetched_row[$result], $row);
+            $this->highest_fetched_row[$result_value] =
+                max($this->highest_fetched_row[$result_value], $row);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
@@ -3640,7 +3639,7 @@ class MDB_Common extends PEAR
                 $row = array_change_key_case($row, CASE_LOWER);
             }
         }
-        if (isset($this->result_types[$result])) {
+        if (isset($this->result_types[$result_value])) {
             $row = $this->convertResultRow($result, $row);
         }
         return($row);
@@ -3706,14 +3705,12 @@ class MDB_Common extends PEAR
         $column = array();
         $row = $this->fetchInto($result, $fetchmode);
         if (is_array($row)) {
-            if (!isset($row[$colnum]) && !is_null($row[$colnum])) {
-                $this->freeResult($result);
-                return($this->raiseError(MDB_ERROR_TRUNCATED));
+            if (array_key_exists($colnum, $row)) {
+                return($this->raiseError(MDB2_ERROR_TRUNCATED));
             }
-            $column[] = $row[$colnum];
-            while (is_array($row = $this->fetchInto($result, $fetchmode))) {
+            do {
                 $column[] = $row[$colnum];
-            }
+            } while (is_array($row = $this->fetchInto($result, $fetchmode)));
         }
         if (!$this->options['autofree']) {
             $this->freeResult($result);
