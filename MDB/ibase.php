@@ -964,9 +964,8 @@ class MDB_ibase extends MDB_Common
                 $this->results[$result_value][$this->results[$result_value]['current_row']] = $this->results[$result_value]['row_buffer'];
                 unset($this->results[$result_value]['row_buffer']);
             }
-            for(;$this->results[$result_value]['current_row'] < $rownum;
+            while ($this->results[$result_value]['current_row'] < $rownum)) {
                 $this->results[$result_value]['current_row']++
-            ) {
                 if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                     $row = @ibase_fetch_assoc($result);
                 } else {
