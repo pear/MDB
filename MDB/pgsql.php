@@ -162,6 +162,18 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ pgsqlRaiseError()
+
+    /**
+     * This method is used to communicate an error and invoke error
+     * callbacks etc.  Basically a wrapper for MDB::raiseError
+     * that checks for native error msgs.
+     *
+     * @param integer $errno error code
+     * @return object a PEAR error object
+     * @access public
+     * @see PEAR_Error
+     */
+
     function pgsqlRaiseError($errno = NULL)
     {
         $native = $this->errorNative();
