@@ -107,7 +107,7 @@ class MDB_ibase extends MDB_Common
         $this->supported['OrderByText'] = 1;
         $this->supported['Transactions'] = 1;
         $this->supported['CurrId'] = 1;
-        $this->supported['SelectRowRanges'] = 0;
+        $this->supported['SelectRowRanges'] = 1;
         $this->supported['LOBs'] = 1;
         $this->supported['Replace'] = 0;   // TEMPORARY SECURITY MEASURE...
         $this->supported['SubSelects'] = 1;
