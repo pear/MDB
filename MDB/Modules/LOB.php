@@ -160,8 +160,8 @@ class MDB_LOB_Result extends MDB_LOB
  */
 class MDB_LOB_Input_File extends MDB_LOB
 {
-    var $file = 0;
-    var $opened_file = 0;
+    var $file = '';
+    var $opened_file = false;
 
     function create(&$arguments)
     {
@@ -187,7 +187,7 @@ class MDB_LOB_Input_File extends MDB_LOB
                     'MDB_LOB_Input_File::create: could not open specified input file ("'.$arguments['file_name'].'")',
                     'MDB_Error', true);
                 }
-                $this->opened_file = 1;
+                $this->opened_file = true;
             } else {
                 return PEAR::raiseError(null, MDB_ERROR_NEED_MORE_DATA, null, null,
                     'MDB_LOB_Input_File::create: it was not specified the input file',
@@ -201,8 +201,8 @@ class MDB_LOB_Input_File extends MDB_LOB
     {
         if ($this->opened_file) {
             fclose($this->file);
-            $this->file = 0;
-            $this->opened_file = 0;
+            $this->file = '';
+            $this->opened_file = false;
         }
     }
 
@@ -231,10 +231,10 @@ class MDB_LOB_Input_File extends MDB_LOB
  */
 class MDB_LOB_Output_File extends MDB_LOB
 {
-    var $file = 0;
-    var $opened_file = 0;
+    var $file = '';
+    var $opened_file = false;
     var $input_lob = 0;
-    var $opened_lob = 0;
+    var $opened_lob = false;
     var $buffer_length = 8000;
 
     function create(&$arguments)
@@ -261,7 +261,7 @@ class MDB_LOB_Output_File extends MDB_LOB
                         'MDB_LOB_Output_File::create: could not open specified output file ("'.$arguments['file_name'].'")',
                         'MDB_Error', true);
                 }
-                $this->opened_file = 1;
+                $this->opened_file = true;
             } else {
                 return PEAR::raiseError(null, MDB_ERROR_NEED_MORE_DATA, null, null,
                     'MDB_LOB_Output_File::create: it was not specified the output file',
@@ -270,7 +270,7 @@ class MDB_LOB_Output_File extends MDB_LOB
         }
         if (isset($arguments['LOB'])) {
             $this->input_lob = $arguments['LOB'];
-            $this->opened_lob = 1;
+            $this->opened_lob = true;
         }
         return MDB_OK;
     }
@@ -279,13 +279,13 @@ class MDB_LOB_Output_File extends MDB_LOB
     {
         if ($this->opened_file) {
             fclose($this->file);
-            $this->opened_file = 0;
-            $this->file = 0;
+            $this->opened_file = false;
+            $this->file = '';
         }
         if ($this->opened_lob) {
             $this->db->datatype->destroyLOB($this->input_lob);
             $this->input_lob = 0;
-            $this->opened_lob = 0;
+            $this->opened_lob = false;
         }
     }
 

@@ -186,7 +186,7 @@ class MDB_Reverse_sqlite extends MDB_Reverse_Common
                 ) {
                     $field_choices[$datatype] = array('type' => $type[$datatype]);
                     if (isset($columns[$i]['notnull'])) {
-                        $field_choices[$datatype]['notnull'] = 1;
+                        $field_choices[$datatype]['notnull'] = true;
                     }
                     if (isset($columns[$i]['default'])) {
                         $field_choices[$datatype]["default"]=$columns[$i]['default'];
@@ -235,7 +235,7 @@ class MDB_Reverse_sqlite extends MDB_Reverse_Common
                     }
                     if ($is_primary) {
                         $implicit_index = array();
-                        $implicit_index['unique'] = 1;
+                        $implicit_index['unique'] = true;
                         $implicit_index['fields'][$field_name] = '';
                         $definition[2]['name'] = $field_name;
                         $definition[2]['definition'] = $implicit_index;
@@ -291,7 +291,7 @@ class MDB_Reverse_sqlite extends MDB_Reverse_Common
 
         $definition=array();
         if ($unique) {
-            $definition['unique'] = 1;
+            $definition['unique'] = true;
         }
         $count = count($column_names);
         for ($i=0; $i<$count; ++$i) {

@@ -563,7 +563,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
                 if (!pg_exec($db->connection, 'BEGIN')) {
                     return $db->pgsqlRaiseError();
                 }
-                $db->lobs[$lob]['in_transaction'] = 1;
+                $db->lobs[$lob]['in_transaction'] = true;
             }
             $db->lobs[$lob]['handle'] =
                 pg_loopen($db->connection, $db->lobs[$lob]['value'], 'r');
@@ -626,7 +626,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
              return $db->pgsqlRaiseError();
         }
         if (($length = strlen($data)) == 0) {
-            $db->lobs[$lob]['end_of_LOB'] = 1;
+            $db->lobs[$lob]['end_of_LOB'] = true;
         }
         return $length;
     }

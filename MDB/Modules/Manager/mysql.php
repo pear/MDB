@@ -631,7 +631,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                 && !isset($found[$indexes_all[$index]]))
             {
                 $indexes[] = $indexes_all[$index];
-                $found[$indexes_all[$index]] = 1;
+                $found[$indexes_all[$index]] = true;
             }
         }
         return $indexes;

@@ -181,7 +181,7 @@ class MDB_Reverse_pgsql extends MDB_Reverse_common
         }
          
         if ($columns['attnotnull'] == 'f') {
-            $notnull = 1;
+            $notnull = true;
         }
         
         if (!preg_match("/nextval\('([^']+)'/",$columns['adsrc']))  {
@@ -191,7 +191,7 @@ class MDB_Reverse_pgsql extends MDB_Reverse_common
         for ($field_choices = array(), $datatype = 0; $datatype < count($type); $datatype++) {
             $field_choices[$datatype] = array('type' => $type[$datatype]);
             if (isset($notnull)) {
-                $field_choices[$datatype]['notnull'] = 1;
+                $field_choices[$datatype]['notnull'] = true;
             }
             if (isset($default)) {
                 $field_choices[$datatype]['default'] = $default;
@@ -244,7 +244,7 @@ class MDB_Reverse_pgsql extends MDB_Reverse_common
             $is_unique = ($indexes['isdisunique'] == 't') ;
         
             $implicit_index = array();
-            $implicit_index['unique'] = 1;
+            $implicit_index['unique'] = true;
             $implicit_index['fields'][$field_name] = $indexname['relname'];
             $definition[2]['name'] = $field_name;
             $definition[2]['definition'] = $implicit_index;
@@ -280,7 +280,7 @@ class MDB_Reverse_pgsql extends MDB_Reverse_common
 
         $definition = array();
         if ($row[0]['indisunique'] == 't') {
-            $definition[$index_name]['unique'] = 1;
+            $definition[$index_name]['unique'] = true;
         }
 
         $index_column_numbers = explode(' ', $row[0]['indkey']);

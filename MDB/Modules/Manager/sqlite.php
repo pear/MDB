@@ -296,7 +296,7 @@ echo $name;
                 $columns[$j]['default'] = $default;
             }
             if (isset($matches[10]) && strlen($matches[10])) {
-                $columns[$j]['notnull'] = 1;
+                $columns[$j]['notnull'] = true;
             }
             ++$j;
         }
@@ -429,7 +429,7 @@ echo $name;
             if (!isset($found[$indexes_all[$index]]))
             {
                 $indexes[] = $indexes_all[$index];
-                $found[$indexes_all[$index]] = 1;
+                $found[$indexes_all[$index]] = true;
             }
         }
         return $indexes;

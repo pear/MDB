@@ -194,7 +194,7 @@ class MDB_Reverse_mysql extends MDB_Reverse_Common
                 if (isset($columns['null'])
                     && $row[$columns['null']] != 'YES')
                 {
-                    $notnull = 1;
+                    $notnull = true;
                 }
                 unset($default);
                 if (isset($columns['default'])
@@ -206,7 +206,7 @@ class MDB_Reverse_mysql extends MDB_Reverse_Common
                 for ($field_choices = array(), $datatype = 0; $datatype < count($type); $datatype++) {
                     $field_choices[$datatype] = array('type' => $type[$datatype]);
                     if (isset($notnull)) {
-                        $field_choices[$datatype]['notnull'] = 1;
+                        $field_choices[$datatype]['notnull'] = true;
                     }
                     if (isset($default)) {
                         $field_choices[$datatype]['default'] = $default;
@@ -254,7 +254,7 @@ class MDB_Reverse_mysql extends MDB_Reverse_Common
                     }
                     if ($is_primary) {
                         $implicit_index = array();
-                        $implicit_index['unique'] = 1;
+                        $implicit_index['unique'] = true;
                         $implicit_index['fields'][$field_name] = '';
                         $definition[2]['name'] = $field_name;
                         $definition[2]['definition'] = $implicit_index;
@@ -298,7 +298,7 @@ class MDB_Reverse_mysql extends MDB_Reverse_Common
             $key_name = $row['Key_name'];
             if (!strcmp($index_name, $key_name)) {
                 if (!$row['Non_unique']) {
-                    $definition[$index_name]['unique'] = 1;
+                    $definition[$index_name]['unique'] = true;
                 }
                 $column_name = $row['Column_name'];
                 $definition['fields'][$column_name] = array();
