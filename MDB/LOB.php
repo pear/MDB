@@ -6,15 +6,15 @@
  *
  */
 
-$lobs=array();
+$lobs = array();
 
 class MDB_lob
 {
-    var $error="";
-    var $database=0;
+    var $error = "";
+    var $database;
     var $lob;
-    var $data="";
-    var $position=0;
+    var $data = "";
+    var $position = 0;
 
     function create(&$arguments)
     {
@@ -59,21 +59,18 @@ class MDB_result_lob extends MDB_lob
 
     function destroy()
     {
-        global $databases;
-        $databases[$this->database]->destroyResultLob($this->result_lob);
+        $this->database->destroyResultLob($this->result_lob);
     }
 
     function endOfLob()
     {
-        global $databases;
-        return($databases[$this->database]->endOfResultLob($this->result_lob));
+        return($this->database->endOfResultLob($this->result_lob));
     }
 
     function readLob(&$data, $length)
     {
-        global $databases;
-        if(($read_length = $databases[$this->database]->readResultLob($this->result_lob, $data, $length)) < 0) {
-            $this->error = $databases[$this->database]->error();
+        if(($read_length = $this->database->readResultLob($this->result_lob, $data, $length)) < 0) {
+            $this->error = $this->database->error();
         }
         return($read_length);
     }
@@ -143,7 +140,6 @@ class MDB_output_file_lob extends MDB_lob
     function create(&$arguments)
     {
         global $lobs;
-
         if(isset($arguments["BufferLength"])) {
             if($arguments["BufferLength"] <= 0) {
                 $this->error = "it was specified an invalid buffer length";
@@ -168,7 +164,7 @@ class MDB_output_file_lob extends MDB_lob
                 $this->error = "it was not specified the output file";
                 return(0);
             }
-        }        
+        }
         if(isset($arguments["LOB"])) {
             if(!isset($lobs[$arguments["LOB"]])) {
                 $this->destroy();
@@ -183,12 +179,11 @@ class MDB_output_file_lob extends MDB_lob
                 && isset($arguments["Field"])
                 && isset($arguments["Binary"]))
             {
-                global $databases;
                 if($arguments["Binary"]) {
-                    $this->input_lob = $databases[$this->database]->fetchBLobResult($arguments["Result"],
+                    $this->input_lob = $this->database->fetchBLobResult($arguments["Result"],
                         $arguments["Row"], $arguments["Field"]);
                 } else {
-                    $this->input_lob = $databases[$this->database]->fetchClobResult($arguments["Result"],
+                    $this->input_lob = $this->database->fetchClobResult($arguments["Result"],
                         $arguments["Row"], $arguments["Field"]);
                 }
                 if($this->input_lob == 0) {
@@ -202,7 +197,7 @@ class MDB_output_file_lob extends MDB_lob
                 $this->error = "it was not specified the input large object identifier";
                 return(0);
             }
-        }        
+        }
         return(1);
     }
 
@@ -268,7 +263,7 @@ function createLOB(&$arguments, &$lob)
                 return(0);
         }
     } else {
-        if(IsSet($arguments["Class"])) {
+        if(isset($arguments["Class"])) {
             $class = $arguments["Class"];
         }
     }
@@ -277,6 +272,7 @@ function createLOB(&$arguments, &$lob)
     if(isset($arguments["Database"])) {
         $lobs[$lob]->database = $arguments["Database"];
     }
+
     if($lobs[$lob]->create($arguments)) {
         return(1);
     }
@@ -299,6 +295,7 @@ function destroyLob($lob)
 function endOfLob($lob)
 {
     global $lobs;
+
     return($lobs[$lob]->endOfLob());
 }
 
