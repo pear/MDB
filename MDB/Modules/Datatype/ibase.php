@@ -371,7 +371,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
 
         if (($lo = ibase_blob_create($db->auto_commit ? $db->connection : $db->transaction_id))) {
             while (!$this->endOfLOB($db, $lob)) {
-                $result = $this->readLOB($db, $lob, $data, $db->options['lob_buffer_length'])
+                $result = $this->readLOB($db, $lob, $data, $db->options['lob_buffer_length']);
                 if (MDB::isError($result)) {
                     $success = 0;
                     break;
@@ -466,7 +466,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      */
     function freeCLOBValue(&$db, $clob, &$value)
     {
-        $this->freeLOBValue(&$db, $clob, &$value);
+        $this->freeLOBValue($db, $clob, $value);
     }
 
     // }}}
@@ -503,7 +503,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
      */
     function freeBLOBValue(&$db, $blob, &$value)
     {
-        $this->freeLOBValue(&$db, $clob, &$value);
+        $this->freeLOBValue($db, $clob, $value);
     }
 
     // }}}
