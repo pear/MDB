@@ -496,7 +496,7 @@ class MDB_PEAR_PROXY
                      $params = NULL,
                      $fetchmode = DB_FETCHMODE_DEFAULT)
     {
-        return($this->MDB_object->getAll($query, $params, NULL, $fetchmode));
+        return($this->MDB_object->getAll($query, NULL, $params, NULL, $fetchmode));
     }
 
     function autoCommit($onoff = FALSE)
