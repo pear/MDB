@@ -341,7 +341,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     function testNulls() {
         $test_values = array(
                              array('test', false),
-                             array('null', false),
+                             array('NULL', false),
                              array('null', false),
                              array('', false),
                              array(null, true)
@@ -378,9 +378,11 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $error_message = 'A query result column is NULL even though it was expected to be "' . $test_values[$test_value][0] . '"';
             }
 
-            $this->assertTrue(($this->db->resultIsNull($result, 0, 0) == $is_null), $error_message);
+            $value = $this->db->resultIsNull($result, 0, 0);
+            $this->assertTrue(($value == $is_null), $error_message);
 
-            $this->assertTrue(($this->db->resultIsNull($result, 0, 1) == $is_null), $error_message);
+            $value = $this->db->resultIsNull($result, 0, 1);
+            $this->assertTrue(($value == $is_null), $error_message);
 
             $this->assertTrue($this->db->endOfResult($result), 'the query result did not seem to have reached the end of result as expected after testing only if columns are NULLs');
 
