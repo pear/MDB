@@ -48,10 +48,10 @@ if(!defined('MDB_MANAGER_PGSQL_INCLUDED'))
 {
     define('MDB_MANAGER_PGSQL_INCLUDED', 1);
 
-require_once 'MDB/Manager/Common.php';
+require_once 'MDB/Modules/Manager/Common.php';
 
 /**
-* MDB MySQL driver for the management extensions
+* MDB MySQL driver for the management modules
 *
 * @package MDB
 * @author  Paul Cooper <pgc@ucecom.com>
