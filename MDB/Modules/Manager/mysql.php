@@ -587,6 +587,14 @@ class MDB_manager_mysql_class extends MDB_manager_common
                             $type[1] = 'clob';
                         break;
                     case 'enum':
+                        preg_match_all('/\'.+\'/U',"enum('active','nonactive')", $matches);
+                        $length = 0;
+                        if(is_array($matches)) {
+                            foreach($matches[0] as $value) {
+                                $length = max($length, strlen($value)-2);
+                            }
+                        }
+                        unset($decimal);
                     case 'set':
                         $type[0] = 'text';
                         $type[1] = 'integer';
