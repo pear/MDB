@@ -1626,7 +1626,7 @@ class MDB_manager extends PEAR
             return ('it was not specified a valid database name');
         }
         $this->database_definition = array(
-            'name' => strtolower($database),
+            'name' => $database,
             'create' => 1,
             'TABLES' => array()
         );
@@ -1643,8 +1643,8 @@ class MDB_manager extends PEAR
             $this->database_definition['TABLES'][$table_name] = array('FIELDS' => array());
             for($field = 0; $field < count($fields); $field++)
             {
-                $field_name = strtolower($fields[$field]);
-                $definition = $this->database->getTableFieldDefinition($table_name, $fields[$field]);
+                $field_name = $fields[$field];
+                $definition = $this->database->getTableFieldDefinition($table_name, $field_name);
                 if (MDB::isError($definition)) {
                     return ($definition);
                 }
@@ -1707,7 +1707,7 @@ class MDB_manager extends PEAR
             if (MDB::isError($indexes)) {
                 return($indexes);
             }
-            if(!isset($this->database_definition['TABLES'][$table_name]['INDEXES'])) {
+            if(is_array($indexes) && !isset($this->database_definition['TABLES'][$table_name]['INDEXES'])) {
                 $this->database_definition['TABLES'][$table_name]['INDEXES'] = array();
             }
             for($index = 0, $index_cnt = count($indexes); $index < $index_cnt; $index++)
@@ -1717,14 +1717,14 @@ class MDB_manager extends PEAR
                 if (MDB::isError($definition)) {
                     return($definition);
                 }
-               $this->database_definition['TABLES'][$table_name]['INDEXES'] = $definition;
+               $this->database_definition['TABLES'][$table_name]['INDEXES'][$index_name] = $definition;
             }
         }
         $sequences = $this->database->listSequences();
         if (MDB::isError($sequences)) {
             return ($sequences);
         }
-        if(!isset($this->database_definition['SEQUENCES'])) {
+        if(is_array($sequences) && !isset($this->database_definition['SEQUENCES'])) {
             $this->database_definition['SEQUENCES'] = array();
         }
         for($sequence = 0; $sequence < count($sequences); $sequence++) {
@@ -1733,7 +1733,7 @@ class MDB_manager extends PEAR
             if (MDB::isError($definition)) {
                 return($definition);
             }
-            $this->database_definition['SEQUENCES'] = $definition;
+            $this->database_definition['SEQUENCES'][$sequence_name] = $definition;
         }
         return(DB_OK);
     }
