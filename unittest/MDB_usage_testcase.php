@@ -1,6 +1,5 @@
 <?php
 
-require_once '../MDB.php';
 require_once '../manager.php';
 require_once '../date.php';
 require_once 'PHPUnit/PHPUnit.php';
@@ -62,7 +61,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         return FALSE;
     }
 
-
     function insertTestValues($prepared_query, &$data) {
         for ($i = 0; $i < count($this->fields); $i++) {
             $func = 'setParam' . $this->types[$i];
@@ -87,7 +85,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $this->assertEquals($value, $data[$field], "the value retrieved for field \"$field\" ($value) doesn't match what was stored ($data[$field]) . $func", $delta);
         }
     }
-    
 
     function testStorage() {
         if (MDB::isError($this->db->query('DELETE FROM users'))) {
@@ -122,11 +119,10 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         }
 
         $this->verifyFetchedValues($result, 0, $data);
-  
+
         if (MDB::isError($this->db->query('DELETE FROM users'))) {
             $this->assertTrue(FALSE, 'Error deleting from table users');
         }
-        
     }
 
 }
