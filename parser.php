@@ -193,7 +193,9 @@ class MDB_Parser extends XML_Parser {
                         if (!isset($this->table['FIELDS'][$field_name])) {
                             $this->raiseError($xp, 'index field "'.$field_name.'" does not exist');
                         }
-                        if (!isset($this->table['FIELDS'][$field_name]['notnull'])) {
+                        if (!(isset($this->table['FIELDS'][$field_name]['notnull'])
+                              && $this->table['FIELDS'][$field_name]['notnull'] == 1)) 
+                        {
                             $this->raiseError($xp, 'index field "'.$field_name.'" has to be "notnull"');
                         }
                     }
