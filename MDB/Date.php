@@ -115,7 +115,7 @@ class MDB_Date
     function date2Mdbstamp($hour = NULL, $minute = NULL, $second = NULL,
         $month = NULL, $day = NULL, $year = NULL)
     {
-        return MDB_Date::unix2Mdbstamp(mktime($hour, $minute, $second, $month, $day, $year, 0));
+        return MDB_Date::unix2Mdbstamp(mktime($hour, $minute, $second, $month, $day, $year));
     }
 
     // }}}
