@@ -98,7 +98,7 @@ class MDB_Parser extends XML_Parser
     function MDB_Parser($variables, $fail_on_invalid_names = 1) 
     {
         $this->XML_Parser();
-        $this->variables =  $variables;
+        $this->variables = $variables;
         $this->fail_on_invalid_names = $fail_on_invalid_names;
     }
 
@@ -323,12 +323,12 @@ class MDB_Parser extends XML_Parser
             if (isset($this->database_definition['create']) 
                 && !$this->is_boolean($this->database_definition['create']))
             {
-                $this->raiseError('field  "create" has to be 1 or 0', $xp);
+                $this->raiseError('field "create" has to be 1 or 0', $xp);
             };
             if (isset($this->database_definition['override']) 
                 && !$this->is_boolean($this->database_definition['override']))
             {
-                $this->raiseError('field  "override" has to be 1 or 0', $xp);
+                $this->raiseError('field "override" has to be 1 or 0', $xp);
             };
             if (!isset($this->database_definition['name']) || !$this->database_definition['name']) {
                 $this->raiseError('database needs a name', $xp);
@@ -342,7 +342,6 @@ class MDB_Parser extends XML_Parser
                     };
                 };
             };
-                        
             if (MDB::isError($this->error)) {
                 $this->database_definition = $this->error;
             };
@@ -419,18 +418,22 @@ class MDB_Parser extends XML_Parser
 
     function raiseError($msg, $xp = NULL)
     {
-        if ($this->error !== NULL) {
-            return FALSE;
+        if ($this->error === NULL) {
+            if(is_resource($msg)) {
+                $error = "Parser error: ";
+                $xp = $msg;
+            } else {
+                $error = "Parser error: \"".$msg."\"\n";
+            }
+            if($xp != NULL) {
+                $byte = @xml_get_current_byte_index($xp);
+                $line = @xml_get_current_line_number($xp);
+                $column = @xml_get_current_column_number($xp);
+                $error .= "Byte: $byte; Line: $line; Col: $column\n";
+            }
+            $this->error = PEAR::raiseError(NULL, MDB_ERROR_MANAGER_PARSE, NULL, NULL,
+                $error, 'MDB_Error', TRUE);
         };
-        $error = "Parser error: \"".$msg."\"\n";
-        if($xp != NULL) {
-            $byte = @xml_get_current_byte_index($xp);
-            $line = @xml_get_current_line_number($xp);
-            $column = @xml_get_current_column_number($xp);
-            $error .= "Byte: $byte; Line: $line; Col: $column\n";
-        }
-        $this->error = PEAR::raiseError(NULL, MDB_ERROR_MANAGER_PARSE,  NULL, NULL,
-            $error, 'MDB_Error', TRUE);
         return FALSE;
     }
 
