@@ -1,43 +1,26 @@
 <?php
-/* vim: set expandtab tabstop=4 shiftwidth=4: */
-// +----------------------------------------------------------------------+
-// | PHP Version 4                                                        |
-// +----------------------------------------------------------------------+
-// | Copyright (c) 1997-2002 The PHP Group                                |
-// +----------------------------------------------------------------------+
-// | This source file is subject to version 2.02 of the PHP license,      |
-// | that is bundled with this package in the file LICENSE, and is        |
-// | available at through the world-wide-web at                           |
-// | http://www.php.net/license/2_02.txt.                                 |
-// | If you did not receive a copy of the PHP license and are unable to   |
-// | obtain it through the world-wide-web, please send a note to          |
-// | license@php.net so we can mail you a copy immediately.               |
-// +----------------------------------------------------------------------+
-// | Authors: Stig Bakken <ssb@fast.no>                                   |
-// |          Tomas V.V.Cox <cox@idecnet.com>                             |
-// +----------------------------------------------------------------------+
-//
-// $Id$
-//
-// Database independent query interface.
-//
+ /*
+ *
+ * @(#) $Header$
+ *
+ */
 
 require_once "PEAR.php";
 
-function setupDatabase($arguments,&$database)
+function setupDatabase($arguments, &$database)
 {
     global $databases;
 
     $database=count($databases)+1;
-    if(strcmp($error=setupInterface($arguments,$databases[$database]),"")) {
-        Unset($databases[$database]);
+    if (strcmp($error=setupInterface($arguments, $databases[$database]), "")) {
+        unset($databases[$database]);
         $database=0;
     } else {
         $databases[$database]->database=$database;
     }
     return($error);
 }
-function setupInterface(&$arguments,&$db)
+function setupInterface(&$arguments, &$db)
 {
     switch(isset($arguments["Type"]) ? $arguments["Type"] : "") {
         case "ibase";
@@ -77,37 +60,37 @@ function setupInterface(&$arguments,&$db)
             break;
         case "oci";
             $include="oci.php";
-            $class_name="MDB_MDB_oci";
+            $class_name="MDB_oci";
             $included="OCI_INCLUDED";
             break;
         default:
             $included=(isset($arguments["IncludedConstant"]) ? $arguments["IncludedConstant"] : "");
-            if(!isset($arguments["Include"])
+            if (!isset($arguments["Include"])
                 || !strcmp($include=$arguments["Include"],""))
             {
                 return(isset($arguments["Include"]) ? "it was not specified a valid database include file" : "it was not specified a valid DBMS driver type");
             }
-            if(!isset($arguments["ClassName"])
+            if (!isset($arguments["ClassName"])
                 || !strcmp($class_name=$arguments["ClassName"],""))
             {
                 return("it was not specified a valid database class name");
             }
     }
-    if(!strcmp($included,"")
+    if (!strcmp($included,"")
         || !defined($included))
     {
         $include_path=(isset($arguments["IncludePath"]) ? $arguments["IncludePath"] : "");
-        if($include_path!=""
+        if ($include_path!=""
             && $include_path[strlen($include_path)-1]!="/")
         {
             $include="/".$include;
         }
-        if(!file_exists($include_path.$include)) {
+        if (!file_exists($include_path.$include)) {
             $directory=0;
-            if(!strcmp($include_path,"")
+            if (!strcmp($include_path,"")
                 || ($directory=@opendir($include_path)))
             {
-                if($directory) {
+                if ($directory) {
                     closedir($directory);
                 }
                 return("it was not specified an existing DBMS driver file");
@@ -119,30 +102,30 @@ function setupInterface(&$arguments,&$db)
     }
     if (!class_exists($class_name)) {
         return PEAR::raiseError(null, DB_ERROR_NOT_FOUND,
-            null, null, null, 'DB_Error', true);
+            null, null, null, 'MDB_Error', true);
     }
-    $db=new $class_name;
-    if(isset($arguments["Host"])) {
+    $db = new $class_name;
+    if (isset($arguments["Host"])) {
         $db->host=$arguments["Host"];
     }
-    if(isset($arguments["User"])) {
+    if (isset($arguments["User"])) {
         $db->user=$arguments["User"];
     }
-    if(isset($arguments["Password"])) {
+    if (isset($arguments["Password"])) {
         $db->password=$arguments["Password"];
     }
-    if(isset($arguments["Persistent"])) {
+    if (isset($arguments["Persistent"])) {
         $db->persistent=$arguments["Persistent"];
     }
-    if(isset($arguments["Debug"])) {
+    if (isset($arguments["Debug"])) {
         $db->debug=$arguments["Debug"];
     }
     $db->decimal_places=(isset($arguments["DecimalPlaces"]) ? $arguments["DecimalPlaces"] : 2);
     $db->lob_buffer_length=(isset($arguments["LOBBufferLength"]) ? $arguments["LOBBufferLength"] : 8000);
-    if(isset($arguments["LogLineBreak"])) {
+    if (isset($arguments["LogLineBreak"])) {
         $db->log_line_break=$arguments["LogLineBreak"];
     }
-    if(isset($arguments["Options"])) {
+    if (isset($arguments["Options"])) {
         $db->options=$arguments["Options"];
     }
     return($db->setup());
@@ -153,7 +136,7 @@ function setupDatabaseObject($arguments, &$db)
     global $databases;
 
     $database=count($databases)+1;
-    if(strcmp($error=setupInterface($arguments,$db),"")) {
+    if (strcmp($error=setupInterface($arguments,$db),"")) {
         unset($databases[$database]);
     } else {
         eval("\$databases[\$database]= &\$db;");        
@@ -167,7 +150,7 @@ function setupDatabaseObject($arguments, &$db)
  * native error codes to one of these.
  *
  * If you add an error code here, make sure you also add a textual
- * version of it in DB::errorMessage().
+ * version of it in MDB::errorMessage().
  */
 
 define("DB_OK",                         1);
@@ -198,12 +181,12 @@ define("DB_ERROR_CONNECT_FAILED",     -24);
 define("DB_ERROR_EXTENSION_NOT_FOUND",-25);
 
 /*
- * Warnings are not detected as errors by DB::isError(), and are not
+ * Warnings are not detected as errors by MDB::isError(), and are not
  * fatal.  You can detect whether an error is in fact a warning with
- * DB::isWarning().
+ * MDB::isWarning().
  */
 
-define('DB_WARNING',           -1000);
+define('MDB_Warning',           -1000);
 define('DB_WARNING_READ_ONLY', -1001);
 
 /*
@@ -311,7 +294,7 @@ define('DB_TABLEINFO_FULL', 3);
  * |            query utility functions.
  * |
  * +-DB_mysql   The DB implementation for MySQL.  Inherits DB_common.
- *              When calling DB::factory or DB::connect for MySQL
+ *              When calling MDB::factory or MDB::connect for MySQL
  *              connections, the object returned is an instance of this
  *              class.
  *
@@ -321,7 +304,7 @@ define('DB_TABLEINFO_FULL', 3);
  * @since    PHP 4.0
  */
 
-class DB
+class MDB
 {
     /**
      * Create a new DB connection object for the specified database
@@ -346,9 +329,9 @@ class DB
      * Create a new DB connection object and connect to the specified
      * database
      *
-     * @param mixed $dsn "data source name", see the DB::parseDSN
+     * @param mixed $dsn "data source name", see the MDB::parseDSN
      * method for a description of the dsn format.  Can also be
-     * specified as an array of the format returned by DB::parseDSN.
+     * specified as an array of the format returned by MDB::parseDSN.
      *
      * @param mixed $options An associative array of option names and
      * their values.  For backwards compatibility, this parameter may
@@ -359,8 +342,8 @@ class DB
      * @return mixed a newly created DB connection object, or a DB
      * error object on error
      *
-     * @see DB::parseDSN
-     * @see DB::isError
+     * @see MDB::parseDSN
+     * @see MDB::isError
      * @see DB_common::setOption
      */
     function &connect($dsn, $options = false)
@@ -368,7 +351,7 @@ class DB
         if (is_array($dsn)) {
             $dsninfo = $dsn;
         } else {
-            $dsninfo = DB::parseDSN($dsn);
+            $dsninfo = MDB::parseDSN($dsn);
         }
         $arguments["Type"] = $dsninfo["phptype"];
         $arguments["User"] = $dsninfo["username"];
@@ -379,10 +362,10 @@ class DB
         }
         $error = setupDatabaseObject($arguments, &$obj);
     
-        $obj->SetDatabase($dsninfo["database"]);
+        $obj->setDatabase($dsninfo["database"]);
         $err = $obj->Connect();
 
-        if (DB::isError($err)) {
+        if (MDB::isError($err)) {
             $err->addUserInfo($dsn);
             return $err;
         }
@@ -399,7 +382,7 @@ class DB
      */
     function apiVersion()
     {
-        return 2;
+        return 3;
     }
 
     /**
@@ -414,8 +397,8 @@ class DB
     function isError($value)
     {
         return (is_object($value) &&
-                (get_class($value) == 'db_error' ||
-                 is_subclass_of($value, 'db_error')));
+                (get_class($value) == 'MDB_Error' ||
+                 is_subclass_of($value, 'MDB_Error')));
     }
 
     /**
@@ -500,7 +483,7 @@ class DB
             );
         }
 
-        if (DB::isError($value)) {
+        if (MDB::isError($value)) {
             $value = $value->getCode();
         }
 
@@ -683,7 +666,7 @@ class DB
  * @package  DB
  * @author Stig Bakken <ssb@fast.no>
  */
-class DB_Error extends PEAR_Error
+class MDB_Error extends PEAR_Error
 {
     /**
      * DB_Error constructor.
@@ -698,11 +681,11 @@ class DB_Error extends PEAR_Error
      * @see PEAR_Error
      */
 
-    function DB_Error($code = DB_ERROR, $mode = PEAR_ERROR_RETURN,
+    function MDB_Error($code = MDB_ERROR, $mode = PEAR_ERROR_RETURN,
               $level = E_USER_NOTICE, $debuginfo = null)
     {
         if (is_int($code)) {
-            $this->PEAR_Error('DB Error: ' . DB::errorMessage($code), $code, $mode, $level, $debuginfo);
+            $this->PEAR_Error('DB Error: ' . MDB::errorMessage($code), $code, $mode, $level, $debuginfo);
         } else {
             $this->PEAR_Error("DB Error: $code", DB_ERROR, $mode, $level, $debuginfo);
         }
@@ -716,7 +699,7 @@ class DB_Error extends PEAR_Error
  * @package  DB
  * @author Stig Bakken <ssb@fast.no>
  */
-class DB_Warning extends PEAR_Error
+class MDB_Warning extends PEAR_Error
 {
     /**
      * DB_Warning constructor.
@@ -731,253 +714,14 @@ class DB_Warning extends PEAR_Error
      * @see PEAR_Error
      */
 
-    function DB_Warning($code = DB_WARNING, $mode = PEAR_ERROR_RETURN,
+    function MDB_Warning($code = MDB_WARNING, $mode = PEAR_ERROR_RETURN,
             $level = E_USER_NOTICE, $debuginfo = null)
     {
         if (is_int($code)) {
-            $this->PEAR_Error('DB Warning: ' . DB::errorMessage($code), $code, $mode, $level, $debuginfo);
+            $this->PEAR_Error('DB Warning: ' . MDB::errorMessage($code), $code, $mode, $level, $debuginfo);
         } else {
             $this->PEAR_Error("DB Warning: $code", 0, $mode, $level, $debuginfo);
         }
     }
 }
-
-/**
- * This class implements a wrapper for a DB result set.
- * A new instance of this class will be returned by the DB implementation
- * after processing a query that returns data.
- *
- * @package  DB
- * @author Stig Bakken <ssb@fast.no>
- */
-
-class DB_result
-{
-    var $dbh;
-    var $result;
-    var $row_counter = null;
-    /**
-    * for limit queries, the row to start fetching
-    * @var integer
-    */
-    var $limit_from  = null;
-
-    /**
-    * for limit queries, the number of rows to fetch
-    * @var integer
-    */
-    var $limit_count = null;
-
-    /**
-     * DB_result constructor.
-     * @param   resource $dbh  DB object reference
-     * @param   resource $result result resource id
-     */
-
-    function DB_result(&$dbh, $result)
-    {
-        $this->dbh = &$dbh;
-        $this->result = $result;
-    }
-
-    /**
-     * Fetch and return a row of data (it uses driver->fetchInto for that)
-     * @param int $fetchmode  format of fetched row
-     * @param int $rownum     the row number to fetch
-     *
-     * @return  array a row of data, NULL on no more rows or PEAR_Error on error
-     *
-     * @access public
-     */
-    function fetchRow($fetchmode = DB_FETCHMODE_DEFAULT, $rownum=null)
-    {
-        if ($fetchmode === DB_FETCHMODE_DEFAULT) {
-            $fetchmode = $this->dbh->fetchmode;
-        }
-        if ($fetchmode === DB_FETCHMODE_OBJECT) {
-            $fetchmode = DB_FETCHMODE_ASSOC;
-            $object_class = $this->dbh->fetchmode_object_class;
-        }
-        if ($this->limit_from !== null) {
-            if ($this->row_counter === null) {
-                $this->row_counter = $this->limit_from;
-                // For Interbase
-                if ($this->dbh->features['limit'] == false) {
-                    $i = 0;
-                    while ($i++ < $this->limit_from) {
-                        $this->dbh->fetchInto($this->result, $arr, $fetchmode);
-                    }
-                }
-            }
-            if ($this->row_counter >= (
-                    $this->limit_from + $this->limit_count))
-            {
-                return null;
-            }
-            if ($this->dbh->features['limit'] == 'emulate') {
-                $rownum = $this->row_counter;
-            }
-
-            $this->row_counter++;
-        }
-        $res = $this->dbh->fetchInto($this->result, $arr, $fetchmode, $rownum);
-        if ($res !== DB_OK) {
-            return $res;
-        }
-        if (isset($object_class)) {
-            // default mode specified in DB_common::fetchmode_object_class property
-            if ($object_class == 'stdClass') {
-                $ret = (object) $arr;
-            } else {
-                $ret =& new $object_class($arr);
-            }
-            return $ret;
-        }
-        return $arr;
-    }
-
-    /**
-     * Fetch a row of data into an existing variable.
-     *
-     * @param  mixed     $arr        reference to data containing the row
-     * @param  integer   $fetchmode  format of fetched row
-     * @param  integer   $rownum     the row number to fetch
-     *
-     * @return  mixed  DB_OK on success, NULL on no more rows or
-     *                 a DB_Error object on error
-     *
-     * @access public
-     */
-    function fetchInto(&$arr, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum=null)
-    {
-        if ($fetchmode === DB_FETCHMODE_DEFAULT) {
-            $fetchmode = $this->dbh->fetchmode;
-        }
-        if ($fetchmode === DB_FETCHMODE_OBJECT) {
-            $fetchmode = DB_FETCHMODE_ASSOC;
-            $object_class = $this->dbh->fetchmode_object_class;
-        }
-        if ($this->limit_from !== null) {
-            if ($this->row_counter === null) {
-                $this->row_counter = $this->limit_from;
-                // For Interbase
-                if ($this->dbh->features['limit'] == false) {
-                    $i = 0;
-                    while ($i++ < $this->limit_from) {
-                        $this->dbh->fetchInto($this->result, $arr, $fetchmode);
-                    }
-                }
-            }
-            if ($this->row_counter >= (
-                    $this->limit_from + $this->limit_count))
-            {
-                return null;
-            }
-            if ($this->dbh->features['limit'] == 'emulate') {
-                $rownum = $this->row_counter;
-            }
-
-            $this->row_counter++;
-        }
-        $res = $this->dbh->fetchInto($this->result, $arr, $fetchmode, $rownum);
-        if (($res === DB_OK) && isset($object_class)) {
-            // default mode specified in DB_common::fetchmode_object_class property
-            if ($object_class == 'stdClass') {
-                $arr = (object) $arr;
-            } else {
-                $arr = new $object_class($arr);
-            }
-        }
-        return $res;
-    }
-
-    /**
-     * Get the the number of columns in a result set.
-     *
-     * @return int the number of columns, or a DB error
-     *
-     * @access public
-     */
-    function numCols()
-    {
-        return $this->dbh->numCols($this->result);
-    }
-
-    /**
-     * Get the number of rows in a result set.
-     *
-     * @return int the number of rows, or a DB error
-     *
-     * @access public
-     */
-    function numRows()
-    {
-        return $this->dbh->numRows($this->result);
-    }
-
-    /**
-     * Get the next result if a batch of queries was executed.
-     *
-     * @return bool true if a new result is available or false if not.
-     *
-     * @access public
-     */
-    function nextResult()
-    {
-        return $this->dbh->nextResult($this->result);
-    }
-
-    /**
-     * Frees the resources allocated for this result set.
-     * @return  int     error code
-     *
-     * @access public
-     */
-    function free()
-    {
-        $err = $this->dbh->freeResult($this->result);
-        if(DB::isError($err)) {
-            return $err;
-        }
-        $this->result = false;
-        return true;
-    }
-
-    /**
-    * @deprecated
-    */
-    function tableInfo($mode = null)
-    {
-        return $this->dbh->tableInfo($this->result, $mode);
-    }
-
-    /**
-    * returns the actual rows number
-    * @return integer
-    */
-    function getRowCounter()
-    {
-        return $this->row_counter;
-    }
-}
-
-/**
-* Pear DB Row Object
-* @see DB_common::setFetchMode()
-*/
-class DB_row
-{
-    /**
-    * constructor
-    *
-    * @param resource row data as array
-    */
-    function DB_row(&$arr)
-    {
-        for (reset($arr); $key = key($arr); next($arr)) {
-            $this->$key = &$arr[$key];
-        }
-    }
-}
-
 ?>
