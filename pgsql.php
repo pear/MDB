@@ -1107,17 +1107,17 @@ class MDB_driver_pgsql extends MDB_common {
     function convertResult($value, $type)
     {
         switch ($type) {
-            case METABASE_TYPE_BOOLEAN:
+            case MDB_TYPE_BOOLEAN:
                 return (strcmp($value, "Y") ? 0 : 1);
-            case METABASE_TYPE_DECIMAL:
-                return (sprintf("%." . $this->options['decimal_places'] . "f", doubleval($value) / $this->decimal_factor));
-            case METABASE_TYPE_FLOAT:
+            case MDB_TYPE_DECIMAL:
+				return (sprintf("%.".$this->options['decimal_places']."f",doubleval($value)/$this->decimal_factor));
+            case MDB_TYPE_FLOAT:
                 return doubleval($value);
-            case METABASE_TYPE_DATE:
+            case MDB_TYPE_DATE:
                 return ($value);
-            case METABASE_TYPE_TIME:
+            case MDB_TYPE_TIME:
                 return ($value);
-            case METABASE_TYPE_TIMESTAMP:
+            case MDB_TYPE_TIMESTAMP:
                 return substr($value, 0, strlen("YYYY-MM-DD HH:MM:SS"));
             default:
                 return ($this->baseConvertResult($value, $type));
