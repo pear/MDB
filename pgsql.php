@@ -191,8 +191,8 @@ class MDB_driver_pgsql extends MDB_common {
             return (DB_OK);
         }
         if ($this->connection) {
-            if (!$this->_doQuery($auto_commit ? "END" : "BEGIN"))
-                return (0);
+            if (MDB::isError($result = $this->_doQuery($auto_commit ? "END" : "BEGIN")))
+                return ($result);
         }
         $this->auto_commit = $auto_commit;
         return ($this->registerTransactionShutdown($auto_commit));
