@@ -106,7 +106,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
     }
 
     function methodExists($name) {
-        if (array_key_exists(strtolower($name), array_flip(get_class_methods($this->db)))) {
+        if (array_key_exists(strtolower($name), array_change_key_case(array_flip(get_class_methods($this->db))))) {
             return true;
         }
         $this->assertTrue(false, 'method '. $name.' not implemented in '.get_class($this->db));
@@ -410,7 +410,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         for($string = 0; $string < count($test_strings); $string++) {
             $this->clearTables();
 
-            $value = $this->db->getValue('text', $test_strings[$string]);
+            $value = $this->db->getTextValue($test_strings[$string]);
 
             $result = $this->db->query("INSERT INTO users (user_name,user_password,user_id) VALUES ($value,$value,0)");
 
