@@ -94,7 +94,10 @@ class MDB_oci8 extends MDB_Common
         $this->supported['replace'] = 1;
         $this->supported['sub_selects'] = 1;
         
-        $this->options['password'] = false;
+        $this->options['DBA_username'] = false;
+        $this->options['DBA_password'] = false;
+        $this->options['default_tablespace'] = false;
+        $this->options['HOME'] = false;
         
         $this->errorcode_map = array(
             900 => MDB_ERROR_SYNTAX,
@@ -255,24 +258,56 @@ class MDB_oci8 extends MDB_Common
     }
 
     // }}}
+    // {{{ _doConnect()
+
+    /**
+     * do the grunt work of the connect
+     * 
+     * @return connection on success or MDB_Error on failure
+     * @access private
+     */
+    function _doConnect($username, $password)
+    {
+        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+            return $this->raiseError(MDB_ERROR_NOT_FOUND, null, null,
+                'extension '.$this->phptype.' is not compiled into PHP');
+        }
+
+        if (isset($this->dsn['hostspec'])) {
+            $sid = $this->dsn['hostspec'];
+        } else {
+            $sid = getenv('ORACLE_SID');
+        }
+        if (empty($sid)) {
+            return $this->raiseError(MDB_ERROR, null, null,
+                'it was not specified a valid Oracle Service IDentifier (SID)');
+        }
+
+        if ($this->options['HOME']) {
+            putenv('ORACLE_HOME='.$this->options['HOME']);
+        }
+        putenv('ORACLE_SID='.$sid);
+
+        $function = ($this->options['persistent'] ? 'OCIPLogon' : 'OCINLogon');
+        $connection = $function($username, $password, $sid);
+        if (!$connection) {
+            $connection =  $this->oci8RaiseError(null,
+                'Connect: Could not connect to Oracle server');
+        }
+        return $connection;
+    }
+
+    // }}}
     // {{{ connect()
 
     /**
      * Connect to the database
      * 
      * @return MDB_OK on success, MDB_Error on failure
+     * @access public 
      */
     function connect()
     {
-        if (isset($this->dsn['hostspec'])) {
-            $sid = $this->dsn['hostspec'];
-        } else {
-            $sid = getenv('ORACLE_SID');
-        }
-        if (!strcmp($sid, '')) {
-            return $this->raiseError(MDB_ERROR, null, null,
-                'connect: it was not specified a valid Oracle Service IDentifier (SID)');
-        }
         if ($this->connection != 0) {
             if (count(array_diff($this->connected_dsn, $this->dsn)) == 0
                 && $this->opened_persistent == $this->options['persistent'])
@@ -282,23 +317,9 @@ class MDB_oci8 extends MDB_Common
             $this->_close();
         }
 
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return $this->raiseError(MDB_ERROR_NOT_FOUND, null, null,
-                'connect: extension '.$this->phptype.' is not compiled into PHP');
-        }
-
-        if (isset($this->options['HOME'])) {
-            putenv('ORACLE_HOME='.$this->options['HOME']);
-        }
-        putenv('ORACLE_SID='.$sid);
-        $function = ($this->options['persistent'] ? 'OCIPLogon' : 'OCINLogon');
-        if (MDB::isError($password = $this->getOption('password'))) {
-            $password = $this->database_name;
-        }
-        $connection = $function($this->database_name, $password, $sid);
-        if (!$connection) {
-            return $this->oci8RaiseError(null,
-                'Connect: Could not connect to Oracle server');
+        $connection = $this->_doConnect($this->database_name, $this->dsn['password']);
+        if (MDB::isError($connection)) {
+            return $connection;
         }
         $this->connection = $connection;
         $this->connected_dsn = $this->dsn;
@@ -335,14 +356,13 @@ class MDB_oci8 extends MDB_Common
     }
 
     // }}}
-    // {{{ daQuery()
+    // {{{ _doQuery()
 
     /**
      * all the RDBMS specific things needed close a DB connection
      * 
-     * @access private 
+     * @access private
      */
-
     function _doQuery($query, $first = 0, $limit = 0, $prepared_query = 0)
     {
         $lobs = 0;
@@ -528,29 +548,9 @@ class MDB_oci8 extends MDB_Common
      */
     function standaloneQuery($query)
     {
-        if (isset($this->dsn['hostspec'])) {
-            $sid = $this->dsn['hostspec'];
-        } else {
-            $sid = getenv('ORACLE_SID');
-        }
-        if (!strcmp($sid, '')) {
-            return $this->raiseError(MDB_ERROR, null, null,
-                'connect: it was not specified a valid Oracle Service IDentifier (SID)');
-        }
-
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return $this->raiseError(MDB_ERROR_NOT_FOUND, null, null,
-                'connect: extension '.$this->phptype.' is not compiled into PHP');
-        }
-
-        if (isset($this->options['HOME'])) {
-            putenv('ORACLE_HOME='.$this->options['HOME']);
-        }
-        putenv('ORACLE_SID='.$sid);
-        $function = ($this->options['persistent'] ? 'OCIPLogon' : 'OCINLogon');
-        $connection = $function($this->dsn['username'], $this->dsn['password'], $sid);
-        if ($connection == 0) {
-            return $this->oci8RaiseError('standaloneQuery: Could not connect to the Microsoft SQL server');
+        $connection = _$this->_doConnect($this->options['DBA_username'], $this->options['DBA_password']);
+        if (MDB::isError($connection)) {
+            return $connection;
         }
         $result = @OCIParse($connection, $query);
         if (!$result) {
@@ -580,8 +580,7 @@ class MDB_oci8 extends MDB_Common
      * @param mixed $result_mode boolean or string which specifies which class to use
      *
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
-     *
-     * @access public
+    * @access public
      */
     function &query($query, $types = null, $result_mode = null)
     {
@@ -715,7 +714,7 @@ class MDB_oci8 extends MDB_Common
     function getColumnNames($result)
     {
         $result_value = intval($result);
-        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+        if (!isset($this->results[$result_value])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'getColumnNames: it was specified an inexisting result set');
         }
@@ -742,7 +741,7 @@ class MDB_oci8 extends MDB_Common
      */
     function numCols($result)
     {
-        if (!isset($this->results[intval($result)]['highest_fetched_row'])) {
+        if (!isset($this->results[intval($result)])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'numCols: it was specified an inexisting result set');
         }
