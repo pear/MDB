@@ -383,28 +383,34 @@ class MDB
      * @access  public
      * @see     MDB::parseDSN
      */
-    function &singleton($dsn, $options = FALSE)
+    function &singleton($dsn = NULL, $options = FALSE)
     {
-        $dsninfo = MDB::parseDSN($dsn);
-        $dsninfo = array_merge(
-            array(
-                'phptype' => NULL,
-                'username' => NULL,
-                'password' => NULL,
-                'hostspec' => NULL,
-                'database' => NULL)
-            , $dsninfo);
         global $_MDB_databases;
-        for($i=1, $j=count($_MDB_databases)+1; $i<$j; ++$i) {
-            $tmp_dsn = $_MDB_databases[$i]->getDSN('array');
-            if ($dsninfo['phptype'] == $tmp_dsn['phptype']
-                && $dsninfo['username'] == $tmp_dsn['username']
-                && $dsninfo['password'] == $tmp_dsn['password']
-                && $dsninfo['hostspec'] == $tmp_dsn['hostspec']
-                && $dsninfo['database'] == $tmp_dsn['database'])
-            {
-                MDB::setOptions($_MDB_databases[$i], $options);
-                return $_MDB_databases[$i];
+        if ($dsn) {
+            $dsninfo = MDB::parseDSN($dsn);
+            $dsninfo = array_merge(
+                array(
+                    'phptype' => NULL,
+                    'username' => NULL,
+                    'password' => NULL,
+                    'hostspec' => NULL,
+                    'database' => NULL)
+                , $dsninfo);
+            for ($i=1, $j=count($_MDB_databases)+1; $i<$j; ++$i) {
+                $tmp_dsn = $_MDB_databases[$i]->getDSN('array');
+                if ($dsninfo['phptype'] == $tmp_dsn['phptype']
+                    && $dsninfo['username'] == $tmp_dsn['username']
+                    && $dsninfo['password'] == $tmp_dsn['password']
+                    && $dsninfo['hostspec'] == $tmp_dsn['hostspec']
+                    && $dsninfo['database'] == $tmp_dsn['database'])
+                {
+                    MDB::setOptions($_MDB_databases[$i], $options);
+                    return $_MDB_databases[$i];
+                }
+            }
+        } else {
+            if (isset($_MDB_databases[0])) {
+                return $_MDB_databases[0];
             }
         }
         return MDB::connect($dsn, $options);
