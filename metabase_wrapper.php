@@ -44,10 +44,15 @@
 //
 // $Id$
 //
-// Metabase Wrapper for MDB.
-//
 
-require_once(dirname(__FILE__)."/MDB.php");
+/**
+* Wrapper that makes MDB behave like Metabase
+*
+* @package MDB
+* @author  Lukas Smith <smith@dybnet.de>
+*/
+
+require_once(dirname(__FILE__).'/MDB.php');
 
 $metabase_databases = &$databases;
 $metabases_lobs = &$lobs;
@@ -56,7 +61,7 @@ function MetabaseSetupDatabase($arguments, &$database)
 {
     _convertArguments($arguments, $dsninfo, $options);
     $db = MDB::connect($dsninfo, $options);
-    
+
     if (MDB::isError($db) || !is_object($db)) {
         $database = 0;
         return $db->getMessage();
@@ -69,7 +74,7 @@ function MetabaseSetupDatabaseObject($arguments, &$db)
 {
     _convertArguments($arguments, $dsninfo, $options);
     $db = MDB::connect($dsninfo, $options);
-    
+
     if (MDB::isError($db) || !is_object($db)) {
         return $db->getMessage();
     }
@@ -78,45 +83,22 @@ function MetabaseSetupDatabaseObject($arguments, &$db)
 
 function _convertArguments($arguments, &$dsninfo, &$options)
 {
-    $dsninfo["phptype"] = $arguments["Type"];
-    $dsninfo["username"] = $arguments["User"];
-    $dsninfo["password"] = $arguments["Password"];
-    $dsninfo["hostspec"] = $arguments["Host"];
+    $dsninfo['phptype'] = $arguments['Type'];
+    $dsninfo['username'] = $arguments['User'];
+    $dsninfo['password'] = $arguments['Password'];
+    $dsninfo['hostspec'] = $arguments['Host'];
 
-    if (isset($arguments["IncludedConstant"])) {
-        $options["includedconstant"] = $arguments["IncludedConstant"];
+    $options = array_change_key_case($arguments, 0);
+    if(is_array($arguments['options'])) {
+       $options = array_merge($options, $arguments['options']);
     }
-    if (isset($arguments["Persistent"])) {
-        $options["persistent"] = TRUE;
-    }
-    if(isset($arguments["IncludedConstant"])) {
-        $options["includedconstant"] = $arguments["IncludedConstant"];
-    }
-    if(isset($arguments["IncludePath"])) {
-        $options["includepath"] = $arguments["IncludePath"];
-    }
-    if(isset($arguments["Debug"])) {
-        $options["debug"] = $arguments["Debug"];
-    }
-    if(isset($arguments["DecimalPlaces"])) {
-        $options["decimal_places"] = $arguments["DecimalPlaces"];
-    }
-    if(isset($arguments["LOBBufferLength"])) {
-        $options["LOBbufferlength"] = $arguments["LOBBufferLength"];
-    }
-    if(isset($arguments["LogLineBreak"])) {
-        $options["loglinebreak"] = $arguments["LogLineBreak"];
-    }
-    if(is_array($arguments["Options"])) {
-       $options = array_merge($options, $arguments["Options"]);
-    }
-    $options["seqname_format"] = "_sequence_%s";
+    $options['seqname_format'] = '_sequence_%s';
 }
 
 function MetabaseCloseSetup($database)
 {
     global $databases;
-    
+
     $databases[$database]->disconnect();
     unset($databases[$database]);
 }
@@ -133,7 +115,7 @@ function MetabaseQuery($database, $query)
     }
 }
 
-function MetabaseQueryField($database, $query, &$field, $type = "text")
+function MetabaseQueryField($database, $query, &$field, $type = 'text')
 {
     global $databases;
     $result = $databases[$database]->queryOne($query, $type);
@@ -146,7 +128,7 @@ function MetabaseQueryField($database, $query, &$field, $type = "text")
     }
 }
 
-function MetabaseQueryRow($database, $query, &$row, $types = "")
+function MetabaseQueryRow($database, $query, &$row, $types = '')
 {
     global $databases;
     $result = $databases[$database]->queryRow($query, $types);
@@ -159,7 +141,7 @@ function MetabaseQueryRow($database, $query, &$row, $types = "")
     }
 }
 
-function MetabaseQueryColumn($database, $query, &$column, $type = "text")
+function MetabaseQueryColumn($database, $query, &$column, $type = 'text')
 {
     global $databases;
     $result = $databases[$database]->queryCol($query, $type, DB_FETCHMODE_ORDERED);
@@ -172,7 +154,7 @@ function MetabaseQueryColumn($database, $query, &$column, $type = "text")
     }
 }
 
-function MetabaseQueryAll($database, $query, &$all, $types = "")
+function MetabaseQueryAll($database, $query, &$all, $types = '')
 {
     global $databases;
     $result = $databases[$database]->queryAll($query, $types);
@@ -233,7 +215,7 @@ function MetabaseExecuteQuery($database, $prepared_query)
     }
 }
 
-function MetabaseQuerySet($database, $prepared_query, $parameter, $type, $value, $is_null = 0, $field = "")
+function MetabaseQuerySet($database, $prepared_query, $parameter, $type, $value, $is_null = 0, $field = '')
 {
     global $databases;
     $result = $databases[$database]->setParam($prepared_query, $parameter, $type, $value, $is_null, $field);
@@ -562,7 +544,7 @@ function MetabaseFetchResultField($database, $result, &$field)
 function MetabaseFetchResultArray($database, $result, &$array, $row)
 {
     global $databases;
-    $result = $databases[$database]->fetchInto($result, "NULL", $row);
+    $result = $databases[$database]->fetchInto($result, 'NULL', $row);
     if (MDB::isError($result)) {
         $databases[$database]->setError('FetchResultArray', $result->getMessage());
         return(0);
@@ -1281,10 +1263,11 @@ function MetabaseCreateLOB(&$arguments, &$lob)
 {
     global $databases;
     $args = $arguments;
-    $args["Database"] = $databases[$arguments["Database"]];
+    $args = array_change_key_case($arguments, 0);
+    $args['database'] = $databases[$arguments['Database']];
     $result = createLob($args, $lob);
-    $args["Database"] = $arguments["Database"];
     $arguments = $args;
+    $arguments['Database'] = $args['database']->database;
     if (MDB::isError($result)) {
         $databases[$database]->setError('CreateLOB', $result->getMessage());
         return(0);
@@ -1344,17 +1327,17 @@ function MetabaseLOBError($lob)
 class Metabase_manager_class
 {
     var $MDB_manager_object;
-    
+
     var $fail_on_invalid_names = 1;
-    var $error = "";
+    var $error = '';
     var $warnings = array();
     var $database = 0;
     var $database_definition = array(
-        "name" => "",
-        "create" => 0,
-        "TABLES" => array()
+        'name' => '',
+        'create' => 0,
+        'TABLES' => array()
     );
-    
+
     function Metabase_manager_class()
     {
         $this->MDB_manager_object = new MDB_manager;
@@ -1363,11 +1346,11 @@ class Metabase_manager_class
         $this->MDB_manager_object->warnings = &$this->warnings;
         $this->MDB_manager_object->database_definition = &$this->database_definition;
     }
-    
+
     function SetupDatabase(&$arguments)
     {
         _convertArguments($arguments, $dsninfo, $options);
-        
+
         $result = $this->MDB_manager_object->connect($dsninfo, $options);
         if (MDB::isError($result)) {
             return $result->getMessage();
@@ -1411,7 +1394,7 @@ class Metabase_manager_class
                 $i++, next($fields))
             {
                 if ($i > 0) {
-                    $query_fields .= ", ";
+                    $query_fields .= ', ';
                 }
                 $result .= key($fields);
             }
@@ -1426,7 +1409,7 @@ class Metabase_manager_class
 
     function GetFields($table, &$fields)
     {
-        $result = $this->MDB_manager_object->database->getFieldDeclarationList($this->database_definition["TABLES"][$table]["FIELDS"]);
+        $result = $this->MDB_manager_object->database->getFieldDeclarationList($this->database_definition['TABLES'][$table]['FIELDS']);
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1437,7 +1420,7 @@ class Metabase_manager_class
 
     function CreateTable($table_name, $table)
     {
-        $result = $this->MDB_manager_object->createTable($table_name, $table);
+        $result = $this->MDB_manager_object->_createTable($table_name, $table);
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1445,9 +1428,9 @@ class Metabase_manager_class
         }
     }
 
-    function DropTable($table_name)
+    function _dropTable($table_name)
     {
-        $result = $this->MDB_manager_object->dropTable($table_name);
+        $result = $this->MDB_manager_object->_dropTable($table_name);
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1467,7 +1450,7 @@ class Metabase_manager_class
 
     function DropSequence($sequence_name)
     {
-        $result = $this->MDB_manager_object->dropSequence($sequence_name);
+        $result = $this->MDB_manager_object->_dropSequence($sequence_name);
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1477,7 +1460,7 @@ class Metabase_manager_class
 
     function CreateDatabase()
     {
-        $result = $this->MDB_manager_object->createDatabase();
+        $result = $this->MDB_manager_object->_createDatabase();
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1487,7 +1470,7 @@ class Metabase_manager_class
 
     function AddDefinitionChange(&$changes, $definition, $item, $change)
     {
-        $result = $this->MDB_manager_object->addDefinitionChange($changes, $definition, $item, $change);
+        $result = $this->MDB_manager_object->_addDefinitionChange($changes, $definition, $item, $change);
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1497,7 +1480,7 @@ class Metabase_manager_class
 
     function CompareDefinitions(&$previous_definition, &$changes)
     {
-        $result = $this->MDB_manager_object->compareDefinitions($previous_definition);
+        $result = $this->MDB_manager_object->_compareDefinitions($previous_definition);
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1528,7 +1511,7 @@ class Metabase_manager_class
 
     function DumpSequence($sequence_name, $output, $eol, $dump_definition)
     {
-        $result = $this->MDB_manager_object->dumpSequence($sequence_name, $output, $eol, $dump_definition);
+        $result = $this->MDB_manager_object->_dumpSequence($sequence_name, $output, $eol, $dump_definition);
         if (MDB::isError($result)) {
             return(0);
         } else {
@@ -1570,7 +1553,7 @@ class Metabase_manager_class
     function UpdateDatabase($current_schema_file, $previous_schema_file, &$arguments, &$variables)
     {
         _convertArguments($arguments, $dsninfo, $options);
-        
+
         $result = $this->MDB_manager_object->updateDatabase($current_schema_file, $previous_schema_file, $dsninfo, $variables, $options);
         if (MDB::isError($result)) {
             return $result->getMessage();
@@ -1587,6 +1570,16 @@ class Metabase_manager_class
         } else {
             $database_definition = $result;
             return($result);
+        }
+    }
+
+    function GetDefinitionFromDatabase()
+    {
+        $result = $this->MDB_manager_object->getDefinitionFromDatabase();
+        if (MDB::isError($result)) {
+            return(0);
+        } else {
+            return(1);
         }
     }
 };
