@@ -1027,6 +1027,36 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $this->db->freeResult($result);
     }
 
+    /**
+     * Test handling of lob nulls
+     */
+    function testLobNulls() {
+        if (!$this->supported('LOBs')) {
+            return;
+        }
+        
+        $prepared_query = $this->db->prepareQuery("INSERT INTO files (document,picture) VALUES (?,?)");
+  
+        $this->db->setParamNull($prepared_query, 1, "clob");
+        $this->db->setParamNull($prepared_query, 2, "blob");
+
+        $result = $this->db->executeQuery($prepared_query);
+        $this->assertTrue(!MDB::isError($result), 'Error executing prepared query - inserting NULL lobs');
+
+        $this->db->freePreparedQuery($prepared_query);
+
+        $result = $this->db->query('SELECT document, picture FROM files');
+        if (MDB::isError($result)) {
+            $this->assertTrue(FALSE, 'Error selecting from files' . $result->getMessage());
+        }
+
+        $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result too soon.');
+
+        $this->assertTrue($this->db->resultIsNull($result, 0, 'document'), 'A query result large object column is not NULL unlike what was expected (document)');
+        $this->assertTrue($this->db->resultIsNull($result, 0, 'picture'), 'A query result large object column is not NULL unlike what was expected (picture)');
+
+        $this->db->freeResult($result);
+    }
 
 }
 
