@@ -531,39 +531,30 @@ class MDB_Common extends PEAR
     }
 
     // }}}
-    // {{{ _loadExtension()
+    // {{{ _loadModule()
 
     /**
-     * loads an extension
+     * loads an module
      *
      * @param string $scope information about what method is being loaded,
      *      that is used for error messages
-     * @param string $extension name of the extension that should be loaded
+     * @param string $module name of the module that should be loaded
      *      (only used for error messages)
      * @param string $included_constant name of the constant that should be
-     *      defined when the extension has been loaded
-     * @param string $include name of the script that includes the extension
+     *      defined when the module has been loaded
+     * @param string $include name of the script that includes the module
      * @access private
      */
-    function _loadExtension($scope, $extension, $included_constant, $include)
+    function _loadModule($scope, $module, $included_constant, $include)
     {
         if (strlen($included_constant) == 0 || !defined($included_constant)) {
-            $separator = (defined('MDB_DIRECTORY_SEPARATOR') ? MDB_DIRECTORY_SEPARATOR : '/');
-            $include_path = $this->include_path.$separator.'MDB'.$separator.$extension.$separator;
-            if($extension == 'LOB') {
-                $include_path = $this->include_path.$separator.'MDB'.$separator;
+            if($include) {
+                $include = 'MDB/Modules/'.$include;
+                include_once($include);
+            } else {
+                return $this->raiseError(MDB_ERROR_LOADMODULE, '', '',
+                    $scope . ': it was not specified an existing ' . $module . ' file (' . $include . ')');
             }
-            if (!file_exists($include_path.$include)) {
-                $directory = @opendir($include_path);
-                if ($directory) {
-                    @closedir($directory);
-                    return $this->raiseError(MDB_ERROR_LOADEXTENSION, '', '',
-                        $scope . ': it was not specified an existing ' . $extension . ' file (' . $include . ')');
-                }
-                return $this->raiseError(MDB_ERROR_LOADEXTENSION, '', '',
-                    $scope . ': it was not specified a valid ' . $extension . ' include path');
-            }
-            @include_once($include_path.$include);
         }
         return (MDB_OK);
     }
@@ -572,7 +563,7 @@ class MDB_Common extends PEAR
     // {{{ loadLob()
 
     /**
-     * loads the LOB extension
+     * loads the LOB module
      *
      * @param string $scope information about what method is being loaded,
      *                       that is used for error messages
@@ -583,7 +574,7 @@ class MDB_Common extends PEAR
         if (defined('MDB_LOB_INCLUDED')) {
             return (MDB_OK);
         }
-        $result = $this->_loadExtension($scope, 'LOB',
+        $result = $this->_loadModule($scope, 'LOB',
             'MDB_LOB_INCLUDED', 'LOB.php');
         if (MDB::isError($result)) {
             return($result);
@@ -595,7 +586,7 @@ class MDB_Common extends PEAR
     // {{{ loadManager()
 
     /**
-     * loads the Manager extension
+     * loads the Manager module
      *
      * @param string $scope information about what method is being loaded,
      *                       that is used for error messages
@@ -606,14 +597,18 @@ class MDB_Common extends PEAR
         if (isset($this->manager) && is_object($this->manager)) {
             return (MDB_OK);
         }
-        $result = $this->_loadExtension($scope, 'Manager',
-            'MDB_MANAGER_'.strtoupper($this->dbsyntax).'_INCLUDED',
-            $this->dbsyntax.'.php');
+        $result = $this->_loadModule($scope, 'Manager',
+            'MDB_MANAGER_'.strtoupper($this->phptype).'_INCLUDED',
+            'Manager/'.$this->phptype.'.php');
         if (MDB::isError($result)) {
             return($result);
         }
         $class_name = 'MDB_Manager_'.$this->dbsyntax;
-        $this->manager = new $class_name;
+        if (!class_exists($class_name)) {
+            return $this->raiseError(MDB_ERROR_LOADMODULE, '', '',
+                "Unable to load extension");
+        }
+        @$this->manager = new $class_name;
         return (MDB_OK);
     }
 
