@@ -703,10 +703,10 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                         return($indexes);
                     }
                     $is_primary = FALSE;
-                    if (!$db->options['optimize'] == 'portability') {
-                        array_change_key_case($indexes);
-                    }
                     foreach($indexes as $index) {
+                        if ($db->options['optimize'] != 'portability') {
+                            array_change_key_case($index);
+                        }
                         if ($index['key_name'] == 'PRIMARY' && $index['column_name'] == $field_name) {
                             $is_primary = TRUE;
                             break;
@@ -860,7 +860,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         }
         $definition = array();
         while (is_array($row = $db->fetchInto($result, MDB_FETCHMODE_ASSOC))) {
-            if (!$db->options['optimize'] == 'portability') {
+            if ($db->options['optimize'] != 'portability') {
                 $row = array_change_key_case($row);
             }
             $key_name = $row['key_name'];
