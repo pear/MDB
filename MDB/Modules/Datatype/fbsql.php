@@ -82,6 +82,18 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
     function convertResult($value, $type)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        switch ($type) {
+             case MDB_TYPE_BOOLEAN:
+                 return $value == 'T';
+             case MDB_TYPE_TIME:
+                if ($value[0] == '+') {
+                    return substr($value, 1);
+                } else {
+                    return $value;
+                }
+            default:
+                return $this->_baseConvertResult($value, $type);
+        }
         return $this->_baseConvertResult($value, $type);
     }
 
@@ -117,11 +129,51 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
     function getIntegerDeclaration($name, $field)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $unsigned = isset($field['unsigned']) ? ' UNSIGNED' : '';
+        if (isset($field['unsigned'])) {
+            $this->warnings[] = "unsigned integer field \"$name\" is being
+                declared as signed integer";
+        }
         $default = isset($field['default']) ? ' DEFAULT '.
             $this->getIntegerValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' INT'.$unsigned.$default.$notnull;
+        return $name.' INT'.$default.$notnull;
+    }
+
+    // }}}
+    // {{{ getTextDeclaration()
+
+    /**
+     * Obtain DBMS specific SQL code portion needed to declare an text type
+     * field to be used in statements like CREATE TABLE.
+     *
+     * @param string $name name the field to be declared.
+    * @param string $field associative array with the name of the properties
+     *       of the field being declared as array indexes. Currently, the types
+     *       of supported field properties are as follows:
+    *
+     *       length
+     *           Integer value that determines the maximum length of the text
+     *           field. If this argument is missing the field should be
+     *           declared to have the longest length allowed by the DBMS.
+     *
+     *       default
+     *           Text value to be used as default for this field.
+     *
+     *       notnull
+     *           Boolean flag that indicates whether this field is constrained
+     *           to not be set to NULL.
+     * @return string DBMS specific SQL code portion that should be used to
+     *       declare the specified field.
+     * @access public
+     */
+    function getTextDeclaration($name, $field)
+    {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getTextValue($field['default']) : '';
+        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
+        $length = isset($field['length']) ? $field['length'] : $db->max_text_length;
+        return $name.' VARCHAR ('.$length.')'.$default.$notnull;
     }
 
     // }}}
@@ -152,14 +204,7 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      */
     function getCLOBDeclaration($name, $field)
     {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        if (isset($field['length'])) {
-            $type = 'VARCHAR('.$field['length'].')';
-        } else {
-            $type = 'VARCHAR(32768)';
-        }
-        $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' '.$type.$notnull;
+        return "$name CLOB".(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -190,14 +235,38 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
      */
     function getBLOBDeclaration($name, $field)
     {
+        return("$name BLOB".(isset($field['notnull']) ? ' NOT NULL' : ''));
+    }
+
+    // }}}
+    // {{{ getBooleanDeclaration()
+
+    /**
+     * Obtain DBMS specific SQL code portion needed to declare a boolean type
+     * field to be used in statements like CREATE TABLE.
+     *
+     * @param string $name name the field to be declared.
+     * @param string $field associative array with the name of the properties
+     *       of the field being declared as array indexes. Currently, the types
+     *       of supported field properties are as follows:
+     *
+     *       default
+     *           Boolean value to be used as default for this field.
+     *
+     *       notnullL
+     *           Boolean flag that indicates whether this field is constrained
+     *           to not be set to NULL.
+     * @return string DBMS specific SQL code portion that should be used to
+     *       declare the specified field.
+     * @access public
+     */
+    function getBooleanDeclaration($name, $field)
+    {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        if (isset($field['length'])) {
-            $type = 'BLOB('.$field['length'].')';
-        } else {
-            $type = 'BLOB(32768)';
-        }
+        $default = isset($field['default']) ? ' DEFAULT '.
+            $this->getBooleanValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' '.$type.$notnull;
+        return $name.' BOOLEAN)'.$default.$notnull;
     }
 
     // }}}
@@ -324,11 +393,10 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
     function getFloatDeclaration($name, $field)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $type = 'DOUBLE PRECISION';
         $default = isset($field['default']) ? ' DEFAULT '.
             $this->getFloatValue($field['default']) : '';
         $notnull = isset($field['notnull']) ? ' NOT NULL' : '';
-        return $name.' '.$type.$default.$notnull;
+        return $name.' FLOAT'.$default.$notnull;
     }
 
     // }}}
@@ -455,6 +523,78 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         unset($db->lobs[$blob]);
+    }
+
+    // }}}
+    // {{{ getBooleanValue()
+
+    /**
+     * Convert a text value into a DBMS specific format that is suitable to
+     * compose query statements.
+     *
+     * @param string $value text string value that is intended to be converted.
+     * @return string text string that represents the given argument value in
+     *       a DBMS specific format.
+     * @access public
+     */
+    function getBooleanValue($value)
+    {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        return ($value === null) ? 'NULL' : ($value ? 'True' : 'False');
+    }
+
+    // }}}
+    // {{{ getDateValue()
+
+    /**
+     * Convert a text value into a DBMS specific format that is suitable to
+     * compose query statements.
+     * 
+     * @param string $value text string value that is intended to be converted.
+     * @return string text string that represents the given argument value in
+     *        a DBMS specific format.
+     * @access public 
+     */
+    function getDateValue($value)
+    {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        return ($value === null) ? 'NULL' : "DATE'$value'";
+    }
+
+    // }}}
+    // {{{ getTimestampValue()
+
+    /**
+     * Convert a text value into a DBMS specific format that is suitable to
+     * compose query statements.
+     * 
+     * @param string $value text string value that is intended to be converted.
+     * @return string text string that represents the given argument value in
+     *        a DBMS specific format.
+     * @access public 
+     */
+    function getTimestampValue($value)
+    {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        return ($value === null) ? 'NULL' : "TIMESTAMP'$value'";
+    }
+
+    // }}}
+    // {{{ getTimeValue()
+
+    /**
+     * Convert a text value into a DBMS specific format that is suitable to
+     *        compose query statements.
+     * 
+     * @param string $value text string value that is intended to be converted.
+     * @return string text string that represents the given argument value in
+     *        a DBMS specific format.
+     * @access public 
+     */
+    function getTimeValue($value)
+    {
+        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
+        return ($value === null) ? 'NULL' : "TIME'$value'";
     }
 
     // }}}
