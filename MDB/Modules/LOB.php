@@ -66,7 +66,7 @@ class MDB_lob extends PEAR
         if(isset($arguments["Data"])) {
             $this->data = $arguments["Data"];
         }
-        return(1);
+        return (DB_OK);
     }
 
     function destroy()
@@ -148,7 +148,7 @@ class MDB_lob_input_file extends MDB_lob
                 return(0);
             }
         }        
-        return(1);
+        return (DB_OK);
     }
 
     function destroy()
@@ -243,7 +243,7 @@ class MDB_lob_output_file extends MDB_lob
                 return(0);
             }
         }
-        return(1);
+        return (DB_OK);
     }
 
     function destroy()
@@ -320,7 +320,7 @@ function createLOB(&$arguments, &$lob)
     }
 
     if($lobs[$lob]->create($arguments)) {
-        return(1);
+        return (DB_OK);
     }
     if(isset($arguments["Error"])) {
         $arguments["Error"] = $lobs[$lob]->error;
