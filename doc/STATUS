@@ -21,13 +21,13 @@ FEATURE        dbase  |  ibase  |  msql   |  mysql  |   oci8  |  pgsql  |  sybas
 simpleQuery      -    -    T    -    -    -    -    -    -    -    -    -    -
 numCols          -    -    T    -    -    -    -    -    -    -    -    -    -
 numRows          -    -    T    -    -    -    -    -    -    -    -    -    -
-errorNative      -    -    -    -    -    -    -    -    -    -    -    -    -
+errorNative      -    -    x    -    -    -    -    -    -    -    -    -    -
 prepare/execute  -    -    T    -    -    -    -    -    -    -    -    -    -
-sequences        -    -    -    -    -    -    -    -    -    -    -    -    -
+sequences        -    -   [1]   -    -    -    -    -    -    -    -    -    -
 affectedRows     -    -    l    -    -    -    -    -    -    -    -    -    -
 fetch modes      -    -    x    -    -    -    -    -    -    -    -    -    -
 fetch row by no  -    -    e    -    -    -    -    -    -    -    -    -    -
-transactions     -    -   [1]   -    -    -    -    -    -    -    -    -    -
+transactions     -    -    T    -    -    -    -    -    -    -    -    -    -
 auto-commit      -    -    T    -    -    -    -    -    -    -    -    -    -
 error mapping    -    -    x    -    -    -    -    -    -    -    -    -    -
 tableInfo        -    -    T    -    -    -    -    -    -    -    -    -    -
@@ -39,7 +39,7 @@ users            -    -    -    -    -    -    -    -    -    -    -    -    -
 databases        -    -    -    -    -    -    -    -    -    -    -    -    -
 functions        -    -    -    -    -    -    -    -    -    -    -    -    -
 
-[1] ibase under PHP 4 is unstable on Windows.
+[1] sequences are working, but not currId().
 
 
 Test Conformance
@@ -75,7 +75,7 @@ ranges           -    -    o    -    -    -    -    -    -    -    -    -    -
 sequences        -    -    o    -    -    -    -    -    -    -    -    -    -
 replace          -    -    o    -    -    -    -    -    -    -    -    -    -
 affectedrows     -    -    X    -    -    -    -    -    -    -    -    -    -
-transactions     -    -   [1]   -    -    -    -    -    -    -    -    -    -
+transactions     -    -    o    -    -    -    -    -    -    -    -    -    -
 lobstorage       -    -    o    -    -    -    -    -    -    -    -    -    -
 lobfiles         -    -    o    -    -    -    -    -    -    -    -    -    -
 lobnulls         -    -    X    -    -    -    -    -    -    -    -    -    -
@@ -87,5 +87,3 @@ bug681           -    -    o    -    -    -    -    -    -    -    -    -    -
 createdatabase   -    -    -    -    -    -    -    -    -    -    -    -    -
 updatedatabase   -    -    o    -    -    -    -    -    -    -    -    -    -
 
-
-[1] ibase under PHP 4 is unstable on Windows.
