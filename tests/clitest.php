@@ -103,10 +103,6 @@ if (!is_array($testmethods)) {
 
 foreach ($dbarray as $db) {
     $dsn = $db['dsn'];
-    // if the database name isn't set in the dsn use the default
-    if (empty($dsn['database'])) {
-        $dsn['database'] = $database;
-    }
     $options = $db['options'];
 
     $display_dsn = $dsn['phptype'] . "://" . $dsn['username'] . ":" . $dsn['password'] . "@" . $dsn['hostspec'] . "/" . $dsn['database'];
