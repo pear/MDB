@@ -252,14 +252,9 @@ class MDB_querysim extends MDB_Common
         $this->supported['sub_selects'] = 1;
         $this->supported['transactions'] = 1;
         
-        // init QuerySim options
-        $querySimOptions = array(
-            'columnDelim' => ',',
-            'dataDelim'   => '|',
-            'eolDelim'    => "\n"
-        );
-        // let runtime options overwrite defaults
-        $this->options = array_merge($querySimOptions, $this->options);
+        $this->options['columnDelim'] = ',';
+        $this->options['dataDelim'] = '|';
+        $this->options['eolDelim'] = "\n";
     }
     // }}}
 
@@ -289,15 +284,7 @@ class MDB_querysim extends MDB_Common
             }
             $this->connection = 0;
         }
-        if (is_array($this->options)) {
-            foreach($this->options as $option => $value) {
-                if ((in_array($option, array('columnDelim','dataDelim','eolDelim')))
-                    && ($value == '\\')) {
-                        return $this->raiseError(MDB_ERROR, null, null,
-                            "MDB Error: option $option cannot be set to '\\'");
-                }
-            }
-        }
+
         $connection = 1;// sim connect
         // if external, check file...
         if ($this->database_name) {
@@ -347,31 +334,6 @@ class MDB_querysim extends MDB_Common
             $GLOBALS['_MDB_databases'][$this->db_index] = '';
         }
         return $ret;
-    }
-    // }}}
-
-    // {{{ setOption()
-    
-    /**
-    * Set the option for the MDB class
-    *
-    * @param string $option option name
-    * @param mixed  $value value for the option
-    *
-    * @return mixed MDB_OK or MDB_Error
-    */
-    function setOption($option, $value)
-    {
-        if ((in_array($option, array('columnDelim','dataDelim','eolDelim')))
-            && ($value == '\\')
-        ) {
-            return $this->raiseError("option $option cannot be set to '\\'");
-        }
-        if (isset($this->options[$option])) {
-            $this->options[$option] = $value;
-            return MDB_OK;
-        }
-        return $this->raiseError("unknown option $option");
     }
     // }}}
 
@@ -605,7 +567,7 @@ class MDB_querysim extends MDB_Common
     function getColumnNames($result)
     {
         $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+        if (!isset($this->results[$result_value])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'Get column names: a non-existant result set was specified');
         }
@@ -629,7 +591,7 @@ class MDB_querysim extends MDB_Common
     function numCols($result)
     {
         $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+        if (!isset($this->results[$result_value])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'numCols: a non-existant result set was specified');
         }
@@ -650,7 +612,7 @@ class MDB_querysim extends MDB_Common
     function endOfResult($result)
     {
         $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+        if (!isset($this->results[$result_value])) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'endOfResult(): attempted to check the end of an unknown result');
         }
@@ -672,7 +634,7 @@ class MDB_querysim extends MDB_Common
     function numRows($result)
     {
         $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+        if (!isset($this->results[$result_value])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'numRows(): a non-existant result set was specified');
         }
@@ -792,7 +754,7 @@ class MDB_querysim extends MDB_Common
     function nextResult(&$result)
     {
         $result_value = $this->_querySimSignature($result);
-        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+        if (!isset($this->results[$result_value])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
                 'nextResult(): a non-existant result set was specified');
         }
