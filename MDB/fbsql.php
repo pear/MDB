@@ -2,7 +2,7 @@
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 1998-2002 Manuel Lemos, Tomas V.V.Cox,                 |
+// | Copyright (c) 1998-2003 Manuel Lemos, Tomas V.V.Cox,                 |
 // | Stig. S. Bakken, Lukas Smith, Frank M. Kromann                       |
 // | All rights reserved.                                                 |
 // +----------------------------------------------------------------------+
@@ -97,7 +97,7 @@ class MDB_fbsql extends MDB_Common
         $this->supported['CurrId'] = 1;
         $this->supported['SelectRowRanges'] = 1;
         $this->supported['LOBs'] = 1;
-        $this->supported['Replace'] = 1;
+        $this->supported['Replace'] = 0;
         $this->supported['SubSelects'] = 1;
         
         $this->decimal_factor = pow(10.0, $this->decimal_places);
@@ -327,7 +327,7 @@ class MDB_fbsql extends MDB_Common
             }
         }
         if (isset($this->supported['Transactions']) && !$this->auto_commit) {
-            if (!fbsql_query('SET AUTOCOMMIT = 0', $this->connection)) {
+            if (!fbsql_query('SET AUTOCOMMIT FALSE', $this->connection)) {
                 fbsql_close($this->connection);
                 $this->connection = 0;
                 $this->affected_rows = -1;
@@ -431,41 +431,6 @@ class MDB_fbsql extends MDB_Common
             }
         }
         return($this->fbsqlRaiseError());
-    }
-
-    // }}}
-    // {{{ subSelect()
-
-    /**
-     * simple subselect emulation for FrontBase
-     *
-     * @access public
-     *
-     * @param string $query the SQL query for the subselect that may only
-     *                      return a column
-     * @param string $quote determines if the data needs to be quoted before
-     *                      being returned
-     *
-     * @return string the query
-     */
-    function subSelect($query, $quote = FALSE)
-    {
-        if($this->supported['SubSelects'] == 1) {
-            return($query);
-        }
-        $col = $this->queryCol($query);
-        if (MDB::isError($col)) {
-            return($col);
-        }
-        if(!is_array($col) || count($col) == 0) {
-            return 'NULL';
-        }
-        if($quote) {
-            for($i = 0, $j = count($col); $i < $j; ++$i) {
-                $col[$i] = $this->getTextValue($col[$i]);
-            }
-        }
-        return(implode(', ', $col));
     }
 
     // }}}
@@ -1193,7 +1158,6 @@ class MDB_fbsql extends MDB_Common
 
     /**
      * Move the internal fbsql result pointer to the next available result
-     * Currently not supported
      *
      * @param a valid result resource
      * @return true if a result is available otherwise return false
@@ -1201,7 +1165,7 @@ class MDB_fbsql extends MDB_Common
      */
     function nextResult($result)
     {
-        return(FALSE);
+        return(fbsql_next_result($result));
     }
 
     // }}}
