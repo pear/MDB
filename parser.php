@@ -388,17 +388,17 @@ class MDB_Parser extends XML_Parser {
             }
             break;
         case 'date':
-            if (!preg_match('/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})$', $field_value)) {
+            if (!preg_match('/([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})/', $field_value)) {
                 return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
             break;
         case 'timestamp':
-            if (!preg_match('/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})$/', $field_value)) {
+            if (!preg_match('/([0-9]{4})-([0-9]{1,2})-([0-9]{1,2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})/', $field_value)) {
                 return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
             break;
         case 'time':
-            if (!reg("^([0-9]{2}):([0-9]{2}):([0-9]{2})$", $field_value)) {
+            if (!preg_match("/([0-9]{2}):([0-9]{2}):([0-9]{2})/", $field_value)) {
                 return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
             break;
