@@ -82,8 +82,6 @@ require_once 'MDB/Common.php';
  *   Interbase driver class is not able to reclaim the database space allocated
  *   for the large object values because there is currently no PHP function to do so.
  *
- * - !!!! LOB Handling is currently broken in the interbase driver. !!!!!
- *
  * @package MDB
  * @category Database
  * @author  Lorenzo Alberton <l.alberton@quipo.it>
@@ -509,6 +507,7 @@ class MDB_ibase extends MDB_Common
             && isset($this->query_parameters[$prepared_query])
             && count($this->query_parameters[$prepared_query]) > 2)
         {
+
             $this->query_parameters[$prepared_query][0] = $connection;
             $this->query_parameters[$prepared_query][1] = $query;
             $result = @call_user_func_array("ibase_query", $this->query_parameters[$prepared_query]);
@@ -735,7 +734,7 @@ class MDB_ibase extends MDB_Common
         if (MDB::isError($names = $this->getColumnNames($result))) {
             return $names;
         }
-         if (is_numeric($field)) {
+        if (is_numeric($field)) {
             if (($column = $field) < 0
                 || $column >= count($this->columns[$result_value]))
             {
@@ -775,7 +774,6 @@ class MDB_ibase extends MDB_Common
         if (!isset($row[$column])) {
             return null;
         }
-        //return rtrim($row[$column], ' ');
         return $row[$column];
     }
 
@@ -833,7 +831,7 @@ class MDB_ibase extends MDB_Common
             return null;
         }
         foreach ($row as $key => $value_with_space) {
-            $row[$key] = rtrim($value_with_space);
+            $row[$key] = rtrim($value_with_space, ' ');
         }
         if ($fetchmode == MDB_FETCHMODE_ASSOC) {
             $row = array_change_key_case($row);
@@ -868,9 +866,6 @@ class MDB_ibase extends MDB_Common
                                                       $this->lobs[$lob]['Row'],
                                                       $this->lobs[$lob]['Field']);
 
-            //echo '<pre>';
-            //print_r($this->lobs);
-            //exit;
             if (!$this->lobs[$lob]['Handle'] = ibase_blob_open($this->lobs[$lob]['Value'])) {
                 unset($this->lobs[$lob]['Value']);
                 return($this->raiseError(MDB_ERROR, NULL, NULL,
@@ -1162,8 +1157,6 @@ class MDB_ibase extends MDB_Common
         {
             case 'text':
                 return('VARCHAR ('.(isset($field['length']) ? $field['length'] : (isset($this->options['DefaultTextFieldLength']) ? $this->options['DefaultTextFieldLength'] : 4000)).')');
-            case
-                return 'VARCHAR ('.$length.')';
             case 'clob':
                 return 'BLOB SUB_TYPE 1';
             case 'blob':
@@ -1415,7 +1408,7 @@ class MDB_ibase extends MDB_Common
                     $success = 0;
                     break;
                 }
-                if (!ibase_blob_add($lo, $data)) {
+                if (ibase_blob_add($lo, $data) === false) {
                     $result = $this->raiseError(MDB_ERROR, NULL, NULL, '_getLobValue - Could not add data to a large object: ' . ibase_errmsg());
                     $success = 0;
                     break;
