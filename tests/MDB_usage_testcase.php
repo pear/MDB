@@ -137,15 +137,17 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
     function verifyFetchedValues(&$result, $rownum, &$data) {
         $row = $this->db->fetchRow($result, MDB_FETCHMODE_ORDERED, $rownum);
+
         for ($i = 0; $i < count($this->fields); $i++) {
             $value = $row[$i];
+            $field = $this->fields[$i];
             if ($this->types[$i] == 'float') {
                 $delta = 0.0000000001;
             } else {
                 $delta = 0;
             }
-            $field = $this->fields[$i];
-            $this->assertEquals($value, $data[$field], "the value retrieved for field \"$field\" ($value) doesn't match what was stored ($data[$field])", $delta);
+
+            $this->assertEquals($data[$field], $value, "the value retrieved for field \"$field\" ($value) doesn't match what was stored ($data[$field])", $delta);
         }
     }
 
@@ -502,7 +504,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result at row $row that is before $result_rows as expected');
 
                 $this->verifyFetchedValues($result, $row, $data[$row + $start_row]);
-
             }
         }
 

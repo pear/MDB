@@ -1572,7 +1572,7 @@ class MDB_Common extends PEAR
      */
     function support($feature)
     {
-        return (isset($this->supported[$feature]) && $this->supported[$feature]);
+        return isset($this->supported[$feature]) && $this->supported[$feature];
     }
 
     // }}}

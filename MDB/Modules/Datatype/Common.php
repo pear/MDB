@@ -202,7 +202,7 @@ class MDB_Datatype_Common
             case MDB_TYPE_INTEGER:
                 return intval($value);
             case MDB_TYPE_BOOLEAN:
-                return strcmp($value, 'Y') ? false : true;
+                return ($value == 'Y') ? true : false;
             case MDB_TYPE_DECIMAL:
                 return $value;
             case MDB_TYPE_FLOAT:
@@ -260,8 +260,8 @@ class MDB_Datatype_Common
             $current_column = -1;
             foreach($row as $key => $column) {
                 ++$current_column;
-                if (!isset($db->results[$result_value]['types'][$current_column])
-                   ||!isset($column)
+                if (!isset($column)
+                   || !isset($db->results[$result_value]['types'][$current_column])
                 ) {
                     continue;
                 }
@@ -283,7 +283,7 @@ class MDB_Datatype_Common
                 }
             }
         }
-        return ($row);
+        return $row;
     }
 
     // }}}

@@ -657,7 +657,7 @@ class MDB_querysim extends MDB_Common
             return $this->raiseError(MDB_ERROR, null, null,
                 'endOfResult(): attempted to check the end of an unknown result');
         }
-        return ($this->results[$result_value]['highest_fetched_row'] >= $this->numRows($result)-1);
+        return $this->results[$result_value]['highest_fetched_row'] >= $this->numRows($result)-1;
     }
     // }}}
 
