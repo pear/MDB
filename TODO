@@ -22,3 +22,4 @@ Sometime (in no particular order)
 - Add optional unbuffered query mode
 - Add EXPLAIN method
 - Add call to EXPLAIN method to the default debug output handler
+- make the MySQL and PostGreSQL driver make use of the more advanced numeric datatypes
