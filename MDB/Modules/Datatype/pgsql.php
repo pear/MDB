@@ -73,8 +73,6 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
         switch ($type) {
             case MDB_TYPE_BOOLEAN:
                 return $value == 't' ? true : false;
-            case MDB_TYPE_DECIMAL:
-                return sprintf('%.'.$db->decimal_places.'f',doubleval($value)/$db->decimal_factor);
             case MDB_TYPE_FLOAT:
                 return doubleval($value);
             case MDB_TYPE_DATE:
@@ -325,7 +323,8 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      */
     function getDecimalDeclaration(&$db, $name, $field)
     {
-        return "$name INT8 ".(isset($field['default']) ? ' DEFAULT '.
+        return $name.' NUMERIC(18, '.$db->decimal_places.')'
+            .(isset($field['default']) ? ' DEFAULT '.
             $this->getDecimalValue($db, $field['default']) : '').
             (isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -517,7 +516,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      */
     function getDecimalValue(&$db, $value)
     {
-        return ($value === null) ? 'NULL' : strval(round($value*$db->decimal_factor));
+        return ($value === null) ? 'NULL' : $value;
     }
 
     // }}}

@@ -71,12 +71,7 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      */
     function convertResult(&$db, $value, $type)
     {
-        switch($type) {
-            case MDB_TYPE_DECIMAL:
-                return sprintf('%.'.$db->decimal_places.'f', doubleval($value)/$db->decimal_factor);
-            default:
-                return $this->_baseConvertResult($db, $value, $type);
-        }
+        return $this->_baseConvertResult($db, $value, $type);
     }
 
     // }}}
@@ -381,10 +376,10 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      */
     function getDecimalDeclaration(&$db, $name, $field)
     {
-        return "$name BIGINT".
-            (isset($field['default']) ?
-                ' DEFAULT '.$this->getDecimalValue($db, $field['default']) : '').
-            (isset($field['notnull']) ? ' NOT NULL' : '')
+        return $name.' DECIMAL(18,'.$db->decimal_places.')'
+            .(isset($field['default']) ?
+                ' DEFAULT '.$this->getDecimalValue($db, $field['default']) : '')
+            .(isset($field['notnull']) ? ' NOT NULL' : '')
         ;
     }
 
@@ -513,7 +508,7 @@ class MDB_Datatype_mysql extends MDB_Datatype_Common
      */
     function getDecimalValue(&$db, $value)
     {
-        return ($value === null) ? 'NULL' : strval(round(doubleval($value)*$db->decimal_factor));
+        return ($value === null) ? 'NULL' : $value;
     }
 }
 
