@@ -84,7 +84,7 @@ class MDB_oci8 extends MDB_Common {
         $this->MDB_common();
         $this->phptype = 'oci8';
         $this->dbsyntax = 'oci8';
-
+        
         $this->supported['Sequences'] = 1;
         $this->supported['Indexes'] = 1;
         $this->supported['SummaryFunctions'] = 1;
@@ -95,7 +95,10 @@ class MDB_oci8 extends MDB_Common {
         $this->supported['LOBs'] = 1;
         $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 1;
-
+        
+        $this->options['DBAUser'] = NULL;
+        $this->options['DBAPassword'] = NULL;
+        
         $this->errorcode_map = array(
             900 => MDB_ERROR_SYNTAX,
             904 => MDB_ERROR_NOSUCHFIELD,

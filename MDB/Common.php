@@ -118,6 +118,9 @@ class MDB_Common extends PEAR
             'lob_buffer_length' => 8000,
             'log_line_break' => "\n",
             'seqname_format' => '%s_seq'
+            'includelob' => FALSE,
+            'includemanager' => FALSE,
+            'UseTransactions' => FALSE,
         );
     var $escape_quotes = '';
     var $decimal_places = 2;
@@ -327,8 +330,11 @@ class MDB_Common extends PEAR
      */
     function setOption($option, $value)
     {
-        $this->options[$option] = $value;
-        return(MDB_OK);
+        if (isset($this->options[$option])) {
+            $this->options[$option] = $value;
+            return MDB_OK;
+        }
+        return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, "unknown option $option"));
     }
 
     // }}}
