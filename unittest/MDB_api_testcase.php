@@ -1,6 +1,5 @@
 <?php
 
-require_once '../MDB.php';
 require_once '../manager.php';
 require_once '../date.php';
 require_once 'PHPUnit/PHPUnit.php';
@@ -88,11 +87,11 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         }
     }
 
-    function testQuote() {
-        if ($this->methodExists($this->db, 'quote')) {
+    function testGetTextValue() {
+        if ($this->methodExists($this->db, 'getTextValue')) {
             $text = "Mr O'Leary";
-            $this->db->quote($text);
-            $this->assertEquals("Mr O\'Leary", $text);
+            $text = $this->db->getTextValue($text);
+            $this->assertEquals("'Mr O\'Leary'", $text);
         }
     }
     
@@ -115,7 +114,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         // run the query and get a result handler
         if (!MDB::isError($this->db)) {
             return $this->db->query($query);
-        }        
+        }
         return FALSE;
     }
 
