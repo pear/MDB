@@ -82,6 +82,7 @@ class MDB_driver_pgsql extends MDB_common
     */
     function MDB_driver_pgsql($dsninfo = NULL, $options = NULL)
     {
+        $options = array_merge(array('seqname_format' => '%s_seq',), $options);
         if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
             return $common_contructor;
         }
