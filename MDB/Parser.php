@@ -363,9 +363,11 @@ class MDB_Parser extends XML_Parser {
             };
             break;
         case 'blob':
+            /*
             if (!preg_match('/^([0-9a-f]{2})*$/i', $field_value)) {
                 return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
             }
+            */
             $field_value = pack('H*', $field_value);
             if (isset($field_def['length']) && strlen($field_value) > $field_def['length']) {
                 return $this->raiseError($xp, '"'.$field_value.'" is not of type "'.$field_def['type'].'"');
