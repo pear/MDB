@@ -178,7 +178,7 @@ function MetabaseQueryRow($database, $query, &$row, $types = '')
 function MetabaseQueryColumn($database, $query, &$column, $type = 'text')
 {
     global $databases;
-    $result = $databases[$database]->queryCol($query, $type, DB_FETCHMODE_ORDERED);
+    $result = $databases[$database]->queryCol($query, $type);
     if (MDB::isError($result)) {
         $databases[$database]->setError('QueryColumn', $result->getMessage());
         return(0);

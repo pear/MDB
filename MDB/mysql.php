@@ -1335,10 +1335,13 @@ class MDB_driver_mysql extends MDB_common
             }
             $this->highest_fetched_row[$result] = max($this->highest_fetched_row[$result], $rownum);
         }
+        if ($fetchmode == DB_FETCHMODE_DEFAULT) {
+            $fetchmode = $this->fetchmode;
+        }
         if ($fetchmode & DB_FETCHMODE_ASSOC) {
-            $array = mysql_fetch_array($result, MYSQL_ASSOC);
+            $array = @mysql_fetch_array($result, MYSQL_ASSOC);
         } else {
-            $array = mysql_fetch_row($result);
+            $array = @mysql_fetch_row($result);
         }
         if (!$array) {
             $errno = @mysql_errno($this->connection);

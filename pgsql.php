@@ -1360,7 +1360,10 @@ class MDB_driver_pgsql extends MDB_common {
         if ($rownum + 1 > $this->numRows($result)) {
             return NULL;
         }
-        if ($fetchmode &DB_FETCHMODE_ASSOC) {
+        if ($fetchmode == DB_FETCHMODE_DEFAULT) {
+            $fetchmode = $this->fetchmode;
+        }
+        if ($fetchmode & DB_FETCHMODE_ASSOC) {
             $array = @pg_fetch_array($result, $rownum, PGSQL_ASSOC);
         } else {
             $array = @pg_fetch_row($result, $rownum);

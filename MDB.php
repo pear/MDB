@@ -133,7 +133,7 @@ define('DB_BINMODE_CONVERT',  3);
  * any particular get mode, so the default should be used.
  */
 
-define('DB_FETCHMODE_DEFAULT',  0);
+define('DB_FETCHMODE_DEFAULT', 0);
 
 /**
  * Column data indexed by numbers, ordered from 0 and up

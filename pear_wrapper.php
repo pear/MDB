@@ -343,7 +343,7 @@ class MDB_PEAR_PROXY
 
     function &getCol($query, $col = 0, $params = array())
     {
-        return $this->MDB_object->getCol($query, NULL, $params, NULL, DB_FETCHMODE_DEFAULT, $col);
+        return $this->MDB_object->getCol($query, NULL, $params, NULL, $col);
     }
 
     function &getAssoc($query, $force_array = FALSE, $params = array(),

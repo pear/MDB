@@ -87,8 +87,8 @@
     $result = $db->query($query);
     $types = array('integer', 'text', 'timestamp');
     $db->setResultTypes($result, $types);
-    $array = $db->fetchAll($result);
-    echo '<br>all:<br>';
+    $array = $db->fetchAll($result, DB_FETCHMODE_FLIPPED);
+    echo '<br>all with result set flipped:<br>';
     echo Var_Dump::display($array).'<br>';
     // save some time with this function
     // lets just get all and free the result
@@ -136,9 +136,13 @@
     echo '<br>see getOne in action:<br>';
     echo Var_Dump::display($db->getOne('SELECT trans_en FROM numbers WHERE number = ?','text',$array)).'<br>';
     echo '<br>see getRow in action:<br>';
-    echo Var_Dump::display($db->getRow('SELECT * FROM numbers WHERE number = ?',array('integer','text','text'),$array)).'<br>';
+    $db->setFetchmode(DB_FETCHMODE_ASSOC);
+    echo '<br>default fetchmode ist now DB_FETCHMODE_ASSOC<br>';
+    echo Var_Dump::display($db->getRow('SELECT * FROM numbers WHERE number = ?',array('integer','text','text'),$array));
+    echo 'default fetchmode ist now DB_FETCHMODE_ORDERED<br>';
+    $db->setFetchmode(DB_FETCHMODE_ORDERED);
     echo '<br>see getCol in action:<br>';
-    echo Var_Dump::display($db->getCol('SELECT * FROM numbers','text', 1)).'<br>';
+    echo Var_Dump::display($db->getCol('SELECT * FROM numbers','text', NULL, NULL, 1)).'<br>';
     echo '<br>see getAll in action:<br>';
     echo Var_Dump::display($db->getAll('SELECT * FROM test',array('integer','text','text'))).'<br>';
     echo '<br>see getAssoc in action:<br>';

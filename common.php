@@ -3545,7 +3545,7 @@ class MDB_common extends PEAR {
      * Fetch a row and insert the data into an existing array.
      *
      * @param resource $result result identifier
-     * @param int $fetchmode how the array data should be indexed
+     * @param int $fetchmode ignored
      * @param int $rownum the row number to fetch
      * @return int data array or NULL on success, a DB error on failure
      * @access public
@@ -3603,13 +3603,12 @@ class MDB_common extends PEAR {
      * Fetch and return a field of data (it uses fetchInto for that)
      *
      * @param resource $result result identifier
-     * @param int $fetchmode how the array data should be indexed
      * @return mixed data array on success, a DB error on failure
      * @access public
      */
-    function fetchOne($result, $fetchmode = DB_FETCHMODE_DEFAULT)
+    function fetchOne($result)
     {
-        $res = $this->fetchInto($result, $fetchmode, NULL);
+        $res = $this->fetchInto($result);
         if (!$this->options['autofree'] && $res != NULL) {
             $this->freeResult($result);
         }
@@ -3647,13 +3646,13 @@ class MDB_common extends PEAR {
      * Fetch and return a column of data (it uses fetchInto for that)
      *
      * @param resource $result result identifier
-     * @param int $fetchmode how the array data should be indexed
      * @param int $colnum the row number to fetch
      * @return mixed data array on success, a DB error on failure
      * @access public
      */
-    function fetchCol($result, $fetchmode = DB_FETCHMODE_DEFAULT, $colnum = '0')
+    function fetchCol($result, $colnum = 0)
     {
+        $fetchmode = is_int($colnum) ? DB_FETCHMODE_ORDERED : DB_FETCHMODE_ASSOC;
         $column = array();
         while (is_array($res = $this->fetchInto($result, $fetchmode, NULL))) {
             $column[] = $res[$colnum];
@@ -3701,7 +3700,7 @@ class MDB_common extends PEAR {
         $all = array(); 
         while (is_array($res = $this->fetchInto($result, $fetchmode, NULL))) {
             if ($rekey) {
-                if ($fetchmode == DB_FETCHMODE_ASSOC) {
+                if ($fetchmode & DB_FETCHMODE_ASSOC) {
                     reset($res);
                     $key = current($res);
                     unset($res[key($res)]);
@@ -3717,7 +3716,13 @@ class MDB_common extends PEAR {
                     $all[$key] = $res;
                 }
             } else {
-                $all[] = $res;
+                if ($fetchmode & DB_FETCHMODE_FLIPPED) {
+                    foreach ($res as $key => $val) {
+                        $all[$key][] = $val;
+                    }
+                } else {
+                    $all[] = $res;
+                }
             }
         }
         if (!$this->options['autofree'] && $res != NULL) {
@@ -3745,7 +3750,7 @@ class MDB_common extends PEAR {
      * @return mixed field value on success, a DB error on failure
      * @access public
      */
-    function queryOne($query, $type = NULL, $fetchmode = DB_FETCHMODE_DEFAULT)
+    function queryOne($query, $type = NULL)
     {
         if ($type != NULL) {
             $type = array($type);
@@ -3754,7 +3759,7 @@ class MDB_common extends PEAR {
         if (MDB::isError($result)) {
             return $result;
         }
-        return ($this->fetchOne($result, $fetchmode));
+        return ($this->fetchOne($result));
     }
 
     // }}}
@@ -3796,12 +3801,11 @@ class MDB_common extends PEAR {
      *       datatype of the result set field, so that an eventual conversion
      *       may be performed. The default datatype is text, meaning that no
      *       conversion is performed
-     * @param int $fetchmode how the array data should be indexed
      * @param int $colnum the row number to fetch
      * @return mixed data array on success, a DB error on failure
      * @access public
      */
-    function queryCol($query, $type = NULL, $fetchmode = DB_FETCHMODE_DEFAULT, $colnum = '0')
+    function queryCol($query, $type = NULL, $colnum = 0)
     {
         if ($type != NULL) {
             $type = array($type);
@@ -3810,7 +3814,7 @@ class MDB_common extends PEAR {
         if (MDB::isError($result)) {
             return $result;
         }
-        return ($this->fetchCol($result, $fetchmode, $colnum));
+        return ($this->fetchCol($result, $colnum));
     }
 
     // }}}
@@ -3839,7 +3843,8 @@ class MDB_common extends PEAR {
      * @return mixed data array on success, a DB error on failure
      * @access public
      */
-    function queryAll($query, $types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT, $rekey = FALSE, $force_array = FALSE, $group = FALSE)
+    function queryAll($query, $types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT,
+        $rekey = FALSE, $force_array = FALSE, $group = FALSE)
     {
         if (MDB::isError($result = $this->query($query, $types))) {
             return $result;
@@ -3870,8 +3875,8 @@ class MDB_common extends PEAR {
         if ($type != NULL) {
             $type = array($type);
         }
-        settype($params, 'array');
-        if (sizeof($params) > 0) {
+        settype($params, "array");
+        if (count($params) > 0) {
             $prepared_query = $this->prepareQuery($query);
             if (MDB::isError($prepared_query)) {
                 return $prepared_query;
@@ -3921,8 +3926,8 @@ class MDB_common extends PEAR {
      */
     function &getRow($query, $types = NULL, $params = array(), $param_types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
-        settype($params, 'array');
-        if (sizeof($params) > 0) {
+        settype($params, "array");
+        if (count($params) > 0) {
             $prepared_query = $this->prepareQuery($query);
             if (MDB::isError($prepared_query)) {
                 return $prepared_query;
@@ -3965,20 +3970,19 @@ class MDB_common extends PEAR {
      *       with this array as execute parameters
      * @param array $param_types array that contains the types of the values
      *       defined in $params
-     * @param integer $fetchmode the fetch mode to use
      * @param mixed $colnum which column to return (integer [column number,
      *       starting at 0] or string [column name])
      * @return array an indexed array with the data from the first
      * row at index 0, or a DB error code.
      * @access public
      */
-    function &getCol($query, $type = NULL, $params = array(), $param_types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT, $colnum = '0')
+    function &getCol($query, $type = NULL, $params = array(), $param_types = NULL, $colnum = 0)
     {
         if ($type != NULL) {
             $type = array($type);
         }
         settype($params, 'array');
-        if (sizeof($params) > 0) {
+        if (count($params) > 0) {
             $prepared_query = $this->prepareQuery($query);
 
             if (MDB::isError($prepared_query)) {
@@ -3994,7 +3998,7 @@ class MDB_common extends PEAR {
             return $result;
         }
 
-        $col = $this->fetchCol($result, $fetchmode, $colnum);
+        $col = $this->fetchCol($result, $colnum);
         if (MDB::isError($col)) {
             return $col;
         }
@@ -4083,8 +4087,8 @@ class MDB_common extends PEAR {
     function &getAssoc($query, $types = NULL, $params = array(), $param_types = NULL,
         $fetchmode = DB_FETCHMODE_ORDERED, $force_array = FALSE, $group = FALSE)
     {
-        settype($params, 'array');
-        if (sizeof($params) > 0) {
+        settype($params, "array");
+        if (count($params) > 0) {
             $prepared_query = $this->prepareQuery($query);
 
             if (MDB::isError($prepared_query)) {
@@ -4132,8 +4136,8 @@ class MDB_common extends PEAR {
      */
     function &getAll($query, $types = NULL, $params = array(), $param_types = NULL, $fetchmode = DB_FETCHMODE_DEFAULT)
     {
-        settype($params, 'array');
-        if (sizeof($params) > 0) {
+        settype($params, "array");
+        if (count($params) > 0) {
             $prepared_query = $this->prepareQuery($query);
 
             if (MDB::isError($prepared_query)) {
