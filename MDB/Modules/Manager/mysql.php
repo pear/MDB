@@ -401,11 +401,10 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
         if(MDB::isError($result)) {
             return $result;
         }
-        $prefix_length = strlen($db->sequence_prefix);
-        for($tables = array(), $table = 0; $table < count($table_names); ++$table)
+        for($i = 0, $j = count($table_names), $tables = array(); $i < $j; ++$i)
         {
-            if (substr($table_names[$table], 0, $prefix_length) != $db->sequence_prefix)
-                $tables[] = $table_names[$table];
+            if (!$this->_isSequenceName(&$db, $table_names[$i]))
+                $tables[] = $table_names[$i];
         }
         return (DB_OK);
     }
@@ -596,7 +595,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
                 return(DB_OK);
             }
         }
-        if(!$db->autofree) {
+        if(!$db->options['autofree']) {
             $db->freeResult($result);
         }
         if(MDB::IsError($res)) {
@@ -613,7 +612,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
      * 
      * @param string    $table         name of the table on which the index is to be created
      * @param string    $name         name of the index to be created
-     * @param array     $definition		associative array that defines properties of the index to be created.
+     * @param array     $definition        associative array that defines properties of the index to be created.
      *                                 Currently, only one property named FIELDS is supported. This property
      *                                 is also an associative with the names of the index fields as array
      *                                 indexes. Each entry of this array is set to another type of associative
@@ -682,27 +681,27 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
     /**
      * create sequence
      * 
-     * @param string    $name         name of the sequence to be created
+     * @param string    $seq_name     name of the sequence to be created
      * @param string    $start         start value of the sequence; default is 1
       * 
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
      */ 
-    function createSequence(&$db, $name, $start)
+    function createSequence(&$db, $seq_name, $start)
     {
-        $sequence_name = $db->sequence_prefix.$name;
+        $sequence_name = $db->getSequenceName($seq_name);
         $res = $db->query("CREATE TABLE $sequence_name
             (sequence INT DEFAULT 0 NOT NULL AUTO_INCREMENT, PRIMARY KEY (sequence))");
         if (MDB::isError($res)) {
             return $res;
         }
         if ($start == 1) {
-            return 1;
+            return DB_OK;
         }
         $res = $db->query("INSERT INTO $sequence_name (sequence) VALUES (".($start-1).")");
         if (!MDB::isError($res)) {
-            return 1;
+            return DB_OK;
         }
         // Handle error
         $result = $db->query("DROP TABLE $sequence_name");
@@ -722,15 +721,15 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
     /**
      * drop existing sequence
      * 
-     * @param string    $name         name of the sequence to be dropped
+     * @param string    $seq_name     name of the sequence to be dropped
       * 
      * @access public
      *
      * @return mixed DB_OK on success, a DB error on failure
      */ 
-    function dropSequence(&$db, $name)
+    function dropSequence(&$db, $seq_name)
     {
-        $sequence_name = $db->sequence_prefix.$name;
+        $sequence_name = $db->getSequenceName($seq_name);
         return ($db->query("DROP TABLE $sequence_name"));
     }
 
@@ -738,7 +737,7 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
     // {{{ listSequences()
 
     /**
-     * list all tables in the current database
+     * list all sequences in the current database
      * 
      * @param array $sequences reference to an empty array into which the list is stored
      * 
@@ -748,19 +747,17 @@ class MDB_manager_mysql_class extends MDB_manager_database_class
      */ 
     function listSequences(&$db, &$sequences)
     {
-        $result = $db->queryCol("SHOW TABLES", $sequences);
+        $result = $db->queryCol("SHOW TABLES", $table_names);
         if(MDB::isError($result)) {
             return $result;
         }
-        $prefix_length = strlen($db->sequence_prefix);
-        for($sequences = array(),$sequence = 0;$sequence < count($sequences); ++$sequence) {
-            if (substr($sequences[$sequence], 0, $prefix_length) == $db->sequence_prefix) {
-                $sequences[] = substr($sequences[$sequence], $prefix_length);
+        for($i = 0, $j = count($table_names), $sequences = array();$i < $j; ++$i) {
+            if ($sqn = $this->_isSequenceName(&$db, $table_names[$i])) {
+                $sequences[] = $sqn;
             }
         }
         return (DB_OK);
     }
-
 };
 }
 ?>
