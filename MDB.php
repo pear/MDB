@@ -168,6 +168,17 @@ define('MDB_TABLEINFO_ORDER',      1);
 define('MDB_TABLEINFO_ORDERTABLE', 2);
 define('MDB_TABLEINFO_FULL',       3);
 
+define('MDB_TYPE_TEXT'      , 0);
+define('MDB_TYPE_BOOLEAN'   , 1);
+define('MDB_TYPE_INTEGER'   , 2);
+define('MDB_TYPE_DECIMAL'   , 3);
+define('MDB_TYPE_FLOAT'     , 4);
+define('MDB_TYPE_DATE'      , 5);
+define('MDB_TYPE_TIME'      , 6);
+define('MDB_TYPE_TIMESTAMP' , 7);
+define('MDB_TYPE_CLOB'      , 8);
+define('MDB_TYPE_BLOB'      , 9);
+
 /**
  * The main 'MDB' class is simply a container class with some static
  * methods for creating DB objects as well as some utility functions
@@ -267,11 +278,8 @@ class MDB
                 $ext        = $dsninfo['phptype'];
                 $include    = "$ext.php";
                 $class_name = "MDB_$ext";
-                $included   = 'MDB_'.strtoupper($ext).'_INCLUDED';
                 break;
             default:
-                $included = (isset($options['includedconstant']) ?
-                                   $options['includedconstant'] : '');
                 if (!isset($options['include'])
                     || !strcmp($include = $options['includepath'],''))
                 {
@@ -294,42 +302,32 @@ class MDB
                         'MDB_Error', TRUE);
                 }
         }
-        if(PEAR::isError(PEAR::loadExtension($ext))) {
-        return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-            NULL, NULL, 'extension could not be loaded',
-            'MDB_Error', TRUE);
+        if (PEAR::isError(PEAR::loadExtension($ext))) {
+            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
+                NULL, NULL, 'extension could not be loaded',
+                'MDB_Error', TRUE);
         }
-        $include_path = (isset($options['includepath']) ?
-                               $options['includepath'] : dirname(__FILE__));
-        if (!strcmp($included,'') || !defined($included))
-        {
-            $length = strlen($include_path);
-            $separator = '';
-            if($length) {
-                $directory_separator = (defined('DIRECTORY_SEPARATOR') ?
-                                                DIRECTORY_SEPARATOR : '/');
-                if ($include_path[$length-1] != $directory_separator)
-                    $separator = $directory_separator;
-            }
-            
-            if(!file_exists($include_path.$separator.$include)) {
-                $directory = 0;
-                if (!strcmp($include_path,'')
-                    || ($directory = @opendir($include_path)))
-                {
-                    if ($directory) {
-                        closedir($directory);
-                    }
+        if(isset($options['includepath'])) {
+            $include_path = isset($options['includepath']);
+        } else {
+            $include_path = '.';
+        }
+        $separator = (defined('MDB_DIRECTORY_SEPARATOR') ? MDB_DIRECTORY_SEPARATOR : '/');
+        
+        if($include) {
+            if(!file_exists($include_path.$separator.'MDB'.$separator.$include)) {
+                $directory = @opendir($include_path.$separator.'MDB');
+                if ($directory) {
+                    closedir($directory);
                     return PEAR::raiseError(NULL, MDB_ERROR_INVALID_DSN,
                         NULL, NULL, 'no existing DBMS driver specified',
                         'MDB_Error', TRUE);
-                } else {
-                    return PEAR::raiseError(NULL, MDB_ERROR_INVALID_DSN,
-                        NULL, NULL, 'no valid DBMS driver include path specified'
-                        , 'MDB_Error', TRUE);
                 }
+                return PEAR::raiseError(NULL, MDB_ERROR_INVALID_DSN,
+                    NULL, NULL, 'no valid DBMS driver include path specified'
+                    , 'MDB_Error', TRUE);
             }
-            @include_once($include_path.$separator.$include);
+            @include_once($include_path.$separator.'MDB'.$separator.$include);
         }
         if (!class_exists($class_name)) {
             return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
