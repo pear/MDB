@@ -315,51 +315,6 @@ class MDB_Manager_ibase extends MDB_Manager_common
     }
 
     // }}}
-    // {{{ listDatabases()
-
-    /**
-     * list all databases
-     *
-     * @param object    $db        database object that is extended by this class
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     **/
-    function listDatabases(&$db)
-    {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not supported feature'));
-    }
-
-    // }}}
-    // {{{ listUsers()
-
-    /**
-     * list all users
-     *
-     * @param object    $db        database object that is extended by this class
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     **/
-    function listUsers(&$db)
-    {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not supported feature'));
-    }
-
-    // }}}
-    // {{{ listTables()
-
-    /**
-     * list all tables in the current database
-     *
-     * @param object    $db        database object that is extended by this class
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     **/
-    function listTables(&$db)
-    {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not (yet) supported feature'));
-    }
-
-    // }}}
     // {{{ listTableFields()
 
     /**
@@ -465,39 +420,6 @@ class MDB_Manager_ibase extends MDB_Manager_common
         }
         return($db->query('CREATE'.(isset($definition['unique']) ? ' UNIQUE' : '') . $query_sort
                          ." INDEX $name  ON $table ($query_fields)"));
-    }
-
-    // }}}
-    // {{{ listTableIndexes()
-
-    /**
-     * list all indexes in a table
-     *
-     * @param object    $dbs        database object that is extended by this class
-     * @param string    $table      name of table that should be used in method
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     */
-    function listTableIndexes(&$db, $table)
-    {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not (yet) supported feature'));
-    }
-
-    // }}}
-    // {{{ getTableIndexDefinition()
-
-    /**
-     * get the stucture of an index into an array
-     *
-     * @param object    $dbs        database object that is extended by this class
-     * @param string    $table      name of table that should be used in method
-     * @param string    $index      name of index that should be used in method
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     */
-    function getTableIndexDefinition(&$db, $table, $index_name)
-    {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not (yet) supported feature'));
     }
 
     // }}}
