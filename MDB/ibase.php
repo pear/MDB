@@ -642,8 +642,8 @@ class MDB_ibase extends MDB_Common
             $this->results[$result_value]['columns'] = array();
             $columns = ibase_num_fields($result);
             for ($column=0; $column<$columns; $column++) {
-                $column_info = strtolower(ibase_field_info($result, $column));
-                $this->results[$result_value]['columns'][$column_info["name"]] = $column;
+                $column_info = ibase_field_info($result, $column);
+                $this->results[$result_value]['columns'][strtolower($column_info["name"])] = $column;
             }
         }
         return $this->results[$result_value]['columns'];
