@@ -60,9 +60,6 @@
 // implementations of Metabase methods is the error handling.
 // Anyways don't worry if you are having problems: Lukas Smith is here to help!
 
-if (!defined('MDB_XXX_INCLUDED')) {
-    define('MDB_XXX_INCLUDED', 1);
-
 require_once('MDB/Common.php');
 
 /**
@@ -166,6 +163,7 @@ class MDB_xxx extends MDB_Common
     function autoCommit($auto_commit)
     {
         // take this from the corresponding Metabase driver: AutoCommitTransactions()
+        // the MetabaseShutdownTransactions function is handled by the PEAR desctructor
     }
 
     // }}}
@@ -769,5 +767,4 @@ class MDB_xxx extends MDB_Common
     }
 }
 
-};
 ?>
