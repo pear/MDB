@@ -526,7 +526,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             return $result;
         }
         $fields = $db->fetchCol($result);
-        $db->freeResult($fields);
+        $db->freeResult($result);
         if (MDB::isError($fields)) {
             return $fields;
         }
