@@ -82,29 +82,29 @@ class MDB_Datatype_Common
         'blob'      => MDB_TYPE_BLOB
     );
 
-     // {{{ setParamBlob()
+    // {{{ setParamBlob()
  
-     /**
-      * Set a parameter of a prepared query with a binary large object value.
-      *
-      * @param object    &$db reference to driver MDB object
-      * @param int $prepared_query argument is a handle that was returned by
-      *       the function prepareQuery()
-      * @param int $parameter order number of the parameter in the query
-      *       statement. The order number of the first parameter is 1.
-      * @param int $value handle of large object created with createLOB()
-      *       function from which it will be read the data value that is meant
-      *       to be assigned to specified parameter.
-      * @param string $field name of the field of a INSERT or UPDATE query to
-      *       which it will be assigned the value to specified parameter.
-      * @return mixed MDB_OK on success, a MDB error on failure
-      * @access public
-      * @see setParam()
-      */
-     function setParamBlob(&$db, $prepared_query, $parameter, $value, $field)
-     {
-         return $this->setParam($prepared_query, $parameter, 'blob', $value, 0, $field);
-     }
+    /**
+     * Set a parameter of a prepared query with a binary large object value.
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param int $prepared_query argument is a handle that was returned by
+     *       the function prepareQuery()
+     * @param int $parameter order number of the parameter in the query
+     *       statement. The order number of the first parameter is 1.
+     * @param int $value handle of large object created with createLOB()
+     *       function from which it will be read the data value that is meant
+     *       to be assigned to specified parameter.
+     * @param string $field name of the field of a INSERT or UPDATE query to
+     *       which it will be assigned the value to specified parameter.
+     * @return mixed MDB_OK on success, a MDB error on failure
+     * @access public
+     * @see setParam()
+     */
+    function setParamBlob(&$db, $prepared_query, $parameter, $value, $field)
+    {
+        return $this->setParam($prepared_query, $parameter, 'blob', $value, 0, $field);
+    }
 
     // }}}
     // {{{ setParamClob()
