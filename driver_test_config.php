@@ -94,7 +94,7 @@
         case "mysql":
             $driver_arguments["User"]="metapear";
             $driver_arguments["Password"]="funky";
-            $driver_arguments["Options"]["UseTransactions"]=0;
+            $driver_arguments["Options"]["UseTransactions"]=1;
             break;
         case "oci":
             $driver_arguments["User"]="drivertest";
