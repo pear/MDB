@@ -87,9 +87,7 @@ class MDB_Extended
             $type = array($type);
         }
         $result = $db->query($query, $type, false);
-        if ($result == MDB_OK) {
-            return $result;
-        } else if (MDB::isError($result)) {
+        if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
 
@@ -123,9 +121,7 @@ class MDB_Extended
     function queryRow(&$db, $query, $types = null, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
         $result = $db->query($query, $types, false);
-        if ($result == MDB_OK) {
-            return $result;
-        } else if (MDB::isError($result)) {
+        if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
 
@@ -161,9 +157,7 @@ class MDB_Extended
             $type = array($type);
         }
         $result = $db->query($query, $type, false);
-        if ($result == MDB_OK) {
-            return $result;
-        } else if (MDB::isError($result)) {
+        if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
 
@@ -206,9 +200,7 @@ class MDB_Extended
         $rekey = false, $force_array = false, $group = false)
     {
         $result = $db->query($query, $types, false);
-        if ($result == MDB_OK) {
-            return $result;
-        } else if (MDB::isError($result)) {
+        if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
 
@@ -257,9 +249,7 @@ class MDB_Extended
         }
 
         $result = MDB_Extended::execute($db, $prepared_query, $type, $params, $param_types);
-        if ($result == MDB_OK) {
-            return $result;
-        } else if (MDB::isError($result)) {
+        if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
 
@@ -307,9 +297,7 @@ class MDB_Extended
         }
 
         $result = MDB_Extended::execute($db, $prepared_query, $types, $params, $param_types);
-        if ($result == MDB_OK) {
-            return $result;
-        } else if (MDB::isError($result)) {
+        if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
 
@@ -360,9 +348,7 @@ class MDB_Extended
         }
 
         $result = MDB_Extended::execute($db, $prepared_query, $type, $params, $param_types);
-        if ($result == MDB_OK) {
-            return $result;
-        } else if (MDB::isError($result)) {
+        if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
 
@@ -419,9 +405,7 @@ class MDB_Extended
         }
 
         $result = MDB_Extended::execute($db, $prepared_query, $types, $params, $param_types);
-        if ($result == MDB_OK) {
-            return $result;
-        } else if (MDB::isError($result)) {
+        if ($result == MDB_OK || MDB::isError($result)) {
             return $result;
         }
 
