@@ -172,10 +172,6 @@ class MDB_mssql extends MDB_Common
     function autoCommit($auto_commit)
     {
         $this->debug(($auto_commit ? 'On' : 'Off'), 'autoCommit');
-        if (!isset($this->supported['transactions'])) {
-            return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Auto-commit transactions: transactions are not in use');
-        }
         if (!$this->auto_commit == !$auto_commit) {
             return MDB_OK;
         }
@@ -212,10 +208,6 @@ class MDB_mssql extends MDB_Common
     function commit()
     {
         $this->debug('commit transaction', 'commit');
-        if (!isset($this->supported['transactions'])) {
-            return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Commit transactions: transactions are not in use');
-        }
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null,
             'Commit transactions: transaction changes are being auto commited');
@@ -243,19 +235,15 @@ class MDB_mssql extends MDB_Common
     function rollback()
     {
         $this->debug('rolling back transaction', 'rollback');
-        if (!isset($this->supported['transactions'])) {
-            return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Rollback transactions: transactions are not in use');
-        }
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'Rollback transactions: transactions can not be rolled back when changes are auto commited');
         }
-        $result = $this->query('COMMIT TRANSACTION');
+        $result = $this->query('ROLLBACK TRANSACTION');
         if (MDB::isError($result)) {
             return $result;
         }
-        return $this->query('ROLLBACK TRANSACTION');
+        return $this->query('BEGIN TRANSACTION');
     }
 
     function _doQuery($query)
