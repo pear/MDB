@@ -205,8 +205,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $result = $this->db->executeQuery($prepared_query);
             
-            //            $this->db->freePreparedQuery($prepared_query);
-
             if (MDB::isError($result)) {
                 $this->assertTrue(FALSE, 'Error executing prepared query' . $result->getMessage());
             }
@@ -414,6 +412,88 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $this->assertEquals(rtrim($value), $test_strings[$string], "the value retrieved for field \"$field\" (\"$value\") doesn't match what was stored (" . $test_strings[$string] . ")");
 
         }
+    }
+
+    /**
+     * Test paged queries
+     *
+     * Test the use of setSelectedRowRange to return paged queries
+     */
+    function testRanges() {
+        if (!$this->db->support('SelectRowRanges')) {
+            $this->assertTrue(FALSE, 'This database does not support paged queries');
+            return;
+        }
+
+        $data = array();
+        $total_rows = 5;
+
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+
+        for ($row = 0; $row < $total_rows; $row++) {
+            $data[$row]["user_name"] = "user_$row";
+            $data[$row]["user_password"] = "somepassword";
+            $data[$row]["subscribed"] = $row % 2;
+            $data[$row]["user_id"] = $row;
+            $data[$row]["quota"] = sprintf("%.2f",strval(1+($row+1)/100));
+            $data[$row]["weight"] = sqrt($row);
+            $data[$row]["access_date"] = MDB_date::mdbToday();
+            $data[$row]["access_time"] = MDB_date::mdbTime();
+            $data[$row]["approved"] = MDB_date::mdbNow();
+
+            $this->insertTestValues($prepared_query, $data[$row]);
+
+            $result = $this->db->executeQuery($prepared_query);
+            
+            if (MDB::isError($result)) {
+                $this->assertTrue(FALSE, 'Error executing prepared query' . $result->getMessage());
+            }
+        }
+
+        $this->db->freePreparedQuery($prepared_query);
+        
+        for ($rows = 2, $start_row = 0; $start_row < $total_rows; $start_row += $rows) {
+
+            $this->db->setSelectedRowRange($start_row, $rows);
+
+            $result = $this->db->query('SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users ORDER BY user_id');
+
+            if (MDB::isError($result)) {
+                $this->assertTrue(FALSE, 'Error executing select query' . $result->getMessage());
+            }
+            
+            for ($row = 0; $row < $rows && ($row + $start_row < $total_rows); $row++) {
+                $this->verifyFetchedValues($result, $row, $data[$row + $start_row]);
+            }
+        }
+
+        $this->assertTrue($this->db->endOfResult($result), "The query result did not seem to have reached the end of result as expected starting row $start_row after fetching upto row $row");
+
+        $this->db->freeResult($result);
+
+        for ($rows = 2, $start_row = 0; $start_row < $total_rows; $start_row += $rows) {
+
+            $this->db->setSelectedRowRange($start_row, $rows);
+
+            $result = $this->db->query('SELECT user_name,user_password,subscribed,user_id,quota,weight,access_date,access_time,approved FROM users ORDER BY user_id');
+
+            if (MDB::isError($result)) {
+                $this->assertTrue(FALSE, 'Error executing select query' . $result->getMessage());
+            }
+
+            $result_rows = $this->db->numRows($result);
+
+            $this->assertTrue(($result_rows <= $rows), 'expected a result of no more than $rows but the returned number of rows is $result_rows');
+            
+            for ($row = 0; $row < $result_rows; $row++) {
+                $this->assertTrue(!$this->db->endOfResult($result), 'The query result seem to have reached the end of result at row $row that is before $result_rows as expected');
+
+                $this->verifyFetchedValues($result, $row, $data[$row + $start_row]);
+
+            }
+        }
+
+        $this->assertTrue($this->db->endOfResult($result), 'the query result did not seem to have reached the end of result as expected');
 
     }
 
