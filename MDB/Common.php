@@ -2660,9 +2660,12 @@ class MDB_Common extends PEAR
     function convertResultRow($result, $row)
     {
         if (isset($this->result_types[$result])) {
-            $current_column = 0;
+            $current_column = -1;
             foreach($row as $key => $column) {
-                if (!isset($column)) {
+                ++$current_column;
+                if (!isset($this->result_types[$result][$current_column])
+                   ||!isset($column)
+                ) {
                     continue;
                 }
                 switch ($type = $this->result_types[$result][$current_column]) {
@@ -2681,10 +2684,9 @@ class MDB_Common extends PEAR
                         $row[$key] = $value;
                         break;
                 }
-                ++$current_column;
             }
         }
-        return($row);
+        return ($row);
     }
 
     // }}}
