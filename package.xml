@@ -38,10 +38,10 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>0.9.2</version>
+    <version>0.9.3</version>
     <state>beta</state>
-    <date>2002-05-16</date>
-    <notes>major improvements to the core part of MDB (moved some static functions into the MDB class and improved the API); created a wrapper for the metabase xml schema manager;</notes>
+    <date>2002-05-17</date>
+    <notes>MDB now uses the currect include path in all situations; improvements to the error handling (thx to Christian Dickmann) and  the pear wrapper were made</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
