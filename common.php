@@ -22,16 +22,16 @@
 // Base class for DB implementations.
 //
 
-define("MDB_TYPE_TEXT",0);
-define("MDB_TYPE_BOOLEAN",1);
-define("MDB_TYPE_INTEGER",2);
-define("MDB_TYPE_DECIMAL",3);
-define("MDB_TYPE_FLOAT",4);
-define("MDB_TYPE_DATE",5);
-define("MDB_TYPE_TIME",6);
-define("MDB_TYPE_TIMESTAMP",7);
-define("MDB_TYPE_CLOB",8);
-define("MDB_TYPE_BLOB",9);
+define("MDB_TYPE_TEXT", 0);
+define("MDB_TYPE_BOOLEAN", 1);
+define("MDB_TYPE_INTEGER", 2);
+define("MDB_TYPE_DECIMAL", 3);
+define("MDB_TYPE_FLOAT", 4);
+define("MDB_TYPE_DATE", 5);
+define("MDB_TYPE_TIME", 6);
+define("MDB_TYPE_TIMESTAMP", 7);
+define("MDB_TYPE_CLOB", 8);
+define("MDB_TYPE_BLOB", 9);
 
 $registered_transactions_shutdown = 0;
 
@@ -116,7 +116,22 @@ class MDB_common extends PEAR
 
     // new for PEAR
     var $last_query = "";
+    var $autofree = false;
+
     /* PRIVATE METHODS */
+
+    // }}}
+    // {{{ constructor
+    /**
+    * Constructor
+    */
+    function MDB_common()
+    {
+        $this->PEAR('DB_Error');
+        $this->supported = array();
+        $this->errorcode_map = array();
+        $this->fetchmode = DB_FETCHMODE_ORDERED;
+    }
     
     /**
      * Quotes a string so it can be safely used in a query. It will quote
@@ -133,11 +148,11 @@ class MDB_common extends PEAR
         $text = str_replace("'", $this->escape_quotes."'", $text);
     }
 
-    /* PUBLIC METHODS */
-    
     function close()
     {
     }
+
+    /* PUBLIC METHODS */
 
     // renamed for PEAR
     // used to be: CloseSetup
@@ -671,7 +686,7 @@ class MDB_common extends PEAR
         $this->prepared_queries[$index]["IsNULL"][$parameter-1] = $is_null;
         return(1);
     }
-    
+
     // new Metabase function for the PEAR get*()
     // needs testing
     // the array elements must use keys that correspond to the number of the position of the parameter
@@ -894,8 +909,11 @@ class MDB_common extends PEAR
 
     function resultIsNull($result, $row, $field)
     {
-        $value = $this->fetch($result, $row, $field);
-        return(!isset($value));
+        $res = $this->fetch($result, $row, $field);
+        if(MDB::isError($res)) {
+            return $res;
+        }
+        return(!isset($res));
     }
 
     function baseConvertResult(&$value, $type)
@@ -1181,7 +1199,7 @@ class MDB_common extends PEAR
          return $this->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
             'Next Sequence: getting next sequence value not supported');
     }
-    
+
     // renamed for PEAR
     // used to be: getSequenceCurrentValue
     function currId($name)
@@ -1241,7 +1259,7 @@ class MDB_common extends PEAR
         return $this->raiseError(DB_ERROR_UNSUPPORTED, "", "", 
             'Get column names: obtaining result column names is not implemented');
     }
-    
+
     // renamed for PEAR
     // used to be: NumberOfColumns
     function numCols($result)
@@ -1295,19 +1313,30 @@ class MDB_common extends PEAR
         if (MDB::isError($columns)) {
             return $columns;
         }
-        for($array = array(), $column = 0; $column<$columns; $column++) {
+        for($array = array(), $column = 0; $column < $columns; $column++) {
             if (!$this->resultIsNull($result, $row, $column)) {
-                $array[$column] = $this->fetch($result, $row, $column);
+                $res = $this->fetch($result, $row, $column);
+                if (MDB::isError($res)) {
+                    if($res->getMessage() == '') {
+                        if($this->autofree) {
+                            $this->freeResult($result);
+                        }
+                        return null;
+                    } else {
+                        return $res;
+                    }
+                }
+            }
+            $array[$column] = $res;
+        }
+        if (isset($this->result_types[$result])) {
+            if (!$this->convertResultRow($result, $array)) {
+                return $this->raiseError();
             }
         }
-        $result = $this->convertResultRow($result, $array);
-        if (!MDB::isError($result)) {
-            return DB_OK;
-        } else {
-            return $result;
-        }
+        return DB_OK;
     }
-    
+
     // renamed for PEAR
     // used to be fetchResultArray
     // added $fetchmode
@@ -1315,7 +1344,7 @@ class MDB_common extends PEAR
     {
         return ($this->baseFetchInto($result, $array, $row));
     }
-    
+
     // renamed for PEAR
     // used to be fetchResultField
     // $fetchmode added
@@ -1327,19 +1356,21 @@ class MDB_common extends PEAR
                     'Fetch field: it was not specified a valid result set');
         }
         if ($this->endOfResult($result)) {
-            $success = $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
+            $res = $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
                     'Fetch field: result set is empty');
         } else {
             if ($this->resultIsNull($result, 0, 0)) {
                 unset($value);
+                $res = DB_OK;
             } else {
-                $this->fetchInto($result, $value, $fetchmode, 0);
+                $res = $this->fetchInto($result, $value, $fetchmode, 0);
                 $value = $value[0];
             }
-            $success = 1;
         }
-        $this->freeResult($result);
-        return ($success);
+        if(!$this->autofree || $value == null) {
+            $this->freeResult($result);
+        }
+        return ($res);
     }
 
     // renamed for PEAR
@@ -1352,37 +1383,39 @@ class MDB_common extends PEAR
                     'Fetch row: it was not specified a valid result set');
         }
         if ($this->endOfResult($result)) {
-            $success = $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
+            $this->freeResult($result);
+            return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
                     'Fetch row: result set is empty');
-        } else {
-            $success = $this->fetchInto($result, $row, $fetchmode, 0);
         }
-        $this->freeResult($result);
-        return ($success);
+        $row = array();
+        $res = $this->fetchInto($result, $row, $fetchmode, 0);
+        if(!$this->autofree || $row == null) {
+            $this->freeResult($result);
+        }
+        return ($res);
     }
 
     // renamed for PEAR
     // used to be fetchResultColumn
     // $fetchmode added
     // new uses fetchInto
-    function fetchColumn($result, &$column, $fetchmode = DB_FETCHMODE_DEFAULT)
+    function fetchCol($result, &$column, $fetchmode = DB_FETCHMODE_DEFAULT, $col_num = '0')
     {
         if (!$result) {
             return $this->raiseError(DB_ERROR_NEED_MORE_DATA, "", "", 
                     'Fetch column: it was not specified a valid result set');
         }
-        $temp = array();
-        for($success = 1, $column = array(), $row = 0;!$this->endOfResult($result); $row++) {
-            if ($this->ResultIsNull($result, 0, 0)) {
-                continue;
-            }
-            if (!($success = $this->fetchInto($result, $temp, $fetchmode, $row))) {
-                break;
-            }
-            $column[$row] = $temp[0];
+        $temp = $column = array();
+        while(DB_OK === $res = $this->fetchInto($result, $temp, $fetchmode, null)) {
+            $column[] = $temp[$col_num];
         }
-        $this->freeResult($result);
-        return ($success);
+        if(!$this->autofree) {
+            $this->freeResult($result);
+        }
+        if($res != null) {
+            return ($res);
+        }
+        return (DB_OK);
     }
 
     // renamed for PEAR
@@ -1409,7 +1442,7 @@ class MDB_common extends PEAR
         }
         $row = 0;
         $all = array();
-        while (DB_OK === $this->fetchInto($result, $array, $fetchmode, null)) {
+        while (DB_OK === $res = $this->fetchInto($result, $array, $fetchmode, null)) {
             if ($rekey) {
                 if ($fetchmode == DB_FETCHMODE_ASSOC) {
                     reset($array);
@@ -1431,10 +1464,15 @@ class MDB_common extends PEAR
             }
             $row++;
         }
-        $this->freeResult($result);
-        return (1);
+        if(!$this->autofree) {
+            $this->freeResult($result);
+        }
+        if($res != null) {
+            return ($res);
+        }
+        return (DB_OK);
     }
-    
+
     function queryField($query, &$field, $type = "text")
     {
         $result = $this->query($query);
@@ -1466,7 +1504,7 @@ class MDB_common extends PEAR
         return ($this->fetchRow($result, $row));
     }
 
-    function queryColumn($query, &$column, $type = "text")
+    function queryCol($query, &$column, $type = "text")
     {
         $result = $this->query($query);
         if (MDB::isError($result)) {
@@ -1479,7 +1517,7 @@ class MDB_common extends PEAR
                 return $success;
             }
         }
-        return ($this->fetchColumn($result, $column));
+        return ($this->fetchCol($result, $column));
     }
 
     function queryAll($query, &$all, $types = "")
@@ -1499,7 +1537,7 @@ class MDB_common extends PEAR
     // ********************
     // new methods for PEAR
     // ********************
-    
+
     function limitQuery($query, $from, $count)
     {
         $result = $this->SetSelectedRowRange($from, $count);
@@ -1507,7 +1545,7 @@ class MDB_common extends PEAR
             return $result;
         return $this->query($query);
     }
-    
+
     function quoteString($string)
     {
         $string = $this->quote($string);
@@ -1524,11 +1562,9 @@ class MDB_common extends PEAR
         $info .=  ": (phptype = " . $this->phptype .
                   ", dbsyntax = " . $this->dbsyntax .
                   ")";
-
         if ($this->connection) {
             $info .= " [connected]";
         }
-
         return $info;
     }
 
@@ -1537,10 +1573,8 @@ class MDB_common extends PEAR
         if (isset($this->errorcode_map[$nativecode])) {
             return $this->errorcode_map[$nativecode];
         }
-
         //php_error(E_WARNING, get_class($this)."::errorCode: no mapping for $nativecode");
         // Fall back to DB_ERROR if there was no mapping.
-
         return DB_ERROR;
     }
 
@@ -1548,7 +1582,7 @@ class MDB_common extends PEAR
     {
         return MDB::errorMessage($this->errorcode_map[$dbcode]);
     }
-    
+
     function &raiseError($code = DB_ERROR, $mode = null, $options = null,
                          $userinfo = null, $nativecode = null)
     {
@@ -1568,7 +1602,7 @@ class MDB_common extends PEAR
         return PEAR::raiseError(null, $code, $mode, $options, $userinfo,
                                   'MDB_Error', true);
     }
-    
+
     function prepare($query)
     {
         return $this->PrepareQuery($query);
@@ -1657,7 +1691,7 @@ class MDB_common extends PEAR
         return $row;
     }
 
-    function &getCol($query, $params = array(), $fetchmode = DB_FETCHMODE_DEFAULT)
+    function &getCol($query, $params = array(), $fetchmode = DB_FETCHMODE_DEFAULT, $col_num = '0')
     {
         $fetchmode = (empty($fetchmode)) ? DB_FETCHMODE_DEFAULT : $fetchmode;
         settype($params, "array");
@@ -1677,7 +1711,7 @@ class MDB_common extends PEAR
             return $result;
         }
         
-        $err = $this->fetchColumn($result, $col, $fetchmode);
+        $err = $this->fetchCol($result, $col, $fetchmode, $col_num);
         
         if ($err !== DB_OK) {
             return $err;
@@ -1757,7 +1791,7 @@ class MDB_common extends PEAR
 
         return $all;
     }
-    
+
     function tableInfo($result, $mode = null)
     {
         return $this->raiseError(DB_ERROR_NOT_CAPABLE);
