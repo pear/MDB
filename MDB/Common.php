@@ -2441,16 +2441,16 @@ class MDB_common extends PEAR {
     }
 
     // }}}
-    // {{{ retrieveLob()
+    // {{{ _retrieveLob()
 
     /**
      * fetch a float value from a result set
      *
      * @param int $lob handle to a lob created by the createLob() function
      * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
+     * @access privat
      */
-    function retrieveLob($lob)
+    function _retrieveLob($lob)
     {
         if (!isset($this->lobs[$lob])) {
             return $this->raiseError(MDB_ERROR_NEED_MORE_DATA, '', '',
@@ -2475,7 +2475,7 @@ class MDB_common extends PEAR {
      */
     function endOfResultLob($lob)
     {
-        $result = $this->retrieveLob($lob);
+        $result = $this->_retrieveLob($lob);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -2483,7 +2483,7 @@ class MDB_common extends PEAR {
     }
 
     // }}}
-    // {{{ readResultLob()
+    // {{{ _readResultLob()
 
     /**
      * Read data from large object input stream.
@@ -2494,11 +2494,11 @@ class MDB_common extends PEAR {
      * @param int $length integer value that indicates the largest ammount of
      *       data to be read from the large object input stream.
      * @return mixed length on success, a MDB error on failure
-     * @access public
+     * @access privat
      */
-    function readResultLob($lob, &$data, $length)
+    function _readResultLob($lob, &$data, $length)
     {
-        $result = $this->retrieveLob($lob);
+        $result = $this->_retrieveLob($lob);
         if (MDB::isError($result)) {
             return $result;
         }
@@ -2509,16 +2509,16 @@ class MDB_common extends PEAR {
     }
 
     // }}}
-    // {{{ destroyResultLob()
+    // {{{ _destroyResultLob()
 
     /**
      * Free any resources allocated during the lifetime of the large object
      * handler object.
      *
      * @param int $lob handle to a lob created by the createLob() function
-     * @access public
+     * @access privat
      */
-    function destroyResultLob($lob)
+    function _destroyResultLob($lob)
     {
         if (isset($this->lobs[$lob])) {
             $this->lobs[$lob] = '';

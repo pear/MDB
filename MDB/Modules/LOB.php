@@ -109,7 +109,7 @@ class MDB_lob_result extends MDB_lob
 
     function destroy()
     {
-        $this->database->destroyResultLob($this->result_lob);
+        $this->database->_destroyResultLob($this->result_lob);
     }
 
     function endOfLob()
@@ -119,7 +119,7 @@ class MDB_lob_result extends MDB_lob
 
     function readLob(&$data, $length)
     {
-        $read_length = $this->database->readResultLob($this->result_lob, $data, $length);
+        $read_length = $this->database->_readResultLob($this->result_lob, $data, $length);
         if (MDB::isError($read_length)) {
             return $read_length;
         }

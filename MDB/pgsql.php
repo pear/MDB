@@ -493,16 +493,16 @@ class MDB_driver_pgsql extends MDB_common {
 
 
     // }}}
-    // {{{ retrieveLob()
+    // {{{ _retrieveLob()
 
     /**
      * fetch a float value from a result set
      *
      * @param int $lob handle to a lob created by the createLob() function
      * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
+     * @access privat
      */
-    function retrieveLob($lob)
+    function _retrieveLob($lob)
     {
         if (!isset($this->lobs[$lob])) {
             return ($this->raiseError(MDB_ERROR_INVALID, NULL, NULL, 'Retrieve LOB: did not specified a valid lob'));
@@ -540,7 +540,7 @@ class MDB_driver_pgsql extends MDB_common {
      */
     function endOfResultLob($lob)
     {
-        $lobresult = $this->retrieveLob($lob);
+        $lobresult = $this->_retrieveLob($lob);
         if (MDB::isError($lobresult)) {
             return ($lobresult);
         }
@@ -548,7 +548,7 @@ class MDB_driver_pgsql extends MDB_common {
     }
 
     // }}}
-    // {{{ readResultLob()
+    // {{{ _readResultLob()
 
     /**
      * Read data from large object input stream.
@@ -559,11 +559,11 @@ class MDB_driver_pgsql extends MDB_common {
      * @param int $length integer value that indicates the largest ammount of
      *      data to be read from the large object input stream.
      * @return mixed length on success, a MDB error on failure
-     * @access public
+     * @access privat
      */
-    function readResultLob($lob, &$data, $length)
+    function _readResultLob($lob, &$data, $length)
     {
-        $lobresult = $this->retrieveLob($lob);
+        $lobresult = $this->_retrieveLob($lob);
         if (MDB::isError($lobresult)) {
             return ($lobresult);
         }
@@ -578,16 +578,16 @@ class MDB_driver_pgsql extends MDB_common {
     }
 
     // }}}
-    // {{{ destroyResultLob()
+    // {{{ _destroyResultLob()
 
     /**
      * Free any resources allocated during the lifetime of the large object
      * handler object.
      *
      * @param int $lob handle to a lob created by the createLob() function
-     * @access public
+     * @access privat
      */
-    function destroyResultLob($lob)
+    function _destroyResultLob($lob)
     {
         if (isset($this->lobs[$lob])) {
             if (isset($this->lobs[$lob]['Value'])) {

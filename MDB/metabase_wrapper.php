@@ -445,7 +445,7 @@ function MetabaseFetchBLOBResult($database, $result, $row, $field)
 function MetabaseDestroyResultLOB($database, $lob)
 {
     global $databases;
-    $result = $databases[$database]->destroyResultLob($lob);
+    $result = $databases[$database]->_destroyResultLob($lob);
     if (MDB::isError($result)) {
         $databases[$database]->setError('DestroyResultLOB', $result->getMessage());
         return(0);
@@ -469,7 +469,7 @@ function MetabaseEndOfResultLOB($database, $lob)
 function MetabaseReadResultLOB($database, $lob, &$data, $length)
 {
     global $databases;
-    $result = $databases[$database]->readResultLob($lob, $data, $length);
+    $result = $databases[$database]->_readResultLob($lob, $data, $length);
     if (MDB::isError($result)) {
         $databases[$database]->setError('ReadResultLOB', $result->getMessage());
         return(0);
