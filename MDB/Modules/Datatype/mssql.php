@@ -72,14 +72,14 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
     function convertResult(&$db, $value, $type)
     {
         switch($type) {
-            case METABASE_TYPE_BOOLEAN:
+            case MDB_TYPE_BOOLEAN:
                 return ($value == '1') ? true : false;
-            case METABASE_TYPE_DATE:
+            case MDB_TYPE_DATE:
                 if (strlen($value) > 10) {
                     $value = substr($value,0,10);
                 }
                 return $value;
-            case METABASE_TYPE_TIME:
+            case MDB_TYPE_TIME:
                 if (strlen($value) > 8) {
                     $value = substr($value,11,8);
                 }
