@@ -65,7 +65,7 @@ if(!defined('MDB_MANAGER_XXX_INCLUDED'))
     define('MDB_MANAGER_XXX_INCLUDED',1);
 
 /**
-* MDB Xxx driver for the management extensions
+* MDB Xxx driver for the management modules
 *
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
