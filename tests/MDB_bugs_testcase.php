@@ -145,9 +145,9 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
             $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
         }
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
-        $result = $this->db->query('SELECT * FROM users');
+        $result = $this->db->query('SELECT * FROM users ORDER BY user_name');
 
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error selecting from users'.$result->getMessage());
@@ -160,6 +160,18 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         $this->db->freeResult($result);
     }
 
+    /**
+     * http://bugs.php.net/bug.php?id=22328
+     */
+    function testBug22328() {
+        $result = $this->db->query('SELECT * FROM users');
+        $this->db->pushErrorHandling(PEAR_ERROR_RETURN);
+        $result2 = $this->db->query('SELECT * FROM foo');
+
+        $data = $this->db->fetchRow($result);
+        $this->db->popErrorHandling();
+        $this->assertEquals(false, MDB::isError($data), "Error messages for a query affect result reading of other queries");
+    }
 }
 
 ?>
