@@ -65,10 +65,7 @@ foreach ($testarray as $test) {
 $database = 'driver_test';
 
 foreach ($dbarray as $db) {
-    $dsn = $db['dsn']['phptype'].'://'.$db['dsn']['username'].':'
-        .$db['dsn']['password'].'@'.$db['dsn']['hostspec']
-        .(isset($db['dsn']['port']) ? (':'.$db['dsn']['port']) : '')
-        .'/'.$database;
+    $dsn = $db['dsn'];
     $options = $db['options'];
     foreach ($testarray as $test) {
         $tpl->setCurrentBlock('test');
@@ -80,9 +77,12 @@ foreach ($dbarray as $db) {
         $tpl->setVariable('testresult', nl2br($result->toString()));
         $tpl->parseCurrentBlock('test');
     }
-
+    $dsnstring = $db['dsn']['phptype'].'://'.$db['dsn']['username'].':'
+        .$db['dsn']['password'].'@'.$db['dsn']['hostspec']
+        .(isset($db['dsn']['port']) ? (':'.$db['dsn']['port']) : '')
+        .'/'.$database;
     $tpl->setCurrentBlock('dsn');
-    $tpl->setVariable('title', 'Testing ' . $dsn);
+    $tpl->setVariable('title', 'Testing ' . $dsnstring);
     $tpl->parseCurrentBlock('dsn');
 }
 
