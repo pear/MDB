@@ -105,7 +105,7 @@ class MDB_Datatype_Common
      * Define the list of types to be associated with the columns of a given
      * result set.
      *
-     * This function may be called before invoking fetchInto(), fetchOne(),
+     * This function may be called before invoking fetch(),
      * fetchRow(), fetchCol() and fetchAll() so that the necessary data type
      * conversions are performed on the data to be retrieved by them. If this
      * function is not called, the type of all result set columns is assumed
