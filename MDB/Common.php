@@ -1520,17 +1520,15 @@ class MDB_Common extends PEAR
             return($this->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'Replace: replace query is not supported'));
         }
         $count = count($fields);
-        for($keys = 0, $condition = $update = $insert = $values = '', reset($fields), $field = 0;
+        for($keys = 0, $condition = $insert = $values = '', reset($fields), $field = 0;
             $field < $count;
             next($fields), $field++)
         {
             $name = key($fields);
             if ($field > 0) {
-                $update .= ', ';
                 $insert .= ', ';
                 $values .= ', ';
             }
-            $update .= $name;
             $insert .= $name;
             if (isset($fields[$name]['Null']) && $fields[$name]['Null']) {
                 $value = 'NULL';
@@ -1573,7 +1571,6 @@ class MDB_Common extends PEAR
                     $value = $fields[$name]['Value'];
                 }
             }
-            $update .= '=' . $value;
             $values .= $value;
             if (isset($fields[$name]['Key']) && $fields[$name]['Key']) {
                 if ($value == 'NULL') {
@@ -1591,24 +1588,11 @@ class MDB_Common extends PEAR
         if (!($in_transaction = $this->in_transaction) && MDB::isError($result = $this->autoCommit(FALSE))) {
             return($result);
         }
-        $affected_rows = $this->queryOne("SELECT COUNT(*) FROM $table$condition", "integer");
-        if (!MDB::isError($affected_rows)) {
-            switch ($affected_rows) {
-                case 0:
-                    $success = $this->query("INSERT INTO $table ($insert) VALUES ($values)");
-                    $affected_rows = 1;
-                    break;
-                case 1:
-                    $success = $this->query("UPDATE $table SET $update$condition");
-                    $affected_rows = $this->affected_rows * 2;
-                    break;
-                default:
-                    $success = $this->raiseError(MDB_ERROR_CANNOT_REPLACE, '', '',
-                        'replace keys are not unique');
-                    break;
-            }
-        } else {
-            $success = $affected_rows;
+        $success = $this->query("DELETE FROM $table$condition");
+        if (!MDB::isError($success)) {
+            $affected_rows = $this->affected_rows;
+            $success = $this->query("INSERT INTO $table ($insert) VALUES ($values)");
+            $affected_rows += $this->affected_rows;
         }
 
         if (!$in_transaction) {
@@ -2676,30 +2660,28 @@ class MDB_Common extends PEAR
     function convertResultRow($result, $row)
     {
         if (isset($this->result_types[$result])) {
-            $columns = $this->numCols($result);
-            if (MDB::isError($columns)) {
-                return($columns);
-            }
-            for($column = 0; $column < $columns; $column++) {
-                if (!isset($row[$column])) {
+            $current_column = 0;
+            foreach($row as $key => $column) {
+                if (!isset($column)) {
                     continue;
                 }
-                switch ($type = $this->result_types[$result][$column]) {
+                switch ($type = $this->result_types[$result][$current_column]) {
                     case MDB_TYPE_TEXT:
                     case MDB_TYPE_BLOB:
                     case MDB_TYPE_CLOB:
                         break;
                     case MDB_TYPE_INTEGER:
-                        $row[$column] = intval($row[$column]);
+                        $row[$key] = intval($row[$key]);
                         break;
                     default:
-                        $value = $this->convertResult($row[$column], $type);
+                        $value = $this->convertResult($row[$key], $type);
                         if (MDB::isError($value)) {
-                            return($value);
+                            return $value;
                         }
-                        $row[$column] = $value;
+                        $row[$key] = $value;
                         break;
                 }
+                ++$current_column;
             }
         }
         return($row);
