@@ -41,6 +41,7 @@ define("DB_ERROR_VALUE_COUNT_ON_ROW", -22);
 define("DB_ERROR_INVALID_DSN",        -23);
 define("DB_ERROR_CONNECT_FAILED",     -24);
 define("DB_ERROR_EXTENSION_NOT_FOUND",-25);
+define("DB_ERROR_CANNOT_REPLACE",     -26);
 
 /*
  * Warnings are not detected as errors by MDB::isError(), and are not
@@ -49,7 +50,7 @@ define("DB_ERROR_EXTENSION_NOT_FOUND",-25);
  */
 
 define('MDB_Warning',           -1000);
-define('DB_WARNING_READ_ONLY', -1001);
+define('DB_WARNING_READ_ONLY',  -1001);
 
 /*
  * These constants are used when storing information about prepared
@@ -264,12 +265,18 @@ class MDB
                 if (!isset($options["include"])
                     || !strcmp($include = $options["includepath"],""))
                 {
-                    return(isset($options["includepath"]) ? "it was not specified a valid database include file" : "it was not specified a valid DBMS driver type");
+                    if (isset($options["includepath"]))
+                        return PEAR::raiseError(null, DB_ERROR_INVALID_DSN, 
+                            null, null, 'no valid DBMS driver include path specified', 'MDB_Error', true);
+                    else
+                        return PEAR::raiseError(null, DB_ERROR_INVALID_DSN,
+                            null, null, 'no existing DBMS driver specified', 'MDB_Error', true);
                 }
                 if (!isset($options["classname"])
                     || !strcmp($class_name = $options["classname"],""))
                 {
-                    return("it was not specified a valid database class name");
+                    return PEAR::raiseError(null, DB_ERROR_INVALID_DSN,
+                        null, null, 'no existing DBMS driver specified', 'MDB_Error', true);
                 }
         }
         if (!strcmp($included,"")
@@ -289,9 +296,11 @@ class MDB
                     if ($directory) {
                         closedir($directory);
                     }
-                    return("it was not specified an existing DBMS driver file");
+                    return PEAR::raiseError(null, DB_ERROR_INVALID_DSN,
+                        null, null, 'no existing DBMS driver specified', 'MDB_Error', true);
                 } else {
-                    return("it was not specified a valid DBMS driver include path");
+                    return PEAR::raiseError(null, DB_ERROR_INVALID_DSN, 
+                        null, null, 'no valid DBMS driver include path specified', 'MDB_Error', true);
                 }
             }
             include($include_path.$include);
@@ -422,6 +431,7 @@ class MDB
                 DB_ERROR                    => 'unknown error',
                 DB_ERROR_ALREADY_EXISTS     => 'already exists',
                 DB_ERROR_CANNOT_CREATE      => 'can not create',
+                DB_ERROR_CANNOT_REPLACE     => 'can not replace',
                 DB_ERROR_CANNOT_DELETE      => 'can not delete',
                 DB_ERROR_CANNOT_DROP        => 'can not drop',
                 DB_ERROR_CONSTRAINT         => 'constraint violation',
@@ -445,7 +455,7 @@ class MDB
                 DB_WARNING                  => 'unknown warning',
                 DB_WARNING_READ_ONLY        => 'read only',
                 DB_ERROR_NEED_MORE_DATA     => 'insufficient data supplied',
-                DB_ERROR_EXTENSION_NOT_FOUND=> 'extension not found'
+                DB_ERROR_EXTENSION_NOT_FOUND=> 'extension not found',
             );
         }
 
