@@ -33,9 +33,9 @@ The current release can be found at the PEAR webpage:
 MDB is still in beta at the moment.
 
 MDB is based on Metabase but has been reworked severely to better match
-the PEAR DB API and PEAR CS. Currently the mysql driver is very reliable,
-while the pgsql driver is still under development but progressing steadily.
-Once the pgsql driver is done I will soon release MDB 1.0 (see Roadmap).
+the PEAR DB API and PEAR CS. Currently there is a MySQL and a PostGreSQL
+driver available. The PostGreSQL driver is still missing some management
+features (like handling Indexes and reverse engineering of xml schemas).
 
 The approach I have taken so far is to take DB.php from
 PEAR DB and make it create a Metabase object. I have changed the
@@ -93,8 +93,8 @@ Other Included Files
 
 ** Documentation:
 
-There are phpdoc comments for most of the methods in MDB except for the LOB
-support (lob.php) and the XML Schema Manager (manager.php). Most of the API
+The entire "public" API and most of the "private" methods (except for some of
+the lob classes) have been documented with PHPDoc comments. Most of the API
 is borrowed from PEAR DB, so you can look there for documentation. Since there
 are a large number of new methods available thanks to the Metabase heritage
 of MDB you will also have to take a look in the Metabase documentation
@@ -111,37 +111,40 @@ would now be
 If you want to help out with documentation please email me.
 
 ** Testing:
+You will need to setup the following user, with the right to create new
+databases:
 
-driver_test.php is the testing suite provided by Metabase you will need
-to configure the mysql section of driver_test_config.php to fit your
-enviornment
-
-MDB_test.php will require that you setup the following user, with the
-right to create new databases:
 username = metapear
 password = funky
 
-MDB_pear_wrapper_test.php makes use of the same DB settings as
-MDB_test.php but uses the pear wrapper for its tests.
+driver_test.php: Is the testing suite provided by Metabase you will need
+to configure the mysql and pgsql section of driver_test_config.php to fit
+your enviornment and then select a DB to be tested.
+
+MDB_test.php: Several test calls to MDB's native API.
+
+MDB_pear_wrapper_test.php: Several test calls to MDB's PEAR DB Wrapper.
 
 ** How to write new Drivers:
 
 MDB is mostly based in Metabase. The method naming and formatting is
 changed to better match the PEAR CS however. Therefore the best starting
-point is to first take the mysql Metabase driver (metabase_mysql.php)
-and compare it with MDB's mysql driver (mysql.php) (Note: In order to
-get the Metabase code you will need to download it from phpclasses using
-the URL provided at the top). This will give a good idea what changes
-you have to make to an existing Metabase driver in order to make it MDB
-compatible.
+point is to first take one of the Metabase drivers (metabase_[DRIVER NAME].php)
+and compare it with a corresponding MDB's driver ([DRIVER NAME].php)
+This will give a good idea what changes you have to make to an existing
+Metabase driver in order to make it MDB compatible.
+
+(Note: In order to get the Metabase code you will need to download it from
+phpclasses using the URL provided at the top).
 
 Alot of methods have been renamed from the original Metabase API. The best
 place to find the name to what a method has been renamed you should look
 at the metabase_wrapper.php file.
 
-Please also note that some methods have been taken from PEAR DB.
+Please also note that some methods have been taken from PEAR DB so for some
+missing methods you can check the PEAR DB driver.
 
-Another alternative would be to take the mysql.php and hack it to fit
+Another alternative would be to take an MDB driver and hack it to fit
 the new RDBMS. I would however recommend working with the existing
 Metabase driver for that RDBMS when doing those changes. This will
 surely be faster and it will ensure that the new driver takes full
@@ -166,18 +169,21 @@ but ...
 
 ** Roadmap:
 
-in order of importance (Active help and code contributions are
-requested for all of following):
-
-1.0 Release (August)
-- PHPDoc comments (missing in lob.php and manager.php) (lsmith)
+1.0 RC1 (early August)
 - API cleanups (only lob.php and manager.php left to cleanup) (lsmith)
-- Finish pgsql driver (pgc)
+- Finish core parts of the pgsql driver (pgc)
+- More tests with Metabase and PEAR DB wrapper (you)
+
+1.0 Release (sometime in August)
+- API cleanups (only lob.php and manager.php left to cleanup) (lsmith)
+- Finish core parts of the pgsql driver (pgc)
 - More tests with Metabase and PEAR DB wrapper (you)
 
 1.1 Release (Fall 2002)
-- Further cleanups in lob.php, manager.php, parser.php (lsmith)
+- PHPDoc comments (missing in lob.php) (lsmith)
+- Further cleanups in lob.php, parser.php (lsmith)
 - Add support for more RDBMS (you)
+- Finish management parts of the pgsql driver (pgc)
 
 Some time
 - Interactive Application for Schema Reverse Engineering to better handle
