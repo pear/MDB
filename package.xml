@@ -98,14 +98,20 @@ Documentation can be found at: http://www.backendmedia.com/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version></version>
-    <state></state>
-    <date></date>
+    <version>1.1.4-RC1</version>
+    <state>RC</state>
+    <date>2003-10-16</date>
     <notes>
       - added MDB::isConnection()
-      - fixed LOB handling in Interbase driver
       - minor improvements to the test suite
-      - fixed function support()
+      - fixed bug in support() that would result in always returning true
+      - fixed bug in getValue() when $type is empty
+      - fixed bug in getDSN() incorrect handling of port value
+      - fixed bug in the transaction support detection in the mysql manager class
+      - several cosmetic fixes
+      - fixed bug in common implementation of currID() which would result in a fatal error
+      - backported several fixes from HEAD to each of the drivers
+      - interbase driver now also supports associative fetching
     </notes>
     <filelist>
       <file role="php" baseinstalldir="/">MDB.php</file>
