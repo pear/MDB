@@ -200,10 +200,15 @@ class MDB_Manager extends PEAR
     function setOption($option, $value)
     {
         if(isset($this->options[$option])) {
+            if (is_null($value)) {
+                return($this->raiseError(MDB_ERROR, NULL, NULL,
+                    'may not set an option to value null'));
+            }
             $this->options[$option] = $value;
             return(MDB_OK);
         }
-        return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, "unknown option $option"));
+        return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+            "unknown option $option"));
     }
 
     // }}}

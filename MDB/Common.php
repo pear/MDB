@@ -91,6 +91,18 @@ class MDB_Common extends PEAR
     var $connected_dsn = array();
 
     /**
+     * @var mixed
+     * @access private
+     */
+    var $connection = 0;
+
+    /**
+     * @var boolean
+     * @access private
+     */
+    var $opened_persistent;
+
+    /**
      * @var string
      * @access private
      */
@@ -523,6 +535,10 @@ class MDB_Common extends PEAR
     function setOption($option, $value)
     {
         if (isset($this->options[$option])) {
+            if (is_null($value)) {
+                return $this->raiseError(MDB_ERROR, null, null,
+                    'may not set an option to value null');
+            }
             $this->options[$option] = $value;
             return MDB_OK;
         }
