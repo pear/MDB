@@ -773,51 +773,73 @@ class MDB_ibase extends MDB_Common
      */
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
-        //should I do this? Why $rownum is null by default and not 0?
-        if (is_null($rownum)) {
-            $rownum = 0;
-        }
         $result_value = intval($result);
-        if (!isset($this->results[$result_value]['current_row'])) {
-            return $this->raiseError(MDB_ERROR, null, null, 'Fetch Row: attempted to fetch a row from an unknown query result') ;
-        }
-        if (isset($this->results[$result_value][$rownum])) {
-            return $this->results[$result_value][$rownum];
-        }
-        if (isset($this->results[$result_value]['rows'])) {
-            return $this->raiseError(MDB_ERROR, null, null, 'Fetch Row: there are no more rows to retrieve') ;
-        }
-        if (isset($this->results[$result_value]['limits'])) {
-            if ($rownum >= $this->results[$result_value]['limits'][1]) {
-                return $this->raiseError(MDB_ERROR, null, null, 'Fetch Row: attempted to fetch a row beyond the number rows available in the query result') ;
+        if ($this->options['result_buffering']) {
+            if ($rownum == null) {
+                $rownum = $this->results[$result_value]['highest_fetched_row']+1;
             }
-            if (MDB::isError($err = $this->_skipLimitOffset($result))) {
-                return $err;
+            if (isset($this->results[$result_value][$rownum])) {
+                return $this->results[$result_value][$rownum];
             }
         }
-        if (isset($this->results[$result_value]['row_buffer'])) {
-            $this->results[$result_value]['current_row']++;
-            $this->results[$result_value][$this->results[$result_value]['current_row']] = $this->results[$result_value]['row_buffer'];
-            unset($this->results[$result_value]['row_buffer']);
+        if (isset($this->limits[$result_value])) {
+            if ($rownum >= $this->limits[$result_value][1]) {
+                return null;
+            }
+            if (MDB::isError($this->_skipLimitOffset($result))) {
+                if ($this->options['autofree']) {
+                    $this->freeResult($result);
+                }
+                return null;
+            }
         }
-        for (; $this->results[$result_value]['current_row']<$rownum; $this->results[$result_value]['current_row']++) {
-            if (!is_array($this->results[$result_value][$this->results[$result_value]['current_row']+1] = @ibase_fetch_row($result))) {
-                $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row']+1;
-                return $this->raiseError(MDB_ERROR, null, null, 'Fetch Row: could not fetch the query result row (maybe empty result?)') ;
-            } else {
-                //this foreach is supposed to solve the "padded whitespaces" problem...   REVIEW ME!!!
-                foreach ($this->results[$result_value][$this->results[$result_value]['current_row']+1] as $key => $valueWithSpace) {
-                    $this->results[$result_value][$this->results[$result_value]['current_row']+1][$key] = rtrim($valueWithSpace);
+        if ($this->options['result_buffering']) {
+            if (isset($this->results[$result_value]['row_buffer'])) {
+                $this->results[$result_value]['current_row']++;
+                $this->results[$result_value][$this->results[$result_value]['current_row']] = $this->results[$result_value]['row_buffer'];
+                unset($this->results[$result_value]['row_buffer']);
+            }
+            for(;$this->results[$result_value]['current_row'] < $rownum;
+                $this->results[$result_value]['current_row']++
+            ) {
+                if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+                    $row = @ibase_fetch_assoc($result);
+                } else {
+                    $row = @ibase_fetch_row($result);
+                }
+                foreach ($row as $key => $value_with_space) {
+                    $row[$key] = rtrim($value_with_space);
+                }
+                $this->results[$result_value][$this->results[$result_value]['current_row']+1] = $row;
+                if (!$row) {
+                    if ($this->options['autofree']) {
+                        $this->freeResult($result);
+                    }
+                    return null;
                 }
             }
+            $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
+        } else {
+            if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+                $row = @ibase_fetch_assoc($result);
+            } else {
+                $row = @ibase_fetch_row($result);
+            }
+            foreach ($row as $key => $value_with_space) {
+                $row[$key] = rtrim($value_with_space);
+            }
+            $this->results[$result_value][$this->results[$result_value]['current_row']+1] = $row;
+            if (!$row) {
+                if ($this->options['autofree']) {
+                    $this->freeResult($result);
+                }
+                return null;
+            }
         }
-
-        $array = $this->results[$result_value][$rownum];
-        $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
-        if (isset($this->results[$result_value]['types'])) {
-            $array = $this->datatype->convertResultRow($this, $result, $array);
+        if (isset($this->results[intval($result)]['types'])) {
+            $row = $this->datatype->convertResultRow($this, $result, $row);
         }
-        return $array;
+        return $row;
     }
 
     // }}}
