@@ -84,7 +84,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         switch($type) {
             case MDB_TYPE_BOOLEAN:
-                return ($value == '1') ? true : false;
+                return $value == '1';
             case MDB_TYPE_DATE:
                 if (strlen($value) > 10) {
                     $value = substr($value,0,10);

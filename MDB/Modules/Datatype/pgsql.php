@@ -83,7 +83,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         switch ($type) {
             case MDB_TYPE_BOOLEAN:
-                return $value == 't' ? true : false;
+                return $value == 't';
             case MDB_TYPE_FLOAT:
                 return doubleval($value);
             case MDB_TYPE_DATE:

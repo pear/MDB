@@ -165,7 +165,7 @@ class MDB_Datatype_Common
             case MDB_TYPE_INTEGER:
                 return intval($value);
             case MDB_TYPE_BOOLEAN:
-                return ($value == 'Y') ? true : false;
+                return $value == 'Y';
             case MDB_TYPE_DECIMAL:
                 return $value;
             case MDB_TYPE_FLOAT:
