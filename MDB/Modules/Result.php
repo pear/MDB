@@ -165,7 +165,7 @@ class MDB_Result
     function freeResult()
     {
         $err = $this->dbh->freeResult($this->result);
-        if(MDB::isError($err)) {
+        if (MDB::isError($err)) {
             return $err;
         }
         $this->result = false;

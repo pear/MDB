@@ -408,7 +408,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                             "\\\"\\\""
                             );
 
-        for($string = 0; $string < count($test_strings); $string++) {
+        for ($string = 0; $string < count($test_strings); $string++) {
             $this->clearTables();
 
             $value = $this->db->getValue('text', $test_strings[$string]);
@@ -938,7 +938,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $binary_data_file = 'binary_data';
         if (($file = fopen($binary_data_file, 'wb'))) {
-            for($binary_data = '', $code = 0; $code <= 255; $code++) {
+            for ($binary_data = '', $code = 0; $code <= 255; $code++) {
                     $binary_data .= chr($code);
             }
             $binary_lob = array(

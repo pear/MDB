@@ -282,7 +282,7 @@ class MDB_ibase extends MDB_Common
             return $this->raiseError(MDB_ERROR, null, null,
                 'commit: transaction changes are being auto commited');
         }
-        if(!@ibase_commit($this->connection)) {
+        if (!@ibase_commit($this->connection)) {
             return $this->raiseError(MDB_ERROR, null, null,
                 'commit: could not commit');
         }

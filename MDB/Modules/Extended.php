@@ -455,7 +455,7 @@ class MDB_Extended
     function executeMultiple($prepared_query, $types = null, $params, $param_types = null)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        for($i = 0, $j = count($params); $i < $j; $i++) {
+        for ($i = 0, $j = count($params); $i < $j; $i++) {
             $result = $this->executeParams($prepared_query, $types, $params[$i], $param_types, false);
             if (MDB::isError($result)) {
                 return $result;

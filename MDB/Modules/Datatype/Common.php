@@ -131,7 +131,7 @@ class MDB_Datatype_Common
         }
 
         $columns = count($types);
-        for($column = 0; $column < $columns; $column++) {
+        for ($column = 0; $column < $columns; $column++) {
             if (!isset($this->valid_types[$types[$column]])) {
                 return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                     'setResultTypes: ' . $types[$column] . ' is not a supported column type');

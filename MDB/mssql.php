@@ -462,7 +462,7 @@ class MDB_mssql extends MDB_Common
         if (!isset($this->results[$result_value]['columns'])) {
             $this->results[$result_value]['columns'] = array();
             $columns = mssql_num_fields($result);
-            for($column = 0; $column < $columns; $column++) {
+            for ($column = 0; $column < $columns; $column++) {
                 $field_name = strtolower(mssql_field_name($result, $column));
                 $this->results[$result_value]['columns'][$field_name] = $column;
             }

@@ -203,7 +203,7 @@ class MDB_Reverse_mysql extends MDB_Reverse_Common
                     $default = $row[$columns['default']];
                 }
                 $definition = array();
-                for($field_choices = array(), $datatype = 0; $datatype < count($type); $datatype++) {
+                for ($field_choices = array(), $datatype = 0; $datatype < count($type); $datatype++) {
                     $field_choices[$datatype] = array('type' => $type[$datatype]);
                     if (isset($notnull)) {
                         $field_choices[$datatype]['notnull'] = 1;

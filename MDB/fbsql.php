@@ -437,7 +437,7 @@ class MDB_fbsql extends MDB_Common
         if (!isset($this->results[$result_value]['columns'])) {
             $this->results[$result_value]['columns'] = array();
             $columns = fbsql_num_fields($result);
-            for($column = 0; $column < $columns; $column++) {
+            for ($column = 0; $column < $columns; $column++) {
                 $this->results[$result_value]['columns'][strtolower(fbsql_field_name($result, $column))] = $column;
             }
         }

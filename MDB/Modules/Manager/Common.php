@@ -501,7 +501,7 @@ class MDB_Manager_Common
             $query .= ' UNIQUE';
         }
         $query .= " INDEX $name ON $table (";
-        for($field = 0,reset($definition['fields']);
+        for ($field = 0,reset($definition['fields']);
             $field<count($definition['fields']); $field++,next($definition['fields']))
         {
             if ($field>0) {

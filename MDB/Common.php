@@ -992,7 +992,7 @@ class MDB_Common extends PEAR
                 'replace: replace query is not supported');
         }
         $count = count($fields);
-        for($keys = 0, $condition = $insert = $values = '', reset($fields), $field = 0;
+        for ($keys = 0, $condition = $insert = $values = '', reset($fields), $field = 0;
             $field < $count;
             next($fields), $field++)
         {
@@ -1073,7 +1073,7 @@ class MDB_Common extends PEAR
     {
         $this->debug($query, 'prepareQuery');
         $positions = array();
-        for($position = 0;
+        for ($position = 0;
             $position < strlen($query) && is_int($question = strpos($query, '?', $position));
         ) {
             if (is_int($quote = strpos($query, "'", $position)) && $quote < $question) {
@@ -1294,7 +1294,7 @@ class MDB_Common extends PEAR
         $index = $prepared_query-1;
         $this->clobs[$prepared_query] = $this->blobs[$prepared_query] = array();
         $count = count($this->prepared_queries[$index]['positions']);
-        for($last_position = $position = 0; $position < $count; $position++) {
+        for ($last_position = $position = 0; $position < $count; $position++) {
             $current_position = $this->prepared_queries[$index]['positions'][$position];
             $query .= substr($this->prepared_queries[$index]['query'],
                 $last_position, $current_position - $last_position);
@@ -1346,7 +1346,7 @@ class MDB_Common extends PEAR
             $success = $this->_executePrepared($prepared_query, $query, $types, $result_mode);
         }
         reset($this->clobs[$prepared_query]);
-        for($clob = 0, $count = count($this->clobs[$prepared_query]);
+        for ($clob = 0, $count = count($this->clobs[$prepared_query]);
              $clob < $count;
              $clob++, next($this->clobs[$prepared_query])
         ) {
@@ -1356,7 +1356,7 @@ class MDB_Common extends PEAR
         }
         unset($this->clobs[$prepared_query]);
         reset($this->blobs[$prepared_query]);
-        for($blob = 0, $count = count($this->blobs[$prepared_query]);
+        for ($blob = 0, $count = count($this->blobs[$prepared_query]);
              $blob < $count;
              $blob++, next($this->blobs[$prepared_query])
         ) {
@@ -1707,7 +1707,7 @@ class MDB_Common extends PEAR
                 return $column_names;
             }
         }
-        for($column = 0; $column < $columns; $column++) {
+        for ($column = 0; $column < $columns; $column++) {
             $result = $this->fetch($result, $rownum, $column);
             if (!is_array($result)) {
                 return null;

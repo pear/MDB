@@ -385,7 +385,7 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
         }
         $value = "'";
         $data = null;
-        while(!$this->endOfLOB($clob)) {
+        while (!$this->endOfLOB($clob)) {
             $result = $this->readLOB($clob, $data, $db->options['lob_buffer_length']);
             if (MDB::isError($result)) {
                 return $result;
@@ -431,7 +431,7 @@ class MDB_Datatype_fbsql extends MDB_Datatype_Common
         }
         $value = "'";
         $data = null;
-        while(!$this->endOfLOB($blob)) {
+        while (!$this->endOfLOB($blob)) {
             $result = $this->readLOB($blob, $data, $db->options['lob_buffer_length']);
             if (MDB::isError($result)) {
                 return $result;

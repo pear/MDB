@@ -224,7 +224,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($check) {
-            for($change = 0, reset($changes);
+            for ($change = 0, reset($changes);
                 $change < count($changes);
                 next($changes), $change++)
             {
@@ -245,7 +245,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
         if (isset($changes['removed_fields'])) {
             $query = ' DROP (';
             $fields = $changes['removed_fields'];
-            for($field = 0, reset($fields);
+            for ($field = 0, reset($fields);
                 $field < count($fields);
                 next($fields), $field++)
             {
@@ -263,7 +263,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
         $query = (isset($changes['name']) ? 'RENAME TO '.$changes['name'] : '');
         if (isset($changes['added_fields'])) {
             $fields = $changes['added_fields'];
-            for($field = 0, reset($fields);
+            for ($field = 0, reset($fields);
                 $field < count($fields);
                 next($fields), $field++)
             {
@@ -272,7 +272,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
         }
         if (isset($changes['changed_fields'])) {
             $fields = $changes['changed_fields'];
-            for($field = 0, reset($fields);
+            for ($field = 0, reset($fields);
                 $field < count($fields);
                 next($fields), $field++)
             {

@@ -111,7 +111,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             return MDB_OK;
         }
         $not_supported = false;
-        for($i=0, $j=count($check); $i<$j; ++$i) {
+        for ($i=0, $j=count($check); $i<$j; ++$i) {
             $result = $db->query('SHOW VARIABLES LIKE '.$db->getValue('text', $check[$i]), null, false);
             if (MDB::isError($result)) {
                 return $db->mysqlRaiseError();
@@ -348,7 +348,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($check) {
-            for($change = 0,reset($changes);
+            for ($change = 0,reset($changes);
                 $change < count($changes);
                 next($changes), $change++)
             {
@@ -369,7 +369,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             $query = (isset($changes['name']) ? 'RENAME AS '.$changes['name'] : '');
             if (isset($changes['added_fields'])) {
                 $fields = $changes['added_fields'];
-                for($field = 0, reset($fields);
+                for ($field = 0, reset($fields);
                     $field<count($fields);
                     next($fields), $field++)
                 {
@@ -381,7 +381,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             }
             if (isset($changes['removed_fields'])) {
                 $fields = $changes['removed_fields'];
-                for($field = 0,reset($fields);
+                for ($field = 0,reset($fields);
                     $field<count($fields);
                     next($fields), $field++)
                 {
@@ -394,7 +394,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             $renamed_fields = array();
             if (isset($changes['renamed_fields'])) {
                 $fields = $changes['renamed_fields'];
-                for($field = 0,reset($fields);
+                for ($field = 0,reset($fields);
                     $field<count($fields);
                     next($fields), $field++)
                 {
@@ -403,7 +403,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             }
             if (isset($changes['changed_fields'])) {
                 $fields = $changes['changed_fields'];
-                for($field = 0,reset($fields);
+                for ($field = 0,reset($fields);
                     $field<count($fields);
                     next($fields), $field++)
                 {
@@ -421,7 +421,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
             }
             if (count($renamed_fields))
             {
-                for($field = 0,reset($renamed_fields);
+                for ($field = 0,reset($renamed_fields);
                     $field<count($renamed_fields);
                     next($renamed_fields), $field++)
                 {
@@ -500,7 +500,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         if (MDB::isError($table_names)) {
             return $table_names;
         }
-        for($i = 0, $j = count($table_names), $tables = array(); $i < $j; ++$i)
+        for ($i = 0, $j = count($table_names), $tables = array(); $i < $j; ++$i)
         {
             if (!$this->_isSequenceName($table_names[$i]))
                 $tables[] = $table_names[$i];
@@ -575,7 +575,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $query = "ALTER TABLE $table ADD ".(isset($definition['unique']) ? 'UNIQUE' : 'INDEX')." $name (";
-        for($field = 0, reset($definition['fields']);
+        for ($field = 0, reset($definition['fields']);
             $field < count($definition['fields']);
             $field++, next($definition['fields']))
         {
@@ -623,7 +623,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         }
         $indexes_all = $db->fetchCol($result, 'Key_name');
         $db->freeResult($result);
-        for($found = $indexes = array(), $index = 0, $indexes_all_cnt = count($indexes_all);
+        for ($found = $indexes = array(), $index = 0, $indexes_all_cnt = count($indexes_all);
             $index < $indexes_all_cnt;
             $index++)
         {
@@ -719,7 +719,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         if (MDB::isError($table_names)) {
             return $table_names;
         }
-        for($i = 0, $j = count($table_names), $sequences = array(); $i < $j; ++$i)
+        for ($i = 0, $j = count($table_names), $sequences = array(); $i < $j; ++$i)
         {
             if ($sqn = $this->_isSequenceName($table_names[$i]))
                 $sequences[] = $sqn;

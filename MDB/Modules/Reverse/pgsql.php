@@ -188,7 +188,7 @@ class MDB_Reverse_pgsql extends MDB_Reverse_common
             $default = substr($columns['adsrc'],1,-1);
         }
         $definition = array();
-        for($field_choices = array(), $datatype = 0; $datatype < count($type); $datatype++) {
+        for ($field_choices = array(), $datatype = 0; $datatype < count($type); $datatype++) {
             $field_choices[$datatype] = array('type' => $type[$datatype]);
             if (isset($notnull)) {
                 $field_choices[$datatype]['notnull'] = 1;

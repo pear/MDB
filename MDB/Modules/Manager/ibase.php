@@ -114,7 +114,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
     function checkSupportedChanges(&$changes)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        for($change=0, reset($changes);
+        for ($change=0, reset($changes);
             $change<count($changes);
             next($changes), $change++)
         {
@@ -244,7 +244,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($check) {
-            for($change=0, reset($changes);
+            for ($change=0, reset($changes);
                 $change<count($changes);
                 next($changes), $change++)
             {
@@ -255,7 +255,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
                         break;
                     case 'changed_fields':
                         $fields = $changes['changed_fields'];
-                        for($field=0, reset($fields);
+                        for ($field=0, reset($fields);
                             $field < count($fields);
                             next($fields), $field++)
                         {
@@ -274,7 +274,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
             $query = '';
             if (isset($changes['added_fields'])) {
                 $fields = $changes['added_fields'];
-                for($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
+                for ($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
                     if (strcmp($query, '')) {
                         $query .= ', ';
                     }
@@ -283,7 +283,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
             }
             if (isset($changes['removed_fields'])) {
                 $fields = $changes['removed_fields'];
-                for($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
+                for ($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
                     if (strcmp($query, '')) {
                         $query .= ', ';
                     }
@@ -292,7 +292,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
             }
             if (isset($changes['renamed_fields'])) {
                 $fields = $changes['renamed_fields'];
-                for($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
+                for ($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
                     if (strcmp($query, '')) {
                         $query .= ', ';
                     }
@@ -301,7 +301,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
             }
             if (isset($changes['changed_fields'])) {
                 $fields = $changes['changed_fields'];
-                for($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
+                for ($field=0, reset($fields); $field < count($fields); next($fields), $field++) {
                     $field_name = key($fields);
                     if (MDB::isError($err = $this->checkSupportedChanges($fields[$field_name]))) {
                         return $err;
@@ -406,7 +406,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
     function createIndex($table, $name, $definition)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        for($query_sort='', $query_fields='', $field=0, reset($definition['fields']);
+        for ($query_sort='', $query_fields='', $field=0, reset($definition['fields']);
             $field<count($definition['fields']);
             $field++, next($definition['fields'])
         ) {

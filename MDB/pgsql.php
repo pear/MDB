@@ -558,7 +558,7 @@ class MDB_pgsql extends MDB_Common
         if (!isset($this->results[$result_value]['columns'])) {
             $this->results[$result_value]['columns'] = array();
             $columns = pg_numfields($result);
-            for($column = 0; $column < $columns; $column++) {
+            for ($column = 0; $column < $columns; $column++) {
                 $this->results[$result_value]['columns'][strtolower(pg_fieldname($result, $column))] = $column;
             }
         }

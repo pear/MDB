@@ -486,7 +486,7 @@ class MDB_mysql extends MDB_Common
             return 'NULL';
         }
         if ($type) {
-            for($i = 0, $j = count($col); $i < $j; ++$i) {
+            for ($i = 0, $j = count($col); $i < $j; ++$i) {
                 $col[$i] = $this->getValue($type, $col[$i]);
             }
         }
@@ -563,7 +563,7 @@ class MDB_mysql extends MDB_Common
     function replace($table, $fields)
     {
         $count = count($fields);
-        for($keys = 0, $query = $values = '',reset($fields), $field = 0;
+        for ($keys = 0, $query = $values = '',reset($fields), $field = 0;
             $field < $count;
             next($fields), $field++)
         {
@@ -623,7 +623,7 @@ class MDB_mysql extends MDB_Common
         if (!isset($this->results[$result_value]['columns'])) {
             $this->results[$result_value]['columns'] = array();
             $columns = mysql_num_fields($result);
-            for($column = 0; $column < $columns; $column++) {
+            for ($column = 0; $column < $columns; $column++) {
                 $this->results[$result_value]['columns'][strtolower(mysql_field_name($result, $column))] = $column;
             }
         }

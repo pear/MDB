@@ -368,7 +368,7 @@ class MDB_oci8 extends MDB_Common
         if ($prepared_query) {
             $columns = '';
             $variables = '';
-            for(reset($this->clobs[$prepared_query]), $clob = 0;
+            for (reset($this->clobs[$prepared_query]), $clob = 0;
                 $clob < count($this->clobs[$prepared_query]);
                 $clob++, next($this->clobs[$prepared_query])
             ) {
@@ -385,7 +385,7 @@ class MDB_oci8 extends MDB_Common
                 $lobs++;
             }
             if (!MDB::isError($success)) {
-                for(reset($this->blobs[$prepared_query]), $blob = 0;
+                for (reset($this->blobs[$prepared_query]), $blob = 0;
                     $blob < count($this->blobs[$prepared_query]);
                     $blob++, next($this->blobs[$prepared_query])
                 ) {
@@ -408,7 +408,7 @@ class MDB_oci8 extends MDB_Common
         if (!MDB::isError($success)) {
             if (($statement = @OCIParse($this->connection, $query))) {
                 if ($lobs) {
-                    for(reset($this->clobs[$prepared_query]), $clob = 0;
+                    for (reset($this->clobs[$prepared_query]), $clob = 0;
                         $clob < count($this->clobs[$prepared_query]);
                         $clob++, next($this->clobs[$prepared_query])
                     ) {
@@ -421,7 +421,7 @@ class MDB_oci8 extends MDB_Common
                         }
                     }
                     if (!MDB::isError($success)) {
-                        for(reset($this->blobs[$prepared_query]), $blob = 0;
+                        for (reset($this->blobs[$prepared_query]), $blob = 0;
                             $blob < count($this->blobs[$prepared_query]);
                             $blob++, next($this->blobs[$prepared_query]))
                         {
@@ -440,12 +440,12 @@ class MDB_oci8 extends MDB_Common
                     $result = @OCIExecute($statement, $mode);
                     if ($result) {
                         if ($lobs) {
-                            for(reset($this->clobs[$prepared_query]), $clob = 0;
+                            for (reset($this->clobs[$prepared_query]), $clob = 0;
                                 $clob < count($this->clobs[$prepared_query]);
                                 $clob++, next($this->clobs[$prepared_query]))
                             {
                                 $clob_stream = key($this->clobs[$prepared_query]);
-                                for($value = ''; !$this->datatype->endOfLOB($clob_stream);) {
+                                for ($value = ''; !$this->datatype->endOfLOB($clob_stream);) {
                                     if ($this->datatype->readLOB($clob_stream, $data, $this->options['lob_buffer_length']) < 0) {
                                         $success = $this->raiseError();
                                         break;
@@ -458,12 +458,12 @@ class MDB_oci8 extends MDB_Common
                                 }
                             }
                             if (!MDB::isError($success)) {
-                                for(reset($this->blobs[$prepared_query]), $blob = 0;
+                                for (reset($this->blobs[$prepared_query]), $blob = 0;
                                     $blob < count($this->blobs[$prepared_query]);
                                     $blob++, next($this->blobs[$prepared_query])
                                 ) {
                                     $blob_stream = key($this->blobs[$prepared_query]);
-                                    for($value = ''; !$this->datatype->endOfLOB($blob_stream);) {
+                                    for ($value = ''; !$this->datatype->endOfLOB($blob_stream);) {
                                         if ($this->datatype->readLOB($blob_stream, $data, $this->options['lob_buffer_length']) < 0) {
                                             $success = $this->raiseError();
                                             break;
@@ -519,7 +519,7 @@ class MDB_oci8 extends MDB_Common
                 return $this->oci8RaiseError(null, 'Could not parse query');
             }
         }
-        for(reset($descriptors), $descriptor = 0;
+        for (reset($descriptors), $descriptor = 0;
             $descriptor < count($descriptors);
             $descriptor++, next($descriptors))
         {
@@ -674,7 +674,7 @@ class MDB_oci8 extends MDB_Common
         if (!isset($this->results[$result_value]['columns'])) {
             $this->results[$result_value]['columns'] = array();
             $columns = @OCINumCols($result);
-            for($column = 0; $column < $columns; $column++) {
+            for ($column = 0; $column < $columns; $column++) {
                 $name = strtolower(@OCIColumnName($result, $column + 1));
                 $this->results[$result_value]['columns'][$name] = $column;
             }

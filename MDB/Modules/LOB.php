@@ -298,7 +298,7 @@ class MDB_LOB_Output_File extends MDB_LOB
         $buffer_length = ($length == 0 ? $this->buffer_length : $length);
         $written_full = 0;
         do {
-            for($written = 0;
+            for ($written = 0;
                 !$this->db->datatype->endOfLOB($this->input_lob)
                 && $written < $buffer_length;
                 $written += $read)
@@ -315,7 +315,7 @@ class MDB_LOB_Output_File extends MDB_LOB
                 }
             }
             $written_full += $written;
-        } while($length == 0 && !$this->db->datatype->endOfLOB($this->input_lob));
+        } while ($length == 0 && !$this->db->datatype->endOfLOB($this->input_lob));
         return $written_full;
     }
 }
