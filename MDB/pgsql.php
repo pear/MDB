@@ -1269,7 +1269,7 @@ class MDB_pgsql extends MDB_Common
         }
 
         if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-            $row = @pg_fetch_assoc($result, $rownum, PGSQL_ASSOC);
+            $row = @pg_fetch_array($result, $rownum, PGSQL_ASSOC);
             if (is_array($row) && $this->options['optimize'] == 'portability') {
                 $row = array_change_key_case($row, CASE_LOWER);
             }
