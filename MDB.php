@@ -345,40 +345,13 @@ class MDB
             return PEAR::raiseError(NULL, DB_ERROR_NOT_FOUND,
                 NULL, NULL, NULL, 'MDB_Error', TRUE);
         }
-        $db = new $class_name;
+        $db = new $class_name($dsninfo, $options);
         
         global $databases;
         $database = count($databases)+1;
         $databases[$database] = &$db;
         $db->database = $database;
         
-        $db->include_path = $include_path;
-        if (isset($dsninfo["hostspec"])) {
-            $db->host = $dsninfo["hostspec"];
-        }
-        if (isset($dsninfo["username"])) {
-            $db->user = $dsninfo["username"];
-        }
-        if (isset($dsninfo["password"])) {
-            $db->password = $dsninfo["password"];
-        }
-        if (is_array($options)) {
-            $db->options = array_merge($db->options, $options);
-        }
-        if ($db->options['includelob']) {
-            $db->loadLob('load at start');
-        }
-        if ($db->options['includemanager']) {
-            $db->loadManager('load at start');
-        }
-        if(isset($dsninfo["database"])) {
-            $db->setDatabase($dsninfo["database"]);
-            $err = $db->connect();
-            if (MDB::isError($err)) {
-                $err->addUserInfo($dsn);
-                return $err;
-            }
-        }
         return $db;
     }
 

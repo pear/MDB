@@ -71,9 +71,11 @@ class MDB_driver_pgsql extends MDB_common {
     /**
      * Constructor
      **/
-    function MDB_driver_pgsql()
+    function MDB_driver_pgsql($dsninfo, $options)
     {
-        $this->MDB_common();
+        if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
+            return $common_contructor;
+        }
         $this->phptype = 'pgsql';
         $this->dbsyntax = 'pgsql';
 
@@ -90,10 +92,8 @@ class MDB_driver_pgsql extends MDB_common {
         $this->supported["LOBs"] = 1;
         $this->supported["Replace"] = 1;
         $this->supported["SubSelects"] = 1;
-
+        
         $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
-
-        $this->errorcode_map = array();
 
         if (function_exists("pg_cmdTuples")) {
             $connection = $this->_doConnect("template1", 0);
@@ -106,7 +106,7 @@ class MDB_driver_pgsql extends MDB_common {
                     }
                     error_reporting($error_reporting);
                 } else {
-                    $err = $this->raiseError(DB_ERROR, NULL, NULL, "Setup: " . pg_ErrorMessage($connection));
+                    $err = $this->raiseError(DB_ERROR, NULL, NULL, "Setup: ".pg_ErrorMessage($connection));
                 }
                 pg_Close($connection);
             } else {

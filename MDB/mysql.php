@@ -75,9 +75,11 @@ class MDB_driver_mysql extends MDB_common
     /**
     * Constructor
     */
-    function MDB_driver_mysql()
+    function MDB_driver_mysql($dsninfo, $options)
     {
-        $this->MDB_common();
+        if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
+            return $common_contructor;
+        }
         $this->phptype = 'mysql';
         $this->dbsyntax = 'mysql';
 
@@ -91,7 +93,7 @@ class MDB_driver_mysql extends MDB_common
         $this->supported["LOBs"] = 1;
         $this->supported["Replace"] = 1;
         $this->supported["SubSelects"] = 0;
-        if (!MDB::isError($this->getOption("UseTransactions"))) {
+        if ($this->options["UseTransactions"]) {
             $this->supported["Transactions"] = 1;
         }
         $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
@@ -711,7 +713,7 @@ class MDB_driver_mysql extends MDB_common
     *
     * @access public
     */
-    function fetchBLobResult($result, $row, $field)
+    function fetchBlobResult($result, $row, $field)
     {
         return ($this->fetchLobResult($result, $row, $field));
     }
@@ -910,7 +912,7 @@ class MDB_driver_mysql extends MDB_common
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
      */
-    function getBLobDeclaration($name, &$field)
+    function getBlobDeclaration($name, &$field)
     {
         if (isset($field['length'])) {
             $length = $field['length'];
@@ -1208,7 +1210,7 @@ class MDB_driver_mysql extends MDB_common
      * 
      * @access private
      */
-    function freeBLobValue($prepared_query, $blob)
+    function freeBlobValue($prepared_query, $blob)
     {
         unset($value);
         return (DB_OK);

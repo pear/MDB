@@ -222,12 +222,40 @@ class MDB_common extends PEAR
     /**
     * Constructor
     */
-    function MDB_common()
+    function MDB_common($dsninfo, $options)
     {
         $this->PEAR('MDB_Error');
         $this->supported = array();
         $this->errorcode_map = array();
         $this->fetchmode = DB_FETCHMODE_ORDERED;
+
+        $this->include_path = $include_path;
+        if (isset($dsninfo["hostspec"])) {
+            $this->host = $dsninfo["hostspec"];
+        }
+        if (isset($dsninfo["username"])) {
+            $this->user = $dsninfo["username"];
+        }
+        if (isset($dsninfo["password"])) {
+            $this->password = $dsninfo["password"];
+        }
+        if (isset($options['includelob'])) {
+            $this->loadLob('load at start');
+        }
+        if (isset($options['includemanager'])) {
+            $this->loadManager('load at start');
+        }
+        if (is_array($options)) {
+            $this->options = array_merge($this->options, $options);
+        }
+        if(isset($dsninfo["database"])) {
+            $this->setDatabase($dsninfo["database"]);
+            $err = $this->connect();
+            if (MDB::isError($err)) {
+                $err->addUserInfo($dsn);
+                return $err;
+            }
+        }
     }
 
     // }}}
