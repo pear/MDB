@@ -69,27 +69,42 @@ define('MDB_TYPE_BLOB'      , 9);
  */
 class MDB_Datatype_Common
 {
-    // }}}
-    // {{{ setParamText()
+    var $valid_types = array(
+        'text'      => MDB_TYPE_TEXT,
+        'boolean'   => MDB_TYPE_BOOLEAN,
+        'integer'   => MDB_TYPE_INTEGER,
+        'decimal'   => MDB_TYPE_DECIMAL,
+        'float'     => MDB_TYPE_FLOAT,
+        'date'      => MDB_TYPE_DATE,
+        'time'      => MDB_TYPE_TIME,
+        'timestamp' => MDB_TYPE_TIMESTAMP,
+        'clob'      => MDB_TYPE_CLOB,
+        'blob'      => MDB_TYPE_BLOB
+    );
 
-    /**
-     * Set a parameter of a prepared query with a text value.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
-     * @param int $parameter order number of the parameter in the query
-     *       statement. The order number of the first parameter is 1.
-     * @param string $value text value that is meant to be assigned to
-     *       specified parameter.
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see setParam()
-     */
-    function setParamText(&$db, $prepared_query, $parameter, $value)
-    {
-        return $this->setParam($prepared_query, $parameter, 'text', $this->getTextValue($value));
-    }
+     // {{{ setParamBlob()
+ 
+     /**
+      * Set a parameter of a prepared query with a binary large object value.
+      *
+      * @param object    &$db reference to driver MDB object
+      * @param int $prepared_query argument is a handle that was returned by
+      *       the function prepareQuery()
+      * @param int $parameter order number of the parameter in the query
+      *       statement. The order number of the first parameter is 1.
+      * @param int $value handle of large object created with createLOB()
+      *       function from which it will be read the data value that is meant
+      *       to be assigned to specified parameter.
+      * @param string $field name of the field of a INSERT or UPDATE query to
+      *       which it will be assigned the value to specified parameter.
+      * @return mixed MDB_OK on success, a MDB error on failure
+      * @access public
+      * @see setParam()
+      */
+     function setParamBlob(&$db, $prepared_query, $parameter, $value, $field)
+     {
+         return $this->setParam($prepared_query, $parameter, 'blob', $value, 0, $field);
+     }
 
     // }}}
     // {{{ setParamClob()
@@ -114,185 +129,6 @@ class MDB_Datatype_Common
     function setParamClob(&$db, $prepared_query, $parameter, $value, $field)
     {
         return $this->setParam($prepared_query, $parameter, 'clob', $value, 0, $field);
-    }
-
-    // }}}
-    // {{{ setParamBlob()
-
-    /**
-     * Set a parameter of a prepared query with a binary large object value.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
-     * @param int $parameter order number of the parameter in the query
-     *       statement. The order number of the first parameter is 1.
-     * @param int $value handle of large object created with createLOB()
-     *       function from which it will be read the data value that is meant
-     *       to be assigned to specified parameter.
-     * @param string $field name of the field of a INSERT or UPDATE query to
-     *       which it will be assigned the value to specified parameter.
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see setParam()
-     */
-    function setParamBlob(&$db, $prepared_query, $parameter, $value, $field)
-    {
-        return $this->setParam($prepared_query, $parameter, 'blob', $value, 0, $field);
-    }
-
-    // }}}
-    // {{{ setParamInteger()
-
-    /**
-     * Set a parameter of a prepared query with a text value.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
-     * @param int $parameter order number of the parameter in the query
-     *       statement. The order number of the first parameter is 1.
-     * @param int $value an integer value that is meant to be assigned to
-     *       specified parameter.
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see setParam()
-     */
-    function setParamInteger(&$db, $prepared_query, $parameter, $value)
-    {
-        return $this->setParam($prepared_query, $parameter, 'integer', $this->getIntegerValue($value));
-    }
-
-    // }}}
-    // {{{ setParamBoolean()
-
-    /**
-     * Set a parameter of a prepared query with a boolean value.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
-     * @param int $parameter order number of the parameter in the query
-     *       statement. The order number of the first parameter is 1.
-     * @param boolean $value boolean value that is meant to be assigned to
-     *       specified parameter.
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see setParam()
-     */
-    function setParamBoolean(&$db, $prepared_query, $parameter, $value)
-    {
-        return $this->setParam($prepared_query, $parameter, 'boolean', $this->getBooleanValue($value));
-    }
-
-    // }}}
-    // {{{ setParamDate()
-
-    /**
-     * Set a parameter of a prepared query with a date value.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
-     * @param int $parameter order number of the parameter in the query
-     *       statement. The order number of the first parameter is 1.
-     * @param string $value date value that is meant to be assigned to
-     *       specified parameter.
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see setParam()
-     */
-    function setParamDate(&$db, $prepared_query, $parameter, $value)
-    {
-        return $this->setParam($prepared_query, $parameter, 'date', $this->getDateValue($value));
-    }
-
-    // }}}
-    // {{{ setParamTimestamp()
-
-    /**
-     * Set a parameter of a prepared query with a time stamp value.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
-     * @param int $parameter order number of the parameter in the query
-     *       statement. The order number of the first parameter is 1.
-     * @param string $value time stamp value that is meant to be assigned to
-     *       specified parameter.
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see setParam()
-     */
-    function setParamTimestamp(&$db, $prepared_query, $parameter, $value)
-    {
-        return $this->setParam($prepared_query, $parameter, 'timestamp', $this->getTimestampValue($value));
-    }
-
-    // }}}
-    // {{{ setParamTime()
-
-    /**
-     * Set a parameter of a prepared query with a time value.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
-     * @param int $parameter order number of the parameter in the query
-     *       statement. The order number of the first parameter is 1.
-     * @param string $value time value that is meant to be assigned to
-     *       specified parameter.
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see setParam()
-     */
-    function setParamTime(&$db, $prepared_query, $parameter, $value)
-    {
-        return $this->setParam($prepared_query, $parameter, 'time', $this->getTimeValue($value));
-    }
-
-    // }}}
-    // {{{ setParamFloat()
-
-    /**
-     * Set a parameter of a prepared query with a float value.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
-     * @param int $parameter order number of the parameter in the query
-     *       statement. The order number of the first parameter is 1.
-     * @param string $value float value that is meant to be assigned to
-     *       specified parameter.
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see setParam()
-     */
-    function setParamFloat(&$db, $prepared_query, $parameter, $value)
-    {
-        return $this->setParam($prepared_query, $parameter, 'float', $this->getFloatValue($value));
-    }
-
-    // }}}
-    // {{{ setParamDecimal()
-
-    /**
-     * Set a parameter of a prepared query with a decimal value.
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param int $prepared_query argument is a handle that was returned by
-     *       the function prepareQuery()
-     * @param int $parameter order number of the parameter in the query
-     *       statement. The order number of the first parameter is 1.
-     * @param string $value decimal value that is meant to be assigned to
-     *       specified parameter.
-     * @return mixed MDB_OK on success, a MDB error on failure
-     * @access public
-     * @see setParam()
-     */
-    function setParamDecimal(&$db, $prepared_query, $parameter, $value)
-    {
-        return $this->setParam($prepared_query, $parameter, 'decimal', $this->getDecimalValue($value));
     }
 
     // }}}
@@ -327,32 +163,13 @@ class MDB_Datatype_Common
                 'Set result types: attempted to redefine the types of the columns of a result set');
         }
 
-        $columns = $db->numCols($result);
-        if (MDB::isError($columns)) {
-            return $columns;
-        }
-        if ($columns < count($types)) {
-            return $db->raiseError(MDB_ERROR_SYNTAX, null, null,
-                'Set result types: it were specified more result types (' . count($types) . ') than result columns (' . $columns . ')');
-        }
-        $valid_types = array(
-            'text'      => MDB_TYPE_TEXT,
-            'boolean'   => MDB_TYPE_BOOLEAN,
-            'integer'   => MDB_TYPE_INTEGER,
-            'decimal'   => MDB_TYPE_DECIMAL,
-            'float'     => MDB_TYPE_FLOAT,
-            'date'      => MDB_TYPE_DATE,
-            'time'      => MDB_TYPE_TIME,
-            'timestamp' => MDB_TYPE_TIMESTAMP,
-            'clob'      => MDB_TYPE_CLOB,
-            'blob'      => MDB_TYPE_BLOB
-        );
-        for($column = 0; $column < count($types); $column++) {
-            if (!isset($valid_types[$types[$column]])) {
+        $columns = count($types);
+        for($column = 0; $column < $columns; $column++) {
+            if (!isset($this->valid_types[$types[$column]])) {
                 return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                     'Set result types: ' . $types[$column] . ' is not a supported column type');
             }
-            $db->results[$result_value]['types'][$column] = $valid_types[$types[$column]];
+            $db->results[$result_value]['types'][$column] = $this->valid_types[$types[$column]];
         }
         while ($column < $columns) {
             $db->results[$result_value]['types'][$column] = MDB_TYPE_TEXT;
