@@ -25,10 +25,8 @@
 
 
 require("metabase_wrapper.php");
-require("parser.php");
 require("manager.php");
 require("lob.php");
-require("xml_parser.php");
 
 Function VerifyFetchedValues($database,$result,$row,&$data,&$value,&$field)
 {
