@@ -42,29 +42,21 @@
     echo "<br>numCols() ";
     Var_Dump::display($result->numCols());
     $result->fetchInto(&$arr);
-    echo "<br>fetchInto(&$arr) ";
+    echo "<br>fetchInto() ";
     Var_Dump::display($arr);
     echo "<br>free() ";
     Var_Dump::display($result->free());
 
     $result = $db->query($query);
-    echo "<br>nextResult() ";
-    Var_Dump::display($result->nextResult());
-	if($result->nextResult())
-	{
-		echo "true";
-	} else {
-		echo "false";
-	}
     echo "<br>numRows() ";
     Var_Dump::display($result->numRows());
     echo "<br>fetchRow() ";
     Var_Dump::display($result->fetchRow());
 
     // lets create a sequence on demand
-	echo "<br>get the next id using on demand:<br>";
+    echo "<br>get the next id using on demand:<br>";
     echo "<br>nextId:".$db->nextId("real_funky_id_2");
-	echo "<br>dropSequence:".$db->dropSequence("real_funky_id_2");
+    echo "<br>dropSequence:".$db->dropSequence("real_funky_id_2");
 
     // lets create a sequence
     echo "<br>create a new seq with start 3 name real_funky_id<br>";
