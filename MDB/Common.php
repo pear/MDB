@@ -885,7 +885,7 @@ class MDB_Common extends PEAR
             default:
                 $dsn = $this->phptype.'://'.$this->user.':'
                     .$this->password.'@'.$this->host
-                    .(isset($this->port) ? (':'.$this->port) : '')
+                    .($this->port ? (':'.$this->port) : '')
                     .'/'.$this->database_name;
                 break;
         }
@@ -1762,9 +1762,12 @@ class MDB_Common extends PEAR
         $this->debug("PrepareQuery: $query");
         $positions = array();
         for($position = 0;
-            $position < strlen($query) && gettype($question = strpos($query, '?', $position)) == 'integer';) {
-            if (gettype($quote = strpos($query, "'", $position)) == 'integer' && $quote < $question) {
-                if (gettype($end_quote = strpos($query, "'", $quote + 1)) != 'integer') {
+            $position < strlen($query) && is_integer($question = strpos($query, '?', $position));
+        ) {
+            if (is_integer($quote = strpos($query, "'", $position))
+                && $quote < $question
+            ) {
+                if (!is_integer($end_quote = strpos($query, "'", $quote + 1))) {
                     return($this->raiseError(MDB_ERROR_SYNTAX, NULL, NULL,
                         'Prepare query: query with an unterminated text string specified'));
                 }
@@ -1790,7 +1793,8 @@ class MDB_Common extends PEAR
                 $position = $question + 1;
             }
         }
-        $this->prepared_queries[] = array('Query' => $query,
+        $this->prepared_queries[] = array(
+            'Query' => $query,
             'Positions' => $positions,
             'Values' => array(),
             'Types' => array()
@@ -1886,7 +1890,10 @@ class MDB_Common extends PEAR
             return($result);
         }
         $index = $prepared_query-1;
-        for($this->clobs[$prepared_query] = $this->blobs[$prepared_query] = array(), $query = '', $last_position = $position = 0;
+        $success = MDB_OK;
+        $this->clobs[$prepared_query] = $this->blobs[$prepared_query] = array();
+        $query = '';
+        for($last_position = $position = 0;
             $position < count($this->prepared_queries[$index]['Positions']);
             $position++) {
             if (!isset($this->prepared_queries[$index]['Values'][$position])) {
@@ -1919,13 +1926,15 @@ class MDB_Common extends PEAR
             }
             $last_position = $current_position + 1;
         }
-        if (!isset($success) || !MDB::isError($success)) {
+        if (!MDB::isError($success)) {
             $query .= substr($this->prepared_queries[$index]['Query'], $last_position);
             if ($this->selected_row_limit > 0) {
                 $this->prepared_queries[$index]['First'] = $this->first_selected_row;
                 $this->prepared_queries[$index]['Limit'] = $this->selected_row_limit;
             }
-            if (isset($this->prepared_queries[$index]['Limit']) && $this->prepared_queries[$index]['Limit'] > 0) {
+            if (isset($this->prepared_queries[$index]['Limit'])
+                && $this->prepared_queries[$index]['Limit'] > 0
+            ) {
                 $this->first_selected_row = $this->prepared_queries[$index]['First'];
                 $this->selected_row_limit = $this->prepared_queries[$index]['Limit'];
             } else {
@@ -3472,6 +3481,10 @@ class MDB_Common extends PEAR
      */
     function getValue($type, $value)
     {
+        if (empty($type)) {
+            return($this->raiseError(MDB_ERROR_SYNTAX, NULL, NULL,
+                'getValue: called without type to convert to'));
+        }
         if (method_exists($this,"get{$type}Value")) {
             return $this->{"get{$type}Value"}($value);
         }
@@ -3543,9 +3556,9 @@ class MDB_Common extends PEAR
     {
         $this->warnings[] = 'database does not support getting current
             sequence value, the sequence value was incremented';
-        expectError(MDB_ERROR_NOT_CAPABLE);
+        $this->expectError(MDB_ERROR_NOT_CAPABLE);
         $id = $this->nextId($seq_name);
-        popExpectError(MDB_ERROR_NOT_CAPABLE);
+        $this->popExpectError(MDB_ERROR_NOT_CAPABLE);
         if (MDB::isError($id)) {
             if ($id->getCode() == MDB_ERROR_NOT_CAPABLE) {
                 return($this->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
