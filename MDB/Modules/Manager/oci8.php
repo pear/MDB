@@ -381,7 +381,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
         if (MDB::isError($result)) {
             return($result);
         }
-        if ($db->options['optimize'] == 'portability') {
+        if ($db->options['optimize'] != 'portability') {
             $columns = array_flip($columns);
             $columns = array_change_key_case($columns, CASE_LOWER);
             $columns = array_flip($columns);
