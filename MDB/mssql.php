@@ -586,7 +586,7 @@ class MDB_mssql extends MDB_Common
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
-        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
+        $result = $this->query("INSERT INTO $sequence_name (sequence) DEFAULT VALUES");
         $this->popExpect();
         if (MDB::isError($result)) {
             if ($ondemand && $result->getCode() == MDB_ERROR_NOSUCHTABLE) {
@@ -605,7 +605,9 @@ class MDB_mssql extends MDB_Common
             }
             return $result;
         }
-        $value = intval(mssql_insert_id($this->connection));
+        $result = $this->query("SELECT @@IDENTITY FROM $sequence_name", 'integer');
+        $value = $this->fetchOne($result);
+        $this->freeResult($result);
         $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($res)) {
             $this->warnings[] = 'Next ID: could not delete previous sequence table values';
