@@ -246,7 +246,7 @@ class MDB_PEAR_PROXY
 
     function execute($stmt, $data = FALSE)
     {
-        $result = $this->MDB_object->execute($stmt, $data);
+        $result = $this->MDB_object->execute($stmt, NULL, $data);
         if (DB::isError($result) || $result === DB_OK) {
             return $result;
         } else {
@@ -256,7 +256,7 @@ class MDB_PEAR_PROXY
 
     function executeMultiple( $stmt, &$data )
     {
-        return $this->MDB_object->executeMultiple( $stmt, &$data );
+        return $this->MDB_object->executeMultiple($stmt, NULL, &$data);
     }
 
     function &query($query, $params = array()) {
@@ -292,32 +292,32 @@ class MDB_PEAR_PROXY
 
     function &getOne($query, $params = array())
     {
-        return $this->MDB_object->getOne($query, $params);
+        return $this->MDB_object->getOne($query, NULL, $params);
     }
 
     function &getRow($query,
                      $params = NULL,
                      $fetchmode = DB_FETCHMODE_DEFAULT)
     {
-        return $this->MDB_object->getRow($query, $params, $fetchmode);
+        return $this->MDB_object->getRow($query, NULL, $params, NULL, $fetchmode);
     }
 
     function &getCol($query, $col = 0, $params = array())
     {
-        return $this->MDB_object->getCol($query, $col, $params);
+        return $this->MDB_object->getCol($query, NULL, $params, NULL, DB_FETCHMODE_DEFAULT, $col);
     }
 
     function &getAssoc($query, $force_array = FALSE, $params = array(),
                        $fetchmode = DB_FETCHMODE_ORDERED, $group = FALSE)
     {
-        return $this->MDB_object->getAssoc($query, $force_array, $params, $fetchmode, $group);
+        return $this->MDB_object->getAssoc($query, NULL, $params, NULL, $fetchmode, $force_array, $group);
     }
 
     function &getAll($query,
                      $params = NULL,
                      $fetchmode = DB_FETCHMODE_DEFAULT)
     {
-        return $this->MDB_object->getAll($query, $params, $fetchmode);
+        return $this->MDB_object->getAll($query, $params, NULL, $fetchmode);
     }
 
     function autoCommit($onoff = FALSE)
