@@ -61,44 +61,6 @@ require_once('MDB/Modules/Manager/Common.php');
 class MDB_Manager_ibase extends MDB_Manager_common
 {
     
-    // {{{ DBAQuery()
-
-    /**
-     * execute a DBA query
-     *
-     * @param object $db            database object that is extended by this class
-     * @param string $database_file filename of the database
-     * @param string $query         the query
-     * @return mixed                MDB_OK on success, a MDB error on failure
-     * @access public
-     **/
-/*
-    //function DBAQuery(&$db, $database_file, $query)
-    function DBAQuery($database_file, $query)
-    {
-        //global $db;
-        if(!function_exists("ibase_connect")) {
-            return($this->manager->raiseError(MDB_ERROR_MANAGER, '', '',
-                'DBA query: Interbase support is not available in this PHP configuration'));
-        }
-        if(!isset($db->options[$option='DBAUser']) || !isset($db->options[$option='DBAPassword'])) {
-            return($this->raiseError(MDB_ERROR_MANAGER, '', '',
-                "DBA query: it was not specified the Interbase $option option"));
-        }
-        $database = $db->host . (strcmp($database_file, "") ? ':'.$database_file : '');
-        if(($connection=@ibase_connect($database, $db->options['DBAUser'], $db->options['DBAPassword']))<=0) {
-            return($db->raiseError(MDB_ERROR_MANAGER, '', '',
-                "DBA query: Could not connect to Interbase server ($database): ".ibase_errmsg()));
-        }
-        if(!($success=@ibase_query($connection, $query))) {
-            return($db->raiseError(MDB_ERROR_MANAGER, '', '',
-                "DBA query: Could not execute query ($query): ".ibase_errmsg()));
-        }
-        ibase_close($connection);
-        return($success);
-    }
-*/
-    // }}}
     // {{{ createDatabase()
 
     /**
@@ -111,63 +73,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function createDatabase(&$db, $name)
     {
-        //exit to prevent damages :)
-        return ($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL, 'Create database',
-                'this method is not ready yet, sorry...'));
-        
-        //include_once 'Var_Dump.php';
-        //echo $db->database; // it's empty!! how come?
-        //var_dump::display($db);
-        //exit;
-        $user = $db->getOption('DBAUser');
-        if (MDB::isError($user)) {
-            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
-                'it was not specified the Firebird/Interbase DBAUser option'));
-        }
-        $password = $db->getOption('DBAPassword');
-        if (MDB::isError($password)) {
-            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
-                'it was not specified the Firebird/Interbase DBAPassword option'));
-        }
-        $db->database_name = $name;
-        $database_file = $db->getDatabaseFile($name);
-        $database = $db->host . (strcmp($database_file, "") ? ':'.$database_file : '');
-        //$database = (strcmp($database_file, "") ? $database_file : '');
-        
-        $bkp_user = $db->user;
-        $bkp_pwd  = $db->password;
-        $db->user = $user;
-        $db->password = $password;
-        //include_once 'Var_Dump.php';
-        
-        //if(MDB::isError($result = $db->connect())) {
-        //    return $result;
-        //}
-        
-        $db->user = $bkp_user;
-        $db->password = $bkp_pwd;
-        unset($bkp_user);
-        unset($bkp_pwd);
-        
-        //if(($connection = @ibase_connect($database, $user, $password)) <= 0) {
-        //    return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL, 'Create database',
-        //        "Could not connect to Interbase server ($database): ".ibase_errmsg()));
-        //}
-        $query = "CREATE DATABASE '". $database ."'";
-        if(!($success = @ibase_query($this->database, $query))) {
-            return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL, 'Create database',
-                "Could not execute query ($query): ".ibase_errmsg()));
-        }
-        
-        //ibase_close($connection);
-        $database = $name.'new';
-        
-        
-        if(MDB::isError($ret = $db->query($query))) {
-            //var_dump::display($ret);
-            return $ret;
-        }
-        return(MDB_OK);
+        return ($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'Create database',
+                'PHP Interbase API does not support direct queries. You have to '
+                .'create the db manually by using isql command or a similar program'));
     }
 
     // }}}
@@ -183,29 +91,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function dropDatabase(&$db, $name)
     {
-        //exit to prevent damages :)
-        return ($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL, 'Drop database',
-                'this method is not ready yet, sorry...'));
-        
-        $user = $db->getOption('DBAUser');
-        if (MDB::isError($user)) {
-            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
-                'it was not specified the Firebird/Interbase DBAUser option'));
-        }
-        $password = $db->getOption('DBAPassword');
-        if (MDB::isError($password)) {
-            return($db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, NULL, NULL, 'Create database',
-                'it was not specified the Firebird/Interbase DBAPassword option'));
-        }
-        $database_file = $db->getDatabaseFile($name);
-        $database = $db->host . (strcmp($database_file, "") ? ':'.$database_file : '');
-        if(($connection = @ibase_connect($database, $user, $password)) <= 0) {
-            return($db->raiseError(MDB_ERROR_MANAGER, '', '',
-                "DBA query: Could not connect to Interbase server ($database): ".ibase_errmsg()));
-        }
-        return($db->_doQuery('DROP USER '.$db->user.' CASCADE'));
-        
-        return($this->DBAQuery($db->GetDatabaseFile($name),"DROP DATABASE"));
+        return ($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'Drop database',
+                'PHP Interbase API does not support direct queries. You have '
+                .'to drop the db manually by using isql command or a similar program'));
     }
 
     // }}}
