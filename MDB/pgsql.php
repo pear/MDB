@@ -564,12 +564,21 @@ class MDB_pgsql extends MDB_Common
     */
     function endOfResult($result)
     {
-        $result_value = intval($result);
-        if (!isset($this->results[$result_value]['highest_fetched_row'])) {
-            return $this->raiseError(MDB_ERROR, null, null,
-                'End of result attempted to check the end of an unknown result');
+        if ($this->options['result_buffering']) {
+            $result_value = intval($result);
+            if (!isset($this->results[$result_value]['highest_fetched_row'])) {
+                return $this->raiseError(MDB_ERROR, null, null,
+                    'End of result: attempted to check the end of an unknown result');
+            }
+            $numrows = $this->numRows($result);
+            if (MDB::isError($numrows)) {
+                return $this->raiseError(MDB_ERROR, null, null,
+                    'End of result: error when calling numRows: '.$numrows->getUserInfo());
+            }
+            return $this->results[$result_value]['highest_fetched_row'] >= $numrows-1;
         }
-        return $this->results[$result_value]['highest_fetched_row'] >= $this->numRows($result) - 1;
+        return $this->raiseError(MDB_ERROR, null, null,
+            'endOfResult: not supported if option "result_buffering" is not enabled');
     }
 
     // }}}
@@ -716,7 +725,7 @@ class MDB_pgsql extends MDB_Common
         $this->results[$result_value]['highest_fetched_row'] =
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
         $value = @pg_result($result, $rownum, $field);
-        if ($value === FALSE && $value != NULL) {
+        if ($value === false && $value != null) {
             return($this->mysqlRaiseError($errno));
         }
         return($value);
