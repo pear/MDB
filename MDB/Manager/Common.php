@@ -117,7 +117,30 @@ class MDB_manager_database_class extends PEAR
         }
         return (DB_OK);
     }
-    
+
+    // }}}
+    // {{{ _isSequenceName()
+
+    /**
+     * list all tables in the current database
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string $sqn string that containts name of a potential sequence
+     * 
+     * @access privat
+     *
+     * @return mixed name of the sequence if $sqn is a name of a sequence, else FALSE
+     */ 
+    function _isSequenceName(&$db, $sqn)
+    {
+        $seq_pattern = '/^'.preg_replace('/%s/', '([a-z0-9_]+)', $db->options['seqname_format']).'$/i';
+        $seq_name = preg_replace($seq_pattern, '\\1', $sqn);
+        if($seq_name && $sqn == $db->getSequenceName($seq_name)) {
+            return $seq_name;
+        }
+        return FALSE;
+    }
+
     /* PUBLIC METHODS */
 
     function createDatabase(&$db, $database)
