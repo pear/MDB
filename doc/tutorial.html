@@ -322,7 +322,7 @@ It will automatically include the MDB.php file you.</p>
 <p>Prepared queries may have many arguments, all identified by the <tt>?</tt> mark.  Each one has an order number starting from <tt>1</tt>.</p>
 <p>There is one method to set prepared query arguments for each data type supported by <b>MDB</b>.  In the example <tt>setParamText()</tt> was used to set a text argument. <tt>setParamInteger()</tt> would have to be used if the argument was an integer, and so on.  If the argument is meant to be set to <tt>null</tt>, use the method <tt>setParamNull()</tt>.</p>
 <p>Prepared queries may be executed multiple times in the same script and you may change all or part of the argument values before executing them each time.</p>
-<p>After you have executed all the times you need a prepared query in a script, you have to free the resources that it implicitly allocates by calling the method <tt>freePreparedQuery()</tt>.</p>
+<p>After you have executed all the times you need a prepared query in a script, you have to free the resources that it implicitly allocates by calling the method <tt>freePrepared()</tt>.</p>
 <p>Despite the use of prepared queries is mostly meant for scripts where you need to execute the same query more than once, you may find it cleaner to also use them even when they are only executed once, as you only start with constant query strings and constant data value conversion is transparently handled for you by the <tt>setParam()</tt> like methods.</p>
 </ul>
 <h3><li><a name="50.2.4">Retrieving query results</a></li></h3>
@@ -430,7 +430,7 @@ if (!MDB::isError($clob=$mdb->createLob($character_lob)))<br />
 </ul>
 <p><li>Free the prepared query resources.</li></p>
 <ul>
-<p><tt>$mdb->freePreparedQuery($prepared_query);</tt></p>
+<p><tt>$mdb->freePrepared($prepared_query);</tt></p>
 </ul>
 <p><tt>}<br />
 else</tt></p>
@@ -474,7 +474,7 @@ else</tt></p>
 <ul>
 <p><tt>echo $blob->getMessage();</tt></p>
 </ul>
-<p><tt>$mdb->freePreparedQuery($prepared_query);</tt></p>
+<p><tt>$mdb->freePrepared($prepared_query);</tt></p>
 </ul>
 <p><tt>}<br />
 else</tt></p>

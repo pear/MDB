@@ -177,7 +177,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $result = $this->db->execute($prepared_query);
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
@@ -225,7 +225,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             }
         }
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
         $total_fields = count($this->fields);
         for ($i = 0; $i < $total_fields; $i++) {
@@ -257,7 +257,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $result = $this->db->execute($prepared_query);
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
         if (MDB::isError($result)) {
             $error = $result->getMessage();
@@ -273,7 +273,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $result = $this->db->execute($prepared_query);
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
         if (MDB::isError($result)) {
             $error = $result->getMessage();
@@ -309,7 +309,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         $result = $this->db->execute($prepared_query);
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
         if (MDB::isError($result)) {
             $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
@@ -470,7 +470,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             }
         }
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
         for ($rows = 2, $start_row = 0; $start_row < $total_rows; $start_row += $rows) {
 
@@ -722,7 +722,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             }
         }
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
         $prepared_query = $this->db->prepare('UPDATE users SET user_password=? WHERE user_id < ?');
 
@@ -742,7 +742,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         }
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
         $prepared_query = $this->db->prepare('DELETE FROM users WHERE user_id >= ?');
 
@@ -761,7 +761,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         }
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
     }
 
     /**
@@ -821,7 +821,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $autocommit = $this->db->autocommit(1);
         $this->assertTrue(!MDB::isError($autocommit), 'Error autocommiting transactions');
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
         $result = $this->db->query('SELECT * FROM users');
         if (MDB::isError($result)) {
@@ -871,7 +871,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         }
         $this->assertTrue(!$is_error, 'Error executing prepared query: '.$msg);
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
         $result = $this->db->query('SELECT document, picture FROM files', array('clob', 'blob'));
         if (MDB::isError($result)) {
@@ -956,7 +956,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $result = $this->db->execute($prepared_query);
         $this->assertTrue(!MDB::isError($result), 'Error executing prepared query - inserting LOB from files');
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
         $result = $this->db->query('SELECT document, picture FROM files', array('clob', 'blob'));
         if (MDB::isError($result)) {
@@ -1016,7 +1016,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $result = $this->db->execute($prepared_query);
         $this->assertTrue(!MDB::isError($result), 'Error executing prepared query - inserting NULL lobs');
 
-        $this->db->freePreparedQuery($prepared_query);
+        $this->db->freePrepared($prepared_query);
 
         $result = $this->db->query('SELECT document, picture FROM files', array('clob', 'blob'));
         if (MDB::isError($result)) {

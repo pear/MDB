@@ -252,7 +252,7 @@ class MDB_Extended
         }
 
         $one = $db->fetch($result);
-        $db->freePreparedQuery($prepared_query);
+        $db->freePrepared($prepared_query);
         $db->freeResult($result);
         return $one;
     }
@@ -295,7 +295,7 @@ class MDB_Extended
         }
 
         $row = $db->fetchRow($result, $fetchmode);
-        $db->freePreparedQuery($prepared_query);
+        $db->freePrepared($prepared_query);
         $db->freeResult($result);
         return $row;
     }
@@ -341,7 +341,7 @@ class MDB_Extended
         }
 
         $col = $db->fetchCol($result, $colnum);
-        $db->freePreparedQuery($prepared_query);
+        $db->freePrepared($prepared_query);
         $db->freeResult($result);
         return $col;
     }
@@ -393,7 +393,7 @@ class MDB_Extended
         }
 
         $all = $db->fetchAll($result, $fetchmode, $rekey, $force_array, $group);
-        $db->freePreparedQuery($prepared_query);
+        $db->freePrepared($prepared_query);
         $db->freeResult($result);
         return $all;
     }
@@ -511,7 +511,7 @@ class MDB_Extended
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $prepared_query = $this->autoPrepare($table, array_keys($fields_values), $mode, $where);
         $result =& $this->executeParams($prepared_query, $types, array_values($fields_values), $param_types, $result_mode);
-        $db->freePreparedQuery($prepared_query);
+        $db->freePrepared($prepared_query);
         return $result;
     }
 
