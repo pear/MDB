@@ -45,8 +45,8 @@
 // $Id$
 //
 
-require(dirname(__FILE__).'/metabase_wrapper.php');
-require(dirname(__FILE__).'/manager.php');
+require 'MDB/metabase_wrapper.php';
+require 'MDB/Manager.php';
 
 /**
 * Metabase test suite
