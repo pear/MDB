@@ -1153,11 +1153,9 @@ class MDB_driver_mysql extends MDB_common
     function getClobValue($prepared_query, $parameter, $clob)
     {
         $value = "'";
-        while(!endOfLob($clob)) {
-            if (readLob($clob, $data, $this->options['lob_buffer_length']) < 0) {
-                $value = '';
-                return $this->raiseError(DB_ERROR, '', '',
-                    'Get CLOB field value: '.LobError($clob));
+        while(!$this->endOfLob($clob)) {
+            if (MDB::isError($result = $this->readLob($clob, $data, $this->options['lob_buffer_length']))) {
+                return $result;
             }
             $value .= $this->_quote($data);
         }
@@ -1201,11 +1199,9 @@ class MDB_driver_mysql extends MDB_common
     function getBlobValue($prepared_query, $parameter, $blob)
     {
         $value = "'";
-        while(!endOfLob($blob)) {
-            if (!readLob($blob, $data, $this->options['lob_buffer_length'])) {
-                $value = '';
-                return $this->raiseError(DB_ERROR, '', '',
-                    'Get BLOB field value: '.LobError($blob));
+        while(!$this->endOfLob($blob)) {
+            if (MDB::isError($result = $this->readLob($blob, $data, $this->options['lob_buffer_length']))) {
+                return $result;
             }
             $value .= addslashes($data);
         }

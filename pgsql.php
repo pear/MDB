@@ -529,7 +529,7 @@ class MDB_driver_pgsql extends MDB_common {
             return ($lobresult);
         }
         $data = pg_loread($this->lobs[$lob]['Handle'], $length);
-        if (GetType($data) != 'string') {
+        if (gettype($data) != 'string') {
             $this->raiseError(DB_ERROR, NULL, NULL, 'Read Result LOB: ' . pg_ErrorMessage($this->connection));
         }
         if (($length = strlen($data)) == 0) {
@@ -903,38 +903,35 @@ class MDB_driver_pgsql extends MDB_common {
         if ($this->auto_commit && !@pg_Exec($this->connection, 'BEGIN')) {
             return $this->raiseError(DB_ERROR, NULL, NULL, 'getLobValue: error starting transaction');
         }
-        $success = 1;
         if (($lo = pg_locreate($this->connection))) {
             if (($handle = pg_loopen($this->connection, $lo, 'w'))) {
-                while (!endOfLob($lob)) {
-                    if (readLob($lob, $data, $this->options['lob_buffer_length']) < 0) {
-                        $this->raiseError(DB_ERROR, NULL, NULL, 'Get LOB field value: ' . lobError($lob));
-                        $success = 0;
+                while (!$this->endOfLob($lob)) {
+                    if (MDB::isError($result = $this->readLob($lob, $data, $this->options['lob_buffer_length']))) {
                         break;
                     }
                     if (!pg_lowrite($handle, $data)) {
-                        $this->raiseError(DB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
-                        $success = 0;
+                        $result = $this->raiseError(DB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
                         break;
                     }
                 }
                 pg_loclose($handle);
-                if ($success) {
+                if (!MDB::isError($result)) {
                     $value = strval($lo);
                 }
             } else {
-                $this->raiseError(DB_ERROR, NULL, NULL, 'Get LOB field value: ' .  pg_ErrorMessage($this->connection));
-                $success = 0;
+                $result = $this->raiseError(DB_ERROR, NULL, NULL, 'Get LOB field value: ' .  pg_ErrorMessage($this->connection));
             }
-            if (!$success) {
-                pg_lounlink($this->connection, $lo);
+            if (MDB::isError($result)) {
+                $result = pg_lounlink($this->connection, $lo);
             }
         } else {
-            $this->raiseError(DB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
-            $success = 0;
+            $result = $this->raiseError(DB_ERROR, NULL, NULL, 'Get LOB field value: ' . pg_ErrorMessage($this->connection));
         }
         if ($this->auto_commit) {
             @pg_Exec($this->connection, 'END');
+        }
+        if (MDB::isError($result)) {
+            return $result;
         }
         return ($value);
     }
