@@ -52,8 +52,9 @@
 *
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
-*/
+ */
 
+require_once 'PEAR.php';
 require_once(dirname(__FILE__).'/MDB.php');
 require_once(dirname(__FILE__).'/parser.php');
 require_once(dirname(__FILE__).'/xml_parser.php');
@@ -73,6 +74,37 @@ class MDB_manager extends PEAR
         'create' => 0,
         'TABLES' => array()
     );
+
+    // }}}
+    // {{{ captureDebugOutput()
+
+    /**
+     * set a debug handler
+     *
+     * @param string $capture name of the function that should be used in
+     *     debug()
+     * @access public
+     * @see debug()
+     */
+    function captureDebugOutput($capture)
+    {
+        $this->debug = $capture;
+        $this->database->captureDebugOutput(1);
+    }
+
+    // }}}
+    // {{{ debugOutput()
+
+    /**
+     * output debug info
+     *
+     * @return string content of the debug_output class variable
+     * @access public
+     */
+    function debugOutput()
+    {
+        return ($this->database->debugOutput());
+    }
 
     // }}}
     // {{{ resetWarnings()
@@ -95,7 +127,6 @@ class MDB_manager extends PEAR
      * This means that the last warning is the first element in the array
      *
      * @return array with warnings
-     *
      * @access public
      * @see resetWarnings()
      */
@@ -111,20 +142,16 @@ class MDB_manager extends PEAR
      * Create a new MDB connection object and connect to the specified
      * database
      *
-     * @access  public
-     *
      * @param   mixed   $dsninfo  'data source name', see the MDB::parseDSN
      *                            method for a description of the dsn format.
      *                            Can also be specified as an array of the
      *                            format returned by MDB::parseDSN.
      *                            Finally you can also pass an existing db
      *                            object to be used.
-     *
      * @param   mixed   $options  An associative array of option names and
      *                            their values.
-     *
      * @return mixed DB_OK on success, or a MDB error object
-     *
+     * @access  public
      * @see     MDB::parseDSN
      */
     function &connect(&$dsninfo, $options = FALSE)
@@ -148,40 +175,6 @@ class MDB_manager extends PEAR
         return (DB_OK);
     }
 
-
-    // }}}
-    // {{{ captureDebugOutput()
-
-    /**
-     * set a debug handler
-     *
-     * @param string $capture name of the function that should be used in
-     *     debug()
-     *
-     * @access public
-     * @see debug()
-     */
-    function captureDebugOutput($capture)
-    {
-        $this->debug = $capture;
-        $this->database->captureDebugOutput(1);
-    }
-
-    // }}}
-    // {{{ debugOutput()
-
-    /**
-     * output debug info
-     *
-     * @access public
-     *
-     * @return string content of the debug_output class variable
-     */
-    function debugOutput()
-    {
-        return ($this->database->debugOutput());
-    }
-
     // }}}
     // {{{ disconnect()
 
@@ -189,7 +182,6 @@ class MDB_manager extends PEAR
      * Log out and disconnect from the database.
      *
      * @access public
-     *
      */
     function disconnect()
     {
@@ -206,10 +198,8 @@ class MDB_manager extends PEAR
      * Select a different database
      *
      * @param string $name name of the database that should be selected
-     *
      * @return string name of the database previously connected to
      * @access public
-     *
      */
     function setDatabase($name)
     {
@@ -218,17 +208,15 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ _createTable()
+
     /**
      * create a table and inititialize the table if data is available
      *
      * @param string $table_name  name of the table to be created
      * @param array  $table       multi dimensional array that containts the
      *                            structure and optional data of the table
-     *
      * @return mixed DB_OK on success, or a MDB error object
-     *
      * @access private
-     *
      */
     function _createTable($table_name, $table)
     {
@@ -366,15 +354,13 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ _dropTable()
+
     /**
      * drop a table
      *
      * @param string $table_name    name of the table to be dropped
-     *
      * @return mixed DB_OK on success, or a MDB error object
-     *
      * @access private
-     *
      */
     function _dropTable($table_name)
     {
@@ -383,6 +369,7 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ _createSequence()
+
     /**
      * create a sequence
      *
@@ -390,11 +377,8 @@ class MDB_manager extends PEAR
      * @param array  $sequence       multi dimensional array that containts the
      *                               structure and optional data of the table
      * @param string $created_on_table
-     *
      * @return mixed DB_OK on success, or a MDB error object
-     *
      * @access private
-     *
      */
     function _createSequence($sequence_name, $sequence, $created_on_table)
     {
@@ -414,46 +398,41 @@ class MDB_manager extends PEAR
             if ($this->database->support('Summaryfunctions')) {
                 $field = "MAX($field)";
             }
-            $result = $this->database->query("SELECT $field FROM $table");
-            if (MDB::isError($result)) {
-                return $result;
+            $start = $this->database->queryOne("SELECT $field FROM $table");
+            if (MDB::isError($start)) {
+                return $start;
             }
-            if (($rows = $this->database->numRows($result))) {
-                for($row = 0; $row < $rows; $row++)    {
-                    if (!$this->database->resultIsNull($result, $row, 0)
-                        && ($value = $this->database->fetch($result, $row, 0) + 1) > $start)
-
-                    {
-                        $start = $value;
-                    }
-                }
-            }
-            $this->database->freeResult($result);
         }
-        $result = $this->database->createSequence($sequence_name, $start);
-
-        return $result;
+        return $this->database->createSequence($sequence_name, $start);
     }
 
     // }}}
     // {{{ _dropSequence()
+
     /**
      * drop a table
      *
      * @param string $sequence_name    name of the sequence to be dropped
-     *
      * @return mixed DB_OK on success, or a MDB error object
-     *
      * @access private
-     *
      */
     function _dropSequence($sequence_name)
     {
+        if (!$this->database->support('Sequences')) {
+            return PEAR::raiseError(NULL, DB_ERROR_UNSUPPORTED, NULL, NULL,
+                'sequences are not supported', 'MDB_Error', TRUE);
+        }
+        $this->database->debug('Dropping sequence: '.$sequence_name);
+        if (!isset($sequence_name) || !strcmp($sequence_name, '')) {
+            return PEAR::raiseError(NULL, DB_ERROR_INVALID, NULL, NULL,
+                'no valid sequence name specified', 'MDB_Error', TRUE);
+        }
         return $this->database->dropSequence($sequence_name);
     }
 
     // }}}
     // {{{ _createDatabase()
+
     /**
      * Create a database space within which may be created database objects
      * like tables, indexes and sequences. The implementation of this function
@@ -461,9 +440,8 @@ class MDB_manager extends PEAR
      * successfully. Consult the documentation or the DBMS drivers that you
      * use to be aware of eventual configuration requirements.
      *
-     * @access private
-     *
      * @return mixed DB_OK on success, or a MDB error object
+     * @access private
      */
     function _createDatabase()
     {
@@ -536,7 +514,7 @@ class MDB_manager extends PEAR
                 if (MDB::isError($res))
                     $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL,
                         'Could not end transaction after successfully created the database ('
-                        .$result->getMessage().' ('.$result->getUserinfo(),'))',
+                        .$res->getMessage().' ('.$res->getUserinfo(),'))',
                         'MDB_Error', TRUE);
             }
         }
@@ -549,7 +527,7 @@ class MDB_manager extends PEAR
         {
             $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL,
                 'Could not drop the created database after unsuccessful creation attempt ('
-                .$result->getMessage().' ('.$result->getUserinfo(),'))',
+                .$res->getMessage().' ('.$res->getUserinfo(),'))',
                 'MDB_Error', TRUE);
         }
 
@@ -558,6 +536,7 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ _addDefinitionChange()
+
     /**
      * add change to an array of multiple changes
      *
@@ -565,10 +544,8 @@ class MDB_manager extends PEAR
      * @param string $definition
      * @param string $item
      * @param array  $change
-     *
-     * @access private
-     *
      * @return mixed DB_OK on success, or a MDB error object
+     * @access private
      */
     function _addDefinitionChange(&$changes, $definition, $item, $change)
     {
@@ -592,14 +569,13 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ _compareDefinitions()
+
     /**
      * compare a previous definition with the currenlty parsed definition
      *
      * @param array multi dimensional array that contains the previous definition
-     *
-     * @access private
-     *
      * @return mixed array of changes on success, or a MDB error object
+     * @access private
      */
     function _compareDefinitions($previous_definition)
     {
@@ -928,6 +904,7 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ _alterDatabase()
+
     /**
      * Execute the necessary actions to implement the requested changes
      * in a database structure.
@@ -936,13 +913,10 @@ class MDB_manager extends PEAR
      * the definition of the database structure before applying the requested
      * changes. The definition of this array may be built separately, but
      * usually it is built by the Parse method the Metabase parser class.
-     *
      * @param array $changes an associative array that contains the definition of
      * the changes that are meant to be applied to the database structure.
-     *
-     * @access private
-     *
      * @return mixed DB_OK on success, or a MDB error object
+     * @access private
      */
     function _alterDatabase($previous_definition, $changes)
     {
@@ -1188,14 +1162,13 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ _escapeSpecialCharacters()
+
     /**
      * add escapecharacters to all special characters in a string
      *
      * @param string $string string that should be escaped
-     *
-     * @access private
-     *
      * @return string escaped string
+     * @access private
      */
     function _escapeSpecialCharacters($string)
     {
@@ -1228,16 +1201,15 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ _dumpSequence()
+
     /**
      * dump the structure of a sequence
      *
      * @param string  $sequence_name
      * @param string  $eol
      * @param boolean $dump_definition
-     *
-     * @access private
-     *
      * @return mixed string with xml seqeunce definition on success, or a MDB error object
+     * @access private
      */
     function _dumpSequence($sequence_name, $eol, $dump = MDB_MANAGER_DUMP_ALL, $dump_definition)
     {
@@ -1263,21 +1235,18 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ _parseDatabaseDefinitionFile()
+
     /**
      * Parse a database definition file by creating a Metabase schema format
      * parser object and passing the file contents as parser input data stream.
      *
      * @param string $input_file the path of the database schema file.
-     *
      * @param array $variables an associative array that the defines the text
      * string values that are meant to be used to replace the variables that are
      * used in the schema description.
-     *
      * @param bool $fail_on_invalid_names (optional) make function fail on invalid
      * names
-     *
      * @return mixed DB_OK on success, or a MDB error object
-     *
      * @access private
      */
     function _parseDatabaseDefinitionFile($input_file, $variables, $fail_on_invalid_names = 1)
@@ -1307,15 +1276,14 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ _debugDatabaseChanges()
+
     /**
      * Dump the changes between two database definitions.
      *
      * @param array $changes an associative array that specifies the list
      * of database definitions changes as returned by the _compareDefinitions
      * manager class function.
-     *
      * @return mixed DB_OK on success, or a MDB error object
-     *
      * @access private
      */
     function _debugDatabaseChanges($changes)
@@ -1441,27 +1409,23 @@ class MDB_manager extends PEAR
 
     // }}}
     // {{{ _dumpDatabaseContents()
+
     /**
      * Parse a database schema definition file and dump the respective structure
      * and contents.
      *
      * @param string $schema_file path of the database schema file.
-     *
      * @param mixed $setup_arguments an associative array that takes pairs of tag names and values
      * that define the setup arguments that are passed to the
      * MDB_manager::connect function.
-     *
      * @param array $dump_arguments an associative array that takes pairs of tag names and values
      * that define dump options as defined for the MDB_manager::DumpDatabase
      * function.
-     *
      * @param array $variables an associative array that the defines the text string values
      * that are meant to be used to replace the variables that are used in the
      * schema description as defined for the
      * MDB_manager::_parseDatabaseDefinitionFile function.
-     *
      * @return mixed DB_OK on success, or a MDB error object
-     *
      * @access private
      */
     function _dumpDatabaseContents($schema_file, $setup_arguments, $dump_arguments, $variables)
@@ -1483,17 +1447,17 @@ class MDB_manager extends PEAR
     }
 
     // }}}
-    // {{{ _getDefinitionFromDatabase()
+    // {{{ getDefinitionFromDatabase()
+
     /**
      * Attempt to reverse engineer a schema structure from an existing DB
      * This method can be used if no xml schema file exists yet.
      * The resulting xml schema file may need some manual adjustments.
      *
-     * @return mixed DB_OK on success, or a MDB error object
-     *
-     * @access private
+     * @return mixed DB_OK or array with all ambiguities on success, or a MDB error object
+     * @access public
      */
-    function _getDefinitionFromDatabase()
+    function getDefinitionFromDatabase()
     {
         $database = $this->database->database_name;
         if (strlen($database) == 0) {
@@ -1522,23 +1486,41 @@ class MDB_manager extends PEAR
                 if (MDB::isError($definition)) {
                     return ($definition);
                 }
-                $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_name] = $definition[0];
+                $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_name] = $definition[0][0];
+                $field_choices = count($definition[0]);
+                for($field_choice = 1; $field_choice < $field_choices; $field_choice++) {
+                    $this->database_definition['TABLES'][$table_name]['FIELDS']['MDB_Alternative_Choice_'.$field_choice.'_for_'.$field_name] = $definition[0][$field_choice];
+                }
+                if($field_choices > 1) {
+                    $this->warnings[] = "there is ambiguity in the table: $table_name
+                        with the field: $field_name. You will manually have to select
+                        the correct field definition in the output";
+                }
+                if(isset($definition[1])) {
+                    $sequence = $definition[1]['definition'];
+                    $sequence_name = $definition[1]['name'];
+                    $this->database->debug('Implicitly defining sequence: '.$sequence_name);
+                    $this->database_definition['SEQUENCES'][$sequence_name] = $sequence;
+                }
+                if(isset($definition[2])) {
+                    $index = $definition[2]['definition'];
+                    $index_name = $definition[2]['name'];
+                    $this->database->debug('Implicitly defining index: '.$index_name);
+                    $this->database_definition['TABLES'][$table_name]['INDEXES'][$index_name] = $index;
+                }
             }
             $indexes = $this->database->listTableIndexes($table_name);
             if (MDB::isError($indexes)) {
                 return($indexes);
             }
-            if(count($indexes)) {
-                $this->database_definition['TABLES'][$table_name]['INDEXES'] = array();
-                for($index=0; $index < count($indexes); $index++)
-                {
-                    $index_name = $indexes[$index];
-                    $definition = $this->database->getTableIndexDefinition($table_name, $index_name);
-                    if (MDB::isError($definition)) {
-                        return($definition);
-                    }
-                    $this->database_definition['TABLES'][$table_name]['INDEXES'][$index_name] = $definition;
+            for($index = 0; $index < count($indexes); $index++)
+            {
+                $index_name = $indexes[$index];
+                $definition = $this->database->getTableIndexDefinition($table_name, $index_name);
+                if (MDB::isError($definition)) {
+                    return($definition);
                 }
+               $this->database_definition['TABLES'][$table_name]['INDEXES'][$index_name] = $definition;
             }
         }
         $sequences = $this->database->listSequences();
@@ -1582,14 +1564,11 @@ class MDB_manager extends PEAR
      *                         end of line delimiter that should be used
      *                         default: "\n"
      *                 );
-     *
      * @param integer $dump constant that determines what data to dump
      *                      MDB_MANAGER_DUMP_ALL       : the entire db
      *                      MDB_MANAGER_DUMP_STRUCTURE : only the structure of the db
      *                      MDB_MANAGER_DUMP_CONTANT   : only the content of the db
-     *
      * @return mixed DB_OK on success, or a MDB error object
-     *
      * @access public
      */
     function dumpDatabase($arguments, $dump = MDB_MANAGER_DUMP_ALL)
@@ -1602,7 +1581,7 @@ class MDB_manager extends PEAR
                     NULL, NULL, 'please connect to a RDBMS first'
                     , 'MDB_Error', TRUE);
             }
-            $this->_getDefinitionFromDatabase();
+            $this->getDefinitionFromDatabase();
             $dump_definition = FALSE;
         }
         $output = FALSE;
@@ -1857,16 +1836,12 @@ class MDB_manager extends PEAR
      *
      * @param string $current_schema_file name of the updated database schema
      * definition file.
-     *
      * @param string $previous_schema_file name the previously installed database
      * schema definition file.
-     *
      * @param array $variables an associative array that is passed to the argument
      * of the same name to the _parseDatabaseDefinitionFile function. (there third
      * param)
-     *
      * @return mixed DB_OK on success, or a MDB error object
-     *
      * @access public
      */
     function updateDatabase($current_schema_file, $previous_schema_file = FALSE, $variables = array())
