@@ -78,7 +78,7 @@ class MDB_Extended
      *       datatype of the result set field, so that an eventual conversion
      *       may be performed. The default datatype is text, meaning that no
      *       conversion is performed
-     * @return mixed field value on success, a MDB error on failure
+     * @return mixed MDB_OK or field value on success, a MDB error on failure
      * @access public
      */
     function queryOne(&$db, $query, $type = null)
@@ -87,9 +87,12 @@ class MDB_Extended
             $type = array($type);
         }
         $result = $db->query($query, $type, false);
-        if (MDB::isError($result)) {
+        if ($result == MDB_OK) {
+            return $result;
+        } else if (MDB::isError($result)) {
             return $result;
         }
+
         $one = $db->fetchOne($result);
 
         if (!$db->options['autofree'] || $one != null) {
@@ -114,15 +117,18 @@ class MDB_Extended
      *       conversions may be performed. The default list of datatypes is
      *       empty, meaning that no conversion is performed.
      * @param int $fetchmode how the array data should be indexed
-     * @return mixed data array on success, a MDB error on failure
+     * @return mixed MDB_OK or data array on success, a MDB error on failure
      * @access public
      */
     function queryRow(&$db, $query, $types = null, $fetchmode = MDB_FETCHMODE_DEFAULT)
     {
         $result = $db->query($query, $types, false);
-        if (MDB::isError($result)) {
+        if ($result == MDB_OK) {
+            return $result;
+        } else if (MDB::isError($result)) {
             return $result;
         }
+
         $row = $db->fetchRow($result, $fetchmode);
 
         if (!$db->options['autofree'] || $row != null) {
@@ -146,7 +152,7 @@ class MDB_Extended
      *       may be performed. The default datatype is text, meaning that no
      *       conversion is performed
      * @param int $colnum the row number to fetch
-     * @return mixed data array on success, a MDB error on failure
+     * @return mixed MDB_OK or data array on success, a MDB error on failure
      * @access public
      */
     function queryCol(&$db, $query, $type = null, $colnum = 0)
@@ -155,9 +161,12 @@ class MDB_Extended
             $type = array($type);
         }
         $result = $db->query($query, $type, false);
-        if (MDB::isError($result)) {
+        if ($result == MDB_OK) {
+            return $result;
+        } else if (MDB::isError($result)) {
             return $result;
         }
+
         $col = $db->fetchCol($result, $colnum);
 
         if (!$db->options['autofree']) {
@@ -190,15 +199,19 @@ class MDB_Extended
      *       wrapped in another array.  If the same key value (in the first
      *       column) repeats itself, the values will be appended to this array
      *       instead of overwriting the existing values.
-     * @return mixed data array on success, a MDB error on failure
+     * @return mixed MDB_OK or data array on success, a MDB error on failure
      * @access public
      */
     function queryAll(&$db, $query, $types = null, $fetchmode = MDB_FETCHMODE_DEFAULT,
         $rekey = false, $force_array = false, $group = false)
     {
-        if (MDB::isError($result = $db->query($query, $types, false))) {
+        $result = $db->query($query, $types, false);
+        if ($result == MDB_OK) {
+            return $result;
+        } else if (MDB::isError($result)) {
             return $result;
         }
+
         $all = $db->fetchAll($result, $fetchmode, $rekey, $force_array, $group);
 
         if (!$db->options['autofree']) {
@@ -224,7 +237,7 @@ class MDB_Extended
      *       with this array as execute parameters
      * @param array $param_types array that contains the types of the values
      *       defined in $params
-     * @return mixed MDB_Error or the returned value of the query
+     * @return mixed MDB_OK or value on success, a MDB error on failure
      * @access public
      */
     function getOne(&$db, $query, $type = null, $params = array(), $param_types = null)
@@ -244,7 +257,9 @@ class MDB_Extended
         }
 
         $result = MDB_Extended::execute($db, $prepared_query, $type, $params, $param_types);
-        if (MDB::isError($result)) {
+        if ($result == MDB_OK) {
+            return $result;
+        } else if (MDB::isError($result)) {
             return $result;
         }
 
@@ -275,8 +290,7 @@ class MDB_Extended
      * @param array $param_types array that contains the types of the values
      *       defined in $params
      * @param integer $fetchmode the fetch mode to use
-     * @return array the first row of results as an array indexed from
-     * 0, or a MDB error code.
+     * @return mixed MDB_OK or data array on success, a MDB error on failure
      * @access public
      */
     function getRow(&$db, $query, $types = null, $params = array(),
@@ -293,7 +307,9 @@ class MDB_Extended
         }
 
         $result = MDB_Extended::execute($db, $prepared_query, $types, $params, $param_types);
-        if (MDB::isError($result)) {
+        if ($result == MDB_OK) {
+            return $result;
+        } else if (MDB::isError($result)) {
             return $result;
         }
 
@@ -323,10 +339,8 @@ class MDB_Extended
      *       with this array as execute parameters
      * @param array $param_types array that contains the types of the values
      *       defined in $params
-     * @param mixed $colnum which column to return (integer [column number,
-     *       starting at 0] or string [column name])
-     * @return array an indexed array with the data from the first
-     * row at index 0, or a MDB error code.
+     * @param mixed $colnum which column to return
+     * @return mixed MDB_OK or data array on success, a MDB error on failure
      * @access public
      */
     function getCol(&$db, $query, $type = null, $params = array(),
@@ -346,7 +360,9 @@ class MDB_Extended
         }
 
         $result = MDB_Extended::execute($db, $prepared_query, $type, $params, $param_types);
-        if (MDB::isError($result)) {
+        if ($result == MDB_OK) {
+            return $result;
+        } else if (MDB::isError($result)) {
             return $result;
         }
 
@@ -385,7 +401,7 @@ class MDB_Extended
      *       wrapped in another array.  If the same key value (in the first
      *       column) repeats itself, the values will be appended to this array
      *       instead of overwriting the existing values.
-     * @return array an nested array, or a MDB error
+     * @return mixed MDB_OK or data array on success, a MDB error on failure
      * @access public
      */
     function getAll(&$db, $query, $types = null, $params = array(),
@@ -403,7 +419,9 @@ class MDB_Extended
         }
 
         $result = MDB_Extended::execute($db, $prepared_query, $types, $params, $param_types);
-        if (MDB::isError($result)) {
+        if ($result == MDB_OK) {
+            return $result;
+        } else if (MDB::isError($result)) {
             return $result;
         }
 
@@ -435,7 +453,7 @@ class MDB_Extended
      *        the query
      * @param array $param_types array that contains the types of the values
      *        defined in $params
-     * @return mixed a new result handle or a MDB_Error when fail
+     * @return mixed MDB_OK or a new result handle or a MDB_Error when fail
      * @access public
      * @see prepare()
      */
