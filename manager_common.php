@@ -17,7 +17,6 @@ class MDB_manager_database_class extends PEAR
     function getField(&$db, &$field, $field_name, &$query)
     {
         if (!strcmp($field_name, "")) {
-            //return($this->setError("Get field", "it was not specified a valid field name (\"$field_name\")"));
             return $db->raiseError(DB_ERROR_NOSUCHFIELD, "", "", "Get field: it was not specified a valid field name (\"$field_name\")");
         }
         switch($field["type"]) {
@@ -55,7 +54,7 @@ class MDB_manager_database_class extends PEAR
                 return $db->raiseError(DB_ERROR_UNSUPPORTED, "", "", "Get field: type \"".$field["type"]."\" is not yet supported");
                 break;
         }
-        return(1);
+        return (DB_OK);
     }
 
     function getFieldList(&$db, &$fields, &$query_fields)
@@ -74,7 +73,7 @@ class MDB_manager_database_class extends PEAR
             }
             $query_fields .= $query;
         }
-        return(1);
+        return (DB_OK);
     }
     
     /* PUBLIC METHODS */
@@ -102,12 +101,12 @@ class MDB_manager_database_class extends PEAR
             // XXX needs more checking
             return $db->raiseError(DB_ERROR_CANNOT_CREATE, "", "", 'unkown error');
         }
-        return($db->query("CREATE TABLE $name ($query_fields)"));
+        return ($db->query("CREATE TABLE $name ($query_fields)"));
     }
 
     function dropTable(&$db, $name)
     {
-        return($db->query("DROP TABLE $name"));
+        return ($db->query("DROP TABLE $name"));
     }
 
     function alterTable(&$db, $name, &$changes, $check)
@@ -171,7 +170,7 @@ class MDB_manager_database_class extends PEAR
             }
             $field_name = Key($definition["FIELDS"]);
             $query.= $field_name;
-            if ($db->Support("IndexSorting") && isset($definition["FIELDS"][$field_name]["sorting"])) {
+            if ($db->support("IndexSorting") && isset($definition["FIELDS"][$field_name]["sorting"])) {
                 switch($definition["FIELDS"][$field_name]["sorting"]) {
                     case "ascending":
                         $query.= " ASC";
@@ -183,12 +182,12 @@ class MDB_manager_database_class extends PEAR
             }
         }
         $query.= ")";
-        return($db->query($query));
+        return ($db->query($query));
     }
 
     function dropIndex(&$db, $table, $name)
     {
-        return($db->query("DROP INDEX $name"));
+        return ($db->query("DROP INDEX $name"));
     }
 
     function createSequence(&$db, $name, $start)
