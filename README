@@ -93,6 +93,10 @@ in order to make it MDB compatible.
 
 The methods towards the bottom are taken from PEAR DB however. Those have to be copied from the corresponding PEAR DB driver.
 
+Another alternative would be to take the mysql.php and hack it to fit the new RDBMS. I would however recommend working with
+the existing Metabase driver for that RDBMS when doing those changes. This will surely be faster and it will ensure that
+the new driver takes full advantage of the MDB framework (which is to large parts based on Metabase).
+
 In order to test the results driver_test.php will be the most comprehensive. This test suite uses the Metabase Wrapper however.
 Therefore I recommend getting MDB_test.php to work first and after that worry about driver_test.php. Also keep in mind
 that you will have to modify driver_test_config.php before running driver_test.php with the new driver.
