@@ -590,10 +590,10 @@ class MDB_Common extends PEAR
     function &loadModule($module, $property = null)
     {
         $module = strtolower($module);
-        if (!isset($this->{$module}) || !is_object($this->{$module})) {
-            if (!$property) {
-                $property = $module;
-            }
+        if (!$property) {
+            $property = $module;
+        }
+        if (!isset($this->{$property}) || !is_object($this->{$property})) {
             $include_dir = 'MDB/Modules/';
             if (@include_once($include_dir.ucfirst($module).'.php')) {
                 $class_name = 'MDB_'.ucfirst($module);
@@ -607,9 +607,9 @@ class MDB_Common extends PEAR
                 return $this->raiseError(MDB_ERROR_LOADMODULE, null, null,
                     'unable to load module: '.$module);
             }
-            $this->{$module} =& new $class_name();
+            $this->{$property} =& new $class_name();
         }
-        return $this->{$module};
+        return $this->{$property};
     }
 
     // }}}
