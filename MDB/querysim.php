@@ -419,7 +419,7 @@ class MDB_querysim extends MDB_Common
                 $result[1] = array_slice($result[1], $first-1, $limit);
             }
             $this->results[$this->_querySimSignature($result)]['highest_fetched_row'] = -1;
-            $result= $this->_return_result($result, $result_mode);
+            $result =& $this->_return_result($result, $result_mode);
             return $result;
         }
         $error =& $this->raiseError();

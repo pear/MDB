@@ -411,7 +411,7 @@ class MDB_fbsql extends MDB_Common
                         return $err;
                     }
                 }
-                $result= $this->_return_result($result, $result_mode);
+                $result =& $this->_return_result($result, $result_mode);
                 return $result;
             }
         }
