@@ -438,7 +438,7 @@ class MDB_pgsql extends MDB_common
      **/
     function query($query, $types = NULL)
     {
-        $this->debug('Query: $query');
+        $this->debug("Query: $query");
         $ismanip = MDB::isManip($query);
         $first = $this->first_selected_row;
         $limit = $this->selected_row_limit;
