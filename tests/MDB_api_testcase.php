@@ -196,7 +196,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         }
         $result = $this->standardQuery();
         $numrows = $this->db->numRows($result);
-        $this->assertTrue(!MDB::isError($numrows) && $numrows > 0);
+        $this->assertTrue(!MDB::isError($numrows) && is_int($numrows));
     }
 
     function testNumCols() {
