@@ -322,9 +322,36 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     }
 
     // }}}
+    // {{{ listTableFields()
+    /**
+     * list all fields in a tables in the current database
+     *
+     * @param $dbs (reference) array where database names will be stored
+     * @param string $table name of table that should be used in method
+     *
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */
+    function listTableFields(&$db, $table)
+    {
+        $result = $db->query("SELECT * FROM $table");
+        if(MDB::isError($result)) {
+            return $result;
+        }
+        $columns = $db->getColumnNames($result);
+        if(MDB::isError($columns)) {
+            $db->freeResult($columns);
+            return $columns;
+        }
+        return $columns;
+    }
+
+
+    // }}}
     // {{{ listViews()
     /**
-     * list the tables in the database
+     * list the views in the database
      * @param  $dbs (reference) array where database names will be stored
      * @return mixed DB_OK on success, a DB error on failure
      **/
@@ -363,6 +390,32 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
     {
         $seqname = $db->getSequenceName($seq_name);
         return($db->query("DROP SEQUENCE $seqname"));
+    }
+
+    // }}}
+    // {{{ listSequences()
+    /**
+     * list all sequences in the current database
+     * @param  $dbs (reference) array where database names will be stored
+     * @access public
+     * @return mixed data array on success, a DB error on failure
+     **/
+    function listSequences(&$db)
+    {
+        // gratuitously stolen and adapted from PEAR DB _getSpecialQuery in pgsql.php
+        $sql = 'SELECT c.relname as "Name"
+            FROM pg_class c, pg_user u
+            WHERE c.relowner = u.usesysid AND c.relkind = \'S\'
+            AND not exists (select 1 from pg_views where viewname = c.relname)
+            AND c.relname !~ \'^pg_\'
+            UNION
+            SELECT c.relname as "Name"
+            FROM pg_class c
+            WHERE c.relkind = \'S\'
+            AND not exists (select 1 from pg_views where viewname = c.relname)
+            AND not exists (select 1 from pg_user where usesysid = c.relowner)
+            AND c.relname !~ \'^pg_\'';
+        return $db->queryCol($sql, NULL, DB_FETCHMODE_ORDERED);
     }
 };
 
