@@ -118,6 +118,44 @@ class MDB_driver_pgsql extends MDB_common {
         $this->errorcode_map = array();
     }
 
+    // }}}
+    // {{{ errorCode()
+
+    /**
+     * Map native error codes to DB's portable ones.  Requires that
+     * the DB implementation's constructor fills in the $errorcode_map
+     * property.
+     *
+     * @param $nativecode the native error code, as returned by the backend
+     * database extension (string or integer)
+     *
+     * @return int a portable DB error code, or FALSE if this DB
+     * implementation has no mapping for the given error code.
+     */
+
+    function errorCode($errormsg)
+    {
+        static $error_regexps;
+        if (empty($error_regexps)) {
+            $error_regexps = array(
+                '/(Table does not exist\.|Relation [\"\'].*[\"\'] does not exist|sequence does not exist|class ".+" not found)$/' => DB_ERROR_NOSUCHTABLE,
+                '/Relation [\"\'].*[\"\'] already exists|Cannot insert a duplicate key into (a )?unique index.*/'      => DB_ERROR_ALREADY_EXISTS,
+                '/divide by zero$/'                     => DB_ERROR_DIVZERO,
+                '/pg_atoi: error in .*: can\'t parse /' => DB_ERROR_INVALID_NUMBER,
+                '/ttribute [\"\'].*[\"\'] not found$|Relation [\"\'].*[\"\'] does not have attribute [\"\'].*[\"\']/' => DB_ERROR_NOSUCHFIELD,
+                '/parser: parse error at or near \"/'   => DB_ERROR_SYNTAX,
+                '/referential integrity violation/'     => DB_ERROR_CONSTRAINT
+            );
+        }
+        foreach ($error_regexps as $regexp => $code) {
+            if (preg_match($regexp, $errormsg)) {
+                return $code;
+            }
+        }
+        // Fall back to DB_ERROR if there was no mapping.
+        return DB_ERROR;
+    }
+
     // }}} 
     // {{{ pgsqlRaiseError()
     function pgsqlRaiseError($errno = NULL)
@@ -213,7 +251,7 @@ class MDB_driver_pgsql extends MDB_common {
         $function = ($persistent ? "pg_pconnect" : "pg_connect");
         if (!function_exists($function)) {
             return ($this->raiseError(DB_ERROR_UNSUPPORTED, NULL, NULL, "doConnect: PostgreSQL support is not available in this PHP configuration"));
-		}
+        }
         $port = (isset($this->options["port"]) ? $this->options["port"] : "");
         $connect_string = "dbname=".$database_name;
         if ($this->host != "") {
@@ -246,10 +284,10 @@ class MDB_driver_pgsql extends MDB_common {
         $port = (isset($this->options["port"]) ? $this->options["port"] : "");
         if ($this->connection != 0) {
             if (!strcmp($this->connected_host, $this->host)
-				&& !strcmp($this->connected_port, $port)
-				&& !strcmp($this->selected_database, $this->database_name)
-				&& ($this->opened_persistent == $this->options['persistent']))
-			{
+                && !strcmp($this->connected_port, $port)
+                && !strcmp($this->selected_database, $this->database_name)
+                && ($this->opened_persistent == $this->options['persistent']))
+            {
                 return (DB_OK);
             }
             pg_Close($this->connection);
@@ -333,8 +371,8 @@ class MDB_driver_pgsql extends MDB_common {
         }
 
         if (!$ismanip && $limit > 0 &&
-            substr(strtolower(ltrim($query)),
-                    0, 6) == "select") {
+            substr(strtolower(ltrim($query)), 0, 6) == "select")
+		{
             if ($this->auto_commit && MDB::isError($this->_doQuery("BEGIN"))) {
                 return $this->raiseError(DB_ERROR);
             }
@@ -850,11 +888,12 @@ class MDB_driver_pgsql extends MDB_common {
      */
     function getLobValue($prepared_query, $parameter, $lob)
     {
-        if (!$this->connect()) {
-            return (0);
+        $connect = $this->connect();
+        if (MDB::isError($connect)) {
+            return $connect;
         }
         if ($this->auto_commit && !@pg_Exec($this->connection, "BEGIN")) {
-            return (0);
+            return $this->raiseError(DB_ERROR, NULL, NULL, 'getLobValue: error starting transaction');
         }
         $success = 1;
         if (($lo = pg_locreate($this->connection))) {
@@ -919,13 +958,13 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
-     * @param string    $value
      *
      * @access private
      */
-    function freeClobValue($prepared_query, $clob, &$value)
+    function freeClobValue($prepared_query, $clob)
     {
-        pg_lounlink($this->connection, intval($value));
+        unset($this->lobs[$clob]);
+        return DB_OK;
     }
 
     // }}}
@@ -955,13 +994,13 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
-     * @param string    $value
      *
      * @access private
      */
-    function freeBlobValue($prepared_query, $blob, &$value)
+    function freeBlobValue($prepared_query, $blob)
     {
-        pg_lounlink($this->connection, intval($value));
+        unset($this->lobs[$blob]);
+        return DB_OK;
     }
 
     // }}}
@@ -1169,6 +1208,23 @@ class MDB_driver_pgsql extends MDB_common {
             return $this->pgsqlRaiseError();
         }
         return ($res);
+    }
+
+    // }}}
+    // {{{ nextResult()
+
+    /**
+     * Move the internal pgsql result pointer to the next available result
+     *
+     * @param a valid fbsql result resource
+     *
+     * @access public
+     *
+     * @return true if a result is available otherwise return false
+     */
+    function nextResult($result)
+    {
+        return FALSE;
     }
 
     // }}}
