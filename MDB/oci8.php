@@ -899,7 +899,7 @@ class MDB_oci8 extends MDB_Common {
                     && @OCIFetchInto($result, $buffer, OCI_RETURN_NULLS)
                 ) {
                     ++$this->highest_fetched_row[$result_value];
-                    $this->results[$result_value][$this->current_row[$result_value]] = $buffer;
+                    $this->results[$result_value][$this->highest_fetched_row[$result_value]] = $buffer;
                 }
                 ++$this->highest_fetched_row[$result_value];
                 $this->results[$result_value][$this->highest_fetched_row[$result_value]] = false;
