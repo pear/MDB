@@ -117,7 +117,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
             case 'float':
                 return 'DOUBLE PRECISION';
             case 'decimal':
-                return 'DECIMAL(18,'.$this->decimal_places .')';
+                return 'DECIMAL(18,'.$db->decimal_places .')';
         }
         return '';
     }
@@ -153,8 +153,9 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     function getTextDeclaration(&$db, $name, $field)
     {
         return $name.' '.$this->getTypeDeclaration($field)
-               .(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($db, $field['default']) : '')
-               .(IsSet($field['notnull']) ? ' NOT NULL' : '');
+               .(isset($field['default']) ? ' DEFAULT '.
+               $this->getTextValue($db, $field['default']) : '').
+               (IsSet($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -378,7 +379,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
                 }
                 if (!ibase_blob_add($lo, $data)) {
                     $result = $db->raiseError(MDB_ERROR, null, null,
-                        '_getLOBValue - Could not add data to a large object: ' . ibase_errmsg());
+                        '_getLOBValue - Could not add data to a large object: '.ibase_errmsg());
                     $success = 0;
                     break;
                 }
@@ -442,13 +443,13 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
     function freeLOBValue(&$db, $lob,&$value)
     {
         $prepared_query;
-        $query_parameter = $this->query_parameter_values[$prepared_query][$lob];
+        $query_parameter = $db->query_parameter_values[$prepared_query][$lob];
 
-        unset($this->query_parameters[$prepared_query][$query_parameter]);
-        unset($this->query_parameter_values[$prepared_query][$lob]);
-        if (count($this->query_parameter_values[$prepared_query]) == 0) {
-            unset($this->query_parameters[$prepared_query]);
-            unset($this->query_parameter_values[$prepared_query]);
+        unset($db->query_parameters[$prepared_query][$query_parameter]);
+        unset($db->query_parameter_values[$prepared_query][$lob]);
+        if (count($db->query_parameter_values[$prepared_query]) == 0) {
+            unset($db->query_parameters[$prepared_query]);
+            unset($db->query_parameter_values[$prepared_query]);
         }
         unset($value);
     }

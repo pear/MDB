@@ -118,7 +118,9 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      */
     function getTextDeclaration(&$db, $name, $field)
     {
-        return (isset($field['length']) ? "$name VARCHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? " DEFAULT '" . $field['default'] . "'" : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        return (isset($field['length']) ? "$name VARCHAR (" . $field['length'] . ')' : "$name TEXT").
+            (isset($field['default']) ? " DEFAULT '" . $field['default'] . "'" : '').
+            (isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -206,7 +208,9 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      */
     function getBooleanDeclaration(&$db, $name, $field)
     {
-        return "$name BOOLEAN" . (isset($field['default']) ? ' DEFAULT ' . $this->getBooleanValue($db, $field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
+        return "$name BOOLEAN" . (isset($field['default']) ? ' DEFAULT '.
+            $this->getBooleanValue($db, $field['default']) : '').
+            (isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -262,7 +266,8 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      */
     function getTimeDeclaration(&$db, $name, $field)
     {
-        return $name.' TIME'.(isset($field['default']) ? ' DEFAULT \''.$field['default'].'\'' : '').(isset($field['notnull']) ? ' NOT NULL' : '');
+        return $name.' TIME'.(isset($field['default']) ? ' DEFAULT \''.$field['default'].'\'' : '').
+            (isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -290,7 +295,9 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      */
     function getFloatDeclaration(&$db, $name, $field)
     {
-        return "$name FLOAT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($db, $field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : '');
+        return "$name FLOAT8 ".(isset($field['default']) ? ' DEFAULT '.
+            $this->getFloatValue($db, $field['default']) : '').
+            (isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -318,7 +325,9 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      */
     function getDecimalDeclaration(&$db, $name, $field)
     {
-        return "$name INT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($db, $field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : '');
+        return "$name INT8 ".(isset($field['default']) ? ' DEFAULT '.
+            $this->getDecimalValue($db, $field['default']) : '').
+            (isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -535,7 +544,9 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
                 }
                 $db->lobs[$lob]['in_transaction'] = 1;
             }
-            if (!($db->lobs[$lob]['handle'] = pg_loopen($db->connection, $db->lobs[$lob]['value'], 'r'))) {
+            $db->lobs[$lob]['handle'] =
+                pg_loopen($db->connection, $db->lobs[$lob]['value'], 'r');
+            if (!$db->lobs[$lob]['handle']) {
                 if (isset($db->lobs[$lob]['in_transaction'])) {
                     pg_Exec($db->connection, 'END');
                     unset($db->lobs[$lob]['in_transaction']);

@@ -122,7 +122,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
     function getIntegerDeclaration(&$db, $name, $field)
     {
         if (isset($field['unsigned'])) {
-            $this->warning =
+            $db->warning =
                 "unsigned integer field \"$name\" is being declared as signed integer";
         }
         return "$name INT"
