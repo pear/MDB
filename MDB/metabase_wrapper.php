@@ -84,10 +84,18 @@ function MetabaseSetupDatabaseObject($arguments, &$db)
 
 function _convertArguments($arguments, &$dsninfo, &$options)
 {
-    $dsninfo['phptype'] = $arguments['Type'];
-    $dsninfo['username'] = $arguments['User'];
-    $dsninfo['password'] = $arguments['Password'];
-    $dsninfo['hostspec'] = $arguments['Host'];
+    if (isset($arguments['Type'])) {
+        $dsninfo['phptype'] = $arguments['Type'];
+    }
+    if (isset($arguments["User"])) {
+        $dsninfo['username'] = $arguments['User'];
+    }
+    if(isset($arguments["Password"])) {
+        $dsninfo['password'] = $arguments['Password'];
+    }
+    if(isset($arguments["Host"])) {
+        $dsninfo['hostspec'] = $arguments['Host'];
+    }
 
     if (isset($arguments["IncludedConstant"])) {
         $options["includedconstant"] = $arguments["IncludedConstant"];
@@ -114,7 +122,7 @@ function _convertArguments($arguments, &$dsninfo, &$options)
         $options["loglinebreak"] = $arguments["LogLineBreak"];
     }
 
-    if(is_array($arguments['options'])) {
+    if(isset($arguments['options']) && is_array($arguments['options'])) {
        $options = array_merge($options, $arguments['options']);
     }
     $options['seqname_format'] = '_sequence_%s';
