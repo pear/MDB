@@ -65,15 +65,17 @@ define('MDB_MANAGER_DUMP_CONTENT',      2);
 
 class MDB_manager extends PEAR
 {
-    var $fail_on_invalid_names = 1;
     var $warnings = array();
-    var $debug = FALSE;
     var $database;
     var $database_definition = array(
         'name' => '',
         'create' => 0,
         'TABLES' => array()
     );
+    var $options = array(
+            'fail_on_invalid_names' => 1,
+            'debug' => 0
+        );
     var $invalid_names = array(
         'user' => array(),
         'is' => array(),
@@ -91,6 +93,41 @@ class MDB_manager extends PEAR
             'ibase' => array()
         )
     );
+    // }}}
+    // {{{ raiseError()
+
+    /**
+     * This method is used to communicate an error and invoke error
+     * callbacks etc.  Basically a wrapper for PEAR::raiseError
+     * without the message string.
+     *
+     * @param mixed $code integer error code, or a PEAR error object (all
+     *      other parameters are ignored if this parameter is an object
+     * @param int $mode error mode, see PEAR_Error docs
+     * @param mixed $options If error mode is PEAR_ERROR_TRIGGER, this is the
+     *      error level (E_USER_NOTICE etc).  If error mode is
+     *      PEAR_ERROR_CALLBACK, this is the callback function, either as a
+     *      function name, or as an array of an object and method name. For
+     *      other error modes this parameter is ignored.
+     * @param string $userinfo Extra debug information.  Defaults to the last
+     *      query and native error code.
+     * @param mixed $nativecode Native error code, integer or string depending
+     *      the backend.
+     * @return object a PEAR error object
+     * @access public
+     * @see PEAR_Error
+     */
+    function &raiseError($code = DB_MANAGER_ERROR, $mode = NULL, $options = NULL,
+        $userinfo = NULL, $nativecode = NULL)
+    {
+        // The error is yet a DB error object
+        if (is_object($code)) {
+            return PEAR::raiseError($code, NULL, NULL, NULL, NULL, NULL, TRUE);
+        }
+
+        return PEAR::raiseError(NULL, $code, $mode, $options, $userinfo,
+            'MDB_Error', TRUE);
+    }
 
     // }}}
     // {{{ captureDebugOutput()
@@ -105,7 +142,7 @@ class MDB_manager extends PEAR
      */
     function captureDebugOutput($capture)
     {
-        $this->debug = $capture;
+        $this->option['debug'] = $capture;
         $this->database->captureDebugOutput(1);
     }
 
@@ -153,6 +190,44 @@ class MDB_manager extends PEAR
     }
 
     // }}}
+    // {{{ setOption()
+
+    /**
+     * set the option for the db class
+     *
+     * @param string $option option name
+     * @param mixed $value value for the option
+     * @return mixed DB_OK or DB_Error
+     * @access public
+     */
+    function setOption($option, $value)
+    {
+        if (isset($this->options[$option])) {
+            $this->options[$option] = $value;
+            return DB_OK;
+        }
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', "unknown option $option");
+    }
+
+    // }}}
+    // {{{ getOption()
+
+    /**
+     * returns the value of an option
+     *
+     * @param string $option option name
+     * @return mixed the option value or error object
+     * @access public
+     */
+    function getOption($option)
+    {
+        if (isset($this->options[$option])) {
+            return $this->options[$option];
+        }
+        return $this->raiseError(DB_ERROR_UNSUPPORTED, '', '', "unknown option $option");
+    }
+
+    // }}}
     // {{{ connect()
 
     /**
@@ -187,7 +262,7 @@ class MDB_manager extends PEAR
             }
         }
         if (isset($options['debug'])) {
-            $this->debug = $options['debug'];
+            $this->option['debug'] = $options['debug'];
         }
         return (DB_OK);
     }
@@ -1534,7 +1609,7 @@ class MDB_manager extends PEAR
     function _dumpDatabaseContents($schema_file, $setup_arguments, $dump_arguments, $variables)
     {
         $database_definition = $this->_parseDatabaseDefinitionFile($schema_file,
-            $variables, $this->fail_on_invalid_names);
+            $variables, $this->option['fail_on_invalid_names']);
         if (MDB::isError($database_definition)) {
             return $database_definition;
         }
@@ -1778,7 +1853,7 @@ class MDB_manager extends PEAR
                             }
                             $buffer .=("$eol   <field>$eol    <name>$field_name</name>$eol    <type>".$field['type']."</type>$eol");
                             if(in_array($field_name, array_keys($this->invalid_names))) {
-                                $this->warnings[] = "invalid field name: $field_name. You will need to set the class var \$fail_on_invalid_names to FALSE";
+                                $this->warnings[] = "invalid field name: $field_name. You will need to set the class var \$fail_on_invalid_names to FALSE or change the field name.";
                             }
                             switch($field['type']) {
                                 case 'integer':
@@ -1986,7 +2061,7 @@ class MDB_manager extends PEAR
     function updateDatabase($current_schema_file, $previous_schema_file = FALSE, $variables = array())
     {
         $database_definition = $this->_parseDatabaseDefinitionFile($current_schema_file,
-            $variables, $this->fail_on_invalid_names);
+            $variables, $this->option['fail_on_invalid_names']);
         if (MDB::isError($database_definition)) {
             return $database_definition;
         }
@@ -2008,7 +2083,7 @@ class MDB_manager extends PEAR
                 }
 
                 $copy = 1;
-                if($this->debug) {
+                if($this->option['debug']) {
                     $result = $this->_debugDatabaseChanges($changes);
                     if (MDB::isError($result)) {
                         return $result;
