@@ -178,12 +178,12 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
         $this->assertTrue(is_resource($result), 'query: $result returned is not a resource');
     }
 
-    function testFetch() {
+    function testFetchInto() {
         if (!$this->methodExists('fetch')) {
             return;
         }
         $result = $this->standardQuery();
-        $err = $this->db->fetch($result, 0, 0);
+        $err = $this->db->fetchInto($result);
         if(MDB::isError($err)) {
             $this->assertTrue(FALSE, 'Error testFetch: '.$err->getMessage().' - '.$err->getUserInfo());
         }
