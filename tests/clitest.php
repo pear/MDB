@@ -1,3 +1,4 @@
+
 <?php
 // +----------------------------------------------------------------------+
 // | PHP Version 4                                                        |
@@ -75,6 +76,14 @@ require_once('Console_TestListener.php');
 
 MDB::loadFile('Manager');
 MDB::loadFile('Date');
+
+PEAR::setErrorHandling(PEAR_ERROR_CALLBACK, 'handle_pear_error');
+function handle_pear_error ($error_obj)
+{
+    print '<pre><b>PEAR-Error</b><br />';
+    echo $error_obj->getMessage().': '.$error_obj->getUserinfo();
+    print '</pre>';
+}
 
 foreach ($testcases as $testcase) {
     include_once($testcase.'.php');
