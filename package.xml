@@ -97,10 +97,11 @@
   <release>
     <version>1.1.4RC5</version>
     <state>devel</state>
-    <date></date>
+    <date>2003-12-06</date>
     <notes>
       All:
       - fixed issues with PHP5
+      - cosmetic fixes
       MDB Class:
       - added MDB::isConnection()
       - fixed issues in MDB::singleton() if instances of MDB have been disconnected
