@@ -21,9 +21,9 @@
 // MDB XML Schema Manager
 //
 
-require_once("MDB.php");
-require_once("parser.php");
-require_once("xml_parser.php");
+require_once(dirname(__FILE__)."/MDB.php");
+require_once(dirname(__FILE__)."/parser.php");
+require_once(dirname(__FILE__)."/xml_parser.php");
 
 /**
 * The database manager is a class that provides a set of database 
@@ -150,7 +150,7 @@ class MDB_manager extends PEAR
                 return PEAR::raiseError(NULL, DB_ERROR_UNSUPPORTED, NULL, NULL, 
                     'type "'.$field["type"].'" is not yet supported', 'MDB_Error', TRUE);
         }
-        return 1;
+        return (DB_OK);
     }
 
     function getFieldList($fields, $declaration, &$query_fields)
@@ -169,7 +169,7 @@ class MDB_manager extends PEAR
             }
             $query_fields .= $query;
         }
-        return 1;
+        return (DB_OK);
     }
 
     function getFields($table, &$fields)
@@ -871,7 +871,7 @@ class MDB_manager extends PEAR
                 }
             }
         }
-        return 1;
+        return (DB_OK);
     }
 
     /**
@@ -1545,7 +1545,7 @@ class MDB_manager extends PEAR
         if (MDB::isError($error))
             return $error;
         
-        return 1;
+        return (DB_OK);
     }
 
     /**
