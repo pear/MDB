@@ -18,10 +18,10 @@
     $db_name = 'metapear_test_db';
     if(isset($_GET["db_type"])) {
     $db_type = $_GET["db_type"];
-  } else {
+    } else {
     $db_type = "mysql";
-  }
-  echo $db_type."<br>";
+    }
+    echo $db_type."<br>";
 
 /*
     // just for kicks you can mess up this part to see some pear error handling
@@ -117,7 +117,7 @@
     // lets try an prepare execute combo
     $alldata = array(
                      array(1, 'one', 'un'),
-                     array(2, 'two', 'deus'),
+                     array(2, 'two', 'deux'),
                      array(3, 'three', 'trois'),
                      array(4, 'four', 'quatre')
     );
@@ -125,7 +125,7 @@
     echo "validate prepared query:<br>".$db->validatePreparedQuery($prepared_query)."<br>";
     foreach ($alldata as $row) {
             echo "running execute<br>";
-            $db->execute($prepared_query, $row);
+            $db->execute($prepared_query, NULL, $row);
     }
     // lets try an prepare execute combo
     $alldata = array(
@@ -136,33 +136,34 @@
     );
     $prepared_query = $db->prepareQuery("INSERT INTO numbers VALUES(?,?,?)");
     echo "running executeMultiple<br>";
-    echo Var_Dump::display($db->executeMultiple($prepared_query, $alldata))."<br>";
+    echo Var_Dump::display($db->executeMultiple($prepared_query, NULL, $alldata))."<br>";
     $array = array(4);
-    echo "<br>see getOne in action:<br>".$db->getOne("SELECT trans_en FROM numbers WHERE number = ?",$array)."<br>";
+    echo "<br>see getOne in action:<br>";
+    echo Var_Dump::display($db->getOne("SELECT trans_en FROM numbers WHERE number = ?",'text',$array))."<br>";
     // You can disconnect from the database with:
     echo "<br>see getRow in action:<br>";
-    echo Var_Dump::display($db->getRow("SELECT * FROM numbers WHERE number = ?",$array))."<br>";
+    echo Var_Dump::display($db->getRow("SELECT * FROM numbers WHERE number = ?",array('integer','text','text'),$array))."<br>";
     echo "<br>see getCol in action:<br>";
-    echo Var_Dump::display($db->getCol("SELECT * FROM numbers",$array))."<br>";
+    echo Var_Dump::display($db->getCol("SELECT * FROM numbers",'text', 1))."<br>";
     echo "<br>see getAll in action:<br>";
-    echo Var_Dump::display($db->getAll("SELECT * FROM test"))."<br>";
+    echo Var_Dump::display($db->getAll("SELECT * FROM test",array('integer','text','text')))."<br>";
     echo "<br>see getAssoc in action:<br>";
-    echo Var_Dump::display($db->getAssoc("SELECT * FROM test", FALSE, "", DB_FETCHMODE_ASSOC))."<br>";
+    echo Var_Dump::display($db->getAssoc("SELECT * FROM test",array('integer','text','text'), NULL, NULL, DB_FETCHMODE_ASSOC))."<br>";
     echo "tableInfo on a string:<br>";
     echo Var_Dump::display($db->tableInfo("numbers"))."<br>";
     echo "<br>just a simple delete query:<br>";
     echo Var_Dump::display($db->query("DELETE FROM numbers"))."<br>";
-  // subselect test
+    // subselect test
     $sub_select = $db->subSelect("SELECT test_name from test WHERE test_name = ".$db->getTextFieldValue('gummihuhn'), TRUE);
-  $query_with_subselect = "SELECT * FROM test WHERE test_name IN (".$sub_select.")";
-  // run the query and get a result handler
+    $query_with_subselect = "SELECT * FROM test WHERE test_name IN (".$sub_select.")";
+    // run the query and get a result handler
     echo $query_with_subselect."<br>";
-  $result = $db->query($query_with_subselect);
+    $result = $db->query($query_with_subselect);
     $db->fetchAll($result, &$array);
     echo "<br>all with subselect:<br>";
     echo Var_Dump::display($array)."<br>";
   
-  /*
+    /*
     // ok now lets create a new xml schema file from the existing DB
     // we will not use the 'metapear_test_db.schema' for this
     // this feature is especially interesting for people that have an existing Db and want to move to MDB's xml schema management
