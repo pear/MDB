@@ -105,10 +105,9 @@ class MDB_driver_mysql extends MDB_common
             $this->supported['Transactions'] = 1;
             $this->default_table_type = 'BDB';
         } else {
-            $this->default_table_type='';
+            $this->default_table_type = '';
         }
-        if(isset($this->options['DefaultTableType']))
-        {
+        if(isset($this->options['DefaultTableType'])) {
             switch($this->default_table_type = strtoupper($this->options['DefaultTableType'])) {
                 case 'BERKELEYDB':
                     $this->default_table_type = 'BDB';
@@ -619,9 +618,6 @@ class MDB_driver_mysql extends MDB_common
      * Retrieve the names of columns returned by the DBMS in a query result.
      *
      * @param resource   $result    result identifier
-     *
-     * @access public
-     *
      * @return mixed                an associative array variable
      *                              that will hold the names of columns. The
      *                              indexes of the array are the column names
@@ -632,6 +628,7 @@ class MDB_driver_mysql extends MDB_common
      *                              contain any rows.
      *
      *                              a DB error on failure
+     * @access public
      */
     function getColumnNames($result)
     {
@@ -657,9 +654,7 @@ class MDB_driver_mysql extends MDB_common
      * Count the number of columns returned by the DBMS in a query result.
      *
      * @param resource    $result        result identifier
-     *
      * @access public
-     *
      * @return mixed integer value with the number of columns, a DB error
      *                       on failure
      */
@@ -679,9 +674,7 @@ class MDB_driver_mysql extends MDB_common
     * check if the end of the result set has been reached
     *
     * @param resource    $result result identifier
-    *
     * @return mixed TRUE or FALSE on sucess, a DB error on failure
-    *
     * @access public
     */
     function endOfResult($result)
@@ -702,9 +695,7 @@ class MDB_driver_mysql extends MDB_common
     * @param resource    $result result identifier
     * @param int    $row    number of the row where the data can be found
     * @param int    $field    field number where the data can be found
-    *
     * @return mixed string on success, a DB error on failure
-    *
     * @access public
     */
     function fetch($result, $row, $field)
@@ -729,10 +720,8 @@ class MDB_driver_mysql extends MDB_common
     * @param resource    $result result identifier
     * @param int    $row    number of the row where the data can be found
     * @param int    $field    field number where the data can be found
-    *
     * @return mixed content of the specified data cell, a DB error on failure,
     *               a DB error on failure
-    *
     * @access public
     */
     function fetchClob($result, $row, $field)
@@ -749,9 +738,7 @@ class MDB_driver_mysql extends MDB_common
     * @param resource    $result result identifier
     * @param int    $row    number of the row where the data can be found
     * @param int    $field    field number where the data can be found
-    *
     * @return mixed content of the specified data cell, a DB error on failure
-    *
     * @access public
     */
     function fetchBlob($result, $row, $field)
@@ -767,9 +754,7 @@ class MDB_driver_mysql extends MDB_common
     *
     * @param mixed  $value   value to be converted
     * @param int    $type    constant that specifies which type to convert to
-    *
     * @return mixed converted value
-    *
     * @access public
     */
     function convertResult($value, $type)
@@ -799,9 +784,7 @@ class MDB_driver_mysql extends MDB_common
     * returns the number of rows in a result object
     *
     * @param object DB_Result the result object to check
-    *
     * @return mixed DB_Error or the number of rows
-    *
     * @access public
     */
     function numRows($result)
@@ -816,10 +799,8 @@ class MDB_driver_mysql extends MDB_common
      * Free the internal resources associated with $result.
      *
      * @param $result result identifier
-     *
-     * @access public
-     *
      * @return bool TRUE on success, FALSE if $result is invalid
+     * @access public
      */
     function freeResult($result)
     {
@@ -860,11 +841,9 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
+     * @access public
      */
     function getIntegerDeclaration($name, $field)
     {
@@ -897,11 +876,9 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field
      *                        is constrained to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
+     * @access public
      */
     function getClobDeclaration($name, $field)
     {
@@ -928,7 +905,7 @@ class MDB_driver_mysql extends MDB_common
     }
 
     // }}}
-    // {{{ getBLOBDeclaration()
+    // {{{ getBlobDeclaration()
 
     /**
      * Obtain DBMS specific SQL code portion needed to declare an binary large
@@ -949,11 +926,9 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
+     * @access public
      */
     function getBlobDeclaration($name, $field)
     {
@@ -999,11 +974,9 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
+     * @access public
      */
     function getDateDeclaration($name, $field)
     {
@@ -1033,11 +1006,9 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
+     * @access public
      */
     function getTimestampDeclaration($name, $field)
     {
@@ -1066,11 +1037,9 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
+     * @access public
      */
     function getTimeDeclaration($name, $field)
     {
@@ -1100,11 +1069,9 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
+     * @access public
      */
     function getFloatDeclaration($name, $field)
     {
@@ -1145,11 +1112,9 @@ class MDB_driver_mysql extends MDB_common
      *                       notnull
      *                        Boolean flag that indicates whether this field is
      *                        constrained to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *                 declare the specified field.
+     * @access public
      */
     function getDecimalDeclaration($name, $field)
     {
@@ -1170,11 +1135,9 @@ class MDB_driver_mysql extends MDB_common
      * @param resource  $prepared_query query handle from prepare()
      * @param           $parameter
      * @param           $clob
-     *
-     * @access public
-     *
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
+     * @access public
      */
     function getClobValue($prepared_query, $parameter, $clob)
     {
@@ -1198,8 +1161,7 @@ class MDB_driver_mysql extends MDB_common
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $clob
      * @param string    $value
-
-     *
+     * @return DB_OK
      * @access public
      */
     function freeClobValue($prepared_query, $clob, &$value)
@@ -1218,11 +1180,9 @@ class MDB_driver_mysql extends MDB_common
      * @param resource  $prepared_query query handle from prepare()
      * @param           $parameter
      * @param           $blob
-     *
-     * @access public
-     *
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
+     * @access public
      */
     function getBlobValue($prepared_query, $parameter, $blob)
     {
@@ -1245,8 +1205,7 @@ class MDB_driver_mysql extends MDB_common
      *
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
-
-     *
+     * @return DB_OK
      * @access public
      */
     function freeBlobValue($prepared_query, $blob)
@@ -1263,11 +1222,9 @@ class MDB_driver_mysql extends MDB_common
      * compose query statements.
      *
      * @param string  $value text string value that is intended to be converted.
-     *
-     * @access public
-     *
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
+     * @access public
      */
     function getFloatValue($value)
     {
@@ -1282,11 +1239,9 @@ class MDB_driver_mysql extends MDB_common
      * compose query statements.
      *
      * @param string  $value text string value that is intended to be converted.
-     *
-     * @access public
-     *
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
+     * @access public
      */
     function getDecimalValue($value)
     {
@@ -1305,6 +1260,7 @@ class MDB_driver_mysql extends MDB_common
      *                          not exists
      *
      * @return mixed DB_Error or id
+     * @access public
      */
     function nextId($seq_name, $ondemand = FALSE)
     {
@@ -1340,8 +1296,8 @@ class MDB_driver_mysql extends MDB_common
      * returns the current id of a sequence
      *
      * @param string  $seq_name name of the sequence
-     *
      * @return mixed DB_Error or id
+     * @access public
      */
     function currId($seq_name)
     {
@@ -1365,9 +1321,7 @@ class MDB_driver_mysql extends MDB_common
      * @param resource  $result     result identifier
      * @param int       $fetchmode  how the array data should be indexed
      * @param int       $rownum     the row number to fetch
-     *
      * @return int data array on success, a DB error on failure
-     *
      * @access public
      */
     function fetchInto($result, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
@@ -1409,12 +1363,9 @@ class MDB_driver_mysql extends MDB_common
      * Currently not supported
      *
      * @param a valid result resource
-     *
-     * @access public
-     *
      * @return true if a result is available otherwise return false
+     * @access public
      */
-
     function nextResult($result)
     {
         return FALSE;
@@ -1428,9 +1379,7 @@ class MDB_driver_mysql extends MDB_common
     *
     * @param resource    $result    result identifier
     * @param mixed $mode depends on implementation
-    *
     * @return array an nested array, or a DB error
-    *
     * @access public
     */
     function tableInfo($result, $mode = NULL) {
@@ -1526,6 +1475,6 @@ class MDB_driver_mysql extends MDB_common
         return $res;
     }
 }
-}
-?>
 
+};
+?>

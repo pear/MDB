@@ -78,10 +78,8 @@ class MDB_manager_common extends PEAR
      *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     *
-     * @access public
-     *
      * @return mixed string on success, a DB error on failure
+     * @access public
      */
     function getFieldDeclaration(&$db, $field_name, $field)
     {
@@ -151,10 +149,8 @@ class MDB_manager_common extends PEAR
      *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     *
-     * @access public
-     *
      * @return mixed string on success, a DB error on failure
+     * @access public
      */
     function getFieldDeclarationList(&$db, $fields)
     {
@@ -179,10 +175,8 @@ class MDB_manager_common extends PEAR
      *
      * @param $dbs (reference) array where database names will be stored
      * @param string $sqn string that containts name of a potential sequence
-     *
-     * @access private
-     *
      * @return mixed name of the sequence if $sqn is a name of a sequence, else FALSE
+     * @access private
      */
     function _isSequenceName(&$db, $sqn)
     {
@@ -202,10 +196,8 @@ class MDB_manager_common extends PEAR
      *
      * @param $dbs (reference) array where database names will be stored
      * @param string $name name of the database that should be created
-     *
-     * @access public
-     *
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      */
     function createDatabase(&$db, $database)
     {
@@ -220,10 +212,8 @@ class MDB_manager_common extends PEAR
      *
      * @param $dbs (reference) array where database names will be stored
      * @param string $name name of the database that should be dropped
-     *
-     * @access public
-     *
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      */
     function dropDatabase(&$db, $database)
     {
@@ -261,10 +251,8 @@ class MDB_manager_common extends PEAR
      *                                'length' => 12
      *                            )
      *                        );
-       *
-     * @access public
-     *
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      */
     function createTable(&$db, $name, $fields)
     {
@@ -289,10 +277,8 @@ class MDB_manager_common extends PEAR
      *
      * @param $dbs (reference) array where database names will be stored
      * @param string $name name of the table that should be dropped
-     *
-     * @access public
-     *
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      */
     function dropTable(&$db, $name)
     {
@@ -391,13 +377,11 @@ class MDB_manager_common extends PEAR
      *                                        )
      *                                    )
      *                                )
-     *
      * @param boolean $check     indicates whether the function should just check if the DBMS driver
      *                             can perform the requested table alterations if the value is true or
      *                             actually perform them otherwise.
+     * @return mixed DB_OK on success, a DB error on failure
      * @access public
-     *
-      * @return mixed DB_OK on success, a DB error on failure
      */
     function alterTable(&$db, $name, $changes, $check)
     {
@@ -412,10 +396,8 @@ class MDB_manager_common extends PEAR
      * list all databases
      *
      * @param $dbs (reference) array where database names will be stored
-     *
-     * @access public
-     *
      * @return mixed data array on success, a DB error on failure
+     * @access public
      */
     function listDatabases(&$db)
     {
@@ -430,10 +412,8 @@ class MDB_manager_common extends PEAR
      * list all users
      *
      * @param $dbs (reference) array where database names will be stored
-     *
-     * @access public
-     *
      * @return mixed data array on success, a DB error on failure
+     * @access public
      */
     function listUsers(&$db)
     {
@@ -448,10 +428,8 @@ class MDB_manager_common extends PEAR
      * list all views in the current database
      *
      * @param $dbs (reference) array where database names will be stored
-     *
-     * @access public
-     *
      * @return mixed data array on success, a DB error on failure
+     * @access public
      */
     function listViews(&$db)
     {
@@ -466,10 +444,8 @@ class MDB_manager_common extends PEAR
      * list all functions in the current database
      *
      * @param $dbs (reference) array where database names will be stored
-     *
-     * @access public
-     *
      * @return mixed data array on success, a DB error on failure
+     * @access public
      */
     function listFunctions(&$db)
     {
@@ -484,10 +460,8 @@ class MDB_manager_common extends PEAR
      * list all tables in the current database
      *
      * @param $dbs (reference) array where database names will be stored
-     *
-     * @access public
-     *
      * @return mixed data array on success, a DB error on failure
+     * @access public
      */
     function listTables(&$db)
     {
@@ -503,10 +477,8 @@ class MDB_manager_common extends PEAR
      *
      * @param $dbs (reference) array where database names will be stored
      * @param string $table name of table that should be used in method
-     *
-     * @access public
-     *
      * @return mixed data array on success, a DB error on failure
+     * @access public
      */
     function listTableFields(&$db, $table)
     {
@@ -523,10 +495,8 @@ class MDB_manager_common extends PEAR
      * @param $dbs (reference) array where database names will be stored
      * @param string    $table         name of table that should be used in method
      * @param string    $fields     name of field that should be used in method
-      *
-     * @access public
-     *
      * @return mixed data array on success, a DB error on failure
+     * @access public
      */
     function getTableFieldDefinition(&$db, $table, $field)
     {
@@ -567,10 +537,8 @@ class MDB_manager_common extends PEAR
      *                                            'last_login' => array()
      *                                        )
      *                                    )
-       *
-     * @access public
-     *
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      */
     function createIndex(&$db, $table, $name, $definition)
     {
@@ -609,10 +577,8 @@ class MDB_manager_common extends PEAR
      * @param $dbs (reference) array where database names will be stored
      * @param string    $table         name of table that should be used in method
      * @param string    $name         name of the index to be dropped
-      *
-     * @access public
-     *
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      */
     function dropIndex(&$db, $table, $name)
     {
@@ -627,10 +593,8 @@ class MDB_manager_common extends PEAR
      *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $table      name of table that should be used in method
-     *
-     * @access public
-     *
      * @return mixed data array on success, a DB error on failure
+     * @access public
      */
     function listTableIndexes(&$db, $table)
     {
@@ -647,10 +611,8 @@ class MDB_manager_common extends PEAR
      * @param $dbs (reference) array where database names will be stored
      * @param string    $table      name of table that should be used in method
      * @param string    $index      name of index that should be used in method
-      *
-     * @access public
-     *
      * @return mixed data array on success, a DB error on failure
+     * @access public
      */
     function getTableIndexDefinition(&$db, $table, $index)
     {
@@ -667,10 +629,8 @@ class MDB_manager_common extends PEAR
      * @param $dbs (reference) array where database names will be stored
      * @param string    $seq_name     name of the sequence to be created
      * @param string    $start         start value of the sequence; default is 1
-      *
-     * @access public
-     *
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      */
     function createSequence(&$db, $name, $start)
     {
@@ -686,10 +646,8 @@ class MDB_manager_common extends PEAR
      *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $seq_name     name of the sequence to be dropped
-      *
-     * @access public
-     *
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      */
     function dropSequence(&$db, $name)
     {
@@ -704,10 +662,8 @@ class MDB_manager_common extends PEAR
      * list all sequences in the current database
      *
      * @param $dbs (reference) array where database names will be stored
-     *
-     * @access public
-     *
      * @return mixed data array on success, a DB error on failure
+     * @access public
      */
     function listSequences(&$db)
     {
@@ -723,10 +679,8 @@ class MDB_manager_common extends PEAR
      *
      * @param $dbs (reference) array where database names will be stored
      * @param string    $sequence   name of sequence that should be used in method
-      *
-     * @access public
-     *
      * @return mixed data array on success, a DB error on failure
+     * @access public
      */
     function getSequenceDefinition(&$db, $sequence)
     {
@@ -735,5 +689,5 @@ class MDB_manager_common extends PEAR
     }
 }
 
-}
+};
 ?>

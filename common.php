@@ -45,7 +45,7 @@
 // $Id$
 
 /**
- * Base class that is extended by each DB driver
+ * MDB_common: Base class that is extended by each DB driver
  *
  * @package MDB
  * @author Lukas Smith <smith@dybnet.de>
@@ -65,6 +65,7 @@ define('MDB_TYPE_CLOB', 8);
 define('MDB_TYPE_BLOB', 9);
 
 $registered_transactions_shutdown = 0;
+
 // }}}
 // {{{ _shutdownTransactions()
 
@@ -163,9 +164,10 @@ function mdbTime()
  * @return string a valid MDB timestamp
  * @access public
  */
-function date2Mdbstamp($hour = NULL, $minute = NULL, $second = NULL, $month = NULL, $day = NULL, $year = NULL)
+function date2Mdbstamp($hour = NULL, $minute = NULL, $second = NULL,
+    $month = NULL, $day = NULL, $year = NULL)
 {
-    return unix2Mdbstamp(mktime ($hour, $minute, $second, $month, $day, $year));
+    return unix2Mdbstamp(mktime($hour, $minute, $second, $month, $day, $year));
 }
 
 // }}}
@@ -206,10 +208,6 @@ function mdbstamp2Unix($mdb_timestamp)
     return mktime ($hour, $minute, $second, $month, $day, $year);
 }
 
-/**
- * MDB_common is a base class for DB implementations, and must be
- * inherited by all such.
- */
 class MDB_common extends PEAR {
     var $database = 0;
     var $host = '';
@@ -1347,7 +1345,6 @@ class MDB_common extends PEAR {
     /**
      * list all indexes in a table
      *
-     * @param  $dbs (reference) array where database names will be stored
      * @param string $table name of table that should be used in method
      * @return mixed data array on success, a DB error on failure
      * @access public
@@ -1367,7 +1364,6 @@ class MDB_common extends PEAR {
     /**
      * get the stucture of an index into an array
      *
-     * @param  $dbs (reference) array where database names will be stored
      * @param string $table name of table that should be used in method
      * @param string $index name of index that should be used in method
      * @return mixed data array on success, a DB error on failure
@@ -1445,7 +1441,6 @@ class MDB_common extends PEAR {
     /**
      * get the stucture of a sequence into an array
      *
-     * @param  $dbs (reference) array where database names will be stored
      * @param string $sequence name of sequence that should be used in method
      * @return mixed data array on success, a DB error on failure
      * @access public
@@ -3058,7 +3053,8 @@ class MDB_common extends PEAR {
     function getIntegerDeclaration($name, $field)
     {
         if (isset($field['unsigned'])) {
-            $this->warnings[] = "unsigned integer field \"$name\" is being declared as signed integer";
+            $this->warnings[] = "unsigned integer field \"$name\" is being
+                declared as signed integer";
         }
         return ("$name INT" . (isset($field['default']) ? ' DEFAULT ' . $field['default'] : '') . (isset($field['notnull']) ? ' NOT NULL' : ''));
     }
@@ -3621,7 +3617,8 @@ class MDB_common extends PEAR {
      */
     function currId($seq_name)
     {
-        $this->warnings[] = 'database does not support getting current sequence value, the sequence value was incremented';
+        $this->warnings[] = 'database does not support getting current
+            sequence value, the sequence value was incremented';
         expectError(DB_ERROR_NOT_CAPABLE);
         $id = $this->nextId($seq_name);
         popExpectError(DB_ERROR_NOT_CAPABLE);
@@ -4320,30 +4317,17 @@ class MDB_common extends PEAR {
      *                      This is an option argument needed by some handler
      *                      classes like resultlob.
      *
-     *                  Data
-     *
-     *                      String of data that will be returned by the class
-     *                      when it requested with the readLOB() method.
-     *
-     *                  The following argument is specific of the resultlob
+     *                  The following arguments are specific of the inputfile
      *                  handler class:
-     *
-     *                      ResultLOB
-     *
-     *                          Integer handle value of a large object result
-     *                          row field.
-     *
-     *                      The following arguments are specific of the
-     *                          inputfile handler class:
      *
      *                      File
      *
      *                          Integer handle value of a file already opened
-     *                          for reading.
+     *                          for writing.
      *
      *                      FileName
      *
-     *                          Name of a file to be opened for reading if the
+     *                          Name of a file to be opened for writing if the
      *                          File argument is not specified.
      *
      *                  The following arguments are specific of the outputfile
@@ -4401,6 +4385,22 @@ class MDB_common extends PEAR {
      *                          (blob) or otherwise is of character type (clob).
      *                          If the LOB argument is specified, this argument
      *                          is ignored.
+     *
+     *                  The following argument is specific of the data
+     *                  handler class:
+     *
+     *                  Data
+     *
+     *                      String of data that will be returned by the class
+     *                      when it requested with the readLOB() method.
+     *
+     *                  The following argument is specific of the resultlob
+     *                  handler class:
+     *
+     *                      ResultLOB
+     *
+     *                          Integer handle value of a large object result
+     *                          row field.
      * @return integer handle value that should be passed as argument insubsequent
      * calls to functions that retrieve data from the large object input stream.
      * @access public
@@ -4501,7 +4501,7 @@ class MDB_common extends PEAR {
         $lobs[$lob]->destroy();
         unset($lobs[$lob]);
     }
-} ;
+};
 
 // Used by many drivers
 if (!function_exists('array_change_key_case')) {

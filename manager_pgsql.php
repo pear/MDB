@@ -62,10 +62,11 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     /**
      * create a new database
+     *
      * @param  $dbs (reference) array where database names will be stored
      * @param string $name name of the database that should be created
-     * @access public
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      **/
     function createDatabase(&$db, $name)
     {
@@ -77,10 +78,11 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     /**
      * drop an existing database
+     *
      * @param  $dbs (reference) array where database names will be stored
      * @param string $name name of the database that should be dropped
-     * @access public
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      **/
     function dropDatabase(&$db, $name)
     {
@@ -92,6 +94,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     /**
      * create a new table
+     *
      * @param  $dbs (reference) array where database names will be stored
      * @param string $name Name of the database that should be created
      * @param array $fields Associative array that contains the definition of each field of the new table
@@ -105,7 +108,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      *                             'id' => array(
      *                                 'type' => 'integer',
      *                                 'unsigned' => 1
-     *                                 'notNULL' => 1
+     *                                 'notnull' => 1
      *                                 'default' => 0
      *                             ),
      *                             'name' => array(
@@ -117,8 +120,8 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      *                                 'length' => 12
      *                             )
      *                         );
-     * @access public
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      **/
     function createTable(&$db, $name, $fields)
     {
@@ -140,6 +143,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     /**
      * alter an existing table
+     *
      * @param  $dbs (reference) array where database names will be stored
      * @param string $name name of the table that is intended to be changed.
      * @param array $changes associative array that contains the details of each type
@@ -192,7 +196,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      *
      *                                 If the default property is meant to be added, removed or changed, there
      *                                  should also be an entry with index ChangedDefault assigned to 1. Similarly,
-     *                                  if the notNULL constraint is to be added or removed, there should also be
+     *                                  if the notnull constraint is to be added or removed, there should also be
      *                                  an entry with index ChangedNotNull assigned to 1.
      *
      *                                 Additionally, there should be an entry named Declaration that is expected
@@ -229,8 +233,8 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      * @param boolean $check indicates whether the function should just check if the DBMS driver
      *                              can perform the requested table alterations if the value is TRUE or
      *                              actually perform them otherwise.
-     * @access public
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      **/
     function alterTable(&$db, $name, &$changes, $check)
     {
@@ -279,9 +283,10 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     /**
      * list all databases
+     *
      * @param  $dbs (reference) array where database names will be stored
-     * @access public
      * @return mixed data array on success, a DB error on failure
+     * @access public
      **/
     function listDatabases(&$db)
     {
@@ -293,9 +298,10 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     /**
      * list all users
+     *
      * @param  $dbs (reference) array where database names will be stored
-     * @access public
      * @return mixed data array on success, a DB error on failure
+     * @access public
      **/
     function listUsers(&$db)
     {
@@ -307,9 +313,10 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     /**
      * list all tables in the current database
+     *
      * @param  $dbs (reference) array where database names will be stored
-     * @access public
      * @return mixed data array on success, a DB error on failure
+     * @access public
      **/
     function listTables(&$db)
     {
@@ -337,10 +344,8 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
      *
      * @param $dbs (reference) array where database names will be stored
      * @param string $table name of table that should be used in method
-     *
-     * @access public
-     *
      * @return mixed data array on success, a DB error on failure
+     * @access public
      */
     function listTableFields(&$db, $table)
     {
@@ -363,8 +368,10 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     /**
      * list the views in the database
+     *
      * @param  $dbs (reference) array where database names will be stored
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      **/
     function listViews(&$db)
     {
@@ -383,11 +390,12 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     /**
      * create sequence
+     *
      * @param  $dbs (reference) array where database names will be stored
      * @param string $seq_name name of the sequence to be created
      * @param string $start start value of the sequence; default is 1
-     * @access public
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      **/
     function createSequence(&$db, $seq_name, $start)
     {
@@ -400,10 +408,11 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     /**
      * drop existing sequence
+     *
      * @param  $dbs (reference) array where database names will be stored
      * @param string $seq_name name of the sequence to be dropped
-     * @access public
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      **/
     function dropSequence(&$db, $seq_name)
     {
@@ -416,9 +425,10 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     /**
      * list all sequences in the current database
+     *
      * @param  $dbs (reference) array where database names will be stored
-     * @access public
      * @return mixed data array on success, a DB error on failure
+     * @access public
      **/
     function listSequences(&$db)
     {
@@ -440,8 +450,7 @@ class MDB_manager_pgsql_class extends MDB_manager_common {
 
     // }}}
     // {{{ getSequenceDefinition()
-};
-
 }
 
+};
 ?>

@@ -73,6 +73,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ constructor
+
     /**
      * Constructor
      **/
@@ -133,11 +134,9 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param $nativecode the native error code, as returned by the backend
      * database extension (string or integer)
-     *
      * @return int a portable DB error code, or FALSE if this DB
      * implementation has no mapping for the given error code.
      */
-
     function errorCode($errormsg)
     {
         static $error_regexps;
@@ -186,10 +185,8 @@ class MDB_driver_pgsql extends MDB_common {
      *     statement. If this argument is 0 a transaction implicitly started.
      *     Otherwise, if a transaction is in progress it is ended by committing
      *     any database changes that were pending.
-     *
-     * @access public
-     *
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      */
     function autoCommit($auto_commit)
     {
@@ -214,9 +211,8 @@ class MDB_driver_pgsql extends MDB_common {
      * disabled, otherwise it will fail. Therefore, a new transaction is
      * implicitly started after committing the pending changes.
      *
-     * @access public
-     *
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      */
     function commit()
     {
@@ -236,9 +232,8 @@ class MDB_driver_pgsql extends MDB_common {
      * disabled, otherwise it will fail. Therefore, a new transaction is
      * implicitly started after canceling the pending changes.
      *
-     * @access public
-     *
      * @return mixed DB_OK on success, a DB error on failure
+     * @access public
      */
     function rollback()
     {
@@ -250,12 +245,13 @@ class MDB_driver_pgsql extends MDB_common {
     }
 
     // }}}
-    // {{{ _doConnect
+    // {{{ _doConnect()
+
     /**
      * Does the grunt work of connecting to the database
      *
-     * @access private
      * @return mixed connection resource on success, MDB_Error on failure
+     * @access private
      **/
     function _doConnect($database_name, $persistent)
     {
@@ -295,6 +291,7 @@ class MDB_driver_pgsql extends MDB_common {
      * Connect to the database
      *
      * @return TRUE on success, MDB_Error on failure
+     * @access public
      **/
     function connect()
     {
@@ -334,6 +331,9 @@ class MDB_driver_pgsql extends MDB_common {
     // {{{ _close()
     /**
      * Close the database connection
+     *
+     * @return boolean
+     * @access private
      **/
     function _close()
     {
@@ -354,10 +354,10 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ _doQuery()
+
     /**
      * Execute a query
      * @param string $query the SQL query
-     *
      * @return mixed result identifier if query executed, else MDB_error
      * @access private
      **/
@@ -377,6 +377,7 @@ class MDB_driver_pgsql extends MDB_common {
 
     /**
      * Execute a query
+     *
      * @param string $query the SQL query
      * @param array $types array that contains the types of the columns in
      *                         the result set
@@ -454,9 +455,7 @@ class MDB_driver_pgsql extends MDB_common {
     * check if the end of the result set has been reached
     *
     * @param resource    $result result identifier
-    *
     * @return mixed TRUE or FALSE on sucess, a DB error on failure
-    *
     * @access public
     */
     function endOfResult($result)
@@ -475,9 +474,7 @@ class MDB_driver_pgsql extends MDB_common {
      * fetch a float value from a result set
      *
      * @param int $lob handle to a lob created by the createLob() function
-     *
      * @return mixed DB_Ok on success, a DB error on failure
-     *
      * @access public
      */
     function retrieveLob($lob)
@@ -513,9 +510,7 @@ class MDB_driver_pgsql extends MDB_common {
      * therefore there is no more data to be read for the its input stream.
      *
      * @param int    $lob handle to a lob created by the createLob() function
-     *
      * @return mixed TRUE or FALSE on success, a DB error on failure
-     *
      * @access public
      */
     function endOfResultLob($lob)
@@ -538,9 +533,7 @@ class MDB_driver_pgsql extends MDB_common {
      *      read from the large object input stream
      * @param int $length integer value that indicates the largest ammount of
      *      data to be read from the large object input stream.
-     *
      * @return mixed length on success, a DB error on failure
-     *
      * @access public
      */
     function readResultLob($lob, &$data, $length)
@@ -567,7 +560,6 @@ class MDB_driver_pgsql extends MDB_common {
      * handler object.
      *
      * @param int $lob handle to a lob created by the createLob() function
-     *
      * @access public
      */
     function destroyResultLob($lob)
@@ -592,10 +584,8 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     *
      * @return mixed content of the specified data cell, a DB error on failure,
      *       a DB error on failure
-     *
      * @access public
      */
     function fetchClob($result, $row, $field)
@@ -612,9 +602,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     *
      * @return mixed content of the specified data cell, a DB error on failure
-     *
      * @access public
      */
     function fetchBlob($result, $row, $field)
@@ -632,9 +620,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource    $result result identifier
      * @param int    $row    number of the row where the data can be found
      * @param int    $field    field number where the data can be found
-     *
      * @return mixed TRUE or FALSE on success, a DB error on failure
-     *
      * @access public
      */
     function resultIsNull($result, $row, $field)
@@ -650,9 +636,7 @@ class MDB_driver_pgsql extends MDB_common {
      * returns the number of rows in a result object
      *
      * @param object DB_Result the result object to check
-     *
      * @return mixed DB_Error or the number of rows
-     *
      * @access public
      */
     function numRows($result)
@@ -667,10 +651,8 @@ class MDB_driver_pgsql extends MDB_common {
      * Free the internal resources associated with $result.
      *
      * @param $result result identifier
-     *
+     * @return boolean TRUE on success, FALSE if $result is invalid
      * @access public
-     *
-     * @return bool TRUE on success, FALSE if $result is invalid
      */
     function freeResult($result)
     {
@@ -688,11 +670,12 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ _standaloneQuery()
+
     /**
-     *
+     * execute a query
      *
      * @param string $query
-     *
+     * @return
      * @access private
      */
     function _standaloneQuery($query)
@@ -727,18 +710,16 @@ class MDB_driver_pgsql extends MDB_common {
      *      default
      *          Text value to be used as default for this field.
      *
-     *      notNULL
+     *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
+     * @access public
      */
     function getTextDeclaration($name, $field)
     {
-        return ((isset($field['length']) ? "$name VARCHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? " DEFAULT '" . $field['default'] . "'" : '') . (isset($field['notNULL']) ? ' NOT NULL' : ''));
+        return ((isset($field['length']) ? "$name VARCHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? " DEFAULT '" . $field['default'] . "'" : '') . (isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -758,18 +739,16 @@ class MDB_driver_pgsql extends MDB_common {
      *          object field. If this argument is missing the field should be
      *          declared to have the longest length allowed by the DBMS.
      *
-     *      notNULL
+     *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
+     * @access public
      */
     function getClobDeclaration($name, $field)
     {
-        return ("$name OID".(isset($field['notNULL']) ? ' NOT NULL' : ''));
+        return ("$name OID".(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -789,18 +768,16 @@ class MDB_driver_pgsql extends MDB_common {
      *          object field. If this argument is missing the field should be
      *          declared to have the longest length allowed by the DBMS.
      *
-     *      notNULL
+     *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
+     * @access public
      */
     function getBlobDeclaration($name, $field)
     {
-        return ("$name OID".(isset($field['notNULL']) ? ' NOT NULL' : ''));
+        return ("$name OID".(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -818,18 +795,16 @@ class MDB_driver_pgsql extends MDB_common {
      *      default
      *          Date value to be used as default for this field.
      *
-     *      notNULL
+     *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
+     * @access public
      */
     function getDateDeclaration($name, $field)
     {
-        return ($name.' DATE'.(isset($field['default']) ? ' DEFAULT \''.$field['default'] . "'" : '').(isset($field['notNULL']) ? ' NOT NULL' : ''));
+        return ($name.' DATE'.(isset($field['default']) ? ' DEFAULT \''.$field['default'] . "'" : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -847,18 +822,16 @@ class MDB_driver_pgsql extends MDB_common {
      *      default
      *          Time value to be used as default for this field.
      *
-     *      notNULL
+     *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
+     * @access public
      */
     function getTimeDeclaration($name, $field)
     {
-        return ($name.' TIME'.(isset($field['default']) ? ' DEFAULT \''.$field['default'].'\'' : '').(isset($field['notNULL']) ? ' NOT NULL' : ''));
+        return ($name.' TIME'.(isset($field['default']) ? ' DEFAULT \''.$field['default'].'\'' : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -876,18 +849,16 @@ class MDB_driver_pgsql extends MDB_common {
      *      default
      *          Float value to be used as default for this field.
      *
-     *      notNULL
+     *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
+     * @access public
      */
     function getFloatDeclaration($name, $field)
     {
-        return ("$name FLOAT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '').(isset($field['notNULL']) ? ' NOT NULL' : ''));
+        return ("$name FLOAT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -905,18 +876,16 @@ class MDB_driver_pgsql extends MDB_common {
      *      default
      *          Decimal value to be used as default for this field.
      *
-     *      notNULL
+     *      notnull
      *          Boolean flag that indicates whether this field is constrained
      *          to not be set to NULL.
-     *
-     * @access public
-     *
      * @return string  DBMS specific SQL code portion that should be used to
      *      declare the specified field.
+     * @access public
      */
     function getDecimalDeclaration($name, $field)
     {
-        return ("$name INT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '').(isset($field['notNULL']) ? ' NOT NULL' : ''));
+        return ("$name INT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -929,11 +898,9 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource  $prepared_query query handle from prepare()
      * @param           $parameter
      * @param           $lob
-     *
-     * @access public
-     *
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
+     * @access public
      */
     function getLobValue($prepared_query, $parameter, $lob)
     {
@@ -987,11 +954,9 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource  $prepared_query query handle from prepare()
      * @param           $parameter
      * @param           $clob
-     *
-     * @access public
-     *
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
+     * @access public
      */
     function getClobValue($prepared_query, $parameter, $clob)
     {
@@ -1006,7 +971,7 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
-     *
+     * @return DB_OK
      * @access public
      */
     function freeClobValue($prepared_query, $clob)
@@ -1025,11 +990,9 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource  $prepared_query query handle from prepare()
      * @param           $parameter
      * @param           $blob
-     *
-     * @access public
-     *
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
+     * @access public
      */
     function getBlobValue($prepared_query, $parameter, $blob)
     {
@@ -1044,7 +1007,7 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
-     *
+     * @return DB_OK
      * @access public
      */
     function freeBlobValue($prepared_query, $blob)
@@ -1061,11 +1024,9 @@ class MDB_driver_pgsql extends MDB_common {
      * compose query statements.
      *
      * @param string $value text string value that is intended to be converted.
-     *
-     * @access public
-     *
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
+     * @access public
      */
     function getFloatValue($value)
     {
@@ -1080,11 +1041,9 @@ class MDB_driver_pgsql extends MDB_common {
      * compose query statements.
      *
      * @param string $value text string value that is intended to be converted.
-     *
-     * @access public
-     *
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
+     * @access public
      */
     function getDecimalValue($value)
     {
@@ -1098,9 +1057,6 @@ class MDB_driver_pgsql extends MDB_common {
      * Retrieve the names of columns returned by the DBMS in a query result.
      *
      * @param resource $result  result identifier
-     *
-     * @access public
-     *
      * @return mixed associative array variable
      *      that holds the names of columns. The indexes of the array are
      *      the column names mapped to lower case and the values are the
@@ -1108,6 +1064,7 @@ class MDB_driver_pgsql extends MDB_common {
      *      not return any columns when the result set does not contain any
      *      rows.
      *     a DB error on failure
+     * @access public
      */
     function getColumnNames($result)
     {
@@ -1117,8 +1074,9 @@ class MDB_driver_pgsql extends MDB_common {
         if (!isset($this->columns[$result])) {
             $this->columns[$result] = array();
             $columns = pg_numfields($result);
-            for($column = 0; $column < $columns; $column++)
-            $this->columns[$result][strtolower(pg_fieldname($result, $column))] = $column;
+            for($column = 0; $column < $columns; $column++) {
+                $this->columns[$result][strtolower(pg_fieldname($result, $column))] = $column;
+            }
         }
         return ($this->columns[$result]);
     }
@@ -1130,11 +1088,9 @@ class MDB_driver_pgsql extends MDB_common {
      * Count the number of columns returned by the DBMS in a query result.
      *
      * @param resource $result result identifier
-     *
-     * @access public
-     *
      * @return mixed integer value with the number of columns, a DB error
      *      on failure
+     * @access public
      */
     function numCols($result)
     {
@@ -1152,9 +1108,7 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param mixed $value value to be converted
      * @param int $type constant that specifies which type to convert to
-     *
      * @return mixed converted value or a DB error on failure
-     *
      * @access public
      */
     function convertResult($value, $type)
@@ -1187,8 +1141,8 @@ class MDB_driver_pgsql extends MDB_common {
      * @param boolean $ondemand when TRUE the seqence is
      *                          automatic created, if it
      *                          not exists
-     *
      * @return mixed DB_Error or id
+     * @access public
      */
     function nextId($seq_name, $ondemand = TRUE)
     {
@@ -1224,8 +1178,8 @@ class MDB_driver_pgsql extends MDB_common {
      * returns the current id of a sequence
      *
      * @param string  $seq_name name of the sequence
-     *
      * @return mixed DB_Error or id
+     * @access public
      */
     function currId($name)
     {
@@ -1251,9 +1205,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource $result result identifier
      * @param int $row number of the row where the data can be found
      * @param int $field field number where the data can be found
-     *
      * @return mixed string on success, a DB error on failure
-     *
      * @access public
      */
     function fetch($result, $row, $field)
@@ -1273,10 +1225,8 @@ class MDB_driver_pgsql extends MDB_common {
      * Move the internal pgsql result pointer to the next available result
      *
      * @param a valid fbsql result resource
-     *
-     * @access public
-     *
      * @return true if a result is available otherwise return false
+     * @access public
      */
     function nextResult($result)
     {
@@ -1291,9 +1241,7 @@ class MDB_driver_pgsql extends MDB_common {
      *
      * @param resource    $result    result identifier
      * @param mixed $mode depends on implementation
-     *
      * @return array an nested array, or a DB error
-     *
      * @access public
      */
     function tableInfo($result, $mode = NULL)
@@ -1398,9 +1346,7 @@ class MDB_driver_pgsql extends MDB_common {
      * @param resource  $result     result identifier
      * @param int       $fetchmode  how the array data should be indexed
      * @param int       $rownum     the row number to fetch
-     *
      * @return int data array on success, a DB error on failure
-     *
      * @access public
      */
     function fetchInto($result, $fetchmode = DB_FETCHMODE_DEFAULT, $rownum = NULL)
@@ -1437,8 +1383,10 @@ class MDB_driver_pgsql extends MDB_common {
 
     // }}}
     // {{{ _pgFieldFlags()
+
     /**
      * Flags of a Field
+     *
      * @param int $resource PostgreSQL result identifier
      * @param int $num_field the field number
      * @return string The flags of the field ('not_NULL', 'default_xx', 'primary_key',
@@ -1449,7 +1397,7 @@ class MDB_driver_pgsql extends MDB_common {
     {
         $field_name = @pg_fieldname($resource, $num_field);
 
-        $result = pg_exec($this->connection, "SELECT f.attnotNULL, f.atthasdef
+        $result = pg_exec($this->connection, "SELECT f.attnotnull, f.atthasdef
             FROM pg_attribute f, pg_class tab, pg_type typ
             WHERE tab.relname = typ.typname
             AND typ.typrelid = f.attrelid
@@ -1496,5 +1444,5 @@ class MDB_driver_pgsql extends MDB_common {
     }
 }
 
-}
+};
 ?>

@@ -53,16 +53,20 @@
  * The object model of DB is as follows (indentation means inheritance):
  *
  * MDB           The main DB class.  This is simply a utility class
- *               with some 'static' methods for creating DB objects as
- *               well as common utility functions for other DB classes.
+ *               with some 'static' methods for creating MDB objects as
+ *               well as common utility functions for other MDB classes.
  *
  * MDB_common    The base for each DB implementation.  Provides default
  * |             implementations (in OO lingo virtual methods) for
  * |             the actual DB implementations as well as a bunch of
  * |             query utility functions.
  * |
- * +-MDB_driver_mysql   The DB implementation for MySQL.  Inherits MDB_Common.
+ * +-MDB_driver_mysql   The DB implementation for MySQL. Inherits MDB_Common.
  *               When calling MDB::factory or MDB::connect for MySQL
+ *               connections, the object returned is an instance of this
+ *               class.
+ * +-MDB_driver_pgsql   The DB implementation for PostGreSQL. Inherits MDB_Common.
+ *               When calling MDB::factory or MDB::connect for PostGreSQL
  *               connections, the object returned is an instance of this
  *               class.
  *
@@ -212,15 +216,16 @@ define('DB_AUTOQUERY_UPDATE', 2);
 
 class MDB
 {
+    // }}}
+    // {{{ factory()
+
     /**
      * Create a new DB connection object for the specified database
      * type
      *
-     * @access  public
-     *
      * @param   string  $type   database type, for example 'mysql'
-     *
      * @return  mixed   a newly created MDB object, or a MDB error code on error
+     * @access  public
      */
     function &factory($type)
     {
@@ -235,6 +240,9 @@ class MDB
         $db =& new $class_name($dsninfo, $options);
         return $db;
     }
+
+    // }}}
+    // {{{ connect()
 
     /**
      * Create a new MDB connection object and connect to the specified
@@ -251,19 +259,15 @@ class MDB
      *     $mdb = MDB::connect($dsn);
      *          ^^
      *
-     * @access  public
-     *
      * @param   mixed   $dsn      'data source name', see the MDB::parseDSN
      *                            method for a description of the dsn format.
      *                            Can also be specified as an array of the
      *                            format returned by MDB::parseDSN.
-     *
      * @param   mixed   $options  An associative array of option names and
      *                            their values.
-     *
      * @return  mixed   a newly created MDB connection object, or a MDB
      *                  error object on error
-     *
+     * @access  public
      * @see     MDB::parseDSN
      */
     function &connect($dsn, $options = FALSE)
@@ -351,7 +355,9 @@ class MDB
             $db->setDatabase($dsninfo['database']);
             $err = $db->connect();
             if (MDB::isError($err)) {
-                $dsn = $dsninfo['phptype'].'://'.$dsninfo['username'].':'.$dsninfo['password'].'@'.$dsninfo['hostspec'].'/'.$dsninfo['database'];
+                $dsn = $dsninfo['phptype'].'://'.$dsninfo['username'].':'
+                    .$dsninfo['password'].'@'.$dsninfo['hostspec'].'/'
+                    .$dsninfo['database'];
                 $err->addUserInfo($dsn);
                 return $err;
             }
@@ -359,43 +365,48 @@ class MDB
         return $db;
     }
 
+    // }}}
+    // {{{ apiVersion()
+
     /**
      * Return the MDB API version
      *
-     * @access public
      * @return int     the MDB API version number
+     * @access public
      */
     function apiVersion()
     {
-        return 3;
+        return 1;
     }
+
+    // }}}
+    // {{{ isError()
 
     /**
      * Tell whether a result code from a MDB method is an error
      *
-     * @access public
-     *
      * @param   int       $value  result code
-     *
      * @return  boolean   whether $value is an MDB_Error
+     * @access public
      */
     function isError($value)
     {
         return (is_object($value) &&
-                (get_class($value) == 'mdb_error' ||
-                 is_subclass_of($value, 'mdb_error')));
+            (get_class($value) == 'mdb_error' ||
+            is_subclass_of($value, 'mdb_error')));
     }
+
+    // }}}
+    // {{{ isManip()
 
     /**
      * Tell whether a query is a data manipulation query (insert,
      * update or delete) or a data definition query (create, drop,
      * alter, grant, revoke).
      *
-     * @access  public
-     *
      * @param   string   $query the query
-     *
      * @return  boolean  whether $query is a data manipulation query
+     * @access public
      */
     function isManip($query)
     {
@@ -407,13 +418,16 @@ class MDB
         return FALSE;
     }
 
+    // }}}
+    // {{{ errorMessage()
+
     /**
      * Return a textual error message for a MDB error code
      *
      * @param   int     $value error code
-     *
      * @return  string  error message, or false if the error code was
      *                  not recognized
+     * @access public
      */
     function errorMessage($value)
     {
@@ -460,8 +474,11 @@ class MDB
         }
 
         return isset($errorMessages[$value]) ?
-                     $errorMessages[$value] : $errorMessages[DB_ERROR];
+           $errorMessages[$value] : $errorMessages[DB_ERROR];
     }
+
+    // }}}
+    // {{{ parseDSN()
 
     /**
      * Parse a data source name
@@ -491,9 +508,8 @@ class MDB
      *  phptype
      *
      * @param   string  $dsn Data Source Name to be parsed
-     *
      * @return  array   an associative array
-     *
+     * @access public
      * @author Tomas V.V.Cox <cox@idecnet.com>
      */
     function parseDSN($dsn)
@@ -612,16 +628,17 @@ class MDB
         return $parsed;
     }
 
+    // }}}
+    // {{{ assertExtension()
+
     /**
      * Load a PHP database extension if it is not loaded already.
      *
-     * @access  public
-     *
      * @param   string  $name the base name of the extension (without the .so
      *                        or .dll suffix)
-     *
      * @return  boolean true if the extension was already or successfully
      *                  loaded, false if it could not be loaded
+     * @access public
      */
     function assertExtension($name)
     {
@@ -642,8 +659,12 @@ class MDB
  */
 class MDB_Error extends PEAR_Error
 {
+
+    // }}}
+    // {{{ constructor
+
     /**
-     * DB_Error constructor.
+     * MDB_Error constructor.
      *
      * @param mixed   $code      MDB error code, or string with error message.
      * @param integer $mode      what "error mode" to operate in
@@ -651,16 +672,15 @@ class MDB_Error extends PEAR_Error
      *                           $mode & PEAR_ERROR_TRIGGER
      * @param smixed  $debuginfo additional debug info, such as the last query
      */
-
     function MDB_Error($code = MDB_ERROR, $mode = PEAR_ERROR_RETURN,
               $level = E_USER_NOTICE, $debuginfo = NULL)
     {
         if (is_int($code)) {
-            $this->PEAR_Error('DB Error: ' . MDB::errorMessage($code), $code,
-                              $mode, $level, $debuginfo);
+            $this->PEAR_Error('MDB Error: '.MDB::errorMessage($code), $code,
+                $mode, $level, $debuginfo);
         } else {
-            $this->PEAR_Error("DB Error: $code", DB_ERROR, $mode, $level,
-                              $debuginfo);
+            $this->PEAR_Error("MDB Error: $code", DB_ERROR, $mode, $level,
+                $debuginfo);
         }
     }
 }
