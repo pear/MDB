@@ -240,7 +240,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                     $this->assertTrue(false, 'Error fetching row '.$row.' for field '.$field.' of type '.$this->types[$i]);
                 } else {
                     $this->assertEquals(strval(trim($value)), strval($data[$row][$field]), 'the query field '.$field.' of type '.$this->types[$i].' for row '.$row.' was returned in "'.$value.'" unlike "'.$data[$row][$field].'" as expected');
-                    $this->db->freeResult($result);
                 }
             }
         }
@@ -532,8 +531,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         for ($start_value = 1; $start_value < 4; $start_value++) {
             $sequence_name = "test_sequence_$start_value";
 
-            $this->db->dropSequence($sequence_name);
-
             $result = $this->db->createSequence($sequence_name, $start_value);
             $this->assertTrue(!MDB::isError($result), "Error creating sequence $sequence_name with start value $start_value");
 
@@ -554,8 +551,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         // Test ondemand creation of sequences
         $sequence_name = 'test_ondemand';
-
-        $this->db->dropSequence($sequence_name);
 
         for ($sequence_value = 1; $sequence_value < 4; $sequence_value++) {
             $value = $this->db->nextId($sequence_name);
@@ -593,16 +588,6 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         $data['access_date'] = MDB_Date::mdbToday();
         $data['access_time'] = MDB_Date::mdbTime();
         $data['approved'] = MDB_Date::mdbNow();
-
-        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', $this->types);
-
-        $this->insertTestValues($prepared_query, $data);
-
-        $result = $this->db->executeQuery($prepared_query);
-
-        if (MDB::isError($result)) {
-            $this->assertTrue(false, 'Error executing prepared query'.$result->getMessage());
-        }
 
         $fields = array(
                       'user_name' => array(
@@ -655,7 +640,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         if ($support_affected_rows) {
             $affected_rows = $this->db->affectedRows();
 
-            $this->assertEquals($affected_rows, 1, "replacing a row in an empty table returned $affected_rows unlike 1 as expected");
+            $this->assertEquals(1, $affected_rows, "replacing a row in an empty table returned $affected_rows unlike 1 as expected");
         }
 
         $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users', $this->types);
@@ -685,7 +670,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         if ($support_affected_rows) {
             $affected_rows = $this->db->affectedRows();
 
-            $this->assertEquals($affected_rows, 2, "replacing a row in an empty table returned $affected_rows unlike 2 as expected");
+            $this->assertEquals(2, $affected_rows, "replacing a row in a non empty table returned $affected_rows unlike 2 as expected");
         }
 
         $result = $this->db->query('SELECT user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved FROM users', $this->types);
