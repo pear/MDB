@@ -35,7 +35,7 @@ class MDB_manager
     function closeSetup()
     {
         if (is_object($this->database)) {
-            $this->database->closeSetup();
+            $this->database->close();
         }
     }
 
@@ -314,10 +314,10 @@ class MDB_manager
             if (!($result = $this->database->query("SELECT $field FROM $table"))) {
                 return($this->database->error());
             }
-            if (($rows = $this->database->numberOfRows($result))) {
+            if (($rows = $this->database->numRows($result))) {
                 for($row = 0; $row < $rows; $row++)    {
                     if (!$this->database->resultIsNull($result, $row, 0)
-                        && ($value = $this->database->fetch($result, $row, 0)+1)>$start)
+                        && ($value = $this->database->fetch($result, $row, 0)+1) > $start)
                     
                     {
                         $start = $value;
@@ -1055,13 +1055,13 @@ class MDB_manager
         if ($dump_definition) {
             $start = $sequence_definition["start"];
         } else {
-            if ($this->database->support("GetSequenceCurrentValue")) {
-                if (!$this->database->getSequenceCurrentValue($sequence_name, $start)) {
+            if ($this->database->support("currId")) {
+                if (!$this->database->currId($sequence_name, $start)) {
                     return(0);
                 }
                 $start++;
             } else {
-                if (!$this->database->getSequencenextValue($sequence_name, $start)) {
+                if (!$this->database->nextId($sequence_name, $start)) {
                     return(0);
                 }
                 $this->warnings[] = "database does not support getting current sequence value, the sequence value was incremented";
@@ -1217,7 +1217,7 @@ class MDB_manager
                     return($this->database->error());
                 }
                 if (!$support_summary_functions) {
-                    $rows = $this->database->numberOfRows(result);
+                    $rows = $this->database->numRows(result);
                 }
                 if ($rows>0) {
                     $output("$eol  <initialization>$eol");
@@ -1485,7 +1485,7 @@ class MDB_manager
                         }
                         if (isset($indexes[key($indexes)]["ChangedFields"]))
                         {
-                            $this->database->sebug("\tChanged index '".key($indexes)."' on table '$table_name'");
+                            $this->database->debug("\tChanged index '".key($indexes)."' on table '$table_name'");
                         }
                     }
                 }
@@ -1539,7 +1539,7 @@ class MDB_manager
             return("Could not parse database schema file: $error");
         }
         $this->database_definition = $database_definition;
-        if (strcmp($error = $this->SetupDatabase($setup_arguments), "")) {
+        if (strcmp($error = $this->setupDatabase($setup_arguments), "")) {
             return("Could not setup database: $error");
         }
         return($this->dumpDatabase($dump_arguments));
