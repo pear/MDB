@@ -351,6 +351,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      */
     function listTableFields(&$db, $table)
     {
+        Var_Dump::display('in listTableFields');
         $result = $db->query("SELECT * FROM $table");
         if(MDB::isError($result)) {
             return($result);
@@ -359,11 +360,186 @@ class MDB_Manager_pgsql extends MDB_Manager_common
         if(MDB::isError($columns)) {
             $db->freeResult($columns);
         }
-        return($columns);
+        return(array_flip($columns));
     }
 
-    // }}}
+    // }}}  
     // {{{ getTableFieldDefinition()
+
+    /**
+     * get the stucture of a field into an array
+     *
+     * @param object    $db        database object that is extended by this class
+     * @param string    $table         name of table that should be used in method
+     * @param string    $field_name     name of field that should be used in method
+     * @return mixed data array on success, a MDB error on failure
+     * @access public
+     */
+    function getTableFieldDefinition(&$db, $table, $field_name)
+    {
+        $result = $db->query("select 
+                    attnum,attname,typname,attlen,attnotnull,
+                    atttypmod,usename,usesysid,pg_class.oid,relpages,
+                    reltuples,relhaspkey,relhasrules,relacl,adsrc 
+                    from pg_class,pg_user,pg_attribute,pg_type,pg_attrdef
+                    where (pg_class.relname='$table') 
+                        and (pg_class.oid=pg_attribute.attrelid) 
+                        and (pg_class.relowner=pg_user.usesysid) 
+                        and (pg_attribute.atttypid=pg_type.oid) 
+                        and (pg_attribute.attrelid=pg_attrdef.adrelid)
+                        and attnum > 0
+                        and attname = '$field_name'
+                        order by attnum
+                         ");
+        if(MDB::isError($result)) {
+            return($result);
+        }
+        $columns = $db->fetchInto($result, MDB_FETCHMODE_ASSOC);
+        $field_column = $columns['attname'];
+        $type_column = $columns['typname'];
+        $db_type = preg_replace('/\d/','', strtolower($type_column) );
+        $length = $columns['attlen'];
+        if ($length == -1) {
+            $length = $columns['atttypmod']-4;
+        }
+        //$decimal = strtok('(), '); = eh?
+        $type = array();
+        switch($db_type) {
+            case 'int':
+                $type[0] = 'integer';
+                if($length == '1') {
+                    $type[1] = 'boolean';
+                }
+                break;
+            case 'text':
+            case 'char':
+            case 'varchar':
+            case 'bpchar':
+                $type[0] = 'text';
+                
+                if($length == '1') {
+                    $type[1] = 'boolean';
+                } elseif(strstr($db_type, 'text'))
+                    $type[1] = 'clob';
+                break;
+/*                        
+            case 'enum':
+                preg_match_all('/\'.+\'/U',$row[$type_column], $matches);
+                $length = 0;
+                if(is_array($matches)) {
+                    foreach($matches[0] as $value) {
+                        $length = max($length, strlen($value)-2);
+                    }
+                }
+                unset($decimal);
+            case 'set':
+                $type[0] = 'text';
+                $type[1] = 'integer';
+                break;
+*/
+            case 'date':
+                $type[0] = 'date';
+                break;
+            case 'datetime':
+            case 'timestamp':
+                $type[0] = 'timestamp';
+                break;
+            case 'time':
+                $type[0] = 'time';
+                break;
+            case 'float':
+            case 'double':
+            case 'real':
+            
+                $type[0] = 'float';
+                break;
+            case 'decimal':
+            case 'money':
+            case 'numeric':
+                $type[0] = 'decimal';
+                break;
+            case 'tinyblob':
+            case 'mediumblob':
+            case 'longblob':
+            case 'blob':
+                $type[0] = 'blob';
+                $type[1] = 'text';
+                break;
+            case 'year':
+                $type[0] = 'integer';
+                $type[1] = 'date';
+                break;
+            default:
+                return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                    'List table fields: unknown database attribute type'));
+        }
+         
+        if ($columns['attnotnull'] == 'f') {
+            $notnull = 1;
+        }
+        
+        if (!preg_match("/nextval\('([^']+)'/",$columns['adsrc']))  {
+            $default = substr($columns['adsrc'],1,-1);
+        }
+        $definition = array();
+        for($field_choices = array(), $datatype = 0; $datatype < count($type); $datatype++) {
+            $field_choices[$datatype] = array('type' => $type[$datatype]);
+            if(isset($notnull)) {
+                $field_choices[$datatype]['notnull'] = 1;
+            }
+            if(isset($default)) {
+                $field_choices[$datatype]['default'] = $default;
+            }
+            if($type[$datatype] != 'boolean'
+                && $type[$datatype] != 'time'
+                && $type[$datatype] != 'date'
+                && $type[$datatype] != 'timestamp')
+            {
+                if(strlen($length)) {
+                    $field_choices[$datatype]['length'] = $length;
+                }
+            }
+        }
+        $definition[0] = $field_choices;
+        if (preg_match("/nextval\('([^']+)'/",$columns['adsrc'],$nextvals))  {
+             
+            $implicit_sequence = array();
+            $implicit_sequence['on'] = array();
+            $implicit_sequence['on']['table'] = $table;
+            $implicit_sequence['on']['field'] = $field_name;
+            $definition[1]['name'] = $nextvals[1];
+            $definition[1]['definition'] = $implicit_sequence;
+        }
+ 
+        // check that its not just a unique field
+        if(MDB::isError($indexes = $db->queryAll("select 
+                oid,indexrelid,indrelid,indkey,indisunique,indisprimary 
+                from pg_index, pg_class 
+                where (pg_class.relname='$table') 
+                    and (pg_class.oid=pg_index.indrelid)", NULL, MDB_FETCHMODE_ASSOC))) {
+            return $indexes;
+        }
+        $indkeys = explode(' ',$indexes['indkey']);
+        if (in_array($columns['attnum'],$indkeys)) {
+            if (MDB::isError($indexname = $db->queryAll("select 
+                    relname from pg_class where oid={$columns['indexrelid']}")) ) {
+                return $indexname;
+            }
+            
+            $is_primary = ($indexes['isdisprimary'] == 't') ;
+            $is_unique = ($indexes['isdisunique'] == 't') ;
+        
+            $implicit_index = array();
+            $implicit_index['unique'] = 1;
+            $implicit_index['FIELDS'][$field_name] = $indexname['relname'];
+            $definition[2]['name'] = $field_name;
+            $definition[2]['definition'] = $implicit_index;
+        }
+        
+        $db->freeResult($result);
+        return($definition);
+    }
+
 
     // }}}
     // {{{ listViews()
@@ -383,6 +559,23 @@ class MDB_Manager_pgsql extends MDB_Manager_common
 
     // }}}
     // {{{ listTableIndexes()
+
+    /**
+     * list all indexes in a table
+     *
+     * @param object    $db        database object that is extended by this class
+     * @param string    $table      name of table that should be used in method
+     * @return mixed data array on success, a MDB error on failure
+     * @access public
+     */
+    function listTableIndexes(&$db, $table) {
+        return $db->queryAll("select relname 
+                                from pg_class where oid in
+                                  (select indexrelid from pg_index, pg_class 
+                                   where (pg_class.relname='$table') 
+                                   and (pg_class.oid=pg_index.indrelid))");
+
+    }
 
     // }}}
     // {{{ getTableIndexDefinition()
