@@ -658,7 +658,8 @@ class MDB_mysql extends MDB_common
     * @param int    $row    number of the row where the data can be found
     * @param int    $field    field number where the data can be found 
     *
-    * @return mixed content of the specified data cell, a DB error on failure, a DB error on failure
+    * @return mixed content of the specified data cell, a DB error on failure,
+    *               a DB error on failure
     *
     * @access public
     */
@@ -795,7 +796,11 @@ class MDB_mysql extends MDB_common
      */
     function getIntegerDeclaration($name, &$field)
     {
-        return ("$name ".(isset($field["unsigned"]) ? "INT UNSIGNED" : "INT").(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name INT".
+                (isset($field['unsigned']) ? ' UNSIGNED' : '').
+                (isset($field['default']) ? ' DEFAULT '.$field['default'] : '').
+                (isset($field['notnull']) ? ' NOT NULL' : '')
+               );
     }
 
     // }}}
@@ -828,25 +833,26 @@ class MDB_mysql extends MDB_common
      */
     function getClobDeclaration($name, &$field)
     {
-        if (isset($field["length"])) {
-            $length = $field["length"];
+        if (isset($field['length'])) {
+            $length = $field['length'];
             if ($length <= 255) {
-                $type = "TINYTEXT";
+                $type = 'TINYTEXT';
             } else {
                 if ($length <= 65535) {
-                    $type = "TEXT";
+                    $type = 'TEXT';
                 } else {
                     if ($length <= 16777215) {
-                        $type = "MEDIUMTEXT";
+                        $type = 'MEDIUMTEXT';
                     } else {
-                        $type = "LONGTEXT";
+                        $type = 'LONGTEXT';
                     }
                 }
             }
         } else {
-            $type = "LONGTEXT";
+            $type = 'LONGTEXT';
         }
-        return ("$name $type".(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name $type".
+                 (isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -879,26 +885,27 @@ class MDB_mysql extends MDB_common
      */
     function getBLobDeclaration($name, &$field)
     {
-        if (isset($field["length"])) {
-            $length = $field["length"];
+        if (isset($field['length'])) {
+            $length = $field['length'];
             if ($length <= 255) {
-                $type = "TINYBLOB";
+                $type = 'TINYBLOB';
             } else {
                 if ($length <= 65535) {
-                    $type = "BLOB";
+                    $type = 'BLOB';
                 } else {
                     if ($length <= 16777215) {
-                        $type = "MEDIUMBLOB";
+                        $type = 'MEDIUMBLOB';
                     } else {
-                        $type = "LONGBLOB";
+                        $type = 'LONGBLOB';
                     }
                 }
             }
         }
         else {
-            $type = "LONGBLOB";
+            $type = 'LONGBLOB';
         }
-        return ("$name $type".(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name $type".
+                (isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -928,7 +935,10 @@ class MDB_mysql extends MDB_common
      */
     function getDateDeclaration($name, &$field)
     {
-        return ($name." DATE".(isset($field["default"]) ? " DEFAULT '".$field["default"]."'" : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name DATE".
+                (isset($field['default']) ? " DEFAULT '".$field['default']."'" : '').
+                (isset($field['notnull']) ? ' NOT NULL' : '')
+               );
     }
 
     // }}}
@@ -959,7 +969,10 @@ class MDB_mysql extends MDB_common
      */
     function getTimestampDeclaration($name, &$field)
     {
-        return ($name." DATETIME".(isset($field["default"]) ? " DEFAULT '".$field["default"]."'" : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name DATETIME".
+                (isset($field['default']) ? " DEFAULT '".$field['default']."'" : "").
+                (isset($field['notnull']) ? ' NOT NULL' : '')
+               );
     }
 
     // }}}
@@ -989,7 +1002,10 @@ class MDB_mysql extends MDB_common
      */
     function getTimeDeclaration($name, &$field)
     {
-        return ($name." TIME".(isset($field["default"]) ? " DEFAULT '".$field["default"]."'" : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name TIME".
+                (isset($field['default']) ? " DEFAULT '".$field['default']."'" : '').
+                (isset($field['notnull']) ? ' NOT NULL' : '')
+               );
     }
 
     // }}}
@@ -1020,15 +1036,21 @@ class MDB_mysql extends MDB_common
      */
     function getFloatDeclaration($name, &$field)
     {
-        if (isset($this->options["FixedFloat"])) {
-            $this->fixed_float = $this->options["FixedFloat"];
+        if (isset($this->options['FixedFloat'])) {
+            $this->fixed_float = $this->options['FixedFloat'];
         } else {
             if ($this->connection == 0) {
                 // XXX needs more checking
                 $this->connect();
             }
         }
-        return ("$name DOUBLE".($this->fixed_float ? "(".($this->fixed_float + 2).",".$this->fixed_float.")" : "").(isset($field["default"]) ? " DEFAULT ".$this->getFloatFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name DOUBLE".
+                ($this->fixed_float ?
+                 '('.($this->fixed_float + 2).','.$this->fixed_float.')' : '').
+                (isset($field['default']) ?
+                 ' DEFAULT '.$this->getFloatFieldValue($field['default']) : '').
+                (isset($field['notnull']) ? ' NOT NULL' : '')
+               );
     }
 
     // }}}
@@ -1059,7 +1081,11 @@ class MDB_mysql extends MDB_common
      */
     function getDecimalDeclaration($name, &$field)
     {
-        return ("$name BIGINT".(isset($field["default"]) ? " DEFAULT ".$this->getDecimalFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : ""));
+        return ("$name BIGINT".
+                (isset($field['default']) ?
+                 ' DEFAULT '.$this->getDecimalFieldValue($field['default']) : '').
+                 (isset($field['notnull']) ? ' NOT NULL' : '')
+               );
     }
 
     // }}}
