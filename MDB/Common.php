@@ -392,7 +392,13 @@ class MDB_Common extends PEAR
     {
         // The error is yet a MDB error object
         if (is_object($code)) {
-            $err = PEAR::raiseError($code, NULL, NULL, NULL, NULL, NULL, TRUE);
+            // because we the static PEAR::raiseError, our global
+            // handler should be used if it is set
+            if ($mode === null && !empty($this->_default_error_mode)) {
+                $mode    = $this->_default_error_mode;
+                $options = $this->_default_error_options;
+            }
+            $err = PEAR::raiseError($code, NULL, $mode, $options, NULL, NULL, TRUE);
             return($err);
         }
 
@@ -401,7 +407,7 @@ class MDB_Common extends PEAR
         }
 
         if ($nativecode) {
-            $userinfo .= " [nativecode = $nativecode]";
+            $userinfo .= ' [nativecode=' . trim($nativecode) . ']';
         }
 
         $err = PEAR::raiseError(NULL, $code, $mode, $options, $userinfo, 'MDB_Error', TRUE);
