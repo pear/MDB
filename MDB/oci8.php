@@ -1529,7 +1529,7 @@ class MDB_oci8 extends MDB_Common {
             $fetchmode = $this->fetchmode;
         }
         if (is_null($rownum)) {
-            $rownum = $this->highest_fetched_row[$result_value] + 1;
+            $rownum = $this->current_row[$result_value] + 1;
         }
         if (!isset($this->results[$result_value][$rownum])) {
             if (isset($this->limits[$result_value])) {
