@@ -53,9 +53,9 @@
  * after processing a query that returns data.
  *
  * @package  MDB
+ * @category Database
  * @author Stig Bakken <ssb@php.net>
  */
-
 class MDB_Result
 {
     // {{{ properties

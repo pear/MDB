@@ -39,7 +39,7 @@
 // | WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE          |
 // | POSSIBILITY OF SUCH DAMAGE.                                          |
 // +----------------------------------------------------------------------+
-// | Author: YOUR NAME <YOUR EMAIL>                                       |
+// | Author: Frank M. Kromann <frank@kromann.info>                        |
 // +----------------------------------------------------------------------+
 //
 // $Id$
@@ -52,7 +52,7 @@ require_once 'MDB/Modules/Manager/Common.php';
  *
  * @package MDB
  * @category Database
- * @author  YOUR NAME <YOUR EMAIL>
+ * @author  Frank M. Kromann <frank@kromann.info>
  */
 class MDB_Manager_mssql extends MDB_Manager_Common
 {

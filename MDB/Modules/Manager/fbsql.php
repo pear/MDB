@@ -52,8 +52,6 @@ require_once 'MDB/Modules/Manager/Common.php';
  *
  * @package MDB
  * @category Database
- * @access private
- * @author  Lukas Smith <smith@backendmedia.com>
  * @author  Frank M. Kromann <frank@kromann.info>
  */
 class MDB_Manager_fbsql extends MDB_Manager_Common

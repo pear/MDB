@@ -51,7 +51,6 @@ require_once 'MDB/Modules/Manager/Common.php';
  *
  * @package MDB
  * @category Database
- * @access private
  * @author  Lorenzo Alberton <l.alberton@quipo.it>
  */
 class MDB_Manager_ibase extends MDB_Manager_common

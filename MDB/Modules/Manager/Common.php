@@ -50,7 +50,6 @@
  *
  * @package MDB
  * @category Database
- * @access private
  * @author  Lukas Smith <smith@backendmedia.com>
  */
 class MDB_Manager_Common

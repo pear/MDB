@@ -95,6 +95,14 @@ class MDB_LOB
     }
 };
 
+/**
+ * MDB Large Object (BLOB/CLOB) classes
+ *
+ * @package MDB
+ * @category Database
+ * @access private
+ * @author  Lukas Smith <smith@backendmedia.com>
+ */
 class MDB_LOB_Result extends MDB_LOB
 {
     var $result_lob = 0;
@@ -135,6 +143,14 @@ class MDB_LOB_Result extends MDB_LOB
     }
 };
 
+/**
+ * MDB Large Object (BLOB/CLOB) classes
+ *
+ * @package MDB
+ * @category Database
+ * @access private
+ * @author  Lukas Smith <smith@backendmedia.com>
+ */
 class MDB_LOB_Input_File extends MDB_LOB
 {
     var $file = 0;
@@ -198,6 +214,14 @@ class MDB_LOB_Input_File extends MDB_LOB
     }
 };
 
+/**
+ * MDB Large Object (BLOB/CLOB) classes
+ *
+ * @package MDB
+ * @category Database
+ * @access private
+ * @author  Lukas Smith <smith@backendmedia.com>
+ */
 class MDB_LOB_Output_File extends MDB_LOB
 {
     var $file = 0;

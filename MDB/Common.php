@@ -44,29 +44,7 @@
 //
 // $Id$
 
-/**
- * @package MDB
- * @author Lukas Smith <smith@backendmedia.com>
- */
 require_once 'PEAR.php';
-
-// }}}
-// {{{ MDB_defaultDebugOutput()
-
-/**
- * default debug output handler
- *
- * @param object $db reference to an MDB database object
- * @param string $message message that should be appended to the debug
- *       variable
- * @return string the corresponding error message, of false
- * if the error code was unknown
- * @access public
- */
-function MDB_defaultDebugOutput(&$db, $scope, $message)
-{
-    $db->debug_output .= $scope.'('.$db->database.'): '.$message.$db->getOption('log_line_break');
-}
 
 /**
  * MDB_Common: Base class that is extended by each MDB driver
@@ -1891,6 +1869,24 @@ class MDB_Common extends PEAR
         }
     }
 };
+
+// }}}
+// {{{ MDB_defaultDebugOutput()
+
+/**
+ * default debug output handler
+ *
+ * @param object $db reference to an MDB database object
+ * @param string $message message that should be appended to the debug
+ *       variable
+ * @return string the corresponding error message, of false
+ * if the error code was unknown
+ * @access public
+ */
+function MDB_defaultDebugOutput(&$db, $scope, $message)
+{
+    $db->debug_output .= $scope.'('.$db->database.'): '.$message.$db->getOption('log_line_break');
+}
 
 // Used by many drivers
 if (!function_exists('array_change_key_case')) {

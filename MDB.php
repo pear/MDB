@@ -44,6 +44,7 @@
 //
 // $Id$
 //
+
 require_once 'PEAR.php';
 
 /**
@@ -90,48 +91,6 @@ define('MDB_ERROR_LOADMODULE',         -32);
 define('MDB_ERROR_INSUFFICIENT_DATA',  -33);
 
 /**
- * WARNING: not implemented
- * These constants are used when storing information about prepared
- * statements (using the 'prepare' method in MDB_dbtype).
- *
- * The prepare/execute model in MDB is mostly borrowed from the ODBC
- * extension, in a query the '?' character means a scalar parameter.
- * There are two extensions though, a '&' character means an opaque
- * parameter.  An opaque parameter is simply a file name, the real
- * data are in that file (useful for putting uploaded files into your
- * database and such). The '!' char means a parameter that must be
- * left as it is.
- * They modify the quote behavior:
- * MDB_PARAM_SCALAR (?) => 'original string quoted'
- * MDB_PARAM_OPAQUE (&) => 'string from file quoted'
- * MDB_PARAM_MISC   (!) => original string
- */
-
-define('MDB_PARAM_SCALAR', 1);
-define('MDB_PARAM_OPAQUE', 2);
-define('MDB_PARAM_MISC',   3);
-
-/**
- * WARNING: Not implemented.
- * These constants define different ways of returning binary data
- * from queries.  Again, this model has been borrowed from the ODBC
- * extension.
- *
- * MDB_BINMODE_PASSTHRU  sends the data directly through to the browser
- *                      when data is fetched from the database.
- *
- * MDB_BINMODE_RETURN    lets you return data as usual.
- *
- * MDB_BINMODE_CONVERT   returns data as well, only it is converted to
- *                      hex format, for example the string '123'
- *                      would become '313233'.
- */
-
-define('MDB_BINMODE_PASSTHRU', 1);
-define('MDB_BINMODE_RETURN',   2);
-define('MDB_BINMODE_CONVERT',  3);
-
-/**
  * This is a special constant that tells MDB the user hasn't specified
  * any particular get mode, so the default should be used.
  */
@@ -174,37 +133,35 @@ define('MDB_TABLEINFO_FULL',       3);
  */
 
 $GLOBALS['_MDB_LOBs'] = array();
-$GLOBALS['_MDB_databses'] = array();
+$GLOBALS['_MDB_databases'] = array();
 
 /**
  * The main 'MDB' class is simply a container class with some static
  * methods for creating DB objects as well as some utility functions
  * common to all parts of DB.
  *
- * The object model of DB is as follows (indentation means inheritance):
+ * The object model of MDB is as follows (indentation means inheritance):
  *
- * MDB          The main DB class.  This is simply a utility class
+ * MDB          The main MDB class.  This is simply a utility class
  *              with some 'static' methods for creating MDB objects as
  *              well as common utility functions for other MDB classes.
  *
- * MDB_common   The base for each DB implementation.  Provides default
+ * MDB_common   The base for each MDB implementation.  Provides default
  * |            implementations (in OO lingo virtual methods) for
  * |            the actual DB implementations as well as a bunch of
  * |            query utility functions.
  * |
- * +-MDB_mysql  The DB implementation for MySQL. Inherits MDB_Common.
+ * +-MDB_mysql  The MDB implementation for MySQL. Inherits MDB_Common.
  *              When calling MDB::factory or MDB::connect for MySQL
  *              connections, the object returned is an instance of this
  *              class.
- * +-MDB_pgsql  The DB implementation for PostGreSQL. Inherits MDB_Common.
+ * +-MDB_pgsql  The MDB implementation for PostGreSQL. Inherits MDB_Common.
  *              When calling MDB::factory or MDB::connect for PostGreSQL
  *              connections, the object returned is an instance of this
  *              class.
  *
  * MDB_Date     This class provides several method to convert from and to
  *              MDB timestamps.
- *
- * MDB_Manager  This class handles the xml schema management.
  *
  * @package  MDB
  * @version  $Id$

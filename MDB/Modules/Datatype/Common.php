@@ -44,11 +44,6 @@
 //
 // $Id$
 
-/**
- * @package MDB
- * @author Lukas Smith <smith@backendmedia.com>
- */
-
 define('MDB_TYPE_TEXT'      , 0);
 define('MDB_TYPE_BOOLEAN'   , 1);
 define('MDB_TYPE_INTEGER'   , 2);

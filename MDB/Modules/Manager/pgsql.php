@@ -51,7 +51,6 @@ require_once 'MDB/Modules/Manager/Common.php';
  *
  * @package MDB
  * @category Database
- * @access private
  * @author  Paul Cooper <pgc@ucecom.com>
  */
 class MDB_Manager_pgsql extends MDB_Manager_common

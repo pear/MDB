@@ -44,11 +44,6 @@
 //
 // $Id$
 
-/**
- * @package MDB
- * @author Lukas Smith <smith@backendmedia.com>
- */
-
 /*
  * Used by autoPrepare()
  */

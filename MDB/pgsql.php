@@ -53,7 +53,6 @@ require_once 'MDB/Common.php';
  * @category Database
  * @author  Paul Cooper <pgc@ucecom.com>
  */
-
 class MDB_pgsql extends MDB_Common
 {
     var $connection = 0;
