@@ -74,10 +74,10 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
     </maintainer>
   </maintainers>
   <release>
-    <version>1.0 RC2</version>
+    <version>1.0 RC3</version>
     <state>devel</state>
-    <date>2002-08-21</date>
-    <notes>this is release candidate 2 for MDB 1.0 featuring: major fixes and improvements to the MDB manager; totaly new XML_Parser based parser with much improved speed; moved date functions to a seperate class</notes>
+    <date>2002-09-05</date>
+    <notes>this is release candidate 3 for MDB 1.0 featuring: major fixes and improvements to the MDB manager; bug fixes to the parser and date; both the mysql and the postgresql driver can now run query() without being connected to a specific database; added xsl that can render xml schema files to html; added initial version of a tutorial</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
@@ -96,6 +96,8 @@ Documentation can be found at: http://www.dybnet.de/MDB/docs/
           <file role="php">reverse_engineer_xml_schema.php</file>
           <file role="doc">Readme.txt</file>
           <file role="doc">xml_schema_documentation.html</file>
+          <file role="doc">tutorial.html</file>
+          <file role="doc">xml_schema.xsl</file>
           <file role="test">MDB_test.php</file>
           <file role="test">MDB_pear_wrapper_test.php</file>
           <file role="test">driver_test.php</file>
