@@ -88,6 +88,7 @@ class MDB_oci8 extends MDB_Common
         $this->options['DBA_password'] = false;
         $this->options['default_tablespace'] = false;
         $this->options['HOME'] = false;
+        $this->options['default_text_field_length'] = 4000;
         
         $this->errorcode_map = array(
             900 => MDB_ERROR_SYNTAX,
@@ -830,10 +831,6 @@ class MDB_oci8 extends MDB_Common
         if ($this->options['result_buffering']) {
             $result_value = intval($result);
             if (!isset($this->results[$result_value]['rows'])) {
-                $getcolumnnames = $this->getColumnNames($result);
-                if (MDB::isError($getcolumnnames)) {
-                    return $getcolumnnames;
-                }
                 if (isset($this->results[$result_value]['limits'])) {
                     $skipfirstrow = $this->_skipLimitOffset($result);
                     if (MDB::isError($skipfirstrow)) {
@@ -855,8 +852,8 @@ class MDB_oci8 extends MDB_Common
                         && @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS)
                     ) {
                         $row = array_change_key_case($row);
-                        $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
                         $this->results[$result_value]['current_row']++;
+                        $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
                     }
                 }
                 $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row'] + 1;
@@ -983,7 +980,7 @@ class MDB_oci8 extends MDB_Common
                 } else {
                     $row = array_values($this->results[$result_value][$rownum]);
                 }
-                if (isset($this->results[intval($result)]['types'])) {
+                if (isset($this->results[$result_value]['types'])) {
                     $row = $this->datatype->convertResultRow($result, $row);
                 }
                 return $row;
@@ -1035,7 +1032,7 @@ class MDB_oci8 extends MDB_Common
                 return null;
             }
         }
-        if (isset($this->results[intval($result)]['types'])) {
+        if (isset($this->results[$result_value]['types'])) {
             $row = $this->datatype->convertResultRow($result, $row);
         }
         return $row;

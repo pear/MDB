@@ -97,6 +97,7 @@ class MDB_ibase extends MDB_Common
 
         $this->options['database_path'] = '';
         $this->options['database_extension'] = '.gdb';
+        $this->options['default_text_field_length'] = 4000;
 
         $this->errorcode_map = array(
             -104 => MDB_ERROR_SYNTAX,
@@ -761,9 +762,6 @@ class MDB_ibase extends MDB_Common
             $result_value = intval($result);
             if (!isset($this->results[$result_value]['rows'])) {
                 $getcolumnnames = $this->getColumnNames($result)
-                if (MDB::isError($getcolumnnames)) {
-                    return $getcolumnnames;
-                }
                 if (isset($this->results[$result_value]['limits'])) {
                     $skipfirstrow = $this->_skipLimitOffset($result);
                     if (MDB::isError($skipfirstrow)) {
@@ -785,8 +783,8 @@ class MDB_ibase extends MDB_Common
                         && (is_array($row = @ibase_fetch_assoc($result)))
                     ) {
                         $row = array_change_key_case($row);
-                        $this->results[$result_value][$this->results[$result_value]['current_row'] + 1] = $row;
                         $this->results[$result_value]['current_row']++;
+                        $this->results[$result_value][$this->results[$result_value]['current_row']] = $row;
                     }
                 }
                 $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row'] + 1;
@@ -944,7 +942,7 @@ class MDB_ibase extends MDB_Common
                 } else {
                     $row = array_values($this->results[$result_value][$rownum]);
                 }
-                if (isset($this->results[intval($result)]['types'])) {
+                if (isset($this->results[$result_value]['types'])) {
                     $row = $this->datatype->convertResultRow($result, $row);
                 }
                 return $row;
@@ -1007,7 +1005,7 @@ class MDB_ibase extends MDB_Common
                 return null;
             }
         }
-        if (isset($this->results[intval($result)]['types'])) {
+        if (isset($this->results[$result_value]['types'])) {
             $row = $this->datatype->convertResultRow($result, $row);
         }
         return $row;
