@@ -76,43 +76,34 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public 
      */
-/*
     function createDatabase($name)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $user = $db->getOption('DBAUser');
-        if (MDB::isError($user)) {
-            return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
-                'createDatabase: it was not specified the Oracle DBAUser option');
+        $tablespace = $db->getOption('DefaultTablespace');
+        if (MDB::isError($tablespace)) {
+            $tablespace = '';
+        } else {
+            $tablespace = ' DEFAULT TABLESPACE '.$tablespace;
         }
-        $password = $db->getOption('DBAPassword');
-        if (MDB::isError($password)) {
-            return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
-                'createDatabase: it was not specified the Oracle DBAPassword option');
+        if (MDB::isError($password = $db->getOption('password'))) {
+            $password = $name;
         }
-        if (!MDB::isError($result = $db->connect($user, $password, 0))) {
-            $tablespace = $db->getOption('DefaultTablespace');
-            if (MDB::isError($tablespace)) {
-                $tablespace = '';
+        $result = $db->standaloneQuery('CREATE USER '.$name.' IDENTIFIED BY '.$password.$tablespace);
+        if (!MDB::isError($result)) {
+            $result = $db->standaloneQuery('GRANT CREATE SESSION, CREATE TABLE,UNLIMITED TABLESPACE,CREATE SEQUENCE TO '.$name);
+            if (!MDB::isError($result)) {
+                return MDB_OK;
             } else {
-                $tablespace = ' DEFAULT TABLESPACE '.$tablespace;
-            }
-            if (!MDB::isError($result = $db->_doQuery('CREATE USER '.$db->user.' IDENTIFIED BY '.$db->password.$tablespace))) {
-                if (!MDB::isError($result = $db->_doQuery('GRANT CREATE SESSION, CREATE TABLE,UNLIMITED TABLESPACE,CREATE SEQUENCE TO '.$db->user))) {
-                    return MDB_OK;
-                } else {
-                    if (MDB::isError($result2 = $db->_doQuery('DROP USER '.$db->user.' CASCADE'))) {
-                        return $db->raiseError(MDB_ERROR, '','', 'Create database',
-                            'createDatabase: could not setup the database user ('.$result->getUserinfo().') and then could drop its records ('.$result2->getUserinfo().')');
-                    }
-                    return $db->raiseError(MDB_ERROR, '','', 'Create database',
-                        'createDatabase: could not setup the database user ('.$result->getUserinfo().')');
+                if (MDB::isError($result2 = $db->standaloneQuery('DROP USER '.$name.' CASCADE'))) {
+                    return $db->raiseError(MDB_ERROR, null, null,
+                        'createDatabase: could not setup the database user ('.$result->getUserinfo().') and then could drop its records ('.$result2->getUserinfo().')');
                 }
+                return $db->raiseError(MDB_ERROR, null, null,
+                    'createDatabase: could not setup the database user ('.$result->getUserinfo().')');
             }
         }
         return $result;
     }
-*/
 
     // }}}
     // {{{ dropDatabase()
@@ -125,26 +116,11 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public 
      */
-/*
     function dropDatabase($name)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $user = $db->getOption('DBAUser');
-        if (MDB::isError($user)) {
-            return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
-                'dropDatabase: it was not specified the Oracle DBAUser option');
-        }
-        $password = $db->getOption('DBAPassword');
-        if (MDB::isError($password)) {
-            return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
-                'dropDatabase: it was not specified the Oracle DBAPassword option');
-        }
-        if (MDB::isError($db->connect($user, $password, 0))) {
-            return $result;
-        }
-        return $db->_doQuery('DROP USER '.$db->user.' CASCADE');
+        return $db->standaloneQuery('DROP USER '.$name.' CASCADE');
     }
-*/
 
     // }}}
     // {{{ alterTable()
@@ -260,7 +236,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
                         break;
                     case 'renamed_fields':
                     default:
-                        return $db->raiseError(MDB_ERROR, null, null, 'Alter table',
+                        return $db->raiseError(MDB_ERROR, null, null,
                             'alterTable: change type "'.key($changes).'" not yet supported');
                 }
             }
@@ -315,14 +291,16 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
                 if (isset($fields[$current_name]['length'])) {
                     $change_type = 1;
                 }
-                if (isset($fields[$current_name]['xhanged_default'])) {
+                if (isset($fields[$current_name]['changed_default'])) {
                     $change_default = 1;
                 }
                 if ($change_type) {
-                    $change .= ' '.$db->getTypeDeclaration($fields[$current_name]['definition']);
+                    $db->loadModule('datatype');
+                    $change .= ' '.$db->datatype->getTypeDeclaration($fields[$current_name]['definition']);
                 }
                 if ($change_default) {
-                    $change .= ' DEFAULT '.(isset($fields[$current_name]['definition']['default']) ? $db->getValue($fields[$current_name]['definition']['type'], $fields[$current_name]['definition']['default']) : 'NULL');
+                    $default = (isset($fields[$current_name]['definition']['default']) ? $fields[$current_name]['definition']['default'] : null);
+                    $change .= ' DEFAULT '.$db->getValue($fields[$current_name]['definition']['type'], $default);
                 }
                 if (isset($fields[$current_name]['changed_not_null'])) {
                     $change .= (isset($fields[$current_name]['notnull']) ? ' NOT' : '').' NULL';
