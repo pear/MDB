@@ -478,7 +478,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
         }
         for($i = 0, $j = count($result), $tables = array(); $i < $j; ++$i)
         {
-            if (!$this->_isSequenceName(&$db, $result[$i]))
+            if (!$this->_isSequenceName($db, $result[$i]))
                 $tables[] = $result[$i];
         }
         return ($tables);
@@ -836,7 +836,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
         $collation_column = $columns['collation'];
         $definition = array();
         while (is_array($row = $db->fetchInto($result))) {
-            $key_name = $row[$key_name_column];
+            $key_name = strtolower($row[$key_name_column]);
             if(!strcmp($index_name, $key_name)) {
                 if(!$row[$non_unique_column]) {
                     $definition['unique'] = 1;
@@ -938,7 +938,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
         }
         for($i = 0, $j = count($result), $sequences = array(); $i < $j; ++$i)
         {
-            if ($sqn = $db->_isSequenceName(&$db, $result[$i]))
+            if ($sqn = $db->_isSequenceName($db, $result[$i]))
                 $sequences[] = $sqn;
         }
         return ($sequences);

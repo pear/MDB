@@ -2031,7 +2031,7 @@ class MDB_common extends PEAR
             }
             $last_position = $current_position + 1;
         }
-        if (!MDB::isError($success)) {
+        if (!isset($success) || !MDB::isError($success)) {
             $query.= substr($this->prepared_queries[$index]['Query'], $last_position);
             if ($this->selected_row_limit > 0) {
                 $this->prepared_queries[$index]['First'] = $this->first_selected_row;

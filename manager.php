@@ -258,7 +258,7 @@ class MDB_manager extends PEAR
                                 foreach($instruction['FIELDS'] as $field_name => $field) {
                                     $field_number++;
                                     $query = $field_name;
-                                    switch($field['type']) {
+                                    switch($table['FIELDS'][$field_name]['type']) {
                                         case 'integer':
                                             $result = $this->database->setParamInteger($prepared_query,
                                                 $field_number, intval($field));
@@ -340,7 +340,7 @@ class MDB_manager extends PEAR
                 }
             }
         };
-        if (!MDB::isError($result) && is_array($table['INDEXES'])) {
+        if (!MDB::isError($result) && isset($table['INDEXES']) && is_array($table['INDEXES'])) {
             if (!$this->database->support('Indexes')) {
                 return PEAR::raiseError(NULL, DB_ERROR_UNSUPPORTED, NULL, NULL,
                     'indexes are not supported', 'MDB_Error', TRUE);
@@ -498,7 +498,10 @@ class MDB_manager extends PEAR
                 $created_objects++;
             }
         }
-        if (!MDB::isError($result) && is_array($this->database_definition['SEQUENCES'])) {
+        if (!MDB::isError($result) 
+            && isset($this->database_definition['SEQUENCES'])
+            && is_array($this->database_definition['SEQUENCES'])) 
+        {
             foreach($this->database_definition['SEQUENCES'] as $sequence_name => $sequence) {
                 $result = $this->_createSequence($sequence_name, $sequence, 1);
 
