@@ -46,16 +46,16 @@
 
 require_once 'PEAR.php';
 
-define('MDB_TYPE_TEXT', 0);
-define('MDB_TYPE_BOOLEAN', 1);
-define('MDB_TYPE_INTEGER', 2);
-define('MDB_TYPE_DECIMAL', 3);
-define('MDB_TYPE_FLOAT', 4);
-define('MDB_TYPE_DATE', 5);
-define('MDB_TYPE_TIME', 6);
-define('MDB_TYPE_TIMESTAMP', 7);
-define('MDB_TYPE_CLOB', 8);
-define('MDB_TYPE_BLOB', 9);
+define('MDB_TYPE_TEXT'      , 0);
+define('MDB_TYPE_BOOLEAN'   , 1);
+define('MDB_TYPE_INTEGER'   , 2);
+define('MDB_TYPE_DECIMAL'   , 3);
+define('MDB_TYPE_FLOAT'     , 4);
+define('MDB_TYPE_DATE'      , 5);
+define('MDB_TYPE_TIME'      , 6);
+define('MDB_TYPE_TIMESTAMP' , 7);
+define('MDB_TYPE_CLOB'      , 8);
+define('MDB_TYPE_BLOB'      , 9);
 
 /**
  * @package MDB
@@ -129,32 +129,28 @@ class MDB_common extends PEAR {
     var $last_query = '';
     var $options = array(
             'persistent' => FALSE,
-            'debug' => 0,
+            'debug' => FALSE,
             'seqname_format' => '%s_seq',
             'autofree' => FALSE,
             'lob_buffer_length' => 8000,
             'log_line_break' => "\n",
             'escape_quotes' => '',
-            'autofree' => FALSE,
             'decimal_places' => 2
         );
-
     var $lobs = array();
     var $clobs = array();
     var $blobs = array();
     var $in_transaction = 0;
-    var $fetchmodes = array();
     var $error_handler = '';
     var $manager;
     var $include_path = '';
     var $manager_included_constant = '';
     var $manager_include = '';
     var $manager_class_name = '';
-
     var $last_error = '';
     var $debug = '';
     var $debug_output = '';
-    var $pass_debug_handle = 0;
+    var $pass_debug_handle = FALSE;
 
     // }}}
     // {{{ constructor
@@ -162,7 +158,7 @@ class MDB_common extends PEAR {
     /**
      * Constructor
      */
-    function MDB_common($dsninfo, $options)
+    function MDB_common($dsninfo = NULL, $options = NULL)
     {
         global $databases;
         $database = count($databases) + 1;
