@@ -126,7 +126,7 @@ class MDB_Parser extends XML_Parser {
             $this->field = array();
             break;
         case 'database-table-declaration-field-default':
-            $this->field['default'] == '';
+            $this->field['default'] = '';
             break;
         case 'database-table-declaration-index':
             $this->index_name = '';
