@@ -123,13 +123,13 @@ class MDB_Common extends PEAR
     /**
     * $options["persistent"] -> boolean persistent connection true|false?
     * $options["debug"] -> integer numeric debug level
-    * $options["autofree"] -> 
-    * $options["lob_buffer_length"] -> 
-    * $options["log_line_break"] -> 
-    * $options["seqname_format"] -> 
-    * $options["includelob"] -> 
-    * $options["includemanager"] -> 
-    * $options["UseTransactions"] -> 
+    * $options["autofree"] -> boolean
+    * $options["lob_buffer_length"] -> integer LOB buffer length
+    * $options["log_line_break"] -> string line-break format
+    * $options["seqname_format"] -> string pattern for sequence name
+    * $options["includelob"] -> boolean
+    * $options["includemanager"] -> boolean
+    * $options["UseTransactions"] -> boolean
     * @var array
     * @access private
     */
@@ -137,7 +137,7 @@ class MDB_Common extends PEAR
             'persistent' => FALSE,
             'debug' => FALSE,
             'autofree' => FALSE,
-            'lob_buffer_length' => 8000,
+            'lob_buffer_length' => 8192,
             'log_line_break' => "\n",
             'seqname_format' => '%s_seq',
             'includelob' => FALSE,
@@ -3485,7 +3485,7 @@ class MDB_Common extends PEAR
      */
     function support($feature)
     {
-        return(isset($this->supported[$feature]));
+        return(isset($this->supported[$feature]) && $this->supported[$feature]);
     }
 
     // }}}
