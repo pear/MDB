@@ -308,7 +308,7 @@ class MDB
                 'MDB_Error', TRUE);
         }
         if(isset($options['includepath'])) {
-            $include_path = isset($options['includepath']);
+            $include_path = $options['includepath'];
         } else {
             $include_path = '.';
         }
