@@ -368,6 +368,23 @@ class MDB_mssql extends MDB_Common
         return(FALSE);
     }
 
+    function standaloneQuery($query)
+    {
+        if(!function_exists("mssql_connect")) {
+            return($this->raiseError("Query: Microsoft SQL server support is not available in this PHP configuration"));
+        }
+        $connection = mssql_connect($this->host,$this->user,$this->password);
+        if($connection == 0) {
+            return($this->mssqlRaiseError("Query: Could not connect to the Microsoft SQL server"));
+        }
+        $result = @mssql_query($query, $connection);
+        if(!$result) {
+            $this->mssqlRaiseError("Query: Could not query a Microsoft SQL server");
+        }
+        mssql_close($connection);
+        return(MDB_OK);
+    }
+
     // }}}
     // {{{ query()
 
@@ -427,20 +444,6 @@ class MDB_mssql extends MDB_Common
                     return($result);
                 }
             }
-        } else {
-            if(!function_exists("mssql_connect")) {
-                return($this->raiseError("Query: Microsoft SQL server support is not available in this PHP configuration"));
-            }
-            $connection = mssql_connect($this->host,$this->user,$this->password);
-            if($connection == 0) {
-                return($this->mssqlRaiseError("Query: Could not connect to the Microsoft SQL server"));
-            }
-            $result = @mssql_query($query, $connection);
-            if(!$result) {
-                $this->mssqlRaiseError("Query: Could not query a Microsoft SQL server");
-            }
-            mssql_close($connection);
-            return(MDB_OK);
         }
 
         return($this->mssqlRaiseError());
