@@ -639,12 +639,12 @@ class MDB_fbsql extends MDB_Common
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
-        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-            $array = @fbsql_fetch_array($result, FBSQL_ASSOC);
+        if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+            $row = @fbsql_fetch_array($result, FBSQL_ASSOC);
         } else {
-            $array = @fbsql_fetch_row($result);
+            $row = @fbsql_fetch_row($result);
         }
-        if (!$array) {
+        if (!$row) {
             $errno = @fbsql_errno($this->connection);
             if (!$errno) {
                 if ($this->options['autofree']) {
@@ -655,9 +655,9 @@ class MDB_fbsql extends MDB_Common
             return $this->fbsqlRaiseError($errno);
         }
         if (isset($this->results[$result_value]['types'])) {
-            $array = $this->datatype->convertResultRow($this, $result, $array);
+            $row = $this->datatype->convertResultRow($this, $result, $row);
         }
-        return $array;
+        return $row;
     }
 
     // }}}

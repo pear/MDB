@@ -718,12 +718,12 @@ class MDB_pgsql extends MDB_Common
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
-        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-            $array = @pg_fetch_array($result, $rownum, PGSQL_ASSOC);
+        if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+            $row = @pg_fetch_array($result, $rownum, PGSQL_ASSOC);
         } else {
-            $array = @pg_fetch_row($result, $rownum);
+            $row = @pg_fetch_row($result, $rownum);
         }
-        if (!$array) {
+        if (!$row) {
             $errno = @pg_errormessage($this->connection);
             if (!$errno) {
                 if ($this->options['autofree']) {
@@ -734,9 +734,9 @@ class MDB_pgsql extends MDB_Common
             return $this->pgsqlRaiseError($errno);
         }
         if (isset($this->results[$result_value]['types'])) {
-            $array = $this->datatype->convertResultRow($this, $result, $array);
+            $row = $this->datatype->convertResultRow($this, $result, $row);
         }
-        return $array;
+        return $row;
     }
 
     // }}}

@@ -737,20 +737,20 @@ class MDB_querysim extends MDB_Common
             $fetchmode = $this->fetchmode;
         }
         // get row
-        if (!$array = @$result[1][$rownum]) {
+        if (!$row = @$result[1][$rownum]) {
             return null;
         }
         // make row associative
-        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-            foreach ($array as $key => $value) {
+        if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+            foreach ($row as $key => $value) {
                 $arraytemp[$result[0][$key]] = $value;
             }
-            $array = $arraytemp;
+            $row = $arraytemp;
         }
         if (isset($this->results[$result_value]['types'])) {
-            $array = $this->datatype->convertResultRow($this, $result, $array);
+            $row = $this->datatype->convertResultRow($this, $result, $row);
         }
-        return $array;
+        return $row;
     }
     // }}}
 

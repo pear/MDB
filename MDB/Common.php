@@ -144,7 +144,7 @@ class MDB_Common extends PEAR
      * @access private
      */
     var $options = array(
-            'result_buffering' => false,
+            'result_buffering' => true,
             'persistent' => false,
             'debug' => 0,
             'debug_handler' => 'MDB_defaultDebugOutput',
@@ -1741,32 +1741,30 @@ class MDB_Common extends PEAR
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
-        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+        if ($fetchmode == MDB_FETCHMODE_ASSOC) {
             $column_names = $this->getColumnNames($result);
             if (MDB::isError($column_names)) {
                 return $column_names;
             }
         }
         for($column = 0; $column < $columns; $column++) {
-            if (!$this->resultIsNull($result, $rownum, $column)) {
-                $result = $this->fetch($result, $rownum, $column);
-                if ($result == null) {
-                    if ($this->options['autofree']) {
-                        $this->freeResult($result);
-                    }
-                    return null;
+            $result = $this->fetch($result, $rownum, $column);
+            if ($result == null) {
+                if ($this->options['autofree']) {
+                    $this->freeResult($result);
                 }
+                return null;
             }
             if (isset($column_names)) {
-                $array[$column_names[$column]] = $result;
+                $row[$column_names[$column]] = $result;
             } else {
-                $array[$column] = $result;
+                $row[$column] = $result;
             }
         }
         if (isset($this->results[intval($result)]['types'])) {
-            $array = $this->datatype->convertResultRow($this, $result, $array);
+            $row = $this->datatype->convertResultRow($this, $result, $row);
         }
-        return $array;
+        return $row;
     }
 
     // }}}
@@ -1842,7 +1840,7 @@ class MDB_Common extends PEAR
         $rownum = 0;
         while (is_array($row = $this->fetchRow($result, $fetchmode, $rownum))) {
             if ($rekey) {
-                if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+                if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                     $key = reset($row);
                     unset($row[key($row)]);
                 } else {

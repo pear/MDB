@@ -818,6 +818,9 @@ class MDB_mysql extends MDB_Common
             ++$this->results[$result_value]['highest_fetched_row'];
         } else {
             if (!@mysql_data_seek($result, $rownum)) {
+                if ($this->options['autofree']) {
+                    $this->freeResult($result);
+                }
                 return null;
             }
             $this->results[$result_value]['highest_fetched_row'] =
@@ -826,25 +829,21 @@ class MDB_mysql extends MDB_Common
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
-        if ($fetchmode & MDB_FETCHMODE_ASSOC) {
-            $array = @mysql_fetch_array($result, MYSQL_ASSOC);
+        if ($fetchmode == MDB_FETCHMODE_ASSOC) {
+            $row = @mysql_fetch_array($result, MYSQL_ASSOC);
         } else {
-            $array = @mysql_fetch_row($result);
+            $row = @mysql_fetch_row($result);
         }
-        if (!$array) {
-            $errno = @mysql_errno($this->connection);
-            if (!$errno) {
-                if ($this->options['autofree']) {
-                    $this->freeResult($result);
-                }
-                return null;
+        if (!$row) {
+            if ($this->options['autofree']) {
+                $this->freeResult($result);
             }
-            return $this->mysqlRaiseError($errno);
+            return null;
         }
         if (isset($this->results[$result_value]['types'])) {
-            $array = $this->datatype->convertResultRow($this, $result, $array);
+            $row = $this->datatype->convertResultRow($this, $result, $row);
         }
-        return $array;
+        return $row;
     }
 
     // }}}

@@ -879,7 +879,7 @@ class MDB_oci8 extends MDB_Common
             for(;$this->results[$result_value]['current_row'] < $rownum;
                 $this->results[$result_value]['current_row']++
             ) {
-                if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+                if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                     $moredata = @OCIFetchInto($result, $this->results[$result_value][$this->results[$result_value]['current_row']+1], OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS);
                 } else {
                     $moredata = @OCIFetchInto($result, $this->results[$result_value][$this->results[$result_value]['current_row']+1], OCI_RETURN_NULLS+OCI_RETURN_LOBS);
@@ -894,7 +894,7 @@ class MDB_oci8 extends MDB_Common
             $row = $this->results[$result_value][$rownum];
             $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
         } else {
-            if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+            if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                 $moredata = @OCIFetchInto($result, $row, OCI_ASSOC+OCI_RETURN_NULLS+OCI_RETURN_LOBS);
             } else {
                 $moredata = @OCIFetchInto($result, $row, OCI_RETURN_NULLS+OCI_RETURN_LOBS);

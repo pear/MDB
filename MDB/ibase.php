@@ -802,7 +802,7 @@ class MDB_ibase extends MDB_Common
             for(;$this->results[$result_value]['current_row'] < $rownum;
                 $this->results[$result_value]['current_row']++
             ) {
-                if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+                if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                     $row = @ibase_fetch_assoc($result);
                 } else {
                     $row = @ibase_fetch_row($result);
@@ -820,7 +820,7 @@ class MDB_ibase extends MDB_Common
             }
             $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
         } else {
-            if ($fetchmode & MDB_FETCHMODE_ASSOC) {
+            if ($fetchmode == MDB_FETCHMODE_ASSOC) {
                 $row = @ibase_fetch_assoc($result);
             } else {
                 $row = @ibase_fetch_row($result);
