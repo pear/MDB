@@ -1367,14 +1367,14 @@ class MDB_Common extends PEAR
                     .'is not corresponding to the number of given parameters ('.count($params).')');
             }
             for ($i = 0, $j = count($params); $i < $j; ++$i) {
-                $success = $this->setParam($prepared_query, $i + 1, $types[$i], $this->getValue($types, $params[$i]));
+                $success = $this->setParam($prepared_query, $i + 1, $types[$i], $params[$i]);
                 if (MDB::isError($success)) {
                     return $success;
                 }
             }
         } else {
             for ($i = 0, $j = count($params); $i < $j; ++$i) {
-                $success = $this->setParam($prepared_query, $i + 1, 'text', $this->getValue('text', $params[$i]));
+                $success = $this->setParam($prepared_query, $i + 1, 'text', $params[$i]);
                 if (MDB::isError($success)) {
                     return $success;
                 }
