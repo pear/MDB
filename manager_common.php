@@ -619,6 +619,45 @@ class MDB_manager_common extends PEAR
     }
 
     // }}}
+    // {{{ listTableIndexes()
+
+    /**
+     * list all indexes in a table
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $table      name of table that should be used in method
+     *
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function listTableIndexes(&$db, $table)
+    {
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+            'List table indexes: List Indexes is not supported');
+    }
+
+    // }}}
+    // {{{ getTableIndexDefinition()
+
+    /**
+     * get the stucture of an index into an array
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $table      name of table that should be used in method
+     * @param string    $index      name of index that should be used in method
+      * 
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function getTableIndexDefinition(&$db, $table, $index)
+    {
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+            'get table index definition: getting index definition is not supported');
+    }
+
+    // }}}
     // {{{ createSequence()
 
     /**
@@ -675,7 +714,25 @@ class MDB_manager_common extends PEAR
             'List sequences: List sequences is not supported');
     }
 
-};
+    // }}}
+    // {{{ getSequenceDefinition()
+
+    /**
+     * get the stucture of a sequence into an array
+     * 
+     * @param $dbs (reference) array where database names will be stored
+     * @param string    $sequence   name of sequence that should be used in method
+      * 
+     * @access public
+     *
+     * @return mixed data array on success, a DB error on failure
+     */ 
+    function getSequenceDefinition(&$db, $sequence)
+    {
+        return $db->raiseError(DB_ERROR_NOT_CAPABLE, "", "", 
+            'get squence definition: getting sequence definition is not supported');
+    }
+}
 
 }
 ?>
