@@ -155,7 +155,7 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
 
         $this->db->setFetchMode(MDB_FETCHMODE_ASSOC);
 
-        $value = $this->db->fetchOne($result);
+        $value = $this->db->fetch($result);
         $this->assertEquals($value, $data['user_name'], "The data returned ($value) does not match that expected (".$data['user_name'].")");
         $this->db->freeResult($result);
     }

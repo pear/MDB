@@ -232,7 +232,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             $field = $this->fields[$i];
             for ($row = 0; $row < $total_rows; $row++) {
                 $result = $this->db->query('SELECT '.$field.' FROM users WHERE user_id='.$row, $this->types[$i]);
-                $value = $this->db->fetchOne($result);
+                $value = $this->db->fetch($result);
                 if (MDB::isError($value)) {
                     $this->assertTrue(false, 'Error fetching row '.$row.' for field '.$field.' of type '.$this->types[$i]);
                 } else {
@@ -424,7 +424,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
             $this->assertTrue(!$this->db->endOfResult($result), 'The query result seems to have reached the end of result earlier than expected');
 
-            $value = $this->db->fetchOne($result);
+            $value = $this->db->fetch($result);
             $this->db->freeResult($result);
 
             $this->assertEquals(rtrim($value), $test_strings[$string], "the value retrieved for field \"user_name\" (\"$value\") doesn't match what was stored (".$test_strings[$string].')');
