@@ -54,8 +54,8 @@ require_once 'test_setup.php';
 require_once 'testUtils.php';
 require_once 'MDB.php';
 
-MDB::loadExtension('Manager');
-MDB::loadExtension('Date');
+MDB::loadFile('Manager');
+MDB::loadFile('Date');
 
 foreach ($testcases as $testcase) {
     include_once $testcase . '.php';

@@ -45,7 +45,7 @@
 // $Id$
 //
 
-MDB::loadExtension('Date');
+MDB::loadFile('Date');
 
 /**
  * Wrapper that makes MDB behave like Metabase

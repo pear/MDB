@@ -48,8 +48,8 @@
 ini_set('include_path', '../:'.ini_get('include_path'));
 
 require 'MDB.php';
-MDB::loadExtension('metabase_wrapper');
-MDB::loadExtension('Manager');
+MDB::loadFile('metabase_wrapper');
+MDB::loadFile('Manager');
 
 /**
  * Metabase test suite

@@ -7,7 +7,7 @@
 ini_set('include_path', '../:'.ini_get('include_path'));
 
     require_once 'MDB.php';
-    MDB::loadExtension('peardb_wrapper');
+    MDB::loadFile('peardb_wrapper');
     require_once 'Var_Dump.php';
 
     // just for kicks you can mess up this part to see some pear error handling

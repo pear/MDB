@@ -314,7 +314,7 @@ class MDB
     }
     
     // }}}
-    // {{{ loadExtension()
+    // {{{ loadFile()
     
     /**
      * load a file containing the class source (like 'MDB_Date' or 'MDB_Manager')
@@ -323,7 +323,7 @@ class MDB
      *                  without the 'MDB_' prefix
      * @access public
      */
-    function loadExtension($file)
+    function loadFile($file)
     {
         @include_once 'MDB/'.$file.'.php';
     }

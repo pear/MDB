@@ -62,7 +62,7 @@ echo ('
         ini_set('include_path', '../:'.ini_get('include_path'));
         require_once 'MDB.php';
         require_once 'Var_Dump.php';
-        MDB::loadExtension('Manager');
+        MDB::loadFile('Manager');
         $dsn = $_REQUEST['type'].'://'.$_REQUEST['user'].':'.$_REQUEST['pass'].'@'.$_REQUEST['host'].'/'.$_REQUEST['name'];
 
         $manager =& new MDB_Manager;

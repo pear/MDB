@@ -46,8 +46,8 @@
 //
 
 require 'MDB.php';
-MDB::loadExtension('Manager');
-MDB::loadExtension('metabase_wrapper');
+MDB::loadFile('Manager');
+MDB::loadFile('metabase_wrapper');
 
 /**
  * Part of Metabase test suite
