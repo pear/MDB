@@ -1124,7 +1124,7 @@ class MDB_driver_pgsql extends MDB_common {
         if (MDB::isError($result)) {
             return $this->raiseError($result);
         }
-        $this->fetchInto($result, $arr, DB_FETCHMODE_ORDERED);
+        $arr = $this->fetchInto($result, DB_FETCHMODE_ORDERED);
         $this->freeResult($result);
         return ($arr[0]);
     }
@@ -1145,10 +1145,10 @@ class MDB_driver_pgsql extends MDB_common {
             return (0);
         }
         if ($this->numRows($result) == 0) {
-            $this->FreeResult($result);
+            $this->freeResult($result);
             return ($this->SetError("Get sequence current value", "could not find value in sequence table"));
         }
-        $value = intval($this->fetchResult($result, 0, 0));
+        $value = intval($this->fetch($result, 0, 0));
         $this->freeResult($result);
         return ($value);
     }
