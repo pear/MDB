@@ -747,15 +747,15 @@ class MDB_ibase extends MDB_Common
      */
     function fetch($result, $rownum, $field)
     {
-        $fetchmode = is_numeric($colnum) ? MDB_FETCHMODE_ORDERED : MDB_FETCHMODE_ASSOC;
+        $fetchmode = is_numeric($field) ? MDB_FETCHMODE_ORDERED : MDB_FETCHMODE_ASSOC;
         $row = $this->fetchInto($result, $fetchmode, $rownum);
         if (MDB::isError($row)) {
-            return($row);
+            return $row;
         }
-        if (!array_key_exists($colnum, $row)) {
-            return(NULL);
+        if (!array_key_exists($field, $row)) {
+            return null;
         }
-        return($row[$colnum]);
+        return $row[$field];
     }
 
     // }}}
@@ -1573,21 +1573,12 @@ class MDB_ibase extends MDB_Common
         $query = "SELECT GEN_ID($sequence_name, 1) as the_value FROM RDB\$DATABASE";
         $result = $this->_doQuery($query);
         $this->popExpect();
-        if ($ondemand && MDB::isError($result)
-            //&& $result->getCode() == MDB_ERROR_NOSUCHTABLE
-            )
-        {
-            // Since we are create the sequence on demand
-            // we know the first id = 1 so initialize the
-            // sequence at 2
-            $result = $this->createSequence($seq_name, 2);
+        if ($ondemand && MDB::isError($result)) {
+            $result = $this->createSequence($seq_name, 1);
             if (MDB::isError($result)) {
-                return($this->raiseError(MDB_ERROR, NULL, NULL,
-                    'Next ID: on demand sequence could not be created'));
-            } else {
-                // First ID of a newly created sequence is 1
-                return 1;
+                return $result;
             }
+            return $this->nextId($seq_name, false);
         }
         return $this->fetchOne($result);
     }
