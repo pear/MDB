@@ -44,10 +44,10 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>0.9.7</version>
+    <version>0.9.7.1</version>
     <state>beta</state>
-    <date>2002-06-2</date>
-    <notes>PHPDoc have now been added to all methods in common.php; some API changes, mostly to the transaction methods; introduced a simple subselect emulation; added postgresql driver; fix fetchInto in the pear db wrapper</notes>
+    <date>2002-06-20</date>
+    <notes>Bugfix release: fetchInto in the pgsql driver and baseFetchInto fixed to handle when now run numbers is passed to the method; mysql subselect emulation now returns NULL if no data is found;</notes>
     <filelist>
         <dir name="/" baseinstalldir="MDB">
           <file role="php">MDB.php</file>
