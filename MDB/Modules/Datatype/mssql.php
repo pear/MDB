@@ -58,27 +58,18 @@ require_once 'MDB/Modules/Datatype/Common.php';
 class MDB_Datatype_mssql extends MDB_Datatype_Common
 {
     // }}}
-    // {{{ constructor
-
-    /**
-    * Constructor
-    */
-    function MDB_Datatype_mssql($database)
-    {
-        $this->MDB_Datatype_Common($database);
-    }
-    // }}}
     // {{{ convertResult()
 
     /**
-    * convert a value to a RDBMS indepdenant MDB type
-    *
-    * @param mixed  $value   value to be converted
-    * @param int    $type    constant that specifies which type to convert to
-    * @return mixed converted value
-    * @access public
-    */
-    function convertResult($value, $type)
+     * convert a value to a RDBMS indepdenant MDB type
+     *
+     * @param object    &$db reference to driver MDB object
+     * @param mixed  $value   value to be converted
+     * @param int    $type    constant that specifies which type to convert to
+     * @return mixed converted value
+     * @access public
+     */
+    function convertResult(&$db, $value, $type)
     {
         switch($type) {
             case METABASE_TYPE_BOOLEAN:
@@ -105,6 +96,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an integer type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -127,10 +119,10 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getIntegerDeclaration($name, $field)
+    function getIntegerDeclaration(&$db, $name, $field)
     {
         if (isset($field['unsigned'])) {
-            $this->db->warnings[] = "unsigned integer field \"$name\" is being
+            $db->warnings[] = "unsigned integer field \"$name\" is being
                 declared as signed integer";
         }
         return "$name INT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
@@ -144,6 +136,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an text type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *       of the field being declared as array indexes. Currently, the types
@@ -164,7 +157,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getTextDeclaration($name, $field)
+    function getTextDeclaration(&$db, $name, $field)
     {
         return (isset($field["length"]) ? "$name VARCHAR (".$field["length"].")" : "$name TEXT").(isset($field["default"]) ? " DEFAULT ".$this->GetTextFieldValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
@@ -176,6 +169,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an character
      * large object type field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the
      *                        properties of the field being declared as array
@@ -195,7 +189,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getClobDeclaration($name, $field)
+    function getClobDeclaration(&$db, $name, $field)
     {
         if (isset($field["length"])) {
             $length = $field["length"];
@@ -217,6 +211,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an binary large
      * object type field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -236,7 +231,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getBlobDeclaration($name, $field)
+    function getBlobDeclaration(&$db, $name, $field)
     {
         if (isset($field["length"])) {
             $length = $field["length"];
@@ -258,6 +253,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare a boolean type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *       of the field being declared as array indexes. Currently, the types
@@ -266,14 +262,14 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *       default
      *           Boolean value to be used as default for this field.
      *
-     *       notnullL
+     *       notnull
      *           Boolean flag that indicates whether this field is constrained
      *           to not be set to null.
      * @return string DBMS specific SQL code portion that should be used to
      *       declare the specified field.
      * @access public
      */
-    function getBooleanDeclaration($name, $field)
+    function getBooleanDeclaration(&$db, $name, $field)
     {
         return "$name BIT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
@@ -285,6 +281,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an date type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -301,7 +298,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getDateDeclaration($name, $field)
+    function getDateDeclaration(&$db, $name, $field)
     {
         return "$name CHAR (".strlen("YYYY-MM-DD").")".(isset($field["default"]) ? " DEFAULT ".$this->getDateValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
@@ -313,6 +310,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an timestamp
      * type field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -330,7 +328,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getTimestampDeclaration($name, $field)
+    function getTimestampDeclaration(&$db, $name, $field)
     {
         return "$name CHAR (".strlen("YYYY-MM-DD HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimestampValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
@@ -342,6 +340,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an time type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -358,7 +357,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getTimeDeclaration($name, $field)
+    function getTimeDeclaration(&$db, $name, $field)
     {
         return "$name CHAR (".strlen("HH:MM:SS").")".(isset($field["default"]) ? " DEFAULT ".$this->getTimeValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
@@ -370,6 +369,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an float type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -387,7 +387,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getFloatDeclaration($name, $field)
+    function getFloatDeclaration(&$db, $name, $field)
     {
         return "$name FLOAT".(isset($field["default"]) ? " DEFAULT ".$field["default"] : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
@@ -399,6 +399,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an decimal type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string  $name   name the field to be declared.
      * @param string  $field  associative array with the name of the properties
      *                        of the field being declared as array indexes.
@@ -416,9 +417,9 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *                 declare the specified field.
      * @access public
      */
-    function getDecimalDeclaration($name, $field)
+    function getDecimalDeclaration(&$db, $name, $field)
     {
-        return "$name DECIMAL(18,".$this->db->decimal_places.")".(isset($field["default"]) ? " DEFAULT ".$this->getDecimalValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
+        return "$name DECIMAL(18,".$db->decimal_places.")".(isset($field["default"]) ? " DEFAULT ".$this->getDecimalValue($field["default"]) : "").(isset($field["notnull"]) ? " NOT NULL" : " NULL");
     }
 
     // }}}
@@ -428,6 +429,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource  $prepared_query query handle from prepare()
      * @param           $parameter
      * @param           $clob
@@ -435,14 +437,14 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *                 a DBMS specific format.
      * @access public
      */
-    function getClobValue($prepared_query, $parameter, $clob)
+    function getClobValue(&$db, $prepared_query, $parameter, $clob)
     {
         $value="'";
         while(!$this->endOfLob($clob)) {
-            if (MDB::isError($result = $this->readLob($clob, $data, $this->db->options['lob_buffer_length']))) {
+            if (MDB::isError($result = $this->readLob($clob, $data, $db->options['lob_buffer_length']))) {
                 return $result;
             }
-            $value .= $this->db->quote($data);
+            $value .= $db->quote($data);
         }
         $value .= "'";
         return $value;
@@ -454,12 +456,13 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
     /**
      * free a character large object
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $clob
      * @return MDB_OK
      * @access public
      */
-    function freeClobValue($prepared_query, $clob)
+    function freeClobValue(&$db, $prepared_query, $clob)
     {
         unset($this->lobs[$clob]);
         return MDB_OK;
@@ -472,6 +475,7 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource  $prepared_query query handle from prepare()
      * @param           $parameter
      * @param           $blob
@@ -479,12 +483,12 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      *                 a DBMS specific format.
      * @access public
      */
-    function getBlobValue($prepared_query, $parameter, $blob)
+    function getBlobValue(&$db, $prepared_query, $parameter, $blob)
     {
         $value = "0x";
         while(!$this->endOfLob($blob))
         {
-            if (MDB::isError($result = $this->readLob($blob, $data, $this->db->options['lob_buffer_length']))) {
+            if (MDB::isError($result = $this->readLob($blob, $data, $db->options['lob_buffer_length']))) {
                 return $result;
             }
             $value.= Bin2Hex($data);
@@ -498,12 +502,13 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
     /**
      * free a binary large object
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
      * @return MDB_OK
      * @access public
      */
-    function freeBlobValue($prepared_query, $blob)
+    function freeBlobValue(&$db, $prepared_query, $blob)
     {
         unset($this->lobs[$blob]);
         return MDB_OK;
@@ -516,12 +521,13 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *       a DBMS specific format.
      * @access public
      */
-    function getBooleanValue($value)
+    function getBooleanValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : $value;
     }
@@ -533,12 +539,13 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string  $value text string value that is intended to be converted.
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      * @access public
      */
-    function getFloatValue($value)
+    function getFloatValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : $value;
     }
@@ -550,12 +557,13 @@ class MDB_Datatype_mssql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string  $value text string value that is intended to be converted.
      * @return string  text string that represents the given argument value in
      *                 a DBMS specific format.
      * @access public
      */
-    function getDecimalValue($value)
+    function getDecimalValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : $value;
     }

@@ -69,25 +69,13 @@ define('MDB_TYPE_BLOB'      , 9);
  */
 class MDB_Datatype_Common
 {
-    var $db;
-
-    // }}}
-    // {{{ constructor
-
-    /**
-    * Constructor
-    */
-    function MDB_Datatype_mysql($database)
-    {
-        $this->db = $database;
-    }
-
     // }}}
     // {{{ setParamText()
 
     /**
      * Set a parameter of a prepared query with a text value.
      *
+     * @param object    &$db reference to driver MDB object
      * @param int $prepared_query argument is a handle that was returned by
      *       the function prepareQuery()
      * @param int $parameter order number of the parameter in the query
@@ -98,7 +86,7 @@ class MDB_Datatype_Common
      * @access public
      * @see setParam()
      */
-    function setParamText($prepared_query, $parameter, $value)
+    function setParamText(&$db, $prepared_query, $parameter, $value)
     {
         return $this->setParam($prepared_query, $parameter, 'text', $this->getTextValue($value));
     }
@@ -109,6 +97,7 @@ class MDB_Datatype_Common
     /**
      * Set a parameter of a prepared query with a character large object value.
      *
+     * @param object    &$db reference to driver MDB object
      * @param int $prepared_query argument is a handle that was returned by
      *       the function prepareQuery()
      * @param int $parameter order number of the parameter in the query
@@ -122,7 +111,7 @@ class MDB_Datatype_Common
      * @access public
      * @see setParam()
      */
-    function setParamClob($prepared_query, $parameter, $value, $field)
+    function setParamClob(&$db, $prepared_query, $parameter, $value, $field)
     {
         return $this->setParam($prepared_query, $parameter, 'clob', $value, 0, $field);
     }
@@ -133,6 +122,7 @@ class MDB_Datatype_Common
     /**
      * Set a parameter of a prepared query with a binary large object value.
      *
+     * @param object    &$db reference to driver MDB object
      * @param int $prepared_query argument is a handle that was returned by
      *       the function prepareQuery()
      * @param int $parameter order number of the parameter in the query
@@ -146,7 +136,7 @@ class MDB_Datatype_Common
      * @access public
      * @see setParam()
      */
-    function setParamBlob($prepared_query, $parameter, $value, $field)
+    function setParamBlob(&$db, $prepared_query, $parameter, $value, $field)
     {
         return $this->setParam($prepared_query, $parameter, 'blob', $value, 0, $field);
     }
@@ -157,6 +147,7 @@ class MDB_Datatype_Common
     /**
      * Set a parameter of a prepared query with a text value.
      *
+     * @param object    &$db reference to driver MDB object
      * @param int $prepared_query argument is a handle that was returned by
      *       the function prepareQuery()
      * @param int $parameter order number of the parameter in the query
@@ -167,7 +158,7 @@ class MDB_Datatype_Common
      * @access public
      * @see setParam()
      */
-    function setParamInteger($prepared_query, $parameter, $value)
+    function setParamInteger(&$db, $prepared_query, $parameter, $value)
     {
         return $this->setParam($prepared_query, $parameter, 'integer', $this->getIntegerValue($value));
     }
@@ -178,6 +169,7 @@ class MDB_Datatype_Common
     /**
      * Set a parameter of a prepared query with a boolean value.
      *
+     * @param object    &$db reference to driver MDB object
      * @param int $prepared_query argument is a handle that was returned by
      *       the function prepareQuery()
      * @param int $parameter order number of the parameter in the query
@@ -188,7 +180,7 @@ class MDB_Datatype_Common
      * @access public
      * @see setParam()
      */
-    function setParamBoolean($prepared_query, $parameter, $value)
+    function setParamBoolean(&$db, $prepared_query, $parameter, $value)
     {
         return $this->setParam($prepared_query, $parameter, 'boolean', $this->getBooleanValue($value));
     }
@@ -199,6 +191,7 @@ class MDB_Datatype_Common
     /**
      * Set a parameter of a prepared query with a date value.
      *
+     * @param object    &$db reference to driver MDB object
      * @param int $prepared_query argument is a handle that was returned by
      *       the function prepareQuery()
      * @param int $parameter order number of the parameter in the query
@@ -209,7 +202,7 @@ class MDB_Datatype_Common
      * @access public
      * @see setParam()
      */
-    function setParamDate($prepared_query, $parameter, $value)
+    function setParamDate(&$db, $prepared_query, $parameter, $value)
     {
         return $this->setParam($prepared_query, $parameter, 'date', $this->getDateValue($value));
     }
@@ -220,6 +213,7 @@ class MDB_Datatype_Common
     /**
      * Set a parameter of a prepared query with a time stamp value.
      *
+     * @param object    &$db reference to driver MDB object
      * @param int $prepared_query argument is a handle that was returned by
      *       the function prepareQuery()
      * @param int $parameter order number of the parameter in the query
@@ -230,7 +224,7 @@ class MDB_Datatype_Common
      * @access public
      * @see setParam()
      */
-    function setParamTimestamp($prepared_query, $parameter, $value)
+    function setParamTimestamp(&$db, $prepared_query, $parameter, $value)
     {
         return $this->setParam($prepared_query, $parameter, 'timestamp', $this->getTimestampValue($value));
     }
@@ -241,6 +235,7 @@ class MDB_Datatype_Common
     /**
      * Set a parameter of a prepared query with a time value.
      *
+     * @param object    &$db reference to driver MDB object
      * @param int $prepared_query argument is a handle that was returned by
      *       the function prepareQuery()
      * @param int $parameter order number of the parameter in the query
@@ -251,7 +246,7 @@ class MDB_Datatype_Common
      * @access public
      * @see setParam()
      */
-    function setParamTime($prepared_query, $parameter, $value)
+    function setParamTime(&$db, $prepared_query, $parameter, $value)
     {
         return $this->setParam($prepared_query, $parameter, 'time', $this->getTimeValue($value));
     }
@@ -262,6 +257,7 @@ class MDB_Datatype_Common
     /**
      * Set a parameter of a prepared query with a float value.
      *
+     * @param object    &$db reference to driver MDB object
      * @param int $prepared_query argument is a handle that was returned by
      *       the function prepareQuery()
      * @param int $parameter order number of the parameter in the query
@@ -272,7 +268,7 @@ class MDB_Datatype_Common
      * @access public
      * @see setParam()
      */
-    function setParamFloat($prepared_query, $parameter, $value)
+    function setParamFloat(&$db, $prepared_query, $parameter, $value)
     {
         return $this->setParam($prepared_query, $parameter, 'float', $this->getFloatValue($value));
     }
@@ -283,6 +279,7 @@ class MDB_Datatype_Common
     /**
      * Set a parameter of a prepared query with a decimal value.
      *
+     * @param object    &$db reference to driver MDB object
      * @param int $prepared_query argument is a handle that was returned by
      *       the function prepareQuery()
      * @param int $parameter order number of the parameter in the query
@@ -293,7 +290,7 @@ class MDB_Datatype_Common
      * @access public
      * @see setParam()
      */
-    function setParamDecimal($prepared_query, $parameter, $value)
+    function setParamDecimal(&$db, $prepared_query, $parameter, $value)
     {
         return $this->setParam($prepared_query, $parameter, 'decimal', $this->getDecimalValue($value));
     }
@@ -311,6 +308,7 @@ class MDB_Datatype_Common
      * function is not called, the type of all result set columns is assumed
      * to be text, thus leading to not perform any conversions.
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource $result result identifier
      * @param string $types array variable that lists the
      *       data types to be expected in the result set columns. If this array
@@ -321,18 +319,18 @@ class MDB_Datatype_Common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      */
-    function setResultTypes($result, $types)
+    function setResultTypes(&$db, $result, $types)
     {
-        if (isset($this->result_types[$result])) {
-            return $this->db->raiseError(MDB_ERROR_INVALID, null, null,
+        if (isset($db->results[$result]['types'])) {
+            return $db->raiseError(MDB_ERROR_INVALID, null, null,
                 'Set result types: attempted to redefine the types of the columns of a result set');
         }
-        $columns = $this->db->numCols($result);
+        $columns = $db->numCols($result);
         if (MDB::isError($columns)) {
             return $columns;
         }
         if ($columns < count($types)) {
-            return $this->db->raiseError(MDB_ERROR_SYNTAX, null, null,
+            return $db->raiseError(MDB_ERROR_SYNTAX, null, null,
                 'Set result types: it were specified more result types (' . count($types) . ') than result columns (' . $columns . ')');
         }
         $valid_types = array(
@@ -349,13 +347,13 @@ class MDB_Datatype_Common
         );
         for($column = 0; $column < count($types); $column++) {
             if (!isset($valid_types[$types[$column]])) {
-                return $this->db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
                     'Set result types: ' . $types[$column] . ' is not a supported column type');
             }
-            $this->result_types[$result][$column] = $valid_types[$types[$column]];
+            $db->results[$result]['types'][$column] = $valid_types[$types[$column]];
         }
         while ($column < $columns) {
-            $this->result_types[$result][$column] = MDB_TYPE_TEXT;
+            $db->results[$result]['types'][$column] = MDB_TYPE_TEXT;
             $column++;
         }
         return MDB_OK;
@@ -367,12 +365,13 @@ class MDB_Datatype_Common
     /**
      * general type conversion method
      *
+     * @param object    &$db reference to driver MDB object
      * @param mixed $value refernce to a value to be converted
      * @param int $type constant that specifies which type to convert to
      * @return object a MDB error on failure
      * @access private
      */
-    function _baseConvertResult($value, $type)
+    function _baseConvertResult(&$db, $value, $type)
     {
         switch ($type) {
             case MDB_TYPE_TEXT:
@@ -398,10 +397,10 @@ class MDB_Datatype_Common
             case MDB_TYPE_CLOB:
                 return $value;
             case MDB_TYPE_BLOB:
-                return $this->db->raiseError(MDB_ERROR_INVALID, null, null,
+                return $db->raiseError(MDB_ERROR_INVALID, null, null,
                     'BaseConvertResult: attempt to convert result value to an unsupported type ' . $type);
             default:
-                return $this->db->raiseError(MDB_ERROR_INVALID, null, null,
+                return $db->raiseError(MDB_ERROR_INVALID, null, null,
                     'BaseConvertResult: attempt to convert result value to an unknown type ' . $type);
         }
     }
@@ -412,12 +411,13 @@ class MDB_Datatype_Common
     /**
      * convert a value to a RDBMS indepdenant MDB type
      *
+     * @param object    &$db reference to driver MDB object
      * @param mixed $value value to be converted
      * @param int $type constant that specifies which type to convert to
      * @return mixed converted value or a MDB error on failure
      * @access public
      */
-    function convertResult($value, $type)
+    function convertResult(&$db, $value, $type)
     {
         return $this->_baseConvertResult($value, $type);
     }
@@ -428,23 +428,24 @@ class MDB_Datatype_Common
     /**
      * convert a result row
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource $result result identifier
      * @param array $row array with data
      * @return mixed MDB_OK on success,  a MDB error on failure
      * @access public
      */
-    function convertResultRow($result, $row)
+    function convertResultRow(&$db, $result, $row)
     {
-        if (isset($this->result_types[$result])) {
+        if (isset($db->results[$result]['types'])) {
             $current_column = -1;
             foreach($row as $key => $column) {
                 ++$current_column;
-                if (!isset($this->result_types[$result][$current_column])
+                if (!isset($db->results[$result]['types'][$current_column])
                    ||!isset($column)
                 ) {
                     continue;
                 }
-                switch ($type = $this->result_types[$result][$current_column]) {
+                switch ($type = $db->results[$result]['types'][$current_column]) {
                     case MDB_TYPE_TEXT:
                     case MDB_TYPE_BLOB:
                     case MDB_TYPE_CLOB:
@@ -472,6 +473,7 @@ class MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an integer type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *       of the field being declared as array indexes. Currently, the types
@@ -491,10 +493,10 @@ class MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getIntegerDeclaration($name, $field)
+    function getIntegerDeclaration(&$db, $name, $field)
     {
         if (isset($field['unsigned'])) {
-            $this->db->warnings[] = "unsigned integer field \"$name\" is being
+            $db->warnings[] = "unsigned integer field \"$name\" is being
                 declared as signed integer";
         }
         return "$name INT" . (isset($field['default']) ? ' DEFAULT ' . $field['default'] : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
@@ -507,6 +509,7 @@ class MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an text type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *       of the field being declared as array indexes. Currently, the types
@@ -527,7 +530,7 @@ class MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getTextDeclaration($name, $field)
+    function getTextDeclaration(&$db, $name, $field)
     {
         return (isset($field['length']) ? "$name CHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? ' DEFAULT ' . $this->getTextValue($field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -539,6 +542,7 @@ class MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an character
      * large object type field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *       of the field being declared as array indexes. Currently, the types
@@ -556,7 +560,7 @@ class MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getClobDeclaration($name, $field)
+    function getClobDeclaration(&$db, $name, $field)
     {
         return (isset($field['length']) ? "$name CHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? ' DEFAULT ' . $this->getTextValue($field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -568,6 +572,7 @@ class MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an binary large
      * object type field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *       of the field being declared as array indexes. Currently, the types
@@ -585,7 +590,7 @@ class MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getBlobDeclaration($name, $field)
+    function getBlobDeclaration(&$db, $name, $field)
     {
         return (isset($field['length']) ? "$name CHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? ' DEFAULT ' . $this->getTextValue($field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -597,6 +602,7 @@ class MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare a boolean type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *       of the field being declared as array indexes. Currently, the types
@@ -612,7 +618,7 @@ class MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getBooleanDeclaration($name, $field)
+    function getBooleanDeclaration(&$db, $name, $field)
     {
         return "$name CHAR (1)" . (isset($field['default']) ? ' DEFAULT ' . $this->getBooleanValue($field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -624,6 +630,7 @@ class MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare a date type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *       of the field being declared as array indexes. Currently, the types
@@ -639,7 +646,7 @@ class MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getDateDeclaration($name, $field)
+    function getDateDeclaration(&$db, $name, $field)
     {
         return "$name CHAR (" . strlen("YYYY-MM-DD") . ")" . (isset($field['default']) ? ' DEFAULT ' . $this->getDateValue($field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -651,6 +658,7 @@ class MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare a timestamp
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *       of the field being declared as array indexes. Currently, the types
@@ -666,7 +674,7 @@ class MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getTimestampDeclaration($name, $field)
+    function getTimestampDeclaration(&$db, $name, $field)
     {
         return "$name CHAR (" . strlen("YYYY-MM-DD HH:MM:SS") . ")" . (isset($field['default']) ? ' DEFAULT ' . $this->getTimestampValue($field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -678,6 +686,7 @@ class MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare a time
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *       of the field being declared as array indexes. Currently, the types
@@ -693,7 +702,7 @@ class MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getTimeDeclaration($name, $field)
+    function getTimeDeclaration(&$db, $name, $field)
     {
         return "$name CHAR (" . strlen("HH:MM:SS") . ")" . (isset($field['default']) ? ' DEFAULT ' . $this->getTimeValue($field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -705,6 +714,7 @@ class MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare a float type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *       of the field being declared as array indexes. Currently, the types
@@ -720,7 +730,7 @@ class MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getFloatDeclaration($name, $field)
+    function getFloatDeclaration(&$db, $name, $field)
     {
         return "$name TEXT " . (isset($field['default']) ? ' DEFAULT ' . $this->getFloatValue($field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -732,6 +742,7 @@ class MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare a decimal type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name name the field to be declared.
      * @param string $field associative array with the name of the properties
      *       of the field being declared as array indexes. Currently, the types
@@ -747,7 +758,7 @@ class MDB_Datatype_Common
      *       declare the specified field.
      * @access public
      */
-    function getDecimalDeclaration($name, $field)
+    function getDecimalDeclaration(&$db, $name, $field)
     {
         return "$name TEXT " . (isset($field['default']) ? ' DEFAULT ' . $this->getDecimalValue($field['default']) : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -759,12 +770,13 @@ class MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *       a DBMS specific format.
      * @access public
      */
-    function getIntegerValue($value)
+    function getIntegerValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : (int)$value;
     }
@@ -776,14 +788,15 @@ class MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $value text string value that is intended to be converted.
      * @return string text string that already contains any DBMS specific
      *       escaped character sequences.
      * @access public
      */
-    function getTextValue($value)
+    function getTextValue(&$db, $value)
     {
-        return ($value === null) ? 'NULL' : "'".$this->db->quote($value)."'";
+        return ($value === null) ? 'NULL' : "'".$db->quote($value)."'";
     }
 
     // }}}
@@ -793,6 +806,7 @@ class MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource $prepared_query query handle from prepare()
      * @param  $parameter
      * @param  $clob
@@ -800,9 +814,9 @@ class MDB_Datatype_Common
      *       a DBMS specific format.
      * @access public
      */
-    function getClobValue($prepared_query, $parameter, $clob)
+    function getClobValue(&$db, $prepared_query, $parameter, $clob)
     {
-        return $this->db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
             'Get CLOB field value: prepared queries with values of type "clob" are not yet supported');
     }
 
@@ -812,12 +826,13 @@ class MDB_Datatype_Common
     /**
      * free a character large object
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource $prepared_query query handle from prepare()
      * @param string $blob
      * @param string $value
      * @access public
      */
-    function freeClobValue($prepared_query, $clob, &$value)
+    function freeClobValue(&$db, $prepared_query, $clob, &$value)
     {
     }
 
@@ -828,6 +843,7 @@ class MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource $prepared_query query handle from prepare()
      * @param  $parameter
      * @param  $blob
@@ -835,9 +851,9 @@ class MDB_Datatype_Common
      *       a DBMS specific format.
      * @access public
      */
-    function getBlobValue($prepared_query, $parameter, $blob)
+    function getBlobValue(&$db, $prepared_query, $parameter, $blob)
     {
-        return $this->db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
             'Get BLOB field value: prepared queries with values of type "blob" are not yet supported');
     }
 
@@ -847,12 +863,13 @@ class MDB_Datatype_Common
     /**
      * free a binary large object
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource $prepared_query query handle from prepare()
      * @param string $blob
      * @param string $value
      * @access public
      */
-    function freeBlobValue($prepared_query, $blob, &$value)
+    function freeBlobValue(&$db, $prepared_query, $blob, &$value)
     {
     }
 
@@ -863,12 +880,13 @@ class MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *       a DBMS specific format.
      * @access public
      */
-    function getBooleanValue($value)
+    function getBooleanValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : ($value ? "'Y'" : "'N'");
     }
@@ -880,12 +898,13 @@ class MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *       a DBMS specific format.
      * @access public
      */
-    function getDateValue($value)
+    function getDateValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : "'$value'";
     }
@@ -897,12 +916,13 @@ class MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *       a DBMS specific format.
      * @access public
      */
-    function getTimestampValue($value)
+    function getTimestampValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : "'$value'";
     }
@@ -914,12 +934,13 @@ class MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      *       compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *       a DBMS specific format.
      * @access public
      */
-    function getTimeValue($value)
+    function getTimeValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : "'$value'";
     }
@@ -931,12 +952,13 @@ class MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *       a DBMS specific format.
      * @access public
      */
-    function getFloatValue($value)
+    function getFloatValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : "'$value'";
     }
@@ -948,12 +970,13 @@ class MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *       a DBMS specific format.
      * @access public
      */
-    function getDecimalValue($value)
+    function getDecimalValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : "'$value'";
     }

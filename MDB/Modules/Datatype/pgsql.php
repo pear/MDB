@@ -62,18 +62,19 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     /**
      * convert a value to a RDBMS indepdenant MDB type
      *
+     * @param object    &$db reference to driver MDB object
      * @param mixed $value value to be converted
      * @param int $type constant that specifies which type to convert to
      * @return mixed converted value or a MDB error on failure
      * @access public
      */
-    function convertResult($value, $type)
+    function convertResult(&$db, $value, $type)
     {
         switch ($type) {
             case MDB_TYPE_BOOLEAN:
                 return strcmp($value, 't') ? false : true;
             case MDB_TYPE_DECIMAL:
-                return sprintf('%.'.$this->db->decimal_places.'f',doubleval($value)/$this->db->decimal_factor);
+                return sprintf('%.'.$db->decimal_places.'f',doubleval($value)/$db->decimal_factor);
             case MDB_TYPE_FLOAT:
                 return doubleval($value);
             case MDB_TYPE_DATE:
@@ -94,6 +95,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an text type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name   name the field to be declared.
      * @param string $field  associative array with the name of the properties
      *      of the field being declared as array indexes. Currently, the types
@@ -114,7 +116,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      declare the specified field.
      * @access public
      */
-    function getTextDeclaration($name, $field)
+    function getTextDeclaration(&$db, $name, $field)
     {
         return (isset($field['length']) ? "$name VARCHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? " DEFAULT '" . $field['default'] . "'" : '') . (isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -126,6 +128,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an character
      * large object type field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name   name the field to be declared.
      * @param string $field  associative array with the name of the properties
      *      of the field being declared as array indexes. Currently, the types
@@ -143,7 +146,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      declare the specified field.
      * @access public
      */
-    function getClobDeclaration($name, $field)
+    function getClobDeclaration(&$db, $name, $field)
     {
         return "$name OID".(isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -155,6 +158,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare an binary large
      * object type field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name   name the field to be declared.
      * @param string $field  associative array with the name of the properties
      *      of the field being declared as array indexes. Currently, the types
@@ -172,7 +176,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      declare the specified field.
      * @access public
      */
-    function getBlobDeclaration($name, $field)
+    function getBlobDeclaration(&$db, $name, $field)
     {
         return "$name OID".(isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -184,6 +188,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare a date type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name   name the field to be declared.
      * @param string $field  associative array with the name of the properties
      *      of the field being declared as array indexes. Currently, the types
@@ -199,7 +204,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      declare the specified field.
      * @access public
      */
-    function getDateDeclaration($name, $field)
+    function getDateDeclaration(&$db, $name, $field)
     {
         return $name.' DATE'.(isset($field['default']) ? ' DEFAULT \''.$field['default'] . "'" : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -211,6 +216,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare a time
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name   name the field to be declared.
      * @param string $field  associative array with the name of the properties
      *      of the field being declared as array indexes. Currently, the types
@@ -226,7 +232,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      declare the specified field.
      * @access public
      */
-    function getTimeDeclaration($name, $field)
+    function getTimeDeclaration(&$db, $name, $field)
     {
         return $name.' TIME'.(isset($field['default']) ? ' DEFAULT \''.$field['default'].'\'' : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -238,6 +244,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare a float type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name   name the field to be declared.
      * @param string $field  associative array with the name of the properties
      *      of the field being declared as array indexes. Currently, the types
@@ -253,7 +260,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      declare the specified field.
      * @access public
      */
-    function getFloatDeclaration($name, $field)
+    function getFloatDeclaration(&$db, $name, $field)
     {
         return "$name FLOAT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -265,6 +272,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * Obtain DBMS specific SQL code portion needed to declare a decimal type
      * field to be used in statements like CREATE TABLE.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $name   name the field to be declared.
      * @param string $field  associative array with the name of the properties
      *      of the field being declared as array indexes. Currently, the types
@@ -280,7 +288,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      declare the specified field.
      * @access public
      */
-    function getDecimalDeclaration($name, $field)
+    function getDecimalDeclaration(&$db, $name, $field)
     {
         return "$name INT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
@@ -292,6 +300,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource  $prepared_query query handle from prepare()
      * @param           $parameter
      * @param           $lob
@@ -299,23 +308,23 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      a DBMS specific format.
      * @access private
      */
-    function _getLobValue($prepared_query, $parameter, $lob)
+    function _getLobValue(&$db, $prepared_query, $parameter, $lob)
     {
-        $connect = $this->db->connect();
+        $connect = $db->connect();
         if (MDB::isError($connect)) {
             return $connect;
         }
-        if ($this->db->auto_commit && !@pg_Exec($this->db->connection, 'BEGIN')) {
-            return $this->db->raiseError(MDB_ERROR, null, null, '_getLobValue: error starting transaction');
+        if ($db->auto_commit && !@pg_Exec($db->connection, 'BEGIN')) {
+            return $db->raiseError(MDB_ERROR, null, null, '_getLobValue: error starting transaction');
         }
-        if (($lo = pg_locreate($this->db->connection))) {
-            if (($handle = pg_loopen($this->db->connection, $lo, 'w'))) {
+        if (($lo = pg_locreate($db->connection))) {
+            if (($handle = pg_loopen($db->connection, $lo, 'w'))) {
                 while (!$this->endOfLob($lob)) {
-                    if (MDB::isError($result = $this->readLob($lob, $data, $this->db->options['lob_buffer_length']))) {
+                    if (MDB::isError($result = $this->readLob($lob, $data, $db->options['lob_buffer_length']))) {
                         break;
                     }
                     if (!pg_lowrite($handle, $data)) {
-                        $result = $this->db->raiseError(MDB_ERROR, null, null, 'Get LOB field value: ' . pg_ErrorMessage($this->db->connection));
+                        $result = $db->raiseError(MDB_ERROR, null, null, 'Get LOB field value: ' . pg_ErrorMessage($db->connection));
                         break;
                     }
                 }
@@ -324,16 +333,16 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
                     $value = strval($lo);
                 }
             } else {
-                $result = $this->db->raiseError(MDB_ERROR, null, null, 'Get LOB field value: ' .  pg_ErrorMessage($this->db->connection));
+                $result = $db->raiseError(MDB_ERROR, null, null, 'Get LOB field value: ' .  pg_ErrorMessage($db->connection));
             }
             if (MDB::isError($result)) {
-                $result = pg_lounlink($this->db->connection, $lo);
+                $result = pg_lounlink($db->connection, $lo);
             }
         } else {
-            $result = $this->db->raiseError(MDB_ERROR, null, null, 'Get LOB field value: ' . pg_ErrorMessage($this->db->connection));
+            $result = $db->raiseError(MDB_ERROR, null, null, 'Get LOB field value: ' . pg_ErrorMessage($db->connection));
         }
-        if ($this->db->auto_commit) {
-            @pg_Exec($this->db->connection, 'END');
+        if ($db->auto_commit) {
+            @pg_Exec($db->connection, 'END');
         }
         if (MDB::isError($result)) {
             return $result;
@@ -348,6 +357,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource  $prepared_query query handle from prepare()
      * @param           $parameter
      * @param           $clob
@@ -355,7 +365,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      a DBMS specific format.
      * @access public
      */
-    function getClobValue($prepared_query, $parameter, $clob)
+    function getClobValue(&$db, $prepared_query, $parameter, $clob)
     {
         return $this->_getLobValue($prepared_query, $parameter, $clob);
     }
@@ -366,12 +376,13 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     /**
      * free a character large object
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $clob
      * @return MDB_OK
      * @access public
      */
-    function freeClobValue($prepared_query, $clob)
+    function freeClobValue(&$db, $prepared_query, $clob)
     {
         unset($this->lobs[$clob]);
         return MDB_OK;
@@ -384,6 +395,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource  $prepared_query query handle from prepare()
      * @param           $parameter
      * @param           $blob
@@ -391,7 +403,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      *      a DBMS specific format.
      * @access public
      */
-    function getBlobValue($prepared_query, $parameter, $blob)
+    function getBlobValue(&$db, $prepared_query, $parameter, $blob)
     {
         return $this->_getLobValue($prepared_query, $parameter, $blob);
     }
@@ -402,12 +414,13 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
     /**
      * free a binary large object
      *
+     * @param object    &$db reference to driver MDB object
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
      * @return MDB_OK
      * @access public
      */
-    function freeBlobValue($prepared_query, $blob)
+    function freeBlobValue(&$db, $prepared_query, $blob)
     {
         unset($this->lobs[$blob]);
         return MDB_OK;
@@ -420,12 +433,13 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
      * @access public
      */
-    function getFloatValue($value)
+    function getFloatValue(&$db, $value)
     {
         return ($value === null) ? 'NULL' : $value;
     }
@@ -437,14 +451,15 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
      * Convert a text value into a DBMS specific format that is suitable to
      * compose query statements.
      *
+     * @param object    &$db reference to driver MDB object
      * @param string $value text string value that is intended to be converted.
      * @return string text string that represents the given argument value in
      *      a DBMS specific format.
      * @access public
      */
-    function getDecimalValue($value)
+    function getDecimalValue(&$db, $value)
     {
-        return ($value === null) ? 'NULL' : strval(round($value*$this->db->decimal_factor));
+        return ($value === null) ? 'NULL' : strval(round($value*$db->decimal_factor));
     }
 }
 
