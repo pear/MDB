@@ -56,8 +56,10 @@ if(!defined('MDB_MANAGER_MYSQL_INCLUDED'))
 * @author  Lukas Smith <smith@dybnet.de>
 */
 
-class MDB_manager_mysql_class extends MDB_manager_common
+class MDB_Manager_mysql extends MDB_Manager_Common
 {
+    // {{{ properties
+
     var $verified_table_types = array();
 
     // }}}
@@ -942,6 +944,8 @@ class MDB_manager_mysql_class extends MDB_manager_common
         }
         return ($sequences);
     }
+
+    // }}}
 }
 
 }

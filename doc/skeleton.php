@@ -63,7 +63,7 @@
 if (!defined('MDB_XXX_INCLUDED')) {
     define('MDB_XXX_INCLUDED', 1);
 
-require_once (dirname(__FILE__).'/common.php');
+require_once (dirname(__FILE__).'/Common.php');
 
 /**
 * MDB XXX driver
@@ -72,7 +72,7 @@ require_once (dirname(__FILE__).'/common.php');
 * @author  YOUR NAME <YOUR EMAIL>
 */
 
-class MDB_driver_xxx extends MDB_common
+class MDB_xxx extends MDB_Common
 {
 // Most of the class variables are taken from the corresponding Metabase driver.
 // Few are taken from the corresponding PEAR DB driver.
@@ -87,8 +87,8 @@ class MDB_driver_xxx extends MDB_common
     var $escape_quotes = "\\";
     var $decimal_factor = 1.0;
 
-    var $manager_class_name = 'MDB_manager_xxx_class';
-    var $manager_include = 'manager_xxx.php';
+    var $manager_class_name = 'MDB_Manager_xxx';
+    var $manager_include = 'MDB/Manager/xxx.php';
     var $manager_included_constant = 'MDB_MANAGER_XXX_INCLUDED';
 
     var $highest_fetched_row = array();
@@ -100,7 +100,7 @@ class MDB_driver_xxx extends MDB_common
     /**
     * Constructor
     */
-    function MDB_driver_xxx($dsninfo = NULL, $options = NULL)
+    function MDB_xxx($dsninfo = NULL, $options = NULL)
     {
         if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
             return $common_contructor;

@@ -71,7 +71,7 @@ if(!defined('MDB_MANAGER_XXX_INCLUDED'))
 * @author  Lukas Smith <smith@dybnet.de>
 */
 
-class MDB_manager_xxx_class extends MDB_manager_common
+class MDB_Manager_xxx_ extends MDB_Manager_Common
 {
     // }}}
     // {{{ createDatabase()

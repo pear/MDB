@@ -48,7 +48,7 @@
 if (!defined('MDB_MYSQL_INCLUDED')) {
     define('MDB_MYSQL_INCLUDED', 1);
 
-require_once (dirname(__FILE__).'/common.php');
+require_once (dirname(__FILE__).'/Common.php');
 
 /**
 * MDB MySQL driver
@@ -57,8 +57,10 @@ require_once (dirname(__FILE__).'/common.php');
 * @author  Lukas Smith <smith@dybnet.de>
 */
 
-class MDB_driver_mysql extends MDB_common
+class MDB_mysql extends MDB_Common
 {
+    // {{{ properties
+
     var $connection = 0;
     var $connected_host;
     var $connected_user;
@@ -69,8 +71,8 @@ class MDB_driver_mysql extends MDB_common
     var $escape_quotes = "\\";
     var $decimal_factor = 1.0;
 
-    var $manager_class_name = 'MDB_manager_mysql_class';
-    var $manager_include = 'manager_mysql.php';
+    var $manager_class_name = 'MDB_Manager_mysql';
+    var $manager_include = 'MDB/Manager/mysql.php';
     var $manager_included_constant = 'MDB_MANAGER_MYSQL_INCLUDED';
 
     var $highest_fetched_row = array();
@@ -87,7 +89,7 @@ class MDB_driver_mysql extends MDB_common
     /**
     * Constructor
     */
-    function MDB_driver_mysql($dsninfo = NULL, $options = NULL)
+    function MDB_mysql($dsninfo = NULL, $options = NULL)
     {
         $options = array_merge(array('seqname_format' => '%s_seq',), $options);
         if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
@@ -1492,6 +1494,8 @@ class MDB_driver_mysql extends MDB_common
         }
         return $res;
     }
+
+    // }}}
 }
 
 };

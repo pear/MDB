@@ -106,13 +106,13 @@ function defaultDebugOutput($database, $message)
 }
 
 /**
- * MDB_common: Base class that is extended by each MDB driver
+ * MDB_Common: Base class that is extended by each MDB driver
  *
  * @package MDB
  * @author Lukas Smith <smith@dybnet.de>
  */
 
-class MDB_common extends PEAR
+class MDB_Common extends PEAR
 {
     var $database = 0;
     var $persistent = 1;
@@ -168,7 +168,7 @@ class MDB_common extends PEAR
     /**
      * Constructor
      */
-    function MDB_common($dsninfo = NULL, $options = NULL)
+    function MDB_Common($dsninfo = NULL, $options = NULL)
     {
         global $databases;
         $database = count($databases) + 1;
@@ -602,8 +602,8 @@ class MDB_common extends PEAR
         if (defined('MDB_LOB_INCLUDED')) {
             return (MDB_OK);
         }
-        $result = $this->_loadExtension($scope, 'lob',
-            'MDB_LOB_INCLUDED', 'lob.php');
+        $result = $this->_loadExtension($scope, 'LOB',
+            'MDB_LOB_INCLUDED', 'MDB/LOB.php');
         if (MDB::isError($result)) {
             return($result);
         }
@@ -640,7 +640,7 @@ class MDB_common extends PEAR
             }
             $class_name = $this->manager_class_name;
         } else {
-            $class_name = 'MDB_manager_common';
+            $class_name = 'MDB_Manager_Common';
         }
         $this->manager = new $class_name;
         return (MDB_OK);
@@ -4249,19 +4249,19 @@ class MDB_common extends PEAR
         if (MDB::isError($result)) {
             return ($result);
         }
-        $class_name = 'MDB_lob';
+        $class_name = 'MDB_LOB';
         if (isset($arguments['Type'])) {
             switch ($arguments['Type']) {
                 case 'data':
                     break;
                 case 'resultlob':
-                    $class_name = 'MDB_lob_result';
+                    $class_name = 'MDB_LOB_Result';
                     break;
                 case 'inputfile':
-                    $class_name = 'MDB_lob_input_file';
+                    $class_name = 'MDB_LOB_Input_File';
                     break;
                 case 'outputfile':
-                    $class_name = 'MDB_lob_output_file';
+                    $class_name = 'MDB_LOB_Output_File';
                     break;
                 default:
                     if (isset($arguments['Error'])) {

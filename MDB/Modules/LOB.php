@@ -55,7 +55,7 @@ if(!defined('MDB_LOB_INCLUDED'))
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
  */
-class MDB_lob
+class MDB_LOB
 {
     
     var $database;
@@ -90,7 +90,7 @@ class MDB_lob
     }
 };
 
-class MDB_lob_result extends MDB_lob
+class MDB_LOB_Result extends MDB_LOB
 {
     
     var $result_lob = 0;
@@ -131,7 +131,7 @@ class MDB_lob_result extends MDB_lob
     }
 };
 
-class MDB_lob_input_file extends MDB_lob
+class MDB_LOB_Input_File extends MDB_LOB
 {
     
     var $file = 0;
@@ -189,7 +189,7 @@ class MDB_lob_input_file extends MDB_lob
     }
 };
 
-class MDB_lob_output_file extends MDB_lob
+class MDB_LOB_Output_File extends MDB_LOB
 {
     
     var $file = 0;

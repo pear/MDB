@@ -47,7 +47,7 @@
 
 require_once 'PEAR.php';
 require_once dirname(__FILE__).'/MDB.php';
-require_once dirname(__FILE__).'/parser.php';
+require_once dirname(__FILE__).'/Parser.php';
 
 define('MDB_MANAGER_DUMP_ALL',          0);
 define('MDB_MANAGER_DUMP_STRUCTURE',    1);
@@ -62,8 +62,10 @@ define('MDB_MANAGER_DUMP_CONTENT',      2);
 * @author  Lukas Smith <smith@dybnet.de>
  */
 
-class MDB_manager extends PEAR
+class MDB_Manager extends PEAR
 {
+    // {{{ properties
+
     var $database;
 
     var $options = array(
@@ -1592,14 +1594,14 @@ class MDB_manager extends PEAR
      * @param string $schema_file path of the database schema file.
      * @param mixed $setup_arguments an associative array that takes pairs of tag names and values
      * that define the setup arguments that are passed to the
-     * MDB_manager::connect function.
+     * MDB_Manager::connect function.
      * @param array $dump_arguments an associative array that takes pairs of tag names and values
-     * that define dump options as defined for the MDB_manager::DumpDatabase
+     * that define dump options as defined for the MDB_Manager::DumpDatabase
      * function.
      * @param array $variables an associative array that the defines the text string values
      * that are meant to be used to replace the variables that are used in the
      * schema description as defined for the
-     * MDB_manager::parseDatabaseDefinitionFile function.
+     * MDB_Manager::parseDatabaseDefinitionFile function.
      * @return mixed MDB_OK on success, or a MDB error object
      * @access private
      */
@@ -2126,5 +2128,7 @@ class MDB_manager extends PEAR
         }
         return (MDB_OK);
     }
+
+    // }}}
 }
 ?>

@@ -184,11 +184,11 @@ define('MDB_TABLEINFO_FULL',       3);
  * |             the actual DB implementations as well as a bunch of
  * |             query utility functions.
  * |
- * +-MDB_driver_mysql   The DB implementation for MySQL. Inherits MDB_Common.
+ * +-MDB_mysql   The DB implementation for MySQL. Inherits MDB_Common.
  *               When calling MDB::factory or MDB::connect for MySQL
  *               connections, the object returned is an instance of this
  *               class.
- * +-MDB_driver_pgsql   The DB implementation for PostGreSQL. Inherits MDB_Common.
+ * +-MDB_pgsql   The DB implementation for PostGreSQL. Inherits MDB_Common.
  *               When calling MDB::factory or MDB::connect for PostGreSQL
  *               connections, the object returned is an instance of this
  *               class.
@@ -214,7 +214,7 @@ class MDB
     {
         @include_once("${type}.php");
         
-        $classname = "MDB_driver_${type}";
+        $classname = "MDB_${type}";
         
         if (!class_exists($classname)) {
             return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
@@ -262,17 +262,12 @@ class MDB
         }
         
         switch(isset($dsninfo['phptype']) ? $dsninfo['phptype'] : '') {
-            case 'mysql';
-                $include    = 'mysql.php';
-                $class_name = 'MDB_driver_mysql';
-                $included   = 'MYSQL_INCLUDED';
-                $ext        = 'mysql';
-                break;
-            case 'pgsql';
-                $include    = 'pgsql.php';
-                $class_name = 'MDB_driver_pgsql';
-                $included   = 'PGSQL_INCLUDED';
-                $ext        = 'pgsql';
+            case 'mysql':
+            case 'pgsql':
+                $ext        = $dsninfo['phptype'];
+                $include    = "$ext.php";
+                $class_name = "MDB_$ext";
+                $included   = 'MDB_'.strtoupper($ext).'_INCLUDED';
                 break;
             default:
                 $included = (isset($options['includedconstant']) ?

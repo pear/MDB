@@ -53,10 +53,8 @@
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
  */
-class MDB_date
+class MDB_Date
 {
-
-    // }}}
     // {{{ mdbNow()
 
     /**
@@ -116,7 +114,7 @@ class MDB_date
     function date2Mdbstamp($hour = NULL, $minute = NULL, $second = NULL,
         $month = NULL, $day = NULL, $year = NULL)
     {
-        return MDB_date::unix2Mdbstamp(mktime($hour, $minute, $second, $month, $day, $year));
+        return MDB_Date::unix2Mdbstamp(mktime($hour, $minute, $second, $month, $day, $year));
     }
 
     // }}}
@@ -146,7 +144,7 @@ class MDB_date
      */
     function mdbstamp2Unix($mdb_timestamp)
     {
-        $arr = MDB_date::mdbstamp2Date($mdb_timestamp);
+        $arr = MDB_Date::mdbstamp2Date($mdb_timestamp);
         return mktime ($arr['hour'], $arr['minute'], $arr['second'],
             $arr['month'], $arr['day'], $arr['year']);
     }
@@ -174,5 +172,7 @@ class MDB_date
         $arr['second'] = substr($mdb_timestamp, 17, 2);
         return $arr;
     }
+
+    // }}}
 }
 ?>

@@ -56,7 +56,7 @@ require_once (dirname(__FILE__).'/common.php');
 * @author  Paul Cooper <pgc@ucecom.com>
 */
 
-class MDB_driver_pgsql extends MDB_common
+class MDB_pgsql extends MDB_common
 {
     var $connection = 0;
     var $connected_host;
@@ -67,8 +67,8 @@ class MDB_driver_pgsql extends MDB_common
     var $escape_quotes = "\\";
     var $decimal_factor = 1.0;
 
-    var $manager_class_name = 'MDB_manager_pgsql_class';
-    var $manager_include = 'manager_pgsql.php';
+    var $manager_class_name = 'MDB_Manager_pgsql';
+    var $manager_include = 'MDB/Manager/pgsql.php';
     var $manager_included_constant = 'MDB_MANAGER_PGSQL_INCLUDED';
 
     var $highest_fetchd_row = array();
@@ -80,7 +80,7 @@ class MDB_driver_pgsql extends MDB_common
     /**
     * Constructor
     */
-    function MDB_driver_pgsql($dsninfo = NULL, $options = NULL)
+    function MDB_pgsql($dsninfo = NULL, $options = NULL)
     {
         $options = array_merge(array('seqname_format' => '%s_seq',), $options);
         if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
