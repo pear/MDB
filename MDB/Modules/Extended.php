@@ -44,7 +44,7 @@
 //
 // $Id$
 
-/*
+/**
  * @package  MDB
  * @category Database
  * @author   Lukas Smith <smith@backendmedia.com>
