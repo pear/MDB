@@ -99,6 +99,7 @@ class MDB_mysql extends MDB_Common
         $this->supported['LOBs'] = 1;
         $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 0;
+        $this->supported['Transactions'] = 0;
         
         $this->decimal_factor = pow(10.0, $this->decimal_places);
         
@@ -111,6 +112,7 @@ class MDB_mysql extends MDB_Common
             1006 => MDB_ERROR_CANNOT_CREATE,
             1007 => MDB_ERROR_ALREADY_EXISTS,
             1008 => MDB_ERROR_CANNOT_DROP,
+            1022 => MDB_ERROR_ALREADY_EXISTS,
             1046 => MDB_ERROR_NODBSELECTED,
             1050 => MDB_ERROR_ALREADY_EXISTS,
             1051 => MDB_ERROR_NOSUCHTABLE,
@@ -121,6 +123,7 @@ class MDB_mysql extends MDB_Common
             1136 => MDB_ERROR_VALUE_COUNT_ON_ROW,
             1146 => MDB_ERROR_NOSUCHTABLE,
             1048 => MDB_ERROR_CONSTRAINT,
+            1216 => MDB_ERROR_CONSTRAINT,
         );
     }
 
@@ -296,12 +299,12 @@ class MDB_mysql extends MDB_Common
                 NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
                 'MDB_Error', TRUE));
         }
-
         $UseTransactions = $this->getOption('UseTransactions');
         if(!MDB::isError($UseTransactions) && $UseTransactions) {
             $this->supported['Transactions'] = 1;
             $this->default_table_type = 'BDB';
         } else {
+            $this->supported['Transactions'] = 0;
             $this->default_table_type = '';
         }
         $DefaultTableType = $this->getOption('DefaultTableType');
@@ -399,8 +402,7 @@ class MDB_mysql extends MDB_Common
             if (isset($result) && MDB::isError($result)) {
                 return($result);
             }
-            global $_MDB_databases;
-            $_MDB_databases[$this->database] = '';
+            $GLOBALS['_MDB_databases'][$this->database] = '';
             return(TRUE);
         }
         return(FALSE);
@@ -415,7 +417,7 @@ class MDB_mysql extends MDB_Common
      * @access public
      *
      * @param string  $query  the SQL query
-     * @param array   $types  array that contains the types of the columns in
+     * @param mixed   $types  array that contains the types of the columns in
      *                        the result set
      *
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure

@@ -67,17 +67,10 @@ class MDB_mssql extends MDB_Common
     var $opened_persistent = '';
 
     var $escape_quotes = "'";
-    var $decimal_factor = 1.0;
 
     var $highest_fetched_row = array();
     var $columns = array();
 
-/*
-    // MSSQL specific class variable
-    var $default_table_type = '';
-    var $fixed_float = 0;
-    var $dummy_primary_key = 'dummy_primary_key';
-*/
     // }}}
     // {{{ constructor
 
@@ -256,11 +249,11 @@ class MDB_mssql extends MDB_Common
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'Rollback transactions: transactions can not be rolled back when changes are auto commited'));
         }
-        $result = $this->query('COMMIT TRANSACTION');
+        $result = $this->query('ROLLBACK TRANSACTION');
         if (MDB::isError($result)) {
             return($result);
         }
-        return($this->query('ROLLBACK TRANSACTION'));
+        return($this->query('BEGIN TRANSACTION'));
     }
 
     function _doQuery($query)
@@ -352,8 +345,7 @@ class MDB_mssql extends MDB_Common
             if (isset($result) && MDB::isError($result)) {
                 return($result);
             }
-            global $_MDB_databases;
-            $_MDB_databases[$this->database] = '';
+            $GLOBALS['_MDB_databases'][$this->database] = '';
             return(TRUE);
         }
         return(FALSE);
@@ -385,7 +377,7 @@ class MDB_mssql extends MDB_Common
      * @access public
      *
      * @param string  $query  the SQL query
-     * @param array   $types  array that contains the types of the columns in
+     * @param mixed   $types  array that contains the types of the columns in
      *                        the result set
      *
      * @return mixed a result handle or MDB_OK on success, a MDB error on failure
@@ -1134,7 +1126,7 @@ class MDB_mssql extends MDB_Common
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $this->expectError(MDB_ERROR_NOSUCHTABLE);
-        $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
+        $result = $this->query("INSERT INTO $sequence_name DEFAULT VALUES");
         $this->popExpect();
         if ($ondemand && MDB::isError($result) &&
             $result->getCode() == MDB_ERROR_NOSUCHTABLE)
@@ -1223,36 +1215,25 @@ class MDB_mssql extends MDB_Common
     }
 
     // }}}
-    // {{{ nextResult()
-
-    /**
-     * Move the internal mssql result pointer to the next available result
-     * Currently not supported
-     *
-     * @param a valid result resource
-     * @return true if a result is available otherwise return false
-     * @access public
-     */
-    function nextResult($result)
-    {
-        return(mssql_next_result($result));
-    }
-
-    // }}}
     // {{{ tableInfo()
 
-    /**
-    * returns meta data about the result set
-    *
-    * @param resource    $result    result identifier
-    * @param mixed $mode depends on implementation
-    * @return array an nested array, or a MDB error
-    * @access public
-    */
-    function tableInfo($result, $mode = NULL) {
+  /**
+     * Returns information about a table or a result set
+     *
+     * NOTE: doesn't support table name and flags if called from a db_result
+     *
+     * @param  mixed $resource SQL Server result identifier or table name
+     * @param  int $mode A valid tableInfo mode (MDB_TABLEINFO_ORDERTABLE or
+     *                   MDB_TABLEINFO_ORDER)
+     *
+     * @return array An array with all the information
+     */
+    function tableInfo($result, $mode = NUL)
+    {
+
         $count = 0;
-        $id     = 0;
-        $res  = array();
+        $id    = 0;
+        $res   = array();
 
         /*
          * depending on $mode, metadata returns the following values:
@@ -1267,7 +1248,7 @@ class MDB_mssql extends MDB_Common
          *
          * - mode is MDB_TABLEINFO_ORDER
          * $result[]:
-         *   ['num_fields'] number of metadata records
+         *   ["num_fields"] number of metadata records
          *   [0]['table']  table name
          *   [0]['name']   field name
          *   [0]['type']   field type
@@ -1279,8 +1260,8 @@ class MDB_mssql extends MDB_Common
          *
          * - mode is MDB_TABLEINFO_ORDERTABLE
          *    the same as above. but additionally
-         *   ['ordertable'][table name][field name] index of field
-         *      named 'field name'
+         *   ["ordertable"][table name][field name] index of field
+         *      named "field name"
          *
          *      this is, because if you have fields from different
          *      tables with the same field name * they override each
@@ -1293,9 +1274,12 @@ class MDB_mssql extends MDB_Common
 
         // if $result is a string, then we want information about a
         // table without a resultset
+
         if (is_string($result)) {
-            $id = @mssql_list_fields($this->database_name,
-                $result, $this->connection);
+            if (!@mssql_select_db($this->database_name, $this->connection)) {
+                return $this->mssqlRaiseError(MDB_ERROR_NODBSELECTED);
+            }
+            $id = mssql_query("SELECT * FROM $result", $this->connection);
             if (empty($id)) {
                 return($this->mssqlRaiseError());
             }
@@ -1310,22 +1294,26 @@ class MDB_mssql extends MDB_Common
 
         // made this IF due to performance (one if is faster than $count if's)
         if (empty($mode)) {
-            for ($i = 0; $i<$count; $i++) {
-                $res[$i]['table'] = @mssql_field_table ($id, $i);
-                $res[$i]['name'] = @mssql_field_name  ($id, $i);
-                $res[$i]['type'] = @mssql_field_type  ($id, $i);
-                $res[$i]['len']  = @mssql_field_len   ($id, $i);
-                $res[$i]['flags'] = @mssql_field_flags ($id, $i);
-            }
-        } else { // full
-            $res['num_fields'] = $count;
 
-            for ($i = 0; $i<$count; $i++) {
-                $res[$i]['table'] = @mssql_field_table ($id, $i);
-                $res[$i]['name'] = @mssql_field_name  ($id, $i);
-                $res[$i]['type'] = @mssql_field_type  ($id, $i);
-                $res[$i]['len']  = @mssql_field_len   ($id, $i);
-                $res[$i]['flags'] = @mssql_field_flags ($id, $i);
+            for ($i=0; $i<$count; $i++) {
+                $res[$i]['table'] = (is_string($result)) ? $result : '';
+                $res[$i]['name']  = @mssql_field_name($id, $i);
+                $res[$i]['type']  = @mssql_field_type($id, $i);
+                $res[$i]['len']   = @mssql_field_length($id, $i);
+                // We only support flags for tables
+                $res[$i]['flags'] = is_string($result) ? $this->_mssql_field_flags($result, $res[$i]['name']) : '';
+            }
+
+        } else { // full
+            $res['num_fields']= $count;
+
+            for ($i=0; $i<$count; $i++) {
+                $res[$i]['table'] = (is_string($result)) ? $result : '';
+                $res[$i]['name']  = @mssql_field_name($id, $i);
+                $res[$i]['type']  = @mssql_field_type($id, $i);
+                $res[$i]['len']   = @mssql_field_length($id, $i);
+                // We only support flags for tables
+                $res[$i]['flags'] = is_string($result) ? $this->_mssql_field_flags($result, $res[$i]['name']) : '';
                 if ($mode & MDB_TABLEINFO_ORDER) {
                     $res['order'][$res[$i]['name']] = $i;
                 }
@@ -1341,6 +1329,51 @@ class MDB_mssql extends MDB_Common
         }
         return($res);
     }
+
+    // }}}
+    // {{{ _mssql_field_flags()
+    /**
+    * Get the flags for a field, currently only supports "isnullable" and "primary_key"
+    *
+    * @param string The table name
+    * @param string The field
+    * @access private
+    */
+    function _mssql_field_flags($table, $column)
+    {
+        static $current_table = NULL;
+        static $flags;
+        // At the first call we discover the flags for all fields
+        if ($table != $current_table) {
+            $flags = array();
+            // find nullable fields
+            $q_nulls = "SELECT syscolumns.name, syscolumns.isnullable
+                        FROM sysobjects
+                        INNER JOIN syscolumns ON sysobjects.id = syscolumns.id
+                        WHERE sysobjects.name ='$table' AND syscolumns.isnullable = 1";
+            $res = $this->query($q_nulls, NULL, FALSE);
+            $res = $this->fetchAll($res, MDB_FETCHMODE_ASSOC);
+            foreach ($res as $data) {
+                if ($data['isnullable'] == 1) {
+                    $flags[$data['name']][] = 'isnullable';
+                }
+            }
+            // find primary keys
+            $res2 = $this->query("EXEC SP_PKEYS[$table]", NULL, FALSE);
+            $res2 = $this->fetchAll($res, MDB_FETCHMODE_ASSOC);
+            foreach ($res2 as $data) {
+                if (!empty($data['COLUMN_NAME'])) {
+                    $flags[$data['COLUMN_NAME']][] = 'primary_key';
+                }
+            }
+            $current_table = $table;
+        }
+        if (isset($flags[$column])) {
+            return(implode(',', $flags[$column]));
+        }
+        return('');
+    }
+    // }}}
 }
 
 ?>

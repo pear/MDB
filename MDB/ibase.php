@@ -90,17 +90,6 @@ class MDB_ibase extends MDB_Common
         $this->phptype  = 'ibase';
         $this->dbsyntax = 'ibase';
 
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
-                NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', TRUE));
-        }
-
-/*
-        if (!function_exists('ibase_connect')) {
-            return('FireBird/InterBase support is not available in this PHP configuration');
-        }
-*/
         $this->supported['Sequences'] = 1;
         $this->supported['Indexes'] = 1;
         $this->supported['SummaryFunctions'] = 1;
@@ -463,8 +452,7 @@ class MDB_ibase extends MDB_Common
             $this->connection = 0;
             $this->affected_rows = -1;
 
-            global $_MDB_databases;
-            $_MDB_databases[$this->database] = '';
+            $GLOBALS['_MDB_databases'][$this->database] = '';
             return(TRUE);
         }
         return(FALSE);
@@ -486,38 +474,9 @@ class MDB_ibase extends MDB_Common
             && isset($this->query_parameters[$prepared_query])
             && count($this->query_parameters[$prepared_query]) > 2)
         {
-            if(function_exists("call_user_func_array")) {
-                $this->query_parameters[$prepared_query][0] = $connection;
-                $this->query_parameters[$prepared_query][1] = $query;
-                $result = @call_user_func_array("ibase_query", $this->query_parameters[$prepared_query]);
-            } else {
-                switch(count($this->query_parameters[$prepared_query])) {
-                    case 3:
-                        $result = @ibase_query($connection, $query, $this->query_parameters[$prepared_query][2]);
-                        break;
-                    case 4:
-                        $result = @ibase_query($connection, $query, $this->query_parameters[$prepared_query][2], $this->query_parameters[$prepared_query][3]);
-                        break;
-                    case 5:
-                        $result = @ibase_query($connection, $query, $this->query_parameters[$prepared_query][2], $this->query_parameters[$prepared_query][3], $this->query_parameters[$prepared_query][4]);
-                        break;
-                    case 6:
-                        $result = @ibase_query($connection, $query, $this->query_parameters[$prepared_query][2], $this->query_parameters[$prepared_query][3], $this->query_parameters[$prepared_query][4], $this->query_parameters[$prepared_query][5]);
-                        break;
-                    case 7:
-                        $result = @ibase_query($connection, $query, $this->query_parameters[$prepared_query][2], $this->query_parameters[$prepared_query][3], $this->query_parameters[$prepared_query][4], $this->query_parameters[$prepared_query][5], $this->query_parameters[$prepared_query][6]);
-                        break;
-                    case 8:
-                        $result = @ibase_query($connection, $query, $this->query_parameters[$prepared_query][2], $this->query_parameters[$prepared_query][3], $this->query_parameters[$prepared_query][4], $this->query_parameters[$prepared_query][5], $this->query_parameters[$prepared_query][6], $this->query_parameters[$prepared_query][7]);
-                        break;
-                    case 9:
-                        $result = @ibase_query($connection, $query, $this->query_parameters[$prepared_query][2], $this->query_parameters[$prepared_query][3], $this->query_parameters[$prepared_query][4], $this->query_parameters[$prepared_query][5], $this->query_parameters[$prepared_query][6], $this->query_parameters[$prepared_query][7], $this->query_parameters[$prepared_query][8]);
-                        break;
-                    case 10:
-                        $result = @ibase_query($connection, $query, $this->query_parameters[$prepared_query][2], $this->query_parameters[$prepared_query][3], $this->query_parameters[$prepared_query][4], $this->query_parameters[$prepared_query][5], $this->query_parameters[$prepared_query][6], $this->query_parameters[$prepared_query][7], $this->query_parameters[$prepared_query][8], $this->query_parameters[$prepared_query][9]);
-                        break;
-                }
-            }
+            $this->query_parameters[$prepared_query][0] = $connection;
+            $this->query_parameters[$prepared_query][1] = $query;
+            $result = @call_user_func_array("ibase_query", $this->query_parameters[$prepared_query]);
         } else {
             //Not Prepared Query
             $result = @ibase_query($connection, $query);
@@ -659,23 +618,6 @@ class MDB_ibase extends MDB_Common
             }
         }
         return($this->columns[$result_value]);
-        //$column_names = $this->columns[$result_value];
-        //return(1);
-
-        /*
-        if (!isset($this->highest_fetched_row[$result])) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'Get Column Names: specified an nonexistant result set'));
-        }
-        if (!isset($this->columns[$result])) {
-            $this->columns[$result] = array();
-            $columns = ibase_num_fields($result);
-            for($column = 0; $column < $columns; $column++) {
-                $_fieldInfo = ibase_field_info($result, $column);
-                $this->columns[$result][strtolower($_fieldInfo['name'])] = $column;
-            }
-        }
-        return($this->columns[$result]);
-        */
     }
 
     // }}}
@@ -709,38 +651,46 @@ class MDB_ibase extends MDB_Common
     * @access public
     */
     function endOfResult($result)
-	{
-		$result_value = intval($result);
-		if (!isset($this->current_row[$result_value])) {
+    {
+        $result_value = intval($result);
+        if (!isset($this->current_row[$result_value])) {
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'End of result: attempted to check the end of an unknown result'));
         }
         if(isset($this->rows[$result_value])) {
-			return($this->highest_fetched_row[$result_value] >= $this->rows[$result_value]-1);
-		}
-		if (isset($this->row_buffer[$result_value])) {
+            return($this->highest_fetched_row[$result_value] >= $this->rows[$result_value]-1);
+        }
+        if (isset($this->row_buffer[$result_value])) {
             return FALSE;
         }
         if (isset($this->limits[$result_value])) {
             if (MDB::isError($this->_skipLimitOffset($result))
                 || $this->current_row[$result_value] + 1 >= $this->limits[$result_value][1])
             {
-        		$this->rows[$result_value] = 0;
-				return TRUE;
-			}
-		}
-		if(is_array($this->row_buffer[$result_value] = @ibase_fetch_row($result))) {
-			return FALSE;
-		}
-		unset($this->row_buffer[$result_value]);
-		$this->rows[$result_value] = $this->current_row[$result_value]+1;
-		return TRUE;
-	}
+                $this->rows[$result_value] = 0;
+                return TRUE;
+            }
+        }
+        if(is_array($this->row_buffer[$result_value] = @ibase_fetch_row($result))) {
+            return FALSE;
+        }
+        unset($this->row_buffer[$result_value]);
+        $this->rows[$result_value] = $this->current_row[$result_value]+1;
+        return TRUE;
+    }
 
     // }}}
-    // {{{ getColumn()
+    // {{{ _getColumn()
 
-    function getColumn($result, $field)
+    /**
+     * Get key for a given field with a result set.
+     *
+     * @param resource $result
+     * @param mixed $field integer or string key for the column
+     * @return mixed column from the result handle or a MDB error on failure
+     * @access private
+     */
+    function _getColumn($result, $field)
     {
         $result_value = intval($result);
         $colNames = $this->getColumnNames($result);
@@ -773,7 +723,7 @@ class MDB_ibase extends MDB_Common
     function fetch($result, $row, $field)    /// REVIEW ME!!!
     {
         $result_value = intval($result);
-        if (MDB::isError($column = $this->getColumn($result, $field))) {
+        if (MDB::isError($column = $this->_getColumn($result, $field))) {
             return $column;
         }
         if (MDB::isError($err = $this->fetchRow($result, $row))) {
@@ -876,8 +826,8 @@ class MDB_ibase extends MDB_Common
      * @access private
      */
     function _retrieveLob($lob)
-	{
-		if (!isset($this->lobs[$lob])) {
+    {
+        if (!isset($this->lobs[$lob])) {
             return($this->raiseError(MDB_ERROR, NULL, NULL,
                 'Retrieve LOB: it was not specified a valid lob'));
         }
@@ -887,13 +837,13 @@ class MDB_ibase extends MDB_Common
                                                       $this->lobs[$lob]['Row'],
                                                       $this->lobs[$lob]['Field']);
 
-			if(!$this->lobs[$lob]['Handle'] = ibase_blob_open($this->lobs[$lob]['Value'])) {
-				unset($this->lobs[$lob]['Value']);
-				return($this->raiseError(MDB_ERROR, NULL, NULL,
+            if(!$this->lobs[$lob]['Handle'] = ibase_blob_open($this->lobs[$lob]['Value'])) {
+                unset($this->lobs[$lob]['Value']);
+                return($this->raiseError(MDB_ERROR, NULL, NULL,
                     'Retrieve LOB: Could not open fetched large object field' . ibase_errmsg()));
-			}
-		}
-		return MDB_OK;
+            }
+        }
+        return MDB_OK;
     }
 
     // }}}
@@ -957,11 +907,11 @@ class MDB_ibase extends MDB_Common
     function _destroyResultLob($lob)
     {
         if(isset($this->lobs[$lob])) {
-			if(isset($this->lobs[$lob]['Value'])) {
-				ibase_blob_close($this->lobs[$lob]['Handle']);
-			}
-			$this->lobs[$lob] = '';
-		}
+            if(isset($this->lobs[$lob]['Value'])) {
+                ibase_blob_close($this->lobs[$lob]['Handle']);
+            }
+            $this->lobs[$lob] = '';
+        }
     }
 
     // }}}
@@ -1028,6 +978,32 @@ class MDB_ibase extends MDB_Common
             default:
                 return $this->_baseConvertResult($value, $type);
         }
+    }
+
+    // }}}
+    // {{{ resultIsNull()
+
+    /**
+     * Determine whether the value of a query result located in given row and
+     *    field is a NULL.
+     * 
+     * @param resource $result result identifier
+     * @param int $row number of the row where the data can be found
+     * @param int $field field number where the data can be found
+     * @return mixed TRUE or FALSE on success, a MDB error on failure
+     * @access public 
+     */
+    function resultIsNull($result, $row, $field)
+    {
+        $result_value = intval($result);
+        if (MDB::isError($column = $this->_getColumn($result, $field))) {
+            return($column);
+        }
+        if (MDB::isError($fetchinto = $this->fetchInto($result, MDB_FETCHMODE_ORDERED, $row))) {
+            return($fetchInto);
+        }
+        $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $row);
+        return(!isset($this->results[$result_value][$row][$column]));
     }
 
     // }}}
@@ -1333,27 +1309,27 @@ class MDB_ibase extends MDB_Common
      * @access private
      */
     function _getLobValue($prepared_query, $parameter, $lob)
-	{
-		if (MDB::isError($connect = $this->connect())) {
+    {
+        if (MDB::isError($connect = $this->connect())) {
             return $connect;
         }
         $success = 1;   // REMOVE ME
         $value   = '';  // DEAL WITH ME
-		if(!$this->transaction_id = ibase_trans(IBASE_COMMITTED, $this->connection)) {
+        if(!$this->transaction_id = ibase_trans(IBASE_COMMITTED, $this->connection)) {
             return($this->raiseError(MDB_ERROR, '', '', '_getLobValue: Could not start a new transaction: '.ibase_errmsg()));
         }
 
-		if(($lo = ibase_blob_create($this->auto_commit ? $this->connection : $this->transaction_id))) {
-			while (!$this->endOfLob($lob)) {
-    			if (MDB::isError($result = $this->readLob($lob, $data, $this->options['lob_buffer_length']))) {
-                	$success = 0;
-    			    break;
+        if(($lo = ibase_blob_create($this->auto_commit ? $this->connection : $this->transaction_id))) {
+            while (!$this->endOfLob($lob)) {
+                if (MDB::isError($result = $this->readLob($lob, $data, $this->options['lob_buffer_length']))) {
+                    $success = 0;
+                    break;
                 }
                 if(!ibase_blob_add($lo, $data)) {
-    				$result = $this->raiseError(MDB_ERROR, NULL, NULL, '_getLobValue - Could not add data to a large object: ' . ibase_errmsg());
-    				$success = 0;
-    				break;
-    			}
+                    $result = $this->raiseError(MDB_ERROR, NULL, NULL, '_getLobValue - Could not add data to a large object: ' . ibase_errmsg());
+                    $success = 0;
+                    break;
+                }
             }
             if(MDB::isError($result)) {
                 ibase_blob_cancel($lo);
@@ -1367,7 +1343,7 @@ class MDB_ibase extends MDB_Common
             $this->query_parameters[$prepared_query]       = array(0, '');
             $this->query_parameter_values[$prepared_query] = array();
         }
-		$query_parameter = count($this->query_parameters[$prepared_query]);
+        $query_parameter = count($this->query_parameters[$prepared_query]);
         $this->query_parameter_values[$prepared_query][$parameter] = $query_parameter;
         $this->query_parameters[$prepared_query][$query_parameter] = $value;
         $value = '?';
@@ -1376,7 +1352,7 @@ class MDB_ibase extends MDB_Common
             $this->commit();
         }
         return $value;
-	}
+    }
 
     // }}}
     // {{{ getClobValue()
@@ -1397,6 +1373,32 @@ class MDB_ibase extends MDB_Common
         return $this->_getLobValue($prepared_query, $parameter, $clob);
     }
 
+
+    // }}}
+    // {{{ freeLobValue()
+
+    /**
+     * free a large object
+     *
+     * @param resource  $prepared_query query handle from prepare()
+     * @param string    $lob
+     * @param string    $value
+     * @return MDB_OK
+     * @access public
+     */
+    function freeLobValue($prepared_query, $lob, &$value)
+    {
+        $query_parameter=$this->query_parameter_values[$prepared_query][$lob];
+
+        unset($this->query_parameters[$prepared_query][$query_parameter]);
+        unset($this->query_parameter_values[$prepared_query][$lob]);
+        if (count($this->query_parameter_values[$prepared_query]) == 0) {
+            unset($this->query_parameters[$prepared_query]);
+            unset($this->query_parameter_values[$prepared_query]);
+        }
+        unset($value);
+    }
+
     // }}}
     // {{{ freeClobValue()
 
@@ -1405,13 +1407,13 @@ class MDB_ibase extends MDB_Common
      *
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $clob
+     * @param string    $value
      * @return MDB_OK
      * @access public
      */
-    function freeClobValue($prepared_query, $clob)
+    function freeClobValue($prepared_query, $clob, &$value)
     {
-        unset($this->lobs[$clob]);
-        return MDB_OK;
+        $this->freeLobValue($prepared_query, $clob, $value);
     }
 
     // }}}
@@ -1441,13 +1443,13 @@ class MDB_ibase extends MDB_Common
      *
      * @param resource  $prepared_query query handle from prepare()
      * @param string    $blob
+     * @param string    $value
      * @return MDB_OK
      * @access public
      */
-    function freeBlobValue($prepared_query, $blob)
+    function freeBlobValue($prepared_query, $blob, &$value)
     {
-        unset($this->lobs[$blob]);
-        return MDB_OK;
+        $this->freeLobValue($prepared_query, $blob, $value);
     }
 
     // }}}
@@ -1653,10 +1655,10 @@ class MDB_ibase extends MDB_Common
                 $res[$i]['len']   = $info['length'];
                 //$res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($info['name'], $result) : '';
                 $res[$i]['flags'] = (is_string($result)) ? $this->_ibaseFieldFlags($id, $i, $result) : '';
-                if ($mode & DB_TABLEINFO_ORDER) {
+                if ($mode & MDB_TABLEINFO_ORDER) {
                     $res['order'][$res[$i]['name']] = $i;
                 }
-                if ($mode & DB_TABLEINFO_ORDERTABLE) {
+                if ($mode & MDB_TABLEINFO_ORDERTABLE) {
                     $res['ordertable'][$res[$i]['table']][$res[$i]['name']] = $i;
                 }
             }

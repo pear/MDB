@@ -376,8 +376,7 @@ class MDB_pgsql extends MDB_Common
             $this->connection = 0;
             $this->affected_rows = -1;
             
-            global $_MDB_databases;
-            $_MDB_databases[$this->database] = '';
+            $GLOBALS['_MDB_databases'][$this->database] = '';
             return(MDB_OK);
         }
         return(MDB_ERROR);
@@ -449,10 +448,7 @@ class MDB_pgsql extends MDB_Common
             return($connected);
         }
         
-        if (!$ismanip && $limit > 0 &&
-            substr(strtolower(ltrim($query)),
-            0, 6) == 'select')
-        {
+        if (!$ismanip && $limit > 0) {
              if ($this->auto_commit && MDB::isError($this->_doQuery('BEGIN'))) {
                  return($this->raiseError(MDB_ERROR));
              }
@@ -482,7 +478,17 @@ class MDB_pgsql extends MDB_Common
         if ($ismanip) {
             $this->affected_rows = @pg_cmdtuples($result);
             return(MDB_OK);
-        } elseif  (preg_match('/^\s*\(?\s*SELECT\s+/si', $query) && !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query)) {
+        } elseif ((preg_match('/^\s*\(?\s*SELECT\s+/si', $query)
+                && !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query)
+            ) || preg_match('/^\s*EXPLAIN/si',$query )
+        ) {
+            /* PostgreSQL commands:
+               ABORT, ALTER, BEGIN, CLOSE, CLUSTER, COMMIT, COPY,
+               CREATE, DECLARE, DELETE, DROP TABLE, EXPLAIN, FETCH,
+               GRANT, INSERT, LISTEN, LOAD, LOCK, MOVE, NOTIFY, RESET,
+               REVOKE, ROLLBACK, SELECT, SELECT INTO, SET, SHOW,
+               UNLISTEN, UPDATE, VACUUM
+            */
             $this->highest_fetched_row[$result] = -1;
             if ($types != NULL) {
                 if (!is_array($types)) {
@@ -749,7 +755,7 @@ class MDB_pgsql extends MDB_Common
     {
         switch ($type) {
             case MDB_TYPE_BOOLEAN:
-                return(strcmp($value, 'Y') ? FALSE : TRUE);
+                return(strcmp($value, 'Y') ? 0 : 1);
             case MDB_TYPE_DECIMAL:
                 return(sprintf('%.'.$this->decimal_places.'f',doubleval($value)/$this->decimal_factor));
             case MDB_TYPE_FLOAT:
@@ -1107,10 +1113,11 @@ class MDB_pgsql extends MDB_Common
      * @return MDB_OK
      * @access public
      */
-    function freeClobValue($prepared_query, $clob)
+    function freeClobValue($prepared_query, $clob, &$value, $success)
     {
-        unset($this->lobs[$clob]);
-        return(MDB_OK);
+#        if (!MDB::isError($success)) {
+#            pg_lounlink($this->connection,intval($value));
+#        }
     }
 
     // }}}
@@ -1143,10 +1150,11 @@ class MDB_pgsql extends MDB_Common
      * @return MDB_OK
      * @access public
      */
-    function freeBlobValue($prepared_query, $blob)
+    function freeBlobValue($prepared_query, $blob, &$value, $success)
     {
-        unset($this->lobs[$blob]);
-        return(MDB_OK);
+#        if (!MDB::isError($success)) {
+#            pg_lounlink($this->connection,intval($value));
+#        }
     }
 
     // }}}
@@ -1213,14 +1221,11 @@ class MDB_pgsql extends MDB_Common
             } else {
                 $repeat = 0;
             }
-        }
-        while ($repeat);
+        } while ($repeat);
         if (MDB::isError($result)) {
             return($this->raiseError($result));
         }
-        $arr = $this->fetchInto($result, MDB_FETCHMODE_ORDERED);
-        $this->freeResult($result);
-        return($arr[0]);
+        return($this->fetchOne($result));
     }
 
     // }}}
@@ -1244,7 +1249,6 @@ class MDB_pgsql extends MDB_Common
         }
         return($result);
     }
-
 
     // }}}
     // {{{ fetchInto()
@@ -1396,10 +1400,10 @@ class MDB_pgsql extends MDB_Common
                 $res[$i]['type'] = @pg_fieldtype ($id, $i);
                 $res[$i]['len'] = @pg_fieldsize ($id, $i);
                 $res[$i]['flags'] = (is_string($result)) ? $this->_pgFieldFlags($id, $i, $result) : '';
-                if ($mode &MDB_TABLEINFO_ORDER) {
+                if ($mode & MDB_TABLEINFO_ORDER) {
                     $res['order'][$res[$i]['name']] = $i;
                 }
-                if ($mode &MDB_TABLEINFO_ORDERTABLE) {
+                if ($mode & MDB_TABLEINFO_ORDERTABLE) {
                     $res['ordertable'][$res[$i]['table']][$res[$i]['name']] = $i;
                 }
             }

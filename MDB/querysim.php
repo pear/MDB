@@ -348,8 +348,7 @@ class MDB_querysim extends MDB_Common
                 $ret = @fclose($this->connection);
             }
             $this->connection = 0;
-            global $_MDB_databases;
-            $_MDB_databases[$this->database] = '';
+            $GLOBALS['_MDB_databases'][$this->database] = '';
         }
         return $ret;
     }
@@ -387,7 +386,7 @@ class MDB_querysim extends MDB_Common
      * the parsed text.
      *
      * @param string The QuerySim text
-     * @param array   $types  array that contains the types of the columns in
+     * @param mixed   $types  array that contains the types of the columns in
      *                        the result set
      *
      * @access public
