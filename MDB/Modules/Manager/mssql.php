@@ -60,9 +60,9 @@
 // implementations of Metabase methods is the error handling.
 // Anyways don't worry if you are having problems: Lukas Smith is here to help!
 
-if(!defined('MDB_MANAGER_XXX_INCLUDED'))
+if(!defined('MDB_MANAGER_MSSQL_INCLUDED'))
 {
-    define('MDB_MANAGER_XXX_INCLUDED',1);
+    define('MDB_MANAGER_MSSQL_INCLUDED',1);
 
 require_once('MDB/Modules/Manager/Common.php');
 
@@ -89,7 +89,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
     function createDatabase(&$db, $name)
     {
         $DatabaseDevice = isset($db->options["DatabaseDevice"]) ? $db->options["DatabaseDevice"] : "DEFAULT";
-        $DatabaseSize = isset($db->options["DatabaseSize"]) ? "=".$db->options["DatabaseSize"] : "")
+        $DatabaseSize = isset($db->options["DatabaseSize"]) ? "=".$db->options["DatabaseSize"] : "";
         return($db->standaloneQuery("CREATE DATABASE $name ON ".$DatabaseDevice.$DatabaseSize));
     }
 

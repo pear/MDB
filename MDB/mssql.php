@@ -1035,7 +1035,7 @@ class MDB_mssql extends MDB_Common
     function getBlobValue($prepared_query, $parameter, $blob)
     {
         $value = "0x";
-        while(!$this->endOfLob($blob);)
+        while(!$this->endOfLob($blob))
         {
             if (MDB::isError($result = $this->readLob($blob, $data, $this->options['lob_buffer_length']))) {
                 return($result);
