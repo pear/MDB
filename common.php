@@ -277,7 +277,6 @@ class MDB_common extends PEAR
         $databases[$database] = &$this;
         $this->database = $database;
 
-        $this->include_path = $include_path;
         if (isset($dsninfo['hostspec'])) {
             $this->host = $dsninfo['hostspec'];
         }
@@ -295,6 +294,11 @@ class MDB_common extends PEAR
         }
         if (is_array($options)) {
             $this->options = array_merge($this->options, $options);
+        }
+        if (isset($options['includepath'])) {
+            $this->include_path = $options['includepath'];
+        } else {
+            $this->include_path = dirname(__FILE__);
         }
         if(isset($dsninfo['database'])) {
             $this->setDatabase($dsninfo['database']);
@@ -870,7 +874,7 @@ class MDB_common extends PEAR
     // }}}
     // {{{ _close()
     /**
-     * all the RDBMS specific things needed close a DB connection
+     * all the RDBMS specific things needed to close a DB connection
      *
      * @access private
      *
