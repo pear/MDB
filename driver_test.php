@@ -1464,7 +1464,8 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                 "Type"=>"inputfile",
                                 "Database"=>$database,
                                 "Error"=>"",
-                                "FileName"=>$character_data_file
+                                "FileName"=>$character_data_file,
+                                "BufferLength"=>32
                             );
                             $success=(fwrite($file,$character_data,strlen($character_data))==strlen($character_data));
                             fclose($file);
@@ -1479,7 +1480,8 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                         "Type"=>"inputfile",
                                         "Database"=>$database,
                                         "Error"=>"",
-                                        "FileName"=>$binary_data_file
+                                        "FileName"=>$binary_data_file,
+                                        "BufferLength"=>32
                                     );
                                     $success=(fwrite($file,$binary_data,strlen($binary_data))==strlen($binary_data));
                                     fclose($file);
@@ -1530,7 +1532,8 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                         "Field"=>"document",
                                         "Binary"=>0,
                                         "Error"=>"",
-                                        "FileName"=>$character_data_file
+                                        "FileName"=>$character_data_file,
+                                        "BufferLength"=>32
                                     );
                                     if(($success=MetabaseCreateLOB($character_lob,$clob)))
                                     {
@@ -1576,7 +1579,8 @@ Function InsertTestValues($database,$prepared_query,&$data)
                                                     "Field"=>"picture",
                                                     "Binary"=>1,
                                                     "Error"=>"",
-                                                    "FileName"=>$binary_data_file
+                                                    "FileName"=>$binary_data_file,
+                                                    "BufferLength"=>32
                                                 );
                                                 if(($success=MetabaseCreateLOB($binary_lob,$blob)))
                                                 {
