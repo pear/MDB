@@ -359,7 +359,7 @@ class MDB_Manager_oci8 extends MDB_Manager_Common {
     function listTables(&$db)
     {
         $query = 'SELECT table_name FROM sys.user_tables';
-        return($db->queryCol($sql));
+        return($db->queryCol($query));
     }
 
     // }}}
