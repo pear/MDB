@@ -103,12 +103,12 @@ class MDB_mysql extends MDB_Common
         $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 0;
         $this->supported['Transactions'] = 0;
-        
+
         $this->decimal_factor = pow(10.0, $this->decimal_places);
-        
+
         $this->options['DefaultTableType'] = FALSE;
         $this->options['fixed_float'] = FALSE;
-        
+
         $this->errorcode_map = array(
             1004 => MDB_ERROR_CANNOT_CREATE,
             1005 => MDB_ERROR_CANNOT_CREATE,
@@ -126,6 +126,7 @@ class MDB_mysql extends MDB_Common
             1136 => MDB_ERROR_VALUE_COUNT_ON_ROW,
             1146 => MDB_ERROR_NOSUCHTABLE,
             1048 => MDB_ERROR_CONSTRAINT,
+            1213 => MDB_ERROR_DEADLOCK,
             1216 => MDB_ERROR_CONSTRAINT,
         );
     }

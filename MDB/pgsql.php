@@ -133,7 +133,8 @@ class MDB_pgsql extends MDB_Common
                 '/syntax error at/'                     => MDB_ERROR_SYNTAX,
                 '/violates not-null constraint/'        => MDB_ERROR_CONSTRAINT_NOT_NULL,
                 '/violates [\w ]+ constraint/'          => MDB_ERROR_CONSTRAINT,
-                '/referential integrity violation/'     => MDB_ERROR_CONSTRAINT
+                '/referential integrity violation/'     => MDB_ERROR_CONSTRAINT,
+                '/deadlock detected/'                   => MDB_ERROR_DEADLOCK
             );
         }
         foreach ($error_regexps as $regexp => $code) {
