@@ -439,9 +439,7 @@ class MDB
      */
     function isError($value)
     {
-        return (is_object($value)
-            && (is_a($value, 'mdb_error') || is_a($value, 'MDB_Error'))
-        );
+        return is_a($value, 'MDB_Error');
     }
     
     // }}}
