@@ -1275,7 +1275,7 @@ class MDB_driver_mysql extends MDB_common
      * @return mixed MDB_Error or id
      * @access public
      */
-    function nextId($seq_name, $ondemand = FALSE)
+    function nextId($seq_name, $ondemand = TRUE)
     {
         $sequence_name = $this->getSequenceName($seq_name);
         $result = $this->query("INSERT INTO $sequence_name (sequence) VALUES (NULL)");
