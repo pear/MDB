@@ -1173,11 +1173,10 @@ class MDB_mssql extends MDB_Common
                 return(1);
             }
         }
-        $result = $this->query("SELECT @@IDENTITY FROM $sequence_name", 'integer');
-        if (MDB::isError($result)) {
-            return($result);
+        $value = $this->queryOne("SELECT @@IDENTITY FROM $sequence_name", 'integer');
+        if (MDB::isError($value)) {
+            return($value);
         }
-        $value = $this->fetchOne($result);
         $result = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($result)) {
             $this->warnings[] = 'nextID: could not delete previous sequence table values';
