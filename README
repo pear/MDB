@@ -106,41 +106,29 @@ will be 1.1 to be expected in Fall 2002 (see the Roadmap for details).
 
 ** Package Content:
 
-The files that make up MDB are:
-  MDB.php (core class to include)
-  common.php (base database class, included by each driver)
-  mysql.php (mysql driver, included by MDB.php))
-  pgsql.php (postgresql driver, included by MDB.php)
-  manager_common.php (base class for db management methods)
-  manager_mysql.php (mysql driver for db management methods)
-  manager_pgsql.php (postgresql driver for db management methods)
-  lob.php (large object classes, included on demand)
-  manager.php (XML schema management class)
-  parser.php (XML schema parser, included by manager.php)
-  date.php (date conversion methods)
-  metabase_wrapper.php (wrapper to mimic the Metabase API)
-  pear_wrapper.php (wrapper to mimic the PEAR DB API)
-  reverse_engineer_xml_schema.php (really lame script to help with
-  dumping and creating from to and from xml schema files; this script
-  is deprecated in favor of the MDB_frontend package)
+As a user the only php script you will need to include is MDB.php which will
+install to your PEAR root directory. All other files and their containing
+classes will be included via MDB::factory(), MDB::connect(), MDB::loadFile().
 
-The important pieces for testing right now are:
-  driver_test.php (several test calls to the MDB Metabase Wrapper;
-                   uses driver_test_config.php, setup_test.php,
-                   driver_test.schema, log_test.schema, test.schema)
-  MDB_test.php (several test calls to MDB's native API)
-  MDB_pear_wrapper_test.php (several calls to the MDB PEAR Wrapper)
+Currently the supported drivers are mysql and pgsql.
+File you may include are:
+peardb_wrapper (PEAR DB Wrapper)
+metabase_wrapper (Metabase Wrapper)
+Date (MDB_Date class which helps in converting MDB Timestamps to other formats)
+Manager (MDB_Manager class which does the XML schema handling)
 
-Other Included Files
-  driver_skeleton.php (A skeleton of an MDB driver)
-  manager_driver_skeleton.php (A skeleton of an MDB manager driver)
-  Var_Dump.php (used in MDB_test.php and MDB_pear_wrapper_test.php
-                to display test results)
-  xml_schema.xsl (XSL to render xml schema files to HTML)
-  xml_schema_documentation.html (This document describe the format of
-                                 the xml schema files)
-  tutorial.html (A tutorial on how to use MDB's features)
-  Readme.txt (you are reading it currently)
+The only exception to this rule is reverse_engineer_xml_schema.php which you
+have to call directly from a browser. This very simple script will help you
+with handling schema files and create schema files from existing databases. This
+script requires PEAR::Var_Dump package.
+
+The package also contains various files that explain how MDB works. These files
+will install into your docs dir found in the PEAR root dir.
+
+Furthermore MDB provides an extensive testing framework that works through a
+browser and command line interface. There are several other test that test the
+two wrappers. These files will install into your test dir found in the
+PEAR root dir.
 
 ** Documentation:
 
@@ -168,26 +156,25 @@ If you want to help out with documentation please email me.
 For most of the tests you can set the username/password/hostname in the relevant
 config file. The user will need to have the right to create new databases.
 
-test.php: Is the native testing suite provided by MDB. Please see the README in
-the unittest directory for details.
+test.php/clitest.php/testchoose.php: Is the native testing suite provided by
+MDB. Please see the README in the tests directory for details.
 
 driver_test.php: Is the testing suite provided by Metabase you will need
 to configure what driver to test and the relevant section in the array found in
 driver_test_config.php to fit your enviornment.
 
 MDB_test.php: Several test calls to MDB's native API.
-
 MDB_pear_wrapper_test.php: Several test calls to MDB's PEAR DB Wrapper.
 
-MDB_test.php and MDB_pear_wrapper_test.php require the VAR_Dump package and are
-configured to use the following settings:
+MDB_test.php and MDB_pear_wrapper_test.php require PEAR::VAR_Dump package and
+are configured to use the following settings:
 username = metapear
 password = funky
 hostname = localhost
 
 ** How to write new Drivers:
 
-Skeleton drivers are provided in the docs of the MDB package.
+Skeleton drivers are provided in the docs directory of the MDB package.
 
 MDB is mostly based in Metabase. The method naming and formatting is
 changed to better match the PEAR CS however. Therefore the best starting
@@ -217,6 +204,9 @@ In order to check compliance of the driver with MDB you can use the testing
 suite (see the "testing" section above)
 
 ** Roadmap:
+
+1.2
+- Add Oracle and ODBC driver
 
 Sometime
 - Restructure the manager
