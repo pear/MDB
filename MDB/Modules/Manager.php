@@ -199,7 +199,7 @@ class MDB_manager extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
-        if (is_array($table['initialization'])) {
+        if (isset($table['initialization']) && is_array($table['initialization'])) {
             foreach($table['initialization'] as $instruction) {
                 switch($instruction['type']) {
                     case 'insert':
@@ -467,7 +467,7 @@ class MDB_manager extends PEAR
         }
         if (!MDB::isError($result) && is_array($this->database_definition['SEQUENCES'])) {
             foreach($this->database_definition['SEQUENCES'] as $sequence_name => $sequence) {
-                $result = $this->createSequence($sequence_name, $sequence, 1);
+                $result = $this->_createSequence($sequence_name, $sequence, 1);
 
                 if (MDB::isError($result)) {
                     break;
@@ -1559,6 +1559,7 @@ class MDB_manager extends PEAR
             $this->_getDefinitionFromDatabase();
             $dump_definition = FALSE;
         }
+        $output = false;
         if (isset($arguments['Output'])) {
             if (isset($arguments['Output_Mode']) && $arguments['Output_Mode'] == 'file') {
                 $fp = fopen($arguments['Output'], 'w');
@@ -1575,7 +1576,9 @@ class MDB_manager extends PEAR
         $eol = (isset($arguments['EndOfLine']) ? $arguments['EndOfLine'] : "\n");
 
         $sequences = array();
-        if (is_array($this->database_definition['SEQUENCES'])) {
+        if (isset($this->database_definition['SEQUENCES']) 
+	    && is_array($this->database_definition['SEQUENCES'])) 
+        {
             foreach($this->database_definition['SEQUENCES'] as $sequence_name => $sequence) {
                 if (isset($sequence['on'])) {
                     $table = $sequence['on']['table'];
@@ -1595,7 +1598,7 @@ class MDB_manager extends PEAR
             fwrite($fp, $buffer);
         }
         unset($buffer);
-        if(is_array($this->database_definition['TABLES'])) {
+        if(isset($this->database_definition['TABLES']) && is_array($this->database_definition['TABLES'])) {
             foreach($this->database_definition['TABLES'] as $table_name => $table) {
                 $buffer = ("$eol <table>$eol$eol  <name>$table_name</name>$eol");
                 if($dump == MDB_MANAGER_DUMP_ALL || $dump == MDB_MANAGER_DUMP_STRUCTURE) {
@@ -1639,7 +1642,7 @@ class MDB_manager extends PEAR
                             $buffer .=("   </field>$eol");
                         }
                     }
-                    if (is_array($table['INDEXES'])) {
+                    if (isset($table['INDEXES']) && is_array($table['INDEXES'])) {
                         foreach($table['INDEXES'] as $index_name => $index) {
                             $buffer .=("$eol   <index>$eol    <name>$index_name</name>$eol");
                             if (isset($indexes[$index_name]['unique'])) {
@@ -1714,7 +1717,7 @@ class MDB_manager extends PEAR
                                 } else {
                                     fwrite($fp, $buffer);
                                 }
-                                unset($buffer);
+                                $buffer = '';
                             }
                             $buffer = ("$eol  </initialization>$eol");
                             if ($output) {
@@ -1722,7 +1725,7 @@ class MDB_manager extends PEAR
                             } else {
                                 fwrite($fp, $buffer);
                             }
-                            unset($buffer);
+                            $buffer = '';
                         }
                     }
                     $this->database->freeResult($result);

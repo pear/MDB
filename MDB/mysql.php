@@ -99,9 +99,6 @@ class MDB_driver_mysql extends MDB_common
         $this->supported['LOBs'] = 1;
         $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 0;
-        if ($this->options['UseTransactions']) {
-            $this->supported['Transactions'] = 1;
-        }
         if(isset($this->options['UseTransactions'])
             && $this->options['UseTransactions'])
         {
