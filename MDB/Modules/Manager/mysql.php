@@ -45,16 +45,16 @@
 // $Id$
 //
 
+if(!defined('MDB_MANAGER_MYSQL_INCLUDED'))
+{
+    define('MDB_MANAGER_MYSQL_INCLUDED',1);
+
 /**
 * MDB MySQL driver for the management extensions
 *
 * @package MDB
 * @author  Lukas Smith <smith@dybnet.de>
 */
-
-if(!defined('MDB_MANAGER_MYSQL_INCLUDED'))
-{
-    define('MDB_MANAGER_MYSQL_INCLUDED',1);
 
 class MDB_manager_mysql_class extends MDB_manager_common
 {
@@ -657,7 +657,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
                     $implicit_sequence = array();
                     $implicit_sequence['on'] = array();
                     $implicit_sequence['on']['table'] = $table;
-                    $implicit_sequence['on']['field'] = $field_name;
+                    $implicit_sequence['on']['field'] = $field;
                     $definition[1]['name'] = $table.'_'.$field_name;
                     $definition[1]['definition'] = $implicit_sequence;
                 }
@@ -667,7 +667,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
                 {
                     $implicit_index = array();
                     $implicit_index['unique'] = 1;
-                    $implicit_index['FIELDS'][$field_name] = '';
+                    $implicit_index['FIELDS'][$field] = '';
                     $definition[2]['name'] = $field_name;
                     $definition[2]['definition'] = $implicit_index;
                 }
@@ -809,7 +809,7 @@ class MDB_manager_mysql_class extends MDB_manager_common
     function getTableIndexDefinition(&$db, $table, $index)
     {
         $index_name = strtolower($index);
-        if($index_name == 'PRIMARY') {
+        if($index == 'PRIMARY') {
             return $db->raiseError(DB_ERROR_MANAGER, '', '', 'Get table index definition: PRIMARY is an hidden index');
         }
         if(MDB::isError($result = $db->query("SHOW INDEX FROM $table"))) {
