@@ -144,8 +144,9 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
                 $delta = 0;
             }
             $value = $this->db->$func($result, $rownum, $i);
+
             $field = $this->fields[$i];
-            $this->assertEquals($value, $data[$field], "the value retrieved for field \"$field\" ($value) doesn't match what was stored ($data[$field]).$func", $delta);
+            $this->assertEquals($value, $data[$field], "the value retrieved for field \"$field\" ($value) using $func() doesn't match what was stored ($data[$field]).$func", $delta);
         }
     }
 
@@ -472,7 +473,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
             if (MDB::isError($result)) {
                 $this->assertTrue(FALSE, 'Error executing select query'.$result->getMessage());
             }
-            
+
             for ($row = 0; $row < $rows && ($row + $start_row < $total_rows); $row++) {
                 $this->verifyFetchedValues($result, $row, $data[$row + $start_row]);
             }
@@ -505,6 +506,8 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
         }
 
         $this->assertTrue($this->db->endOfResult($result), 'the query result did not seem to have reached the end of result as expected');
+
+        $this->db->freeResult($result);
     }
 
     /**
@@ -517,7 +520,7 @@ class MDB_Usage_TestCase extends PHPUnit_TestCase {
 
         for ($start_value = 1; $start_value < 4; $start_value++) {
             $sequence_name = "test_sequence_$start_value";
-            
+
             $this->db->dropSequence($sequence_name);
 
             $result = $this->db->createSequence($sequence_name, $start_value);
