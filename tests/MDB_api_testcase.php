@@ -60,10 +60,11 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
     function setUp() {
         global $dsn, $options, $database;
         $this->dsn = $dsn;
+         $this->options = $options;
         $this->database = $database;
         $this->db =& MDB::connect($dsn, $options);
         if (MDB::isError($this->db)) {
-            $this->assertTrue(FALSE, 'Could not connect to database in setUp');
+            $this->assertTrue(FALSE, 'Could not connect to database in setUp - ' .$this->db->getMessage() . ' - ' .$this->db->getUserInfo());
             exit;
         }
         $this->db->setDatabase($this->database);
@@ -77,7 +78,7 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
                         'access_time',
                         'approved'
                         );
-        
+
         $this->types = array('text',
                        'text',
                        'boolean',
@@ -108,8 +109,10 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
 
     //test stuff in common.php
     function testConnect() {
-        $db = MDB::connect($this->dsn);
-        $this->assertTrue(!MDB::isError($db), 'Connect failed bailing out');
+        $db =& MDB::connect($this->dsn, $this->options);
+        if(MDB::isError($db)) {
+            $this->assertTrue(FALSE, 'Connect failed bailing out - ' .$db->getMessage() . ' - ' .$db->getUserInfo());
+        }
         if (MDB::isError($this->db)) {
             exit;
         }
@@ -177,10 +180,14 @@ class MDB_Api_TestCase extends PHPUnit_TestCase {
             return;
         }
         $result = $this->standardQuery();
-        $this->assertNotNull($this->db->fetch($result, 0, 0));
+        $err = $this->db->fetch($result, 0, 0);
+        if(MDB::isError($err)) {
+            $this->assertTrue(FALSE, 'Error testFetch: '.$err->getMessage().' - '.$err->getUserInfo());
+        }
+        $this->assertNotNull($err);
     }
 
-    function testNumCols() { 
+    function testNumCols() {
         if (!$this->methodExists('numCols')) {
             return;
         }
