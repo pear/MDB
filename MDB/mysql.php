@@ -65,16 +65,21 @@ class MDB_driver_mysql extends MDB_common
     var $connected_password;
     var $connected_port;
     var $opened_persistent = '';
-    var $decimal_factor = 1.0;
-    var $highest_fetched_row = array();
-    var $columns = array();
-    var $fixed_float = 0;
+
     var $escape_quotes = "\\";
-    var $dummy_primary_key = 'dummy_primary_key';
+    var $decimal_factor = 1.0;
+
     var $manager_class_name = 'MDB_manager_mysql_class';
     var $manager_include = 'manager_mysql.php';
     var $manager_included_constant = 'MDB_MANAGER_MYSQL_INCLUDED';
+
+    var $highest_fetched_row = array();
+    var $columns = array();
+
+    // MySQL specific class variable
     var $default_table_type = '';
+    var $fixed_float = 0;
+    var $dummy_primary_key = 'dummy_primary_key';
 
     // }}}
     // {{{ constructor
@@ -84,6 +89,7 @@ class MDB_driver_mysql extends MDB_common
     */
     function MDB_driver_mysql($dsninfo = NULL, $options = NULL)
     {
+        $options = array_merge(array('seqname_format' => '%s_seq',), $options);
         if(MDB::isError($common_contructor = $this->MDB_common($dsninfo, $options))) {
             return $common_contructor;
         }
@@ -132,7 +138,7 @@ class MDB_driver_mysql extends MDB_common
             }
         }
         
-        $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
+        $this->decimal_factor = pow(10.0, $this->decimal_places);
         
         $this->errorcode_map = array(
             1004 => MDB_ERROR_CANNOT_CREATE,
@@ -776,7 +782,7 @@ class MDB_driver_mysql extends MDB_common
             case MDB_TYPE_BOOLEAN:
                 return (strcmp($value, 'Y') ? 0 : 1);
             case MDB_TYPE_DECIMAL:
-                return (sprintf('%.'.$this->options['decimal_places'].'f', doubleval($value)/$this->decimal_factor));
+                return (sprintf('%.'.$this->decimal_places.'f', doubleval($value)/$this->decimal_factor));
             case MDB_TYPE_FLOAT:
                 return (doubleval($value));
             case MDB_TYPE_DATE:

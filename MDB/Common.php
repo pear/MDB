@@ -112,45 +112,54 @@ function defaultDebugOutput($database, $message)
  * @author Lukas Smith <smith@dybnet.de>
  */
 
-class MDB_common extends PEAR {
+class MDB_common extends PEAR
+{
     var $database = 0;
+    var $persistent = 1;
+
     var $host = '';
     var $user = '';
     var $password = '';
-    var $supported = array();
-    var $persistent = 1;
     var $database_name = '';
-    var $warnings = array();
-    var $affected_rows = -1;
-    var $auto_commit = 1;
-    var $prepared_queries = array();
-    var $first_selected_row = 0;
-    var $selected_row_limit = 0;
-    var $last_query = '';
+
+    var $supported = array();
     var $options = array(
             'persistent' => FALSE,
             'debug' => FALSE,
-            'seqname_format' => '%s_seq',
             'autofree' => FALSE,
             'lob_buffer_length' => 8000,
             'log_line_break' => "\n",
-            'escape_quotes' => '',
-            'decimal_places' => 2
         );
-    var $lobs = array();
-    var $clobs = array();
-    var $blobs = array();
-    var $in_transaction = 0;
-    var $error_handler = '';
-    var $manager;
+    var $escape_quotes = '';
+    var $decimal_places = 2;
+
     var $include_path = '';
     var $manager_included_constant = '';
     var $manager_include = '';
     var $manager_class_name = '';
-    var $last_error = '';
+    var $manager;
+
+    var $warnings = array();
     var $debug = '';
     var $debug_output = '';
     var $pass_debug_handle = FALSE;
+
+    var $auto_commit = 1;
+    var $in_transaction = 0;
+
+    var $first_selected_row = 0;
+    var $selected_row_limit = 0;
+    var $last_query = '';
+    var $affected_rows = -1;
+    var $prepared_queries = array();
+
+    var $lobs = array();
+    var $clobs = array();
+    var $blobs = array();
+
+    // deprecated
+    var $last_error = '';
+    var $error_handler = '';
 
     // }}}
     // {{{ constructor
@@ -184,6 +193,9 @@ class MDB_common extends PEAR {
         }
         if (isset($options['includemanager'])) {
             $this->loadManager('load at start');
+        }
+        if (isset($options['debug'])) {
+            $this->captureDebugOutput(TRUE);
         }
         if (is_array($options)) {
             $this->options = array_merge($this->options, $options);
@@ -446,10 +458,11 @@ class MDB_common extends PEAR {
     {
         $this->last_error = $message;
         $this->debug($scope . ': ' . $message);
-        if (strcmp($function = $this->error_handler, '')) {
-            $error = array('Scope' => $scope,
+        if (($function = $this->error_handler) != '') {
+            $error = array(
+                'Scope' => $scope,
                 'Message' => $message
-                );
+            );
             $function($this, $error);
         }
         return (0);

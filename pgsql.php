@@ -56,20 +56,23 @@ require_once (dirname(__FILE__).'/common.php');
 * @author  Paul Cooper <pgc@ucecom.com>
 */
 
-class MDB_driver_pgsql extends MDB_common {
+class MDB_driver_pgsql extends MDB_common
+{
     var $connection = 0;
     var $connected_host;
     var $connected_port;
     var $selected_database = '';
     var $opened_persistent = '';
-    var $transaction_started = 0;
+
+    var $escape_quotes = "\\";
     var $decimal_factor = 1.0;
-    var $highest_fetchd_row = array();
-    var $columns = array();
-    var $escape_quotes = '\\';
+
     var $manager_class_name = 'MDB_manager_pgsql_class';
     var $manager_include = 'manager_pgsql.php';
     var $manager_included_constant = 'MDB_MANAGER_PGSQL_INCLUDED';
+
+    var $highest_fetchd_row = array();
+    var $columns = array();
 
     // }}}
     // {{{ constructor
@@ -99,7 +102,7 @@ class MDB_driver_pgsql extends MDB_common {
         $this->supported['Replace'] = 1;
         $this->supported['SubSelects'] = 1;
         
-        $this->decimal_factor = pow(10.0, $this->options['decimal_places']);
+        $this->decimal_factor = pow(10.0, $this->decimal_places);
         
         if (function_exists('pg_cmdTuples')) {
             $connection = $this->_doConnect('template1', 0);
@@ -1148,7 +1151,7 @@ class MDB_driver_pgsql extends MDB_common {
             case MDB_TYPE_BOOLEAN:
                 return (strcmp($value, 'Y') ? 0 : 1);
             case MDB_TYPE_DECIMAL:
-                return (sprintf('%.'.$this->options['decimal_places'].'f',doubleval($value)/$this->decimal_factor));
+                return (sprintf('%.'.$this->decimal_places.'f',doubleval($value)/$this->decimal_factor));
             case MDB_TYPE_FLOAT:
                 return doubleval($value);
             case MDB_TYPE_DATE:
