@@ -64,7 +64,7 @@ require_once('MDB.php');
 require_once('HTML_TestListener.php');
 
 // you may need to uncomment the line and modify the multiplier as you see fit
-// set_time_limit(120*count($dbarray));
+set_time_limit(60*count($dbarray));
 
 MDB::loadFile('Manager');
 MDB::loadFile('Date');
