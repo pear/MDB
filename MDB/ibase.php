@@ -403,7 +403,7 @@ class MDB_ibase extends MDB_Common
             $this->connection = 0;
         }
 
-        if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
+        if (!PEAR::loadExtension($this->phptype)) {
             return $this->raiseError(MDB_ERROR_NOT_FOUND, null, null,
                 'connect: extension '.$this->phptype.' is not compiled into PHP');
         }
@@ -665,10 +665,13 @@ class MDB_ibase extends MDB_Common
                     return true;
                 }
             }
-            if (is_array($this->results[$result_value]['row_buffer'] = @ibase_fetch_assoc($result))) {
+            if (is_array($buffer = @ibase_fetch_assoc($result))) {
+                $this->results[$result_value]['row_buffer'] = $buffer;
                 return false;
             }
-            unset($this->results[$result_value]['row_buffer']);
+            if ($buffer === false && $errmsg = ibase_errmsg()) {
+                return $this->ibaseRaiseError(null, $errmsg);
+            }
             return true;
         }
         return $this->raiseError(MDB_ERROR, null, null,
@@ -739,6 +742,11 @@ class MDB_ibase extends MDB_Common
                         $this->results[$result_value]['current_row']++;
                         $this->results[$result_value][$this->results[$result_value]['current_row']] = $buffer;
                     }
+                    if (isset($buffer) && $buffer === false) {
+                        if ($errmsg = ibase_errmsg()) {
+                            return $this->ibaseRaiseError(null, $errmsg);
+                        }
+                    }
                 }
                 $this->results[$result_value]['rows'] = $this->results[$result_value]['current_row'] + 1;
             }
@@ -760,11 +768,12 @@ class MDB_ibase extends MDB_Common
      */
     function freeResult($result)
     {
-        if (!is_resource($result)) {
-            return $this->raiseError(MDB_ERROR, null, null,
-                'freeResult: attemped to free an unknown query result');
+        $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'freeResulr: it was specified an inexisting result set');
         }
-        unset($this->results[intval($result)]);
+        unset($this->results[$result_value]);
         return @ibase_free_result($result);
     }
 
@@ -857,6 +866,11 @@ class MDB_ibase extends MDB_Common
      */
     function fetch($result, $rownum = 0, $field = 0)
     {
+        $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'fetch: it was specified an inexisting result set');
+        }
         if (is_numeric($field)) {
             $row = $this->fetchRow($result, MDB_FETCHMODE_ORDERED, $rownum);
         } else {
@@ -886,6 +900,10 @@ class MDB_ibase extends MDB_Common
     function fetchRow($result, $fetchmode = MDB_FETCHMODE_DEFAULT, $rownum = null)
     {
         $result_value = intval($result);
+        if (!isset($this->results[$result_value])) {
+            return $this->raiseError(MDB_ERROR_INVALID, null, null,
+                'fetchRow: it was specified an inexisting result set');
+        }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
         }
@@ -926,6 +944,13 @@ class MDB_ibase extends MDB_Common
                     $row = @ibase_fetch_row($result);
                     $enumarated = true;
                 }
+            }
+        }
+        if (isset($row) && $row === false) {
+            if ($errmsg = ibase_errmsg()) {
+                return $this->ibaseRaiseError(null, $errmsg);
+            } else {
+                return null;
             }
         }
         if (isset($this->results[$result_value][$rownum])) {
