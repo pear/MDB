@@ -562,12 +562,12 @@ class MDB_Datatype_oci8 extends MDB_Datatype_Common
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (!isset($db->lobs[$lob])) {
             return $db->raiseError(MDB_ERROR, null, null,
-                'Retrieve LOB: it was not specified a valid lob');
+                'it was not specified a valid lob');
         }
         if (!isset($db->lobs[$lob]['loaded'])) {
             if (!is_object($db->lobs[$lob]['value'])) {
                return $db->raiseError(MDB_ERROR, null, null,
-                   'Retrieve LOB: attemped to retrieve LOB from non existing or NULL column');
+                   'attemped to retrieve LOB from non existing or NULL column');
             }
             $db->lobs[$lob]['value'] = $db->lobs[$lob]['value']->load();
             $db->lobs[$lob]['loaded'] = true;

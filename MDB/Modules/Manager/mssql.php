@@ -220,7 +220,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
                     case 'changed_fields':
                     default:
                         return $db->raiseError(MDB_ERROR_CANNOT_ALTER, null, null,
-                            'Alter table: change type "'.key($changes).'" not yet supported');
+                            'alterTable: change type "'.key($changes).'" not yet supported');
                 }
             }
             return MDB_OK;
@@ -231,7 +231,7 @@ class MDB_Manager_mssql extends MDB_Manager_Common
                 || isset($changes[$change = 'changed_fields']))
             {
                 return $db->raiseError(MDB_ERROR_CANNOT_ALTER, null, null,
-                    'Alter table: change type "'.$change.'" is not supported by the server"');
+                    'alterTable: change type "'.$change.'" is not supported by the server"');
             }
             $query='';
             if (isset($changes['added_fields'])) {

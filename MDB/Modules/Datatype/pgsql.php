@@ -406,9 +406,9 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
         }
         $prepared_query = $GLOBALS['_MDB_LOBs'][$clob_stream]->prepared_query;
         $parameter = $GLOBALS['_MDB_LOBs'][$clob_stream]->parameter;
-        if ($db->auto_commit && !@pg_Exec($db->connection, 'BEGIN')) {
+        if ($db->auto_commit && !@pg_exec($db->connection, 'BEGIN')) {
             return $db->raiseError(MDB_ERROR, null, null,
-                '_getLOBValue: error starting transaction');
+                'error starting transaction');
         }
         if (($lo = pg_locreate($db->connection))) {
             if (($handle = pg_loopen($db->connection, $lo, 'w'))) {
@@ -418,8 +418,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
                         break;
                     }
                     if (!pg_lowrite($handle, $data)) {
-                        $result = $db->raiseError(MDB_ERROR, null, null,
-                            'Get LOB field value: ' . pg_ErrorMessage($db->connection));
+                        $result = $db->pgsqlRaiseError();
                         break;
                     }
                 }
@@ -428,18 +427,16 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
                     $value = strval($lo);
                 }
             } else {
-                $result = $db->raiseError(MDB_ERROR, null, null,
-                    'Get LOB field value: ' .  pg_ErrorMessage($db->connection));
+                $result = $db->pgsqlRaiseError();
             }
             if (MDB::isError($result)) {
                 $result = pg_lounlink($db->connection, $lo);
             }
         } else {
-            $result = $db->raiseError(MDB_ERROR, null, null,
-                'Get LOB field value: ' . pg_ErrorMessage($db->connection));
+            $result = $db->pgsqlRaiseError();
         }
         if ($db->auto_commit) {
-            @pg_Exec($db->connection, 'END');
+            @pg_exec($db->connection, 'END');
         }
         if (MDB::isError($result)) {
             return $result;
@@ -589,13 +586,12 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (!isset($db->lobs[$lob])) {
             return $db->raiseError(MDB_ERROR_INVALID, null, null,
-                'Retrieve LOB: did not specified a valid lob');
+                'did not specified a valid lob');
         }
         if (!isset($db->lobs[$lob]['handle'])) {
             if ($db->auto_commit) {
                 if (!pg_exec($db->connection, 'BEGIN')) {
-                    return $db->raiseError(MDB_ERROR,  null, null,
-                        'Retrieve LOB: ' . pg_ErrorMessage($db->connection));
+                    return $db->pgsqlRaiseError();
                 }
                 $db->lobs[$lob]['in_transaction'] = 1;
             }
@@ -607,8 +603,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
                     unset($db->lobs[$lob]['in_transaction']);
                 }
                 unset($db->lobs[$lob]['value']);
-                return $db->raiseError(MDB_ERROR, null, null,
-                    'Retrieve LOB: ' . pg_ErrorMessage($db->connection));
+                return $db->pgsqlRaiseError();
             }
         }
         return MDB_OK;
@@ -658,8 +653,7 @@ class MDB_Datatype_pgsql extends MDB_Datatype_Common
         }
         $data = pg_loread($db->lobs[$lob]['handle'], $length);
         if (is_string($data)) {
-            $db->raiseError(MDB_ERROR, null, null,
-                'Read Result LOB: ' . pg_ErrorMessage($db->connection));
+            $db->pgsqlRaiseError();
         }
         if (($length = strlen($data)) == 0) {
             $db->lobs[$lob]['end_of_LOB'] = 1;

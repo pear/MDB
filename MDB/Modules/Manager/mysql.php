@@ -105,7 +105,6 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                 return MDB_OK;
             default:
                 return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                    'Verify transactional table',
                     $table_type.' is not a supported table type');
         }
         if (MDB::isError($connect = $db->connect())) {
@@ -118,19 +117,18 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         }
         $result = $db->query("SHOW VARIABLES LIKE '$check'", null, false);
         if (MDB::isError($result)) {
-            return $db->raiseError();
+            return $db->mysqlRaiseError();
         }
         $has = $db->fetchAll($result, MDB_FETCHMODE_ORDERED);
         if (MDB::isError($has)) {
-            return $db->raiseError();
+            return $has;
         }
         if (count($has) == 0) {
             return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Verify transactional table','could not tell if '.$table_type.' is a supported table type');
+                'could not tell if '.$table_type.' is a supported table type');
         }
         if (strcmp($has[0][1], 'YES')) {
             return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'Verify transactional table',
                 $table_type.' is not a supported table type by this MySQL database server');
         }
         $this->verified_table_types[$table_type] = $db->connection;
@@ -224,16 +222,19 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (!isset($name) || !strcmp($name, '')) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no valid table name specified');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null,
+                'createTable: no valid table name specified');
         }
         if (count($fields) == 0) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no fields specified for table "'.$name.'"');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null,
+                'createTable: no fields specified for table "'.$name.'"');
         }
         if (MDB::isError($verify = $this->_verifyTransactionalTableType($db->default_table_type))) {
             return $verify;
         }
         if (MDB::isError($query_fields = $this->getFieldDeclarationList($fields))) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'unkown error');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null,
+                'createTable: unkown error');
         }
         if (isset($db->supported['transactions'])
             && $db->default_table_type=='BDB')
@@ -362,7 +363,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
                         break;
                     default:
                         return $db->raiseError(MDB_ERROR_CANNOT_ALTER, null, null,
-                            'Alter table: change type "'.key($changes).'" not yet supported');
+                            'alterTable: change type "'.key($changes).'" not yet supported');
                 }
             }
             return MDB_OK;
@@ -533,7 +534,7 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         if (!isset($columns['field'])) {
             $db->freeResult($result);
             return $db->raiseError(MDB_ERROR_MANAGER, null, null,
-                'List table fields: show columns does not return the table field names');
+                'listTableFields: show columns does not return the table field names');
         }
         $field_column = $columns['field'];
         for($fields = array(), $field = 0; !$db->endOfResult($result); ++$field) {
@@ -680,11 +681,11 @@ class MDB_Manager_mysql extends MDB_Manager_Common
         $result = $db->query("DROP TABLE $sequence_name");
         if (MDB::isError($result)) {
             return $db->raiseError(MDB_ERROR, null, null,
-                'Create sequence: could not drop inconsistent sequence table ('.
+                'createSequence: could not drop inconsistent sequence table ('.
                 $result->getMessage().' ('.$result->getUserinfo().'))');
         }
         return $db->raiseError(MDB_ERROR, null, null,
-            'Create sequence: could not create sequence table ('.
+            'createSequence: could not create sequence table ('.
             $res->getMessage().' ('.$res->getUserinfo().'))');
     }
 

@@ -81,7 +81,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return ($db->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Create database',
-                'PHP Interbase API does not support direct queries. You have to '
+                'createDatabase: PHP Interbase API does not support direct queries. You have to '
                 .'create the db manually by using isql command or a similar program'));
     }
 
@@ -100,7 +100,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return ($db->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'Drop database',
-                'PHP Interbase API does not support direct queries. You have '
+                'dropDatabase: PHP Interbase API does not support direct queries. You have '
                 .'to drop the db manually by using isql command or a similar program'));
     }
 
@@ -126,14 +126,14 @@ class MDB_Manager_ibase extends MDB_Manager_common
                 case 'changed_not_null':
                 case 'notnull':
                     return $this->raiseError(MDB_ERROR_MANAGER, '', '',
-                        'Check supported changes: it is not supported changes to field not null constraint');
+                        'checkSupportedChanges: it is not supported changes to field not null constraint');
                 case 'ChangedDefault':
                 case 'default':
                     return $this->raiseError(MDB_ERROR_MANAGER, '', '',
-                        'Check supported changes: it is not supported changes to field default value');
+                        'checkSupportedChanges: it is not supported changes to field default value');
                 case 'length':
                     return $this->raiseError(MDB_ERROR_MANAGER, '', '',
-                        'Check supported changes: it is not supported changes to field default length');
+                        'checkSupportedChanges: it is not supported changes to field default length');
                 case 'unsigned':
                 case 'type':
                 case 'declaration':
@@ -141,7 +141,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
                     break;
                 default:
                     return $this->raiseError(MDB_ERROR_MANAGER, '', '',
-                        'Check supported changes: it is not supported change of type' . key($changes));
+                        'checkSupportedChanges: it is not supported change of type' . key($changes));
             }
         }
         return MDB_OK;
@@ -271,7 +271,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
                         break;
                     default:
                         return $this->raiseError(MDB_ERROR_MANAGER, '', '',
-                            'Alter table: change type ' . key($changes) . ' not yet supported');
+                            'alterTable: change type ' . key($changes) . ' not yet supported');
                 }
             }
             return MDB_OK;
@@ -325,54 +325,6 @@ class MDB_Manager_ibase extends MDB_Manager_common
     }
 
     // }}}
-    // {{{ listDatabases()
-
-    /**
-     * list all databases
-     *
-     * @param object    &$db reference to driver MDB object
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     **/
-    function listDatabases(&$db)
-    {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not supported feature');
-    }
-
-    // }}}
-    // {{{ listUsers()
-
-    /**
-     * list all users
-     *
-     * @param object    &$db reference to driver MDB object
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     **/
-    function listUsers(&$db)
-    {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not supported feature');
-    }
-
-    // }}}
-    // {{{ listTables()
-
-    /**
-     * list all tables in the current database
-     *
-     * @param object    &$db reference to driver MDB object
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     **/
-    function listTables(&$db)
-    {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not (yet) supported feature');
-    }
-
-    // }}}
     // {{{ listTableFields()
 
     /**
@@ -407,16 +359,17 @@ class MDB_Manager_ibase extends MDB_Manager_common
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
      **/
+/*
     function listViews(&$db)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-#        $result = $db->query('SELECT RDB$VIEW_NAME');
-#        if (MDB::isError($result)) {
-#            return $result;
-#        }
-#        return $db->fetchCol($result);
-        return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not supported feature');
+        $result = $db->query('SELECT RDB$VIEW_NAME');
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        return $db->fetchCol($result);
     }
+*/
 
     // }}}
     // {{{ createIndex()
@@ -485,23 +438,6 @@ class MDB_Manager_ibase extends MDB_Manager_common
     }
 
     // }}}
-    // {{{ listTableIndexes()
-
-    /**
-     * list all indexes in a table
-     *
-     * @param object    &$db reference to driver MDB object
-     * @param string    $table      name of table that should be used in method
-     * @return mixed data array on success, a MDB error on failure
-     * @access public
-     */
-    function listTableIndexes($table)
-    {
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        return $db->raiseError(MDB_ERROR_UNSUPPORTED, '', '', 'not (yet) supported feature');
-    }
-
-    // }}}
     // {{{ createSequence()
 
     /**
@@ -523,7 +459,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
         if (MDB::isError($result = $db->query("SET GENERATOR $seqname TO ".($start-1)))) {
             if (MDB::isError($err = $db->dropSequence($seq_name))) {
                 return $this->raiseError(MDB_ERROR_MANAGER, null, null,
-                        'Could not setup sequence start value and then it was not possible to drop it: '
+                        'createSequence: Could not setup sequence start value and then it was not possible to drop it: '
                         .$err->getMessage().' - ' .$err->getUserInfo());
             }
         }

@@ -99,7 +99,6 @@ class MDB_Manager_Common
     function getFieldDeclarationList($fields)
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
-        $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (is_array($fields)) {
             foreach($fields as $field_name => $field) {
                 $query = $db->getDeclaration($field['type'], $field_name, $field);
@@ -110,8 +109,8 @@ class MDB_Manager_Common
             }
             return implode(',',$query_fields);
         }
-        return PEAR::raiseError(null, MDB_ERROR_MANAGER, null, null,
-            'the definition of the table "'.$table_name.'" does not contain any fields', 'MDB_Error', true);
+        return $db->raiseError(MDB_ERROR_NEED_MORE_DATA, null, null,
+            'getFieldDeclarationList: the definition of the table "'.$table_name.'" does not contain any fields');
     }
 
     // }}}
@@ -148,7 +147,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-            'Create database: database creation is not supported');
+            'createDatabase: database creation is not supported');
     }
 
     // }}}
@@ -165,7 +164,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-            'Drop database: database dropping is not supported');
+            'dropDatabase: database dropping is not supported');
     }
 
     // }}}
@@ -206,10 +205,12 @@ class MDB_Manager_Common
         
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (!isset($name) || !strcmp($name, '')) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no valid table name specified');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null,
+                'createTable: no valid table name specified');
         }
         if (count($fields) == 0) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no fields specified for table "'.$name.'"');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null,
+                'createTable: no fields specified for table "'.$name.'"');
         }
         if (MDB::isError($query_fields = $this->getFieldDeclarationList($fields))) {
             return $query_fields;
@@ -334,7 +335,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-            'Alter table: database table alterations are not supported');
+            'alterTable: database table alterations are not supported');
     }
 
     // }}}
@@ -350,7 +351,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
-            'List Databases: list databases is not supported');
+            'listDatabases: list databases is not supported');
     }
 
     // }}}
@@ -366,7 +367,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
-            'List User: list user is not supported');
+            'listUsers: list user is not supported');
     }
 
     // }}}
@@ -382,7 +383,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
-            'List View: list view is not supported');
+            'listViews: list view is not supported');
     }
 
     // }}}
@@ -398,7 +399,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
-            'List Function: list function is not supported');
+            'listFunctions: list function is not supported');
     }
 
     // }}}
@@ -414,7 +415,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
-            'List tables: list tables is not supported');
+            'listTables: list tables is not supported');
     }
 
     // }}}
@@ -431,7 +432,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
-            'List table fields: list table fields is not supported');
+            'listTableFields: list table fields is not supported');
     }
 
     // }}}
@@ -449,7 +450,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
-            'Get table field definition: table field definition is not supported');
+            'getTableFieldDefinition: table field definition is not supported');
     }
 
     // }}}
@@ -549,7 +550,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
-            'List table indexes: List Indexes is not supported');
+            'listTableIndexes: List Indexes is not supported');
     }
 
     // }}}
@@ -567,7 +568,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
-            'Get table index definition: getting index definition is not supported');
+            'getTableIndexDefinition: getting index definition is not supported');
     }
 
     // }}}
@@ -585,7 +586,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
-            'Create Sequence: sequence creation not supported');
+            'createSequence: sequence creation not supported');
     }
 
     // }}}
@@ -602,7 +603,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
-            'Drop Sequence: sequence dropping not supported');
+            'dropSequence: sequence dropping not supported');
     }
 
     // }}}
@@ -618,7 +619,7 @@ class MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_NOT_CAPABLE, null, null,
-            'List sequences: List sequences is not supported');
+            'listSequences: List sequences is not supported');
     }
 
     // }}}

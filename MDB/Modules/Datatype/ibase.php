@@ -374,7 +374,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
         $value   = '';  // DEAL WITH ME
         if (!$db->transaction_id = ibase_trans(IBASE_COMMITTED, $db->connection)) {
             return $db->raiseError(MDB_ERROR, '', '',
-                '_getLOBValue: Could not start a new transaction: '.ibase_errmsg());
+                'Could not start a new transaction: '.ibase_errmsg());
         }
 
         if (($lo = ibase_blob_create($db->auto_commit ? $db->connection : $db->transaction_id))) {
@@ -386,7 +386,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
                 }
                 if (!ibase_blob_add($lo, $data)) {
                     $result = $db->raiseError(MDB_ERROR, null, null,
-                        '_getLOBValue - Could not add data to a large object: '.ibase_errmsg());
+                        'Could not add data to a large object: '.ibase_errmsg());
                     $success = 0;
                     break;
                 }
@@ -397,8 +397,7 @@ class MDB_Datatype_ibase extends MDB_Datatype_Common
                 $value = ibase_blob_close($lo);
             }
         } else {
-            $result = $db->raiseError(MDB_ERROR, null, null,
-                'Get LOB field value: ' . pg_ErrorMessage($db->connection));
+            $result = $db->ibaseRaiseError();
         }
         if (!isset($db->query_parameters[$prepared_query])) {
             $db->query_parameters[$prepared_query]       = array(0, '');

@@ -188,7 +188,7 @@ class MDB_Datatype_Common
                 return $this->createLOB($dst_lob);
             default:
                 return $db->raiseError(MDB_ERROR_INVALID, null, null,
-                    'BaseConvertResult: attempt to convert result value to an unknown type ' . $type);
+                    'attempt to convert result value to an unknown type ' . $type);
         }
     }
 
@@ -632,7 +632,7 @@ class MDB_Datatype_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-            'Get CLOB field value: prepared queries with values of type "clob" are not yet supported');
+            'getCLOBValue: prepared queries with values of type "clob" are not yet supported');
     }
 
     // }}}
@@ -668,7 +668,7 @@ class MDB_Datatype_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-            'Get BLOB field value: prepared queries with values of type "blob" are not yet supported');
+            'getBLOBValue: prepared queries with values of type "blob" are not yet supported');
     }
 
     // }}}
@@ -960,7 +960,7 @@ class MDB_Datatype_Common
                     $class_name = 'MDB_LOB_Output_File';
                     break;
                 default:
-                    return $db->raiseError($arguments['type'] . ' is not a valid type of large object');
+                    return $db->raiseError('createLOB: '.$arguments['type'] . ' is not a valid type of large object');
             }
         } else {
             if (isset($arguments['class'])) {
@@ -1023,7 +1023,7 @@ class MDB_Datatype_Common
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (!isset($db->lobs[$lob])) {
             return $db->raiseError(MDB_ERROR, null, null,
-                'Retrieve LOB: it was not specified a valid lob');
+                'it was not specified a valid lob');
         }
         return MDB_OK;
     }

@@ -474,7 +474,7 @@ class MDB_mysql extends MDB_Common
      *                      return a column
      * @param string $type determines type of the field
      *
-     * @return string the query
+     * @return string comma seperated values
      */
     function subSelect($query, $type = false)
     {

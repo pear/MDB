@@ -83,12 +83,12 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
         $user = $db->getOption('DBAUser');
         if (MDB::isError($user)) {
             return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
-                'it was not specified the Oracle DBAUser option');
+                'createDatabase: it was not specified the Oracle DBAUser option');
         }
         $password = $db->getOption('DBAPassword');
         if (MDB::isError($password)) {
             return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
-                'it was not specified the Oracle DBAPassword option');
+                'createDatabase: it was not specified the Oracle DBAPassword option');
         }
         if (!MDB::isError($result = $db->connect($user, $password, 0))) {
             $tablespace = $db->getOption('DefaultTablespace');
@@ -103,10 +103,10 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
                 } else {
                     if (MDB::isError($result2 = $db->_doQuery('DROP USER '.$db->user.' CASCADE'))) {
                         return $db->raiseError(MDB_ERROR, '','', 'Create database',
-                            'could not setup the database user ('.$result->getUserinfo().') and then could drop its records ('.$result2->getUserinfo().')');
+                            'createDatabase: could not setup the database user ('.$result->getUserinfo().') and then could drop its records ('.$result2->getUserinfo().')');
                     }
                     return $db->raiseError(MDB_ERROR, '','', 'Create database',
-                        'could not setup the database user ('.$result->getUserinfo().')');
+                        'createDatabase: could not setup the database user ('.$result->getUserinfo().')');
                 }
             }
         }
@@ -132,12 +132,12 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
         $user = $db->getOption('DBAUser');
         if (MDB::isError($user)) {
             return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
-                'it was not specified the Oracle DBAUser option');
+                'dropDatabase: it was not specified the Oracle DBAUser option');
         }
         $password = $db->getOption('DBAPassword');
         if (MDB::isError($password)) {
             return $db->raiseError(MDB_ERROR_INSUFFICIENT_DATA, null, null, 'Create database',
-                'it was not specified the Oracle DBAPassword option');
+                'dropDatabase: it was not specified the Oracle DBAPassword option');
         }
         if (MDB::isError($db->connect($user, $password, 0))) {
             return $result;
@@ -261,83 +261,83 @@ class MDB_Manager_oci8 extends MDB_Manager_Common
                     case 'renamed_fields':
                     default:
                         return $db->raiseError(MDB_ERROR, null, null, 'Alter table',
-                            'change type "'.key($changes).'" not yet supported');
+                            'alterTable: change type "'.key($changes).'" not yet supported');
                 }
-            }
-            return MDB_OK;
-        } else {
-            if (isset($changes['removed_fields'])) {
-                $query = ' DROP (';
-                $fields = $changes['removed_fields'];
-                for($field = 0, reset($fields);
-                    $field < count($fields);
-                    next($fields), $field++)
-                {
-                    if ($field > 0) {
-                        $query .= ', ';
-                    }
-                    $query .= key($fields);
-                }
-                $query .= ')';
-                if (MDB::isError($result = $db->query("ALTER TABLE $name $query"))) {
-                    return $result;
-                }
-                $query = '';
-            }
-            $query = (isset($changes['name']) ? 'RENAME TO '.$changes['name'] : '');
-            if (isset($changes['added_fields'])) {
-                $fields = $changes['added_fields'];
-                for($field = 0, reset($fields);
-                    $field < count($fields);
-                    next($fields), $field++)
-                {
-                    $query .= ' ADD ('.$fields[key($fields)]['declaration'].')';
-                }
-            }
-            if (isset($changes['changed_fields'])) {
-                $fields = $changes['changed_fields'];
-                for($field = 0, reset($fields);
-                    $field < count($fields);
-                    next($fields), $field++)
-                {
-                    $current_name = key($fields);
-                    if (isset($renamed_fields[$current_name])) {
-                        $field_name = $renamed_fields[$current_name];
-                        unset($renamed_fields[$current_name]);
-                    } else {
-                        $field_name = $current_name;
-                    }
-                    $change = '';
-                    $change_type = $change_default = 0;
-                    if (isset($fields[$current_name]['type'])) {
-                        $change_type = $change_default = 1;
-                    }
-                    if (isset($fields[$current_name]['length'])) {
-                        $change_type = 1;
-                    }
-                    if (isset($fields[$current_name]['xhanged_default'])) {
-                        $change_default = 1;
-                    }
-                    if ($change_type) {
-                        $change .= ' '.$db->getTypeDeclaration($fields[$current_name]['definition']);
-                    }
-                    if ($change_default) {
-                        $change .= ' DEFAULT '.(isset($fields[$current_name]['definition']['default']) ? $db->getValue($fields[$current_name]['definition']['type'], $fields[$current_name]['definition']['default']) : 'NULL');
-                    }
-                    if (isset($fields[$current_name]['changed_not_null'])) {
-                        $change .= (isset($fields[$current_name]['notnull']) ? ' NOT' : '').' NULL';
-                    }
-                    if (strcmp($change, '')) {
-                        $query .= " MODIFY ($field_name$change)";
-                    }
-                }
-            }
-            if ($query != '' && MDB::isError($result = $db->query("ALTER TABLE $name $query"))) {
-                return $result;
             }
             return MDB_OK;
         }
-        return $db->raiseError();
+        if (isset($changes['removed_fields'])) {
+            $query = ' DROP (';
+            $fields = $changes['removed_fields'];
+            for($field = 0, reset($fields);
+                $field < count($fields);
+                next($fields), $field++)
+            {
+                if ($field > 0) {
+                    $query .= ', ';
+                }
+                $query .= key($fields);
+            }
+            $query .= ')';
+            if (MDB::isError($result = $db->query("ALTER TABLE $name $query"))) {
+                return $result;
+            }
+            $query = '';
+        }
+        $query = (isset($changes['name']) ? 'RENAME TO '.$changes['name'] : '');
+        if (isset($changes['added_fields'])) {
+            $fields = $changes['added_fields'];
+            for($field = 0, reset($fields);
+                $field < count($fields);
+                next($fields), $field++)
+            {
+                $query .= ' ADD ('.$fields[key($fields)]['declaration'].')';
+            }
+        }
+        if (isset($changes['changed_fields'])) {
+            $fields = $changes['changed_fields'];
+            for($field = 0, reset($fields);
+                $field < count($fields);
+                next($fields), $field++)
+            {
+                $current_name = key($fields);
+                if (isset($renamed_fields[$current_name])) {
+                    $field_name = $renamed_fields[$current_name];
+                    unset($renamed_fields[$current_name]);
+                } else {
+                    $field_name = $current_name;
+                }
+                $change = '';
+                $change_type = $change_default = 0;
+                if (isset($fields[$current_name]['type'])) {
+                    $change_type = $change_default = 1;
+                }
+                if (isset($fields[$current_name]['length'])) {
+                    $change_type = 1;
+                }
+                if (isset($fields[$current_name]['xhanged_default'])) {
+                    $change_default = 1;
+                }
+                if ($change_type) {
+                    $change .= ' '.$db->getTypeDeclaration($fields[$current_name]['definition']);
+                }
+                if ($change_default) {
+                    $change .= ' DEFAULT '.(isset($fields[$current_name]['definition']['default']) ? $db->getValue($fields[$current_name]['definition']['type'], $fields[$current_name]['definition']['default']) : 'NULL');
+                }
+                if (isset($fields[$current_name]['changed_not_null'])) {
+                    $change .= (isset($fields[$current_name]['notnull']) ? ' NOT' : '').' NULL';
+                }
+                if (strcmp($change, '')) {
+                    $query .= " MODIFY ($field_name$change)";
+                }
+            }
+        }
+        if ($query != '' &&
+            MDB::isError($result = $db->query("ALTER TABLE $name $query"))
+        ) {
+            return $result;
+        }
+        return MDB_OK;
     }
 
     // }}}

@@ -139,14 +139,17 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if (!isset($name) || !strcmp($name, '')) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no valid table name specified');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null,
+                'createTable: no valid table name specified');
         }
         if (count($fields) == 0) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'no fields specified for table "'.$name.'"');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null,
+                'createTable: no fields specified for table "'.$name.'"');
         }
         $query_fields = '';
         if (MDB::isError($query_fields = $this->getFieldDeclarationList($fields))) {
-            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null, 'unkown error');
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, null, null,
+                'createTable: unkown error');
         }
         return $db->query("CREATE TABLE $name ($query_fields)");
     }
@@ -253,23 +256,32 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         if ($check) {
-            for ($change = 0, reset($changes); $change < count($changes); next($changes), $change++) {
+            for ($change = 0, reset($changes);
+                $change < count($changes);
+                next($changes), $change++
+            ) {
                 switch (key($changes)) {
                     case 'added_fields':
                         break;
                     case 'removed_fields':
-                        return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'database server does not support dropping table columns');
+                        return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                        'alterTable: database server does not support dropping table columns');
                     case 'name':
                     case 'renamed_fields':
                     case 'changed_fields':
                     default:
-                        return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'change type "'.key($changes).'\" not yet supported');
+                        return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                            'alterTable: change type "'.key($changes).'\" not yet supported');
                 }
             }
             return MDB_OK;
         } else {
-            if (isSet($changes[$change = 'name']) || isSet($changes[$change = 'renamed_fields']) || isSet($changes[$change = 'changed_fields'])) {
-                return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null, 'change type "'.$change.'" not yet supported');
+            if (isset($changes[$change = 'name'])
+                || isset($changes[$change = 'renamed_fields'])
+                || isset($changes[$change = 'changed_fields'])
+            ) {
+                return $db->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                    'alterTable: change type "'.$change.'" not yet supported');
             }
             $query = '';
             if (isSet($changes['added_fields'])) {
