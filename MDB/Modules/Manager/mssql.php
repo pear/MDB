@@ -309,8 +309,8 @@ class MDB_Manager_mssql extends MDB_Manager_Common
      */
     function getTableFieldDefinition(&$db, $table, $field_name)
     {
-        $columns = $db->queryRow("EXEC sp_columns @table_name='$table',
-                   @column_name='$field_name'", NULL, MDB_FETCHMODE_ASSOC );
+        $query = "EXEC sp_columns @table_name='$table', @column_name='$field_name'";
+        $columns = $db->queryRow($query, NULL, MDB_FETCHMODE_ASSOC );
         if (MDB::isError($columns)) {
             return($columns);
         }
@@ -452,6 +452,45 @@ class MDB_Manager_mssql extends MDB_Manager_Common
             }
         }
         return($definition);
+    }
+
+    // }}}
+    // {{{ listTableIndexes()
+
+    /**
+     * list all indexes in a table
+     *
+     * @param object    $db        database object that is extended by this class
+     * @param string    $table     name of table that should be used in method
+     * @return mixed data array on success, a MDB error on failure
+     * @access public
+     */
+    function listTableIndexes(&$db, $table)
+    {
+        $key_name = 'INDEX_NAME';
+        $pk_name = 'PK_NAME';
+        if ($db->options['optimize'] == 'portability') {
+            $key_name = strtolower($key_name);
+            $pk_name = strtolower($pk_name);
+        }
+        $query = "EXEC sp_statistics @table_name='$table'";
+        $indexes_all = $db->query($query, 'text', $key_name);
+        if (MDB::isError($indexes_all)) {
+            return($indexes_all);
+        }
+        $query = "EXEC sp_pkeys @table_name='$table'";
+        $pk_all = $db->queryCol($query, 'text', $pk_name);
+        $found = $indexes = array();
+        for ($index = 0, $j = count($indexes_all); $index < $j; ++$index) {
+            if (!in_array($indexes_all[$index], $pk_all) 
+                && $indexes_all[$index] != NULL
+                && !isset($found[$indexes_all[$index]])
+            ) {
+                $indexes[] = $indexes_all[$index];
+                $found[$indexes_all[$index]] = 1;
+            }
+        }
+        return($indexes);
     }
 
     // }}}
