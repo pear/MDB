@@ -147,7 +147,7 @@ class MDB_mssql extends MDB_Common
                 $code = MDB_ERROR;
             }
         }
-        return $this->raiseError($code, null, null, null, $native_code . ' - ' . $native_msg);
+        return $this->raiseError($code, null, null, null, $native_code.' - '.$native_msg);
     }
 
     // }}}
@@ -210,7 +210,7 @@ class MDB_mssql extends MDB_Common
         $this->debug('commit transaction', 'commit');
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null,
-            'Commit transactions: transaction changes are being auto commited');
+            'commit: transaction changes are being auto commited');
         }
         $result = $this->query('COMMIT TRANSACTION');
         if (MDB::isError($result)) {
@@ -237,7 +237,7 @@ class MDB_mssql extends MDB_Common
         $this->debug('rolling back transaction', 'rollback');
         if ($this->auto_commit) {
             return $this->raiseError(MDB_ERROR, null, null,
-                'Rollback transactions: transactions can not be rolled back when changes are auto commited');
+                'rollback: transactions can not be rolled back when changes are auto commited');
         }
         $result = $this->query('ROLLBACK TRANSACTION');
         if (MDB::isError($result)) {
@@ -279,7 +279,7 @@ class MDB_mssql extends MDB_Common
 
         if (PEAR::isError(PEAR::loadExtension($this->phptype))) {
             return PEAR::raiseError(null, MDB_ERROR_NOT_FOUND,
-                null, null, 'extension '.$this->phptype.' is not compiled into PHP',
+                null, null, 'connect: extension '.$this->phptype.' is not compiled into PHP',
                 'MDB_Error', true);
         }
 
@@ -298,13 +298,14 @@ class MDB_mssql extends MDB_Common
                 $php_errormsg);
         }
 
-        if (isset($this->supported['transactions']) && !$this->auto_commit
-            && !$this->_doQuery("BEGIN TRANSACTION"))
-        {
+        if (isset($this->supported['transactions'])
+            && !$this->auto_commit
+            && !$this->_doQuery('BEGIN TRANSACTION')
+        ) {
             mssql_close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
-            return $this->raiseError("Connect: Could not begin the initial transaction");
+            return $this->raiseError('connect: Could not begin the initial transaction');
         }
         $this->connected_host = $this->host;
         $this->connected_user = $this->user;
@@ -326,7 +327,7 @@ class MDB_mssql extends MDB_Common
     {
         if ($this->connection != 0) {
             if (isset($this->supported['transactions']) && !$this->auto_commit) {
-                $result = $this->_doQuery("ROLLBACK TRANSACTION");
+                $result = $this->_doQuery('ROLLBACK TRANSACTION');
             }
             mssql_close($this->connection);
             $this->connection = 0;
@@ -344,16 +345,16 @@ class MDB_mssql extends MDB_Common
 
     function standaloneQuery($query)
     {
-        if (!function_exists("mssql_connect")) {
-            return $this->raiseError("Query: Microsoft SQL server support is not available in this PHP configuration");
+        if (!function_exists('mssql_connect')) {
+            return $this->raiseError('standaloneQuery: Microsoft SQL server support is not available in this PHP configuration');
         }
         $connection = mssql_connect($this->host,$this->user,$this->password);
         if ($connection == 0) {
-            return $this->mssqlRaiseError("Query: Could not connect to the Microsoft SQL server");
+            return $this->mssqlRaiseError('standaloneQuery: Could not connect to the Microsoft SQL server');
         }
         $result = @mssql_query($query, $connection);
         if (!$result) {
-            $this->mssqlRaiseError("Query: Could not query a Microsoft SQL server");
+            $this->mssqlRaiseError('standaloneQuery: Could not query a Microsoft SQL server');
         }
         mssql_close($connection);
         return MDB_OK;
@@ -412,7 +413,8 @@ class MDB_mssql extends MDB_Common
                         if (!is_array($types)) {
                             $types = array($types);
                         }
-                        if (MDB::isError($err = $this->setResultTypes($result, $types))) {
+                        $err = $this->setResultTypes($result, $types)
+                        if (MDB::isError($err)) {
                             $this->freeResult($result);
                             return $err;
                         }
@@ -450,13 +452,14 @@ class MDB_mssql extends MDB_Common
         $result_value = intval($result);
         if (!isset($this->results[$result_value]['highest_fetched_row'])) {
             return $this->raiseError(MDB_ERROR_INVALID, null, null,
-                'Get column names: it was specified an inexisting result set');
+                'getColumnNames: it was specified an inexisting result set');
         }
         if (!isset($this->results[$result_value]['columns'])) {
             $this->results[$result_value]['columns'] = array();
             $columns = mssql_num_fields($result);
             for($column = 0; $column < $columns; $column++) {
-                $this->results[$result_value]['columns'][strtolower(mssql_field_name($result, $column))] = $column;
+                $field_name = strtolower(mssql_field_name($result, $column));
+                $this->results[$result_value]['columns'][$field_name] = $column;
             }
         }
         return $this->results[$result_value]['columns'];
@@ -498,12 +501,12 @@ class MDB_mssql extends MDB_Common
             $result_value = intval($result);
             if (!isset($this->results[$result_value]['highest_fetched_row'])) {
                 return $this->raiseError(MDB_ERROR, null, null,
-                    'End of result: attempted to check the end of an unknown result');
+                    'endOfResult: attempted to check the end of an unknown result');
             }
             $numrows = $this->numRows($result);
             if (MDB::isError($numrows)) {
                 return $this->raiseError(MDB_ERROR, null, null,
-                    'End of result: error when calling numRows: '.$numrows->getUserInfo());
+                    'endOfResult: error when calling numRows: '.$numrows->getUserInfo());
             }
             return $this->results[$result_value]['highest_fetched_row'] >= $numrows-1;
         }
@@ -526,10 +529,13 @@ class MDB_mssql extends MDB_Common
     {
         if ($this->options['result_buffering']) {
             $result_value = intval($result);
-            return isset($this->results[$result_value]['ranges']) ? count($this->results[$result_value]['ranges']) : mssql_num_rows($result);
+            if (isset($this->results[$result_value]['ranges']) {
+                return count($this->results[$result_value]['ranges']);
+            }
+            return mssql_num_rows($result);
         }
         return $this->raiseError(MDB_ERROR, null, null,
-            'Number of rows: nut supported if option "result_buffering" is not enabled');
+            'numRows: nut supported if option "result_buffering" is not enabled');
     }
 
     // }}}
@@ -553,7 +559,7 @@ class MDB_mssql extends MDB_Common
         }
 
         return $this->raiseError(MDB_ERROR, null, null,
-            'Free result: attemped to free an unknown query result');
+            'freeResult: attemped to free an unknown query result');
     }
 
     // }}}
@@ -585,7 +591,7 @@ class MDB_mssql extends MDB_Common
                 $result = $this->manager->createSequence($this, $seq_name, 2);
                 if (MDB::isError($result)) {
                     return $this->raiseError(MDB_ERROR, null, null,
-                        'Next ID: on demand sequence could not be created');
+                        'nextID: on demand sequence could not be created');
                 } else {
                     // First ID of a newly created sequence is 1
                     return 1;
@@ -598,7 +604,7 @@ class MDB_mssql extends MDB_Common
         $this->freeResult($result);
         $res = $this->query("DELETE FROM $sequence_name WHERE sequence < $value");
         if (MDB::isError($res)) {
-            $this->warnings[] = 'Next ID: could not delete previous sequence table values';
+            $this->warnings[] = 'nextID: could not delete previous sequence table values';
         }
         return $value;
     }
@@ -643,12 +649,13 @@ class MDB_mssql extends MDB_Common
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
         $value = @mssql_result($result, $rownum, $field);
         if ($value === false && $value != null) {
-            return($this->mssqlRaiseError($errno));
+            return $this->mssqlRaiseError($errno);
         }
         if (isset($this->results[$result_value]['types'][$field])) {
-            $value = $this->datatype->convertResult($this, $value, $this->results[$result_value]['types'][$field]);
+            $type = $this->results[$result_value]['types'][$field];
+            $value = $this->datatype->convertResult($this, $value, $type);
         }
-        return($value);
+        return $value;
     }
 
     // }}}
@@ -672,7 +679,8 @@ class MDB_mssql extends MDB_Common
             if (!@mssql_data_seek($result, $rownum)) {
                 return null;
             }
-            $this->results[$result_value]['highest_fetched_row'] = max($this->results[$result_value]['highest_fetched_row'], $rownum);
+            $this->results[$result_value]['highest_fetched_row'] =
+                max($this->results[$result_value]['highest_fetched_row'], $rownum);
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
