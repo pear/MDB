@@ -179,6 +179,46 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
     }
 
     /**
+     * http://pear.php.net/bugs/bug.php?id=670
+     */
+    function testBug670() {
+        $data['user_name'] = null;
+        $data['user_password'] = 'somepassword';
+        $data['subscribed'] = true;
+        $data['user_id'] = 1;
+        $data['quota'] = sprintf("%.2f",strval(3/100));
+        $data['weight'] = sqrt(1);
+        $data['access_date'] = MDB_Date::mdbToday();
+        $data['access_time'] = MDB_Date::mdbTime();
+        $data['approved'] = MDB_Date::mdbNow();
+
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $this->insertTestValues($prepared_query, $data);
+        $result = $this->db->executeQuery($prepared_query);
+
+        $result = $this->db->query('SELECT user_name FROM users');
+        $col = $this->db->fetchCol($result, 'user_name');
+        if (MDB::isError($col)) {
+            $this->assertTrue(false, "Error when fetching column first first row as NULL: ".$col->getMessage());
+        }
+
+        $data['user_name'] = "user_1";
+        $data['user_id'] = 2;
+
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $this->insertTestValues($prepared_query, $data);
+        $result = $this->db->executeQuery($prepared_query);
+
+        $result = $this->db->query('SELECT user_name FROM users');
+        $col = $this->db->fetchCol($result, 'user_name');
+        if (MDB::isError($col)) {
+            $this->assertTrue(false, "Error when fetching column: ".$col->getMessage());
+        }
+
+        $data['user_name'] = null;
+    }
+
+    /**
      * http://pear.php.net/bugs/bug.php?id=681
      */
     function testBug681() {
@@ -204,6 +244,28 @@ class MDB_Bugs_TestCase extends PHPUnit_TestCase {
         $result = $this->db->query('SELECT * FROM users');
         $numrows = $this->db->numRows($result);
         $this->assertEquals(1, $numrows, "Numrows is not returning proper value");
+    }
+
+    /**
+     * http://pear.php.net/bugs/bug.php?id=718
+     */
+    function testBug718() {
+        $data['user_name'] = "user_1";
+        $data['user_password'] = 'somepassword';
+        $data['subscribed'] = true;
+        $data['user_id'] = 1;
+        $data['quota'] = sprintf("%.2f",strval(3/100));
+        $data['weight'] = sqrt(1);
+        $data['access_date'] = MDB_Date::mdbToday();
+        $data['access_time'] = MDB_Date::mdbTime();
+        $data['approved'] = MDB_Date::mdbNow();
+
+        $prepared_query = $this->db->prepareQuery('INSERT INTO users (user_name, user_password, subscribed, user_id, quota, weight, access_date, access_time, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $this->insertTestValues($prepared_query, $data);
+        $result = $this->db->executeQuery($prepared_query);
+
+        $row = $this->db->queryRow('SELECT a.user_id, b.user_id FROM users a, users b where a.user_id = b.user_id', array('integer', 'integer'), MDB_FETCHMODE_ORDERED);
+        $this->assertEquals(2, count($row), "Columns with the same name get overwritten in ordered mode");
     }
 }
 
