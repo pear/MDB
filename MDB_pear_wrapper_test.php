@@ -19,7 +19,7 @@
     // or a Pear DB Error object on error
     // You can also set to TRUE the second param
     // if you want a persistent connection:
-    // $db = DB::connect($dsn, true);
+    // $db = DB::connect($dsn, TRUE);
     $db = DB::connect($dsn);
     // With DB::isError you can differentiate between an error or
     // a valid connection.
@@ -97,8 +97,10 @@
     echo "<br>see getAll in action:<br>";
     echo Var_Dump::display($db->getAll("SELECT * FROM test"))."<br>";
     echo "<br>see getAssoc in action:<br>";
-    echo Var_Dump::display($db->getAssoc("SELECT * FROM test", false, "", DB_FETCHMODE_ASSOC))."<br>";
+    echo Var_Dump::display($db->getAssoc("SELECT * FROM test", FALSE, "", DB_FETCHMODE_ASSOC))."<br>";
     echo "tableInfo on a string:<br>";
     echo Var_Dump::display($db->tableInfo("numbers"))."<br>";
+    echo "<br>just a simple delete query:<br>";
+    echo Var_Dump::display($db->query("DELETE FROM numbers"))."<br>";
     $db->disconnect();
 ?>
