@@ -75,7 +75,6 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * create a new database
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $name name of the database that should be created
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -99,7 +98,6 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * drop an existing database
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $name name of the database that should be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -122,7 +120,6 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * create a new table
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $name     Name of the database that should be created
      * @param array $fields Associative array that contains the definition of each field of the new table
      *                        The indexes of the array entries are the names of the fields of the table an
@@ -176,7 +173,6 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * alter an existing table
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $name         name of the table that is intended to be changed.
      * @param array $changes     associative array that contains the details of each type
      *                             of change that is intended to be performed. The types of
@@ -368,22 +364,19 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * list all databases
      *
-     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listDatabases(&$db)
+    function listDatabases()
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query('SHOW DATABASES', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
-        $result = $db->fetchCol($result);
-        if (MDB::isError($result)) {
-            return $result;
-        }
-        return $result;
+        $databases = $db->fetchCol($result);
+        $db->freeResult($result);
+        return $databases;
     }
 
     // }}}
@@ -392,18 +385,19 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * list all users
      *
-     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listUsers(&$db)
+    function listUsers()
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query('SELECT DISTINCT USER FROM USER', null, false);
         if (MDB::isError($result)) {
             return $result;
         }
-        return $db->fetchCol($result);
+        $users = $db->fetchCol($result);
+        $db->freeResult($result);
+        return $users;
     }
 
     // }}}
@@ -412,11 +406,10 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * list all tables in the current database
      *
-     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listTables(&$db)
+    function listTables()
     {
         
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
@@ -425,6 +418,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
             return $result;
         }
         $table_names= $db->fetchCol($result);
+        $db->freeResult($result);
         if (MDB::isError($table_names)) {
             return $table_names;
         }
@@ -442,37 +436,26 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * list all fields in a tables in the current database
      *
-     * @param object    &$db reference to driver MDB object
      * @param string $table name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
     function listTableFields($table)
     {
-        
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query("SHOW COLUMNS FROM $table", null, false);
         if (MDB::isError($result)) {
             return $result;
         }
-        $columns = $db->getColumnNames($result);
-        if (MDB::isError($columns)) {
-            $db->freeResult($columns);
-            return $columns;
+        $fields = $db->fetchCol($result);
+        $db->freeResult($fields);
+        if (MDB::isError($fields)) {
+            return $fields;
         }
-        if (!isset($columns['field'])) {
-            $db->freeResult($result);
-            return $db->raiseError(MDB_ERROR_MANAGER, null, null,
-                'listTableFields: show columns does not return the table field names');
+        if (is_array($fields)) {
+            return $fields;
         }
-        $field_column = $columns['field'];
-        for($fields = array(), $field = 0; !$db->endOfResult($result); ++$field) {
-            $field_name = $db->fetch($result, $field, $field_column);
-            if ($field_name != $db->dummy_primary_key)
-                $fields[] = $field_name;
-        }
-        $db->freeResult($result);
-        return $fields;
+        return array();
     }
 
     // }}}
@@ -481,7 +464,6 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * get the stucture of a field into an array
      *
-     * @param object    &$db reference to driver MDB object
      * @param string    $table         name of the table on which the index is to be created
      * @param string    $name         name of the index to be created
      * @param array     $definition        associative array that defines properties of the index to be created.
@@ -534,7 +516,6 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * drop existing index
      *
-     * @param object    &$db reference to driver MDB object
      * @param string    $table         name of table that should be used in method
      * @param string    $name         name of the index to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -552,7 +533,6 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * list all indexes in a table
      *
-     * @param object    &$db reference to driver MDB object
      * @param string    $table      name of table that should be used in method
      * @return mixed data array on success, a MDB error on failure
      * @access public
@@ -564,6 +544,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
             return $result;
         }
         $indexes_all = $db->fetchCol($result, 'Key_name');
+        $db->freeResult($result);
         for($found = $indexes = array(), $index = 0, $indexes_all_cnt = count($indexes_all);
             $index < $indexes_all_cnt;
             $index++)
@@ -584,7 +565,6 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * create sequence
      *
-     * @param object    &$db reference to driver MDB object
      * @param string    $seq_name     name of the sequence to be created
      * @param string    $start         start value of the sequence; default is 1
      * @return mixed MDB_OK on success, a MDB error on failure
@@ -624,7 +604,6 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * drop existing sequence
      *
-     * @param object    &$db reference to driver MDB object
      * @param string    $seq_name     name of the sequence to be dropped
      * @return mixed MDB_OK on success, a MDB error on failure
      * @access public
@@ -642,11 +621,10 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
     /**
      * list all sequences in the current database
      *
-     * @param object    &$db reference to driver MDB object
      * @return mixed data array on success, a MDB error on failure
      * @access public
      */
-    function listSequences(&$db)
+    function listSequences()
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $result = $db->query('SHOW TABLES', 'text', false);
@@ -654,6 +632,7 @@ class MDB_Manager_fbsql extends MDB_Manager_Common
             return $result;
         }
         $table_names = $db->fetchCol($result);
+        $db->freeResult($result);
         if (MDB::isError($table_names)) {
             return $table_names;
         }
