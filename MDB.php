@@ -83,13 +83,13 @@ define('MDB_ERROR_EXTENSION_NOT_FOUND',-25);
 define('MDB_ERROR_NOSUCHDB',           -26);
 define('MDB_ERROR_ACCESS_VIOLATION',   -27);
 define('MDB_ERROR_CANNOT_REPLACE',     -28);
-define('MDB_ERROR_CANNOT_ALTER',       -29);
-define('MDB_ERROR_MANAGER',            -30);
-define('MDB_ERROR_MANAGER_PARSE',      -31);
-define('MDB_ERROR_LOADMODULE',         -32);
-define('MDB_ERROR_INSUFFICIENT_DATA',  -33);
-define('MDB_ERROR_CONSTRAINT_NOT_NULL',-34);
-
+define('MDB_ERROR_CONSTRAINT_NOT_NULL',-29);
+define('MDB_ERROR_DEADLOCK',           -30);
+define('MDB_ERROR_CANNOT_ALTER',       -31);
+define('MDB_ERROR_MANAGER',            -32);
+define('MDB_ERROR_MANAGER_PARSE',      -33);
+define('MDB_ERROR_LOADMODULE',         -34);
+define('MDB_ERROR_INSUFFICIENT_DATA',  -35);
 /**
  * This is a special constant that tells DB the user hasn't specified
  * any particular get mode, so the default should be used.
@@ -530,7 +530,8 @@ class MDB
                 MDB_ERROR_MANAGER            => 'MDB_manager error',
                 MDB_ERROR_MANAGER_PARSE      => 'MDB_manager schema parse error',
                 MDB_ERROR_LOADMODULE         => 'Error while including on demand module',
-                MDB_ERROR_TRUNCATED          => 'truncated'
+                MDB_ERROR_TRUNCATED          => 'truncated',
+                MDB_ERROR_DEADLOCK           => 'deadlock detected',
             );
         }
 
