@@ -403,7 +403,7 @@ class MDB_ibase extends MDB_Common
             $this->connection = 0;
         }
 
-        if (!PEAR::loadExtension($this->phptype)) {
+        if (!PEAR::loadExtension('interbase')) {
             return $this->raiseError(MDB_ERROR_NOT_FOUND, null, null,
                 'connect: extension '.$this->phptype.' is not compiled into PHP');
         }
@@ -605,7 +605,7 @@ class MDB_ibase extends MDB_Common
             $columns = ibase_num_fields($result);
             for ($column=0; $column<$columns; $column++) {
                 $column_info = ibase_field_info($result, $column);
-                $this->results[$result_value]['columns'][strtolower($column_info["name"])] = $column;
+                $this->results[$result_value]['columns'][strtolower($column_info['name'])] = $column;
             }
         }
         return $this->results[$result_value]['columns'];
@@ -961,7 +961,7 @@ class MDB_ibase extends MDB_Common
         $this->results[$result_value]['highest_fetched_row'] =
             max($this->results[$result_value]['highest_fetched_row'], $rownum);
         foreach ($row as $key => $value_with_space) {
-            $row[$key] = rtrim($value_with_space);
+            $row[$key] = rtrim($value_with_space, ' ');
         }
         if ($fetchmode == MDB_FETCHMODE_ASSOC) {
             $row = array_change_key_case($row);
