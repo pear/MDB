@@ -62,6 +62,7 @@ class MDB_result
 
     var $dbh;
     var $result;
+    var $row_counter;
 
     // }}}
     // {{{ constructor
