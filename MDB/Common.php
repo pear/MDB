@@ -117,7 +117,7 @@ class MDB_Common extends PEAR
             'autofree' => FALSE,
             'lob_buffer_length' => 8000,
             'log_line_break' => "\n",
-            'seqname_format' => '%s_seq'
+            'seqname_format' => '%s_seq',
             'includelob' => FALSE,
             'includemanager' => FALSE,
             'UseTransactions' => FALSE,
