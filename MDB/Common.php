@@ -62,9 +62,9 @@ $_MDB_registered_transactions_shutdown = 0;
  */
 function _MDB_shutdownTransactions()
 {
-    global $databases;
+    global $_MDB_databases;
 
-    foreach($databases as $database) {
+    foreach($_MDB_databases as $database) {
         if ($database->in_transaction && !MDB::isError($database->rollback())) {
             $database->autoCommit(TRUE);
         }
@@ -77,7 +77,7 @@ function _MDB_shutdownTransactions()
 /**
  * default debug output handler
  *
- * @param integer $database key in the $databases array that references to the
+ * @param integer $database key in the $_MDB_databases array that references to the
  *       proper db object
  * @param string $message message htat should be appended to the debug
  *       variable
@@ -87,9 +87,9 @@ function _MDB_shutdownTransactions()
  */
 function MDB_defaultDebugOutput($database, $message)
 {
-    global $databases;
+    global $_MDB_databases;
 
-    $databases[$database]->debug_output .= $database . " $message" . $databases[$database]->getOption('log_line_break');
+    $_MDB_databases[$database]->debug_output .= $database . " $message" . $_MDB_databases[$database]->getOption('log_line_break');
 }
 
 /**
@@ -158,9 +158,9 @@ class MDB_Common extends PEAR
      */
     function MDB_Common($dsninfo = NULL, $options = NULL)
     {
-        global $databases;
-        $database = count($databases) + 1;
-        $databases[$database] = &$this;
+        global $_MDB_databases;
+        $database = count($_MDB_databases) + 1;
+        $_MDB_databases[$database] = &$this;
         $this->database = $database;
 
         $this->PEAR('MDB_Error');
@@ -550,17 +550,20 @@ class MDB_Common extends PEAR
         if (strlen($included_constant) == 0 || !defined($included_constant)) {
             $separator = (defined('MDB_DIRECTORY_SEPARATOR') ? MDB_DIRECTORY_SEPARATOR : '/');
             $include_path = $this->include_path.$separator.'MDB'.$separator.$extension.$seperator;
+            if($extension == 'LOB') {
+                $include_path = $this->include_path.$separator.'MDB'.$separator;
+            }
             if (!file_exists($include_path.$separator.$include)) {
                 $directory = @opendir($include_path);
                 if ($directory) {
-                    closedir($directory);
+                    @closedir($directory);
                     return $this->raiseError(MDB_ERROR_LOADEXTENSION, '', '',
                         $scope . ': it was not specified an existing ' . $extension . ' file (' . $include . ')');
                 }
                 return $this->raiseError(MDB_ERROR_LOADEXTENSION, '', '',
                     $scope . ': it was not specified a valid ' . $extension . ' include path');
             }
-            include_once($include_path.$separator.$include);
+            @include_once($include_path.$separator.$include);
         }
         return (MDB_OK);
     }
@@ -600,11 +603,12 @@ class MDB_Common extends PEAR
      */
     function loadManager($scope = '')
     {
-        if (defined('MDB_MANAGER_INCLUDED')) {
+        if (isset($this->manager) && is_object($this->manager)) {
             return (MDB_OK);
         }
         $result = $this->_loadExtension($scope, 'Manager',
-            'MDB_MANAGER_INCLUDED', $this->dbsyntax.'.php');
+            'MDB_MANAGER_'.strtoupper($this->dbsyntax).'_INCLUDED',
+            $this->dbsyntax.'.php');
         if (MDB::isError($result)) {
             return($result);
         }
@@ -722,8 +726,8 @@ class MDB_Common extends PEAR
      */
     function _close()
     {
-        global $databases;
-        $databases[$database] = '';
+        global $_MDB_databases;
+        $_MDB_databases[$database] = '';
     }
 
     // }}}
@@ -741,6 +745,23 @@ class MDB_Common extends PEAR
         $previous_database_name = $this->database_name;
         $this->database_name = $name;
         return ($previous_database_name);
+    }
+
+    // }}}
+    // {{{ getDSN()
+
+    /**
+     * return the DSN as a string
+     *
+     * @return string DSN
+     * @access public
+     */
+    function getDSN()
+    {
+        return $this->phptype.'://'.$this->username.':'
+            .$this->password.'@'.$$this->hostspec
+            .(isset($this->port) ? (':'.$this->port) : '')
+            .'/'.$this->database_name;
     }
 
     // }}}
@@ -4241,16 +4262,16 @@ class MDB_Common extends PEAR
                 $class = $arguments['Class'];
             }
         }
-        global $lobs;
-        $lob = count($lobs) + 1;
-        $lobs[$lob] = &new $class_name;
+        global $_MDB_lobs;
+        $lob = count($_MDB_lobs) + 1;
+        $_MDB_lobs[$lob] = &new $class_name;
         if (isset($arguments['Database'])) {
-            $lobs[$lob]->database = $arguments['Database'];
+            $_MDB_lobs[$lob]->database = $arguments['Database'];
         } else {
-            $lobs[$lob]->database = &$this;
+            $_MDB_lobs[$lob]->database = &$this;
         }
-        if (MDB::isError($result = $lobs[$lob]->create($arguments))) {
-            $lobs[$lob]->database->destroyLob($lob);
+        if (MDB::isError($result = $_MDB_lobs[$lob]->create($arguments))) {
+            $_MDB_lobs[$lob]->database->destroyLob($lob);
             return $result;
         }
         return ($lob);
@@ -4275,8 +4296,8 @@ class MDB_Common extends PEAR
      */
     function readLob($lob, &$data, $length)
     {
-        global $lobs;
-        return($lobs[$lob]->readLob($data, $length));
+        global $_MDB_lobs;
+        return($_MDB_lobs[$lob]->readLob($data, $length));
     }
 
     // }}}
@@ -4293,8 +4314,8 @@ class MDB_Common extends PEAR
      */
     function endOfLob($lob)
     {
-        global $lobs;
-        return($lobs[$lob]->endOfLob());
+        global $_MDB_lobs;
+        return($_MDB_lobs[$lob]->endOfLob());
     }
 
     // }}}
@@ -4310,9 +4331,9 @@ class MDB_Common extends PEAR
      */
     function destroyLob($lob)
     {
-        global $lobs;
-        $lobs[$lob]->destroy();
-        unset($lobs[$lob]);
+        global $_MDB_lobs;
+        $_MDB_lobs[$lob]->destroy();
+        unset($_MDB_lobs[$lob]);
     }
 };
 
