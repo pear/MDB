@@ -3705,7 +3705,7 @@ class MDB_Common extends PEAR
         $column = array();
         $row = $this->fetchInto($result, $fetchmode);
         if (is_array($row)) {
-            if (array_key_exists($colnum, $row)) {
+            if (!array_key_exists($colnum, $row)) {
                 return($this->raiseError(MDB_ERROR_TRUNCATED));
             }
             do {
