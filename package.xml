@@ -38,31 +38,31 @@
     </maintainer>
   </maintainers>
   <release>
-    <version>0.9</version>
+    <version>0.9.1</version>
     <state>beta</state>
     <date>2002-05-03</date>
-    <notes>First packaged release of MDB</notes>
+    <notes>fixed errors in package.xml</notes>
     <filelist>
-        <dir name="/" role="php">
-          <file>MDB.php</file>
-          <file>common.php</file>
-          <file>mysql.php</file>
-          <file>lob.php</file>
-          <file>manager.php</file>
-          <file>parser.php</file>
-          <file>xml_parser.php</file>
-          <file>metabase_wrapper.php</file>
-          <file>pear_wrapper.php</file>
-          <file>Readme.txt</file>
-          <file>MDB_test.php</file>
-          <file>MDB_pear_wrapper_test.php</file>
-          <file>driver_test.php</file>
-          <file>driver_test_config.php</file>
-          <file>driver_test.schema</file>
-          <file>setup_test.php</file>
-          <file>lob_test.schema</file>
-          <file>test.schema</file>
-          <file>Var_Dump.php</file>
+        <dir name="/" baseinstalldir="MDB">
+          <file role="php">MDB.php</file>
+          <file role="php">common.php</file>
+          <file role="php">mysql.php</file>
+          <file role="php">lob.php</file>
+          <file role="php">manager.php</file>
+          <file role="php">parser.php</file>
+          <file role="php">xml_parser.php</file>
+          <file role="php">metabase_wrapper.php</file>
+          <file role="php">pear_wrapper.php</file>
+          <file role="doc">Readme.txt</file>
+          <file role="test">MDB_test.php</file>
+          <file role="test">MDB_pear_wrapper_test.php</file>
+          <file role="test">driver_test.php</file>
+          <file role="test">driver_test_config.php</file>
+          <file role="test">driver_test.schema</file>
+          <file role="test">setup_test.php</file>
+          <file role="test">lob_test.schema</file>
+          <file role="test">test.schema</file>
+          <file role="test">Var_Dump.php</file>
         </dir>
     </filelist>
     <deps>
