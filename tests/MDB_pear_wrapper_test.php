@@ -57,7 +57,6 @@
     echo "<br>get the next id using on demand:<br>";
     echo "<br>nextId:".$db->nextId("real_funky_id_2");
     echo "<br>dropSequence:".$db->dropSequence("real_funky_id_2");
-
     // lets create a sequence
     echo "<br>create a new seq with start 3 name real_funky_id<br>";
     $err = $db->createSequence("real_funky_id",3);
@@ -66,9 +65,7 @@
     }
 
     echo "<br>get the next id:<br>";
-    echo $db->nextId("real_funky_id");
-    echo "<br>affected rows:<br>";
-    echo $db->affectedRows()."<br>";
+    echo $db->nextId("real_funky_id")."<br>";
     // lets try an prepare execute combo
     $alldata = array(  array(1, 'one', 'un'),
                        array(2, 'two', 'deux'),
@@ -100,6 +97,10 @@
     echo Var_Dump::display($db->getAssoc("SELECT * FROM test", FALSE, "", DB_FETCHMODE_ASSOC))."<br>";
     echo "tableInfo on a string:<br>";
     echo Var_Dump::display($db->tableInfo("numbers"))."<br>";
+    echo "<br>just a simple delete query:<br>";
+    echo Var_Dump::display($db->query("UPDATE numbers set trans_en = 0"))."<br>";
+    echo "<br>affected rows:<br>";
+    echo $db->affectedRows()."<br>";
     echo "<br>just a simple delete query:<br>";
     echo Var_Dump::display($db->query("DELETE FROM numbers"))."<br>";
     $db->disconnect();
