@@ -94,32 +94,6 @@ class MDB_manager extends PEAR
     );
 
     // }}}
-    // {{{ connect()
-
-    /**
-     * Constructor
-     *
-     * @param   mixed   $dsninfo  'data source name', see the MDB::parseDSN
-     *                            method for a description of the dsn format.
-     *                            Can also be specified as an array of the
-     *                            format returned by MDB::parseDSN.
-     *                            Finally you can also pass an existing db
-     *                            object to be used.
-     * @param   mixed   $options  An associative array of option names and
-     *                            their values.
-     * @return  mixed DB_OK on success, or a MDB error object
-     * @access  public
-     * @see     MDB::parseDSN
-     */
-    function MDB_manager(&$dsninfo = FALSE, $options = FALSE)
-    {
-        if($dsninfo) {
-            return $this->connect($dsninfo, $options);
-        }
-        return (DB_OK);
-    }
-
-    // }}}
     // {{{ raiseError()
 
     /**
