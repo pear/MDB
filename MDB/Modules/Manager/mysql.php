@@ -652,8 +652,13 @@ class MDB_Manager_mysql extends MDB_Manager_Common
     {
         $db =& $GLOBALS['_MDB_databases'][$this->db_index];
         $sequence_name = $db->getSequenceName($seq_name);
-        $res = $db->query("CREATE TABLE $sequence_name
-            (sequence INT DEFAULT 0 NOT NULL AUTO_INCREMENT, PRIMARY KEY (sequence))");
+        $result = $this->_verifyTableType($db->default_table_type);
+        if (MDB::isError($result)) {
+            return $result;
+        }
+        $res = $db->query("CREATE TABLE $sequence_name"
+            ."(sequence INT DEFAULT 0 NOT NULL AUTO_INCREMENT, PRIMARY KEY (sequence))"
+            .(strlen($db->default_table_type) ? ' TYPE='.$db->default_table_type : ''));
         if (MDB::isError($res)) {
             return $res;
         }
