@@ -1232,6 +1232,97 @@ class MDB_common extends PEAR
     }
 
     // }}}
+    // {{{ getFieldDeclaration()
+
+    /**
+     * get declaration of a field
+     * 
+     * @param string $field_name name of the field to be created
+     * @param string $field  associative array with the name of the properties
+     *      of the field being declared as array indexes. Currently, the types
+     *      of supported field properties are as follows:
+     *
+     *      default
+     *          Boolean value to be used as default for this field.
+     *
+     *      notnull
+     *          Boolean flag that indicates whether this field is constrained
+     *          to not be set to NULL.
+     * 
+     * @access public
+     *
+     * @return mixed string on success, a DB error on failure
+     */
+    function getFieldDeclaration($field_name, &$field)
+    {
+        $result = $this->loadManager("Get table field definition");
+        if (MDB::isError($result)) {
+            return ($result);
+        }
+        return ($this->manager->getFieldDeclaration($this, $field_name, $field));
+    }
+
+    // }}}
+    // {{{ getFieldDeclarationList()
+
+    /**
+     * get declaration of a number of field in bulk
+     * 
+     * @param string $fields  a multidimensional associative array.
+             The first dimension determines the field name, while the second
+            dimension is keyed with the name of the properties
+     *      of the field being declared as array indexes. Currently, the types
+     *      of supported field properties are as follows:
+     *
+     *      default
+     *          Boolean value to be used as default for this field.
+     *
+     *      notnull
+     *          Boolean flag that indicates whether this field is constrained
+     *          to not be set to NULL.
+     *
+     *      default
+     *          Boolean value to be used as default for this field.
+     *
+     *      notnull
+     *          Boolean flag that indicates whether this field is constrained
+     *          to not be set to NULL.
+     * 
+     * @access public
+     *
+     * @return mixed string on success, a DB error on failure
+     */
+    function getFieldDeclarationList(&$fields)
+    {
+        $result = $this->loadManager("Get table field list");
+        if (MDB::isError($result)) {
+            return ($result);
+        }
+        return ($this->manager->getFieldDeclarationList($this, $fields));
+    }
+
+    // }}}
+    // {{{ _isSequenceName()
+
+    /**
+     * list all tables in the current database
+     * 
+     * @param string $sqn string that containts name of a potential sequence
+     * 
+     * @access private
+     *
+     * @return mixed name of the sequence if $sqn is a name of a sequence, else FALSE
+     */ 
+    function _isSequenceName($sqn)
+    {
+        $result = $this->loadManager("is sequence name");
+        if (MDB::isError($result)) {
+            return ($result);
+        }
+        return ($this->manager->_isSequenceName($this, $sqn));
+    }
+
+    // }}}
     // {{{ createIndex()
     /**
      * get the stucture of a field into an array
