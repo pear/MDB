@@ -1,13 +1,29 @@
 <?php
- /*
- *
- * @(#) $Header$
- *
- */
+/* vim: set expandtab tabstop=4 shiftwidth=4: */
+// +----------------------------------------------------------------------+
+// | PHP Version 4                                                        |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 1997-2002 The PHP Group                                |
+// +----------------------------------------------------------------------+
+// | This source file is subject to version 2.02 of the PHP license,      |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.php.net/license/2_02.txt.                                 |
+// | If you did not receive a copy of the PHP license and are unable to   |
+// | obtain it through the world-wide-web, please send a note to          |
+// | license@php.net so we can mail you a copy immediately.               |
+// +----------------------------------------------------------------------+
+// | Author: Lukas Smith <smith@dybnet.de>                               |
+// +----------------------------------------------------------------------+
+//
+// $Id$
+//
+// Database independent query interface.
+//
 
 require_once "PEAR.php";
 
-/*
+/**
  * The method mapErrorCode in each DB_dbtype implementation maps
  * native error codes to one of these.
  *
@@ -46,16 +62,16 @@ define("DB_ERROR_CANNOT_ALTER",       -27);
 define("DB_ERROR_MANAGER",            -28);
 define("DB_ERROR_MANAGER_PARSE",      -29);
 
-/*
+/**
  * Warnings are not detected as errors by MDB::isError(), and are not
  * fatal.  You can detect whether an error is in fact a warning with
  * MDB::isWarning().
  */
 
-define('DB_WARNING',           -1000);
+define('DB_WARNING',            -1000);
 define('DB_WARNING_READ_ONLY',  -1001);
 
-/*
+/**
  * These constants are used when storing information about prepared
  * statements (using the "prepare" method in DB_dbtype).
  *
@@ -66,7 +82,7 @@ define('DB_WARNING_READ_ONLY',  -1001);
  * data are in that file (useful for putting uploaded files into your
  * database and such). The "!" char means a parameter that must be
  * left as it is.
- * They modify the quote behavoir:
+ * They modify the quote behavior:
  * DB_PARAM_SCALAR (?) => 'original string quoted'
  * DB_PARAM_OPAQUE (&) => 'string from file quoted'
  * DB_PARAM_MISC   (!) => original string
@@ -76,16 +92,19 @@ define('DB_PARAM_SCALAR', 1);
 define('DB_PARAM_OPAQUE', 2);
 define('DB_PARAM_MISC',   3);
 
-/*
+/**
  * These constants define different ways of returning binary data
  * from queries.  Again, this model has been borrowed from the ODBC
  * extension.
  *
- * DB_BINMODE_PASSTHRU sends the data directly through to the browser
- * when data is fetched from the database.
- * DB_BINMODE_RETURN lets you return data as usual.
- * DB_BINMODE_CONVERT returns data as well, only it is converted to
- * hex format, for example the string "123" would become "313233".
+ * DB_BINMODE_PASSTHRU  sends the data directly through to the browser
+ *                      when data is fetched from the database.
+ *
+ * DB_BINMODE_RETURN    lets you return data as usual.
+ *
+ * DB_BINMODE_CONVERT   returns data as well, only it is converted to
+ *                      hex format, for example the string "123"
+ *                      would become "313233".
  */
 
 define('DB_BINMODE_PASSTHRU', 1);
@@ -97,25 +116,25 @@ define('DB_BINMODE_CONVERT',  3);
  * any particular get mode, so the default should be used.
  */
 
-define('DB_FETCHMODE_DEFAULT', 0);
+define('DB_FETCHMODE_DEFAULT',  0);
 
 /**
  * Column data indexed by numbers, ordered from 0 and up
  */
 
-define('DB_FETCHMODE_ORDERED', 1);
+define('DB_FETCHMODE_ORDERED',  1);
 
 /**
  * Column data indexed by column names
  */
 
-define('DB_FETCHMODE_ASSOC', 2);
+define('DB_FETCHMODE_ASSOC',    2);
 
 /**
-* Column data as object properties
-*/
+ * Column data as object properties
+ */
 
-define('DB_FETCHMODE_OBJECT', 3);
+define('DB_FETCHMODE_OBJECT',   3);
 
 /**
  * For multi-dimensional results: normally the first level of arrays
@@ -124,7 +143,7 @@ define('DB_FETCHMODE_OBJECT', 3);
  * is the column name, and the second level the row number.
  */
 
-define('DB_FETCHMODE_FLIPPED', 4);
+define('DB_FETCHMODE_FLIPPED',  4);
 
 /* for compatibility */
 
@@ -133,15 +152,14 @@ define('DB_GETMODE_ASSOC',   DB_FETCHMODE_ASSOC);
 define('DB_GETMODE_FLIPPED', DB_FETCHMODE_FLIPPED);
 
 /**
- * these are constants for the tableInfo-function
+ * These are constants for the tableInfo-function
  * they are bitwised or'ed. so if there are more constants to be defined
  * in the future, adjust DB_TABLEINFO_FULL accordingly
  */
 
-define('DB_TABLEINFO_ORDER', 1);
+define('DB_TABLEINFO_ORDER',      1);
 define('DB_TABLEINFO_ORDERTABLE', 2);
-define('DB_TABLEINFO_FULL', 3);
-
+define('DB_TABLEINFO_FULL',       3);
 
 /**
  * The main "MDB" class is simply a container class with some static
@@ -151,39 +169,36 @@ define('DB_TABLEINFO_FULL', 3);
  * The object model of DB is as follows (indentation means inheritance):
  *
  * MDB           The main DB class.  This is simply a utility class
- *              with some "static" methods for creating DB objects as
- *              well as common utility functions for other DB classes.
+ *               with some "static" methods for creating DB objects as
+ *               well as common utility functions for other DB classes.
  *
  * MDB_common    The base for each DB implementation.  Provides default
- * |            implementations (in OO lingo virtual methods) for
- * |            the actual DB implementations as well as a bunch of
- * |            query utility functions.
+ * |             implementations (in OO lingo virtual methods) for
+ * |             the actual DB implementations as well as a bunch of
+ * |             query utility functions.
  * |
- * +-MDB_mysql   The DB implementation for MySQL.  Inherits DB_common.
- *              When calling MDB::factory or MDB::connect for MySQL
- *              connections, the object returned is an instance of this
- *              class.
+ * +-MDB_mysql   The DB implementation for MySQL.  Inherits MDB_Common.
+ *               When calling MDB::factory or MDB::connect for MySQL
+ *               connections, the object returned is an instance of this
+ *               class.
  *
  * @package  MDB
  * @version  0.9.2
  * @author   Lukas Smith <smith@dybnet.de>
  * @since    PHP 4.0
  */
-
 class MDB
 {
     /**
      * Create a new DB connection object for the specified database
      * type
      *
-     * @param string $type database type, for example "mysql"
+     * @access  public
      *
-     * @return mixed a newly created MDB object, or a MDB error code on
-     * error
+     * @param   string  $type   database type, for example "mysql"
      *
-     * access public
+     * @return  mixed   a newly created MDB object, or a MDB error code on error
      */
-
     function &factory($type)
     {
         @include_once("${type}.php");
@@ -204,15 +219,19 @@ class MDB
      * Create a new MDB connection object and connect to the specified
      * database
      *
-     * @param mixed $dsn "data source name", see the MDB::parseDSN
-     * method for a description of the dsn format.  Can also be
-     * specified as an array of the format returned by MDB::parseDSN.
+     * @access  public
      *
-     * @param mixed $options An associative array of option names and
-     * their values.
+     * @param   mixed   $dsn      "data source name", see the MDB::parseDSN
+     *                            method for a description of the dsn format.  Can also be
+     *                            specified as an array of the format returned by MDB::parseDSN.
      *
-     * @return mixed a newly created MDB connection object, or a MDB
-     * error object on error
+     * @param   mixed   $options  An associative array of option names and
+     *                            their values.
+     *
+     * @return  mixed   a newly created MDB connection object, or a MDB
+     *                  error object on error
+     *
+     * @see     MDB::parseDSN
      */
     function &connect($dsn, $options = false)
     {
@@ -224,56 +243,57 @@ class MDB
 
         switch(isset($dsninfo["phptype"]) ? $dsninfo["phptype"] : "") {
             case "ibase";
-                $include="ibase.php";
-                $class_name="MDB_ibase";
-                $included="IBASE_INCLUDED";
+                $include    = "ibase.php";
+                $class_name = "MDB_ibase";
+                $included   = "IBASE_INCLUDED";
                 break;
             case "ifx";
-                $include="ifx.php";
-                $class_name="MDB_ifx";
-                $included="IFX_INCLUDED";
+                $include    = "ifx.php";
+                $class_name = "MDB_ifx";
+                $included   = "IFX_INCLUDED";
                 break;
             case "msql";
-                $include="msql.php";
-                $class_name="MDB_msql";
-                $included="MSQL_INCLUDED";
+                $include    = "msql.php";
+                $class_name = "MDB_msql";
+                $included   = "MSQL_INCLUDED";
                 break;
             case "mssql";
-                $include="mssql.php";
-                $class_name="MDB_mssql";
-                $included="MSSQL_INCLUDED";
+                $include    = "mssql.php";
+                $class_name = "MDB_mssql";
+                $included   = "MSSQL_INCLUDED";
                 break;
             case "mysql";
-                $include="mysql.php";
-                $class_name="MDB_mysql";
-                $included="MYSQL_INCLUDED";
+                $include    = "mysql.php";
+                $class_name = "MDB_mysql";
+                $included   = "MYSQL_INCLUDED";
                 break;
             case "pgsql";
-                $include="pgsql.php";
-                $class_name="MDB_pgsql";
-                $included="PGSQL_INCLUDED";
+                $include    = "pgsql.php";
+                $class_name = "MDB_pgsql";
+                $included   = "PGSQL_INCLUDED";
                 break;
             case "odbc";
-                $include="odbc.php";
-                $class_name="MDB_odbc";
-                $included="ODBC_INCLUDED";
+                $include    = "odbc.php";
+                $class_name = "MDB_odbc";
+                $included   = "ODBC_INCLUDED";
                 break;
             case "oci";
-                $include="oci.php";
-                $class_name="MDB_oci";
-                $included="OCI_INCLUDED";
+                $include    = "oci.php";
+                $class_name = "MDB_oci";
+                $included   = "OCI_INCLUDED";
                 break;
             default:
                 $included = (isset($options["includedconstant"]) ? $options["includedconstant"] : "");
                 if (!isset($options["include"])
                     || !strcmp($include = $options["includepath"],""))
                 {
-                    if (isset($options["includepath"]))
-                        return PEAR::raiseError(null, DB_ERROR_INVALID_DSN, 
+                    if (isset($options["includepath"])) {
+                        return PEAR::raiseError(null, DB_ERROR_INVALID_DSN,
                             null, null, 'no valid DBMS driver include path specified', 'MDB_Error', true);
-                    else
+                    } else {
                         return PEAR::raiseError(null, DB_ERROR_INVALID_DSN,
                             null, null, 'no existing DBMS driver specified', 'MDB_Error', true);
+                    }
                 }
                 if (!isset($options["classname"])
                     || !strcmp($class_name = $options["classname"],""))
@@ -299,7 +319,7 @@ class MDB
                     return PEAR::raiseError(null, DB_ERROR_INVALID_DSN,
                         null, null, 'no existing DBMS driver specified', 'MDB_Error', true);
                 } else {
-                    return PEAR::raiseError(null, DB_ERROR_INVALID_DSN, 
+                    return PEAR::raiseError(null, DB_ERROR_INVALID_DSN,
                         null, null, 'no valid DBMS driver include path specified', 'MDB_Error', true);
                 }
             }
@@ -351,9 +371,8 @@ class MDB
     /**
      * Return the MDB API version
      *
-     * @return int the MDB API version number
-     *
      * @access public
+     * @return int     the MDB API version number
      */
     function apiVersion()
     {
@@ -363,11 +382,11 @@ class MDB
     /**
      * Tell whether a result code from a MDB method is an error
      *
-     * @param $value int result code
-     *
-     * @return bool whether $value is an error
-     *
      * @access public
+     *
+     * @param   int       $value  result code
+     *
+     * @return  boolean   whether $value is an MDB_Error
      */
     function isError($value)
     {
@@ -381,11 +400,11 @@ class MDB
      * update or delete) or a data definition query (create, drop,
      * alter, grant, revoke).
      *
-     * @access public
+     * @access  public
      *
-     * @param string $query the query
+     * @param   string   $query the query
      *
-     * @return boolean whether $query is a data manipulation query
+     * @return  boolean  whether $query is a data manipulation query
      */
     function isManip($query)
     {
@@ -402,11 +421,11 @@ class MDB
      * Warnings differ from errors in that they are generated by DB,
      * and are not fatal.
      *
-     * @param mixed $value result value
+     * @access  public
      *
-     * @return boolean whether $value is a warning
+     * @param   mixed    $value result value
      *
-     * @access public
+     * @return  boolean  whether $value is an MDB_Warning
      */
     function isWarning($value)
     {
@@ -418,10 +437,10 @@ class MDB
     /**
      * Return a textual error message for a MDB error code
      *
-     * @param integer $value error code
+     * @param   int     $value error code
      *
-     * @return string error message, or false if the error code was
-     * not recognized
+     * @return  string  error message, or false if the error code was
+     *                  not recognized
      */
     function errorMessage($value)
     {
@@ -496,9 +515,9 @@ class MDB
      *  phptype(dbsyntax)
      *  phptype
      *
-     * @param string $dsn Data Source Name to be parsed
+     * @param   string  $dsn Data Source Name to be parsed
      *
-     * @return array an associative array
+     * @return  array   an associative array
      *
      * @author Tomas V.V.Cox <cox@idecnet.com>
      */
@@ -620,13 +639,13 @@ class MDB
     /**
      * Load a PHP database extension if it is not loaded already.
      *
-     * @access public
+     * @access  public
      *
-     * @param string $name the base name of the extension (without the .so or
-     *                     .dll suffix)
+     * @param   string  $name the base name of the extension (without the .so
+     *                        or .dll suffix)
      *
-     * @return boolean true if the extension was already or successfully
-     *                 loaded, false if it could not be loaded
+     * @return  boolean true if the extension was already or successfully
+     *                  loaded, false if it could not be loaded
      */
     function assertExtension($name)
     {
@@ -643,7 +662,7 @@ class MDB
  * messages.
  *
  * @package MDB
- * @author Stig Bakken <ssb@fast.no>
+ * @author  Stig Bakken <ssb@fast.no>
  */
 class MDB_Error extends PEAR_Error
 {
@@ -654,8 +673,6 @@ class MDB_Error extends PEAR_Error
      * @param integer $mode      what "error mode" to operate in
      * @param integer $level     what error level to use for $mode & PEAR_ERROR_TRIGGER
      * @param smixed  $debuginfo additional debug info, such as the last query
-     *
-     * @access public
      */
 
     function MDB_Error($code = MDB_ERROR, $mode = PEAR_ERROR_RETURN,
@@ -674,7 +691,7 @@ class MDB_Error extends PEAR_Error
  * warning messages.
  *
  * @package MDB
- * @author Stig Bakken <ssb@fast.no>
+ * @author  Stig Bakken <ssb@fast.no>
  */
 class MDB_Warning extends PEAR_Error
 {
@@ -686,9 +703,7 @@ class MDB_Warning extends PEAR_Error
      * @param integer $level     what error level to use for $mode == PEAR_ERROR_TRIGGER
      * @param mmixed  $debuginfo additional debug info, such as the last query
      *
-     * @access public
      */
-
     function MDB_Warning($code = MDB_WARNING, $mode = PEAR_ERROR_RETURN,
             $level = E_USER_NOTICE, $debuginfo = null)
     {
