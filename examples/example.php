@@ -194,7 +194,7 @@ ini_set('include_path', '..'.PATH_SEPARATOR.ini_get('include_path'));
     echo('<br>drop index (will fail if the index was never created):<br>');
     echo(Var_Dump::display($db->manager->dropIndex($db, 'test', 'test_id_index')).'<br>');
     $index_def = array(
-        'FIELDS' => array(
+        'fields' => array(
             'test_id' => array(
                 'sorting' => 'ascending'
             )
