@@ -131,10 +131,10 @@ class MDB_oci8 extends MDB_Common {
      * @access public 
      * @return int native oci8 error code
      */
-    function errorNative()
+    function errorNative($statement = NULL)
     {
-        if (is_resource($this->last_stmt)) {
-            $error = @OCIError($this->last_stmt);
+        if (is_resource($statement)) {
+            $error = @OCIError($statement);
         } else {
             $error = @OCIError($this->connection);
         }
@@ -1467,7 +1467,7 @@ class MDB_oci8 extends MDB_Common {
          *    [0]["name"]        field name
          *    [0]["type"]        field type
          *    [0]["len"]         field length
-         *    [0]["NULLable"]    field can be NULL (boolean)
+         *    [0]["nullable"]    field can be NULL (boolean)
          *    [0]["format"]      field precision if NUMBER
          *    [0]["default"]     field default value
          * 
@@ -1478,7 +1478,7 @@ class MDB_oci8 extends MDB_Common {
          *    [0]["name"]        field name
          *    [0]["type"]        field type
          *    [0]["len"]         field length
-         *    [0]["NULLable"]    field can be NULL (boolean)
+         *    [0]["nullable"]    field can be NULL (boolean)
          *    [0]["format"]      field precision if NUMBER
          *    [0]["default"]     field default value
          *    ['order'][field name] index of field named "field name"
@@ -1502,7 +1502,7 @@ class MDB_oci8 extends MDB_Common {
         if (is_string($result)) {
             $result = strtoupper($result);
             $q_fields = "select column_name, data_type, data_length, data_precision,
-                     NULLable, data_default from user_tab_columns
+                     nullable, data_default from user_tab_columns
                      where table_name='$result' order by column_id";
             if (!$stmt = OCIParse($this->connection, $q_fields)) {
                 return $this->oci8RaiseError();
@@ -1528,14 +1528,14 @@ class MDB_oci8 extends MDB_Common {
             $res['num_fields'] = $count;
             @OCIFreeStatement($stmt);
         } else { // else we want information about a resultset
-            if ($result === $this->last_stmt) {
+            #if ($result === $this->last_stmt) {
                 $count = @OCINumCols($result);
                 for ($i = 0; $i < $count; $i++) {
                     $res[$i]['name'] = @OCIColumnName($result, $i + 1);
                     $res[$i]['type'] = @OCIColumnType($result, $i + 1);
                     $res[$i]['len'] = @OCIColumnSize($result, $i + 1);
 
-                    $q_fields = "select table_name, data_precision, NULLable, data_default from user_tab_columns where column_name='".$res[$i]['name']."'";
+                    $q_fields = "select table_name, data_precision, nullable, data_default from user_tab_columns where column_name='".$res[$i]['name']."'";
                     if (!$stmt = OCIParse($this->connection, $q_fields)) {
                         return $this->oci8RaiseError();
                     }
@@ -1557,9 +1557,9 @@ class MDB_oci8 extends MDB_Common {
                     }
                 }
                 $res['num_fields'] = $count;
-            } else {
-                return $this->raiseError(MDB_ERROR_NOT_CAPABLE);
-            }
+            #} else {
+            #    return $this->raiseError(MDB_ERROR_NOT_CAPABLE);
+            #}
         }
         return $res;
     }
