@@ -93,7 +93,7 @@ if (!is_array($testmethods)) {
 
 foreach ($dbarray as $db) {
     $dsn = $db['dsn'];
-    $options = $db['options'];
+    $options = isset($db['options']) ? $db['options'] : null;
 
     $display_dsn = $dsn['phptype'] . "://" . $dsn['username'] . ":" . $dsn['password'] . "@" . $dsn['hostspec'] . "/" . $database;
     echo "<div class=\"test\">\n";
