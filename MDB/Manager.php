@@ -107,13 +107,13 @@ class MDB_manager extends PEAR
         }
 
         $this->database = MDB::connect($dsninfo, $options);
-        if (MDB::isError($this->database))
+        if (MDB::isError($this->database)) {
             return $this->database;
-
+        }
         if (!isset($options["debug"])) {
             $this->database->captureDebugOutput(1);
         }
-        return (DB_OK;
+        return (DB_OK);
     }
 
     function closeSetup()
@@ -233,18 +233,14 @@ class MDB_manager extends PEAR
 
     function createTable($table_name, $table)
     {
-        $this->database->debug("Create table: ".$table_name);
-        
         $result = $this->database->createTable($table_name, $table["FIELDS"]);
         if (MDB::isError($result)) {
             return $result;
         }
-        $success = 1;
-        $error = "";
-        if (isset($table["initialization"]))    {
+        if (isset($table["initialization"])) {
             $instructions = $table["initialization"];
             for(reset($instructions), $instruction = 0;
-                $success && $instruction < count($instructions);
+                $instruction < count($instructions);
                 $instruction++, next($instructions))
             {
                 switch($instructions[$instruction]["type"]) {
@@ -254,7 +250,7 @@ class MDB_manager extends PEAR
                             $field_number < count($fields);
                             $field_number++, next($fields))
                         {
-                            if ($field_number>0) {
+                            if ($field_number > 0) {
                                 $query_fields .= ",";
                                 $query_values .= ",";
                             }
@@ -277,9 +273,9 @@ class MDB_manager extends PEAR
                             {
                                 $field_name = key($fields);
                                 $field = $table["FIELDS"][$field_name];
-                                $res = $this->getField($field, $field_name, 0, $query);
-                                if (MDB::isError($res)) {
-                                    return $res;
+                                $result = $this->getField($field, $field_name, 0, $query);
+                                if (MDB::isError($result)) {
+                                    return $result;
                                 }
                                 switch($field["type"]) {
                                     case "integer":
@@ -297,7 +293,7 @@ class MDB_manager extends PEAR
                                             "Data" =>$fields[$field_name]
                                         );
                                         $lob = count($lobs);
-                                        if (!($success = createLOB($lob_definition, $lobs[$lob])))
+                                        if (!createLOB($lob_definition, $lobs[$lob]))
                                         {
                                             $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
                                                 $lob_definition["Error"], 'MDB_Error', TRUE);
@@ -313,7 +309,7 @@ class MDB_manager extends PEAR
                                             "Data" =>$fields[$field_name]
                                         );
                                         $lob = count($lobs);
-                                        if (!($success = createLOB($lob_definition, $lobs[$lob]))) {
+                                        if (!createLOB($lob_definition, $lobs[$lob])) {
                                             $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
                                                 $lob_definition["Error"], 'MDB_Error', TRUE);
                                             break;
@@ -376,22 +372,22 @@ class MDB_manager extends PEAR
                 $index < count($indexes);
                 next($indexes), $index++)
             {
-                $result = $this->database->createIndex($table_name,key($indexes), $indexes[key($indexes)]);
+                $result = $this->database->createIndex($table_name, key($indexes), $indexes[key($indexes)]);
                 if (MDB::isError($result)) {
                     break;
                 }
             }
         }
         if (MDB::isError($result)) {
-            $res = $this->database->dropTable($table_name);
-            if (MDB::isError($res)) {
+            $result = $this->database->dropTable($table_name);
+            if (MDB::isError($result)) {
                 $result = PEAR::raiseError(NULL, DB_ERROR_MANAGER, NULL, NULL, 
                     'could not drop the table ('
                     .$result->getMessage().' ('.$result->getUserinfo(),'))',
                     'MDB_Error', TRUE);
             }
         }
-        return $result;
+        return (DB_OK);
     }
 
     function dropTable($table_name)
@@ -479,9 +475,8 @@ class MDB_manager extends PEAR
         {
             return $result;
         }
-
         $created_objects = 0;
-        for($error = "", reset($this->database_definition["TABLES"]), $table = 0;
+        for(reset($this->database_definition["TABLES"]), $table = 0;
             $table < count($this->database_definition["TABLES"]);
             next($this->database_definition["TABLES"]), $table++)
         {
@@ -496,7 +491,7 @@ class MDB_manager extends PEAR
         if (!MDB::isError($result) 
             && isset($this->database_definition["SEQUENCES"]))
         {
-            for($error = "", reset($this->database_definition["SEQUENCES"]), $sequence = 0;
+            for(reset($this->database_definition["SEQUENCES"]), $sequence = 0;
                 $sequence < count($this->database_definition["SEQUENCES"]);
                 next($this->database_definition["SEQUENCES"]), $sequence++)
             {
@@ -1783,6 +1778,7 @@ class MDB_manager extends PEAR
         if (MDB::isError($result)) {
             return $result;
         }
+
         $result = $this->setupDatabase($dsninfo, $options);
         if (MDB::isError($result)) {
             return $result;
@@ -1825,7 +1821,7 @@ class MDB_manager extends PEAR
                 'Could not copy the new database definition file to the current file', 'MDB_Error', TRUE);
         }
         
-        return (DB_OK;
+        return (DB_OK);
     }
 
 
@@ -1875,7 +1871,7 @@ class MDB_manager extends PEAR
     {
         $database = $this->database->database_name;
         if (strlen($database) == 0) {
-            return("it was not specified a valid database name");
+            return ("it was not specified a valid database name");
         }
         $this->database_definition = array(
             "name" => $database,
@@ -1884,13 +1880,13 @@ class MDB_manager extends PEAR
         );
         $tables = $this->database->listTables();
         if (MDB::isError($tables)) {
-            return($this->database->error());
+            return ($tables);
         }
         for($table = 0; $table < count($tables); $table++) {
             $table_name = $tables[$table];
             $fields = $this->database->listTableFields($table_name);
             if (MDB::isError($fields)) {
-                return($fields);
+                return ($fields);
             }
             $this->database_definition["TABLES"][$table_name] = array("FIELDS" => array());
             for($field = 0; $field < count($fields); $field++)
@@ -1898,20 +1894,20 @@ class MDB_manager extends PEAR
                 $field_name = $fields[$field];
                 $definition = $this->database->getTableFieldDefinition($table_name, $field_name);
                 if (MDB::isError($definition)) {
-                    return($definition);
+                    return ($definition);
                 }
                 $this->database_definition["TABLES"][$table_name]["FIELDS"][$field_name] = $definition[0];
             }
         }
         $sequences = $this->database->listSequences();
         if (MDB::isError($sequences)) {
-            return($sequences);
+            return ($sequences);
         }
         for($sequence = 0; $sequence < count($sequences); $sequence++) {
             $sequence_name = $sequences[$sequence];
             $start = $this->database->currId($sequence_name);
             if (MDB::isError($start)) {
-                return $start;
+                return ($start);
             }
             if ($this->database->support("CurrId")) {
                 $start++;
