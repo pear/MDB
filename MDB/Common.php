@@ -406,7 +406,7 @@ class MDB_Common extends PEAR
         }
 
         $err = PEAR::raiseError(NULL, $code, $mode, $options, $userinfo, 'MDB_Error', TRUE);
-        return($err);
+        return $err;
     }
 
     // }}}
