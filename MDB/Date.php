@@ -66,7 +66,7 @@ class MDB_Date
      */
     function mdbNow()
     {
-        return(date('Y-m-d H:i:s'));
+        return date('Y-m-d H:i:s');
     }
 
     // }}}
@@ -80,7 +80,7 @@ class MDB_Date
      */
     function mdbToday()
     {
-        return(date('Y-m-d'));
+        return date('Y-m-d');
     }
 
     // }}}
@@ -94,7 +94,7 @@ class MDB_Date
      */
     function mdbTime()
     {
-        return(date('H:i:s'));
+        return date('H:i:s');
     }
 
     // }}}
@@ -165,10 +165,9 @@ class MDB_Date
     {
         list($arr['year'], $arr['month'], $arr['day'], $arr['hour'], $arr['minute'], $arr['second']) =
             sscanf($mdb_timestamp, "%04u-%02u-%02u %02u:%02u:%02u");
-        return($arr);
+        return $arr;
     }
 
     // }}}
 }
-
 ?>

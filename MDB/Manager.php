@@ -45,7 +45,7 @@
 // $Id$
 //
 
-require_once('MDB/Parser.php');
+require_once 'MDB/Parser.php';
 
 define('MDB_MANAGER_DUMP_ALL',          0);
 define('MDB_MANAGER_DUMP_STRUCTURE',    1);
@@ -133,14 +133,14 @@ class MDB_Manager extends PEAR
         $userinfo = NULL, $nativecode = NULL)
     {
         // The error is yet a MDB error object
-        if(is_object($code)) {
+        if (is_object($code)) {
             $err = PEAR::raiseError($code, NULL, NULL, NULL, NULL, NULL, TRUE);
-            return($err);
+            return $err;
         }
         
         $err = PEAR::raiseError(NULL, $code, $mode, $options, $userinfo,
             'MDB_Error', TRUE);
-        return($err);
+        return $err;
     }
 
     // }}}
@@ -171,7 +171,7 @@ class MDB_Manager extends PEAR
      */
     function debugOutput()
     {
-        return($this->database->debugOutput());
+        return $this->database->debugOutput();
     }
 
     // }}}
@@ -218,9 +218,9 @@ class MDB_Manager extends PEAR
     {
         if(isset($this->options[$option])) {
             $this->options[$option] = $value;
-            return(MDB_OK);
+            return MDB_OK;
         }
-        return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, "unknown option $option"));
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, "unknown option $option");
     }
 
     // }}}
@@ -236,9 +236,9 @@ class MDB_Manager extends PEAR
     function getOption($option)
     {
         if(isset($this->options[$option])) {
-            return($this->options[$option]);
+            return $this->options[$option];
         }
-        return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, "unknown option $option"));
+        return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, "unknown option $option");
     }
 
     // }}}
@@ -270,13 +270,13 @@ class MDB_Manager extends PEAR
         } else {
             $this->database =& MDB::connect($dbinfo, $options);
             if(MDB::isError($this->database)) {
-                return($this->database);
+                return $this->database;
             }
         }
         if(is_array($options)) {
             $this->options = array_merge($options, $this->options);
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -307,7 +307,7 @@ class MDB_Manager extends PEAR
      */
     function setDatabase($name)
     {
-        return($this->database->setDatabase($name));
+        return $this->database->setDatabase($name);
     }
 
     // }}}
@@ -336,18 +336,18 @@ class MDB_Manager extends PEAR
                     $this->database->debug('Overwritting Table');
                     $result = $this->database->dropTable($table_name);
                     if(MDB::isError($result)) {
-                        return($result);
+                        return $result;
                     }
                     $result = $this->database->createTable($table_name, $table['FIELDS']);
                     if(MDB::isError($result)) {
-                        return($result);
+                        return $result;
                     }
                 } else {
                     $result = MDB_OK;
                 }
             } else {
                 $this->database->debug('Create table error: '.$table_name);
-                return($result);
+                return $result;
             }
         }
         if(isset($table['initialization']) && is_array($table['initialization'])) {
@@ -458,8 +458,8 @@ class MDB_Manager extends PEAR
         };
         if(!MDB::isError($result) && isset($table['INDEXES']) && is_array($table['INDEXES'])) {
             if(!$this->database->support('Indexes')) {
-                return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                    'indexes are not supported'));
+                return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+                    'indexes are not supported');
             }
             foreach($table['INDEXES'] as $index_name => $index) {
                 $this->expectError(MDB_ERROR_ALREADY_EXISTS);
@@ -496,9 +496,9 @@ class MDB_Manager extends PEAR
                     .$result->getMessage().' ('.$result->getUserinfo(),'))',
                     'MDB_Error', TRUE);
             }
-            return($result);
+            return $result;
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -513,7 +513,7 @@ class MDB_Manager extends PEAR
      */
     function _dropTable($table_name)
     {
-        return($this->database->dropTable($table_name));
+        return $this->database->dropTable($table_name);
     }
 
     // }}}
@@ -534,12 +534,12 @@ class MDB_Manager extends PEAR
     function _createSequence($sequence_name, $sequence, $created_on_table, $overwrite = FALSE)
     {
         if(!$this->database->support('Sequences')) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                'sequences are not supported'));
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+                'sequences are not supported');
         }
         if(!isset($sequence_name) || !strcmp($sequence_name, '')) {
-            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
-                'no valid sequence name specified'));
+            return $this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                'no valid sequence name specified');
         }
         $this->database->debug('Create sequence: '.$sequence_name);
         if(isset($sequence['start']) && $sequence['start'] != '') {
@@ -552,7 +552,7 @@ class MDB_Manager extends PEAR
             }
             $start = $this->database->queryOne("SELECT $field FROM $table");
             if(MDB::isError($start)) {
-                return($start);
+                return $start;
             }
         } else {
             $start = 1;
@@ -568,18 +568,18 @@ class MDB_Manager extends PEAR
                     $this->database->debug('Overwritting Sequence');
                     $result = $this->database->dropSequence($sequence_name);
                     if(MDB::isError($result)) {
-                        return($result);
+                        return $result;
                     }
                     $result = $this->database->createSequence($sequence_name, $start);
                     if(MDB::isError($result)) {
-                        return($result);
+                        return $result;
                     }
                 } else {
-                    return(MDB_OK);
+                    return MDB_OK;
                 }
             } else {
                 $this->database->debug('Create sequence error: '.$sequence_name);
-                return($result);
+                return $result;
             }
         }
     }
@@ -597,15 +597,15 @@ class MDB_Manager extends PEAR
     function _dropSequence($sequence_name)
     {
         if(!$this->database->support('Sequences')) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                'sequences are not supported'));
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+                'sequences are not supported');
         }
         $this->database->debug('Dropping sequence: '.$sequence_name);
         if(!isset($sequence_name) || !strcmp($sequence_name, '')) {
-            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
-                'no valid sequence name specified'));
+            return $this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                'no valid sequence name specified');
         }
-        return($this->database->dropSequence($sequence_name));
+        return $this->database->dropSequence($sequence_name);
     }
 
     // }}}
@@ -626,8 +626,8 @@ class MDB_Manager extends PEAR
         if(!isset($this->database_definition['name'])
             || !strcmp($this->database_definition['name'], '')
         ) {
-            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
-                'no valid database name specified'));
+            return $this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                'no valid database name specified');
         }
         $create = (isset($this->database_definition['create']) && $this->database_definition['create']);
         $overwrite = (isset($this->database_definition['overwrite']) && $this->database_definition['overwrite']);
@@ -643,18 +643,18 @@ class MDB_Manager extends PEAR
                         $this->database->debug('Overwritting Database');
                         $result = $this->database->dropDatabase($this->database_definition['name']);
                         if(MDB::isError($result)) {
-                            return($result);
+                            return $result;
                         }
                         $result = $this->database->createDatabase($this->database_definition['name']);
                         if(MDB::isError($result)) {
-                            return($result);
+                            return $result;
                         }
                     } else {
                         $result = MDB_OK;
                     }
                 } else {
                     $this->database->debug('Create database error.');
-                    return($result);
+                    return $result;
                 }
             }
         }
@@ -662,7 +662,7 @@ class MDB_Manager extends PEAR
         if(($support_transactions = $this->database->support('Transactions'))
             && MDB::isError($result = $this->database->autoCommit(FALSE))
         ) {
-            return($result);
+            return $result;
         }
 
         $created_objects = 0;
@@ -724,17 +724,17 @@ class MDB_Manager extends PEAR
             && $create
             && MDB::isError($res = $this->database->dropDatabase($this->database_definition['name']))
         ) {
-            return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+            return $this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
                 'Could not drop the created database after unsuccessful creation attempt ('
                 .$res->getMessage().' ('.$res->getUserinfo(),'))',
-                'MDB_Error', TRUE));
+                'MDB_Error', TRUE);
         }
         
         if(MDB::isError($result)) {
-            return($result);
+            return $result;
         }
         
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -767,7 +767,7 @@ class MDB_Manager extends PEAR
                 $changes[$definition][$item][$change_data_name] = $change_data;
             }
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -798,9 +798,9 @@ class MDB_Manager extends PEAR
                         $this->database->debug("Renamed table '$was_table_name' to '$table_name'");
                     }
                     if(isset($defined_tables[$was_table_name])) {
-                        return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                        return $this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
                             'the table "'.$was_table_name.'" was specified as base of more than of table of the database',
-                            'MDB_Error', TRUE));
+                            'MDB_Error', TRUE);
                     }
                     $defined_tables[$was_table_name] = 1;
                     
@@ -819,7 +819,7 @@ class MDB_Manager extends PEAR
                                 if(strcmp($was_field_name, $field_name)) {
                                     $query = $this->database->getFieldDeclaration($field_name, $field);
                                     if(MDB::isError($query)) {
-                                        return($query);
+                                        return $query;
                                     }
                                     $this->_addDefinitionChange($changes, 'TABLES', $was_table_name,
                                         array(
@@ -834,9 +834,9 @@ class MDB_Manager extends PEAR
                                     $this->database->debug("Renamed field '$was_field_name' to '$field_name' in table '$table_name'");
                                 }
                                 if(isset($defined_fields[$was_field_name])) {
-                                    return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                                    return $this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
                                         'the field "'.$was_table_name.'" was specified as base of more than one field of table',
-                                        'MDB_Error', TRUE));
+                                        'MDB_Error', TRUE);
                                 }
                                 $defined_fields[$was_field_name] = 1;
                                 $change = array();
@@ -868,9 +868,9 @@ class MDB_Manager extends PEAR
                                         case 'decimal':
                                             break;
                                         default:
-                                            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+                                            return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
                                                 'type "'.$field['type'].'" is not yet supported',
-                                                'MDB_Error', TRUE));
+                                                'MDB_Error', TRUE);
                                     }
                                     
                                     $previous_notnull = isset($previous_fields[$was_field_name]['notnull']);
@@ -907,7 +907,7 @@ class MDB_Manager extends PEAR
                                 if(count($change)) {
                                     $query = $this->database->getFieldDeclaration($field_name, $field);
                                     if(MDB::isError($query)) {
-                                        return($query);
+                                        return $query;
                                     }
                                     $change['Declaration'] = $query;
                                     $change['Definition'] = $field;
@@ -915,15 +915,15 @@ class MDB_Manager extends PEAR
                                 }
                             } else {
                                 if(strcmp($field_name, $was_field_name)) {
-                                    return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                                    return $this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
                                         'it was specified a previous field name ("'
                                         .$was_field_name.'") for field "'.$field_name.'" of table "'
                                         .$table_name.'" that does not exist',
-                                        'MDB_Error', TRUE));
+                                        'MDB_Error', TRUE);
                                 }
                                 $query = $this->database->getFieldDeclaration($field_name, $field);
                                 if(MDB::isError($query)) {
-                                    return($query);
+                                    return $query;
                                 }
                                 $change['Declaration'] = $query;
                                 $this->_addDefinitionChange($changes, 'TABLES', $table_name, array('AddedFields' => array($field_name => $change)));
@@ -968,10 +968,10 @@ class MDB_Manager extends PEAR
                                 $this->database->debug("Changed index '$was_index_name' name to '$index_name' in table '$table_name'");
                             }
                             if(isset($defined_indexes[$was_index_name])) {
-                                return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                                return $this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
                                     'the index "'.$was_index_name.'" was specified as base of'
                                     .' more than one index of table "'.$table_name.'"',
-                                    'MDB_Error', TRUE));
+                                    'MDB_Error', TRUE);
                             }
                             $defined_indexes[$was_index_name] = 1;
                             
@@ -1016,10 +1016,10 @@ class MDB_Manager extends PEAR
                             }
                         } else {
                             if(strcmp($index_name, $was_index_name)) {
-                                return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                                return $this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
                                     'it was specified a previous index name ("'.$was_index_name
                                     .') for index "'.$index_name.'" of table "'.$table_name.'" that does not exist',
-                                    'MDB_Error', TRUE));
+                                    'MDB_Error', TRUE);
                             }
                             $this->_addDefinitionChange($changes, 'INDEXES', $table_name,array('AddedIndexes' => array($index_name => $indexes[$index_name])));
                             $this->database->debug("Added index '$index_name' to table '$table_name'");
@@ -1033,10 +1033,10 @@ class MDB_Manager extends PEAR
                     }
                 } else {
                     if(strcmp($table_name, $was_table_name)) {
-                        return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                        return $this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
                             'it was specified a previous table name ("'
                             .$was_table_name.'") for table "'.$table_name.'" that does not exist',
-                            'MDB_Error', TRUE));
+                            'MDB_Error', TRUE);
                     }
                     $this->_addDefinitionChange($changes, 'TABLES', $table_name,array('Add' => 1));
                     $this->database->debug("Added table '$table_name'");
@@ -1065,10 +1065,10 @@ class MDB_Manager extends PEAR
                             $this->database->debug("Renamed sequence '$was_sequence_name' to '$sequence_name'");
                         }
                         if(isset($defined_sequences[$was_sequence_name])) {
-                            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                            return $this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
                                 'the sequence "'.$was_sequence_name.'" was specified as base'
                                 .' of more than of sequence of the database',
-                                'MDB_Error', TRUE));
+                                'MDB_Error', TRUE);
                         }
                         $defined_sequences[$was_sequence_name] = 1;
                         $change = array();
@@ -1087,10 +1087,10 @@ class MDB_Manager extends PEAR
                         }
                     } else {
                         if(strcmp($sequence_name, $was_sequence_name)) {
-                            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                            return $this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
                                 'it was specified a previous sequence name ("'.$was_sequence_name
                                 .'") for sequence "'.$sequence_name.'" that does not exist',
-                                'MDB_Error', TRUE));
+                                'MDB_Error', TRUE);
                         }
                         $this->_addDefinitionChange($changes, 'SEQUENCES', $sequence_name, array('Add' => 1));
                         $this->database->debug("Added sequence '$sequence_name'");
@@ -1106,7 +1106,7 @@ class MDB_Manager extends PEAR
                 }
             }
         }
-        return($changes);
+        return $changes;
     }
 
     // }}}
@@ -1135,14 +1135,14 @@ class MDB_Manager extends PEAR
                 }
                 $result = $this->database->alterTable($table_name, $table, 1);
                 if(MDB::isError($result)) {
-                    return($result);
+                    return $result;
                 }
             }
         }
         if(isset($changes['SEQUENCES']) && is_array($changes['SEQUENCES'])) {
             if(!$this->database->support('Sequences')) {
-                return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                    'sequences are not supported'));
+                return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+                    'sequences are not supported');
             }
             foreach($changes['SEQUENCES'] as $sequence) {
                 if(isset($sequence['Add'])
@@ -1151,14 +1151,14 @@ class MDB_Manager extends PEAR
                 ) {
                     continue;
                 }
-                return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                    'some sequences changes are not yet supported'));
+                return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+                    'some sequences changes are not yet supported');
             }
         }
         if(isset($changes['INDEXES']) && is_array($changes['INDEXES'])) {
             if(!$this->database->support('Indexes')) {
-                return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                    'indexes are not supported'));
+                return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+                    'indexes are not supported');
             }
             foreach($changes['INDEXES'] as $index) {
                 $table_changes = count($index);
@@ -1172,8 +1172,8 @@ class MDB_Manager extends PEAR
                     $table_changes--;
                 }
                 if($table_changes) {
-                    return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                        'index alteration not yet supported'));
+                    return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+                        'index alteration not yet supported');
                 }
             }
         }
@@ -1182,7 +1182,7 @@ class MDB_Manager extends PEAR
         if(($support_transactions = $this->database->support('Transactions'))
             && MDB::isError($result = $this->database->autoCommit(FALSE))
         ) {
-            return($result);
+            return $result;
         }
         $error = '';
         $alterations = 0;
@@ -1291,8 +1291,8 @@ class MDB_Manager extends PEAR
                                 $alterations++;
                             }
                         } else {
-                            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                                'changing sequences is not yet supported'));
+                            return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+                                'changing sequences is not yet supported');
                         }
                     }
                 }
@@ -1357,7 +1357,7 @@ class MDB_Manager extends PEAR
             }
         }
         $this->database->setDatabase($previous_database_name);
-        return($result);
+        return $result;
     }
 
     // }}}
@@ -1396,7 +1396,7 @@ class MDB_Manager extends PEAR
             }
             $escaped .= "&#$code;";
         }
-        return($escaped);
+        return $escaped;
     }
 
     // }}}
@@ -1424,7 +1424,7 @@ class MDB_Manager extends PEAR
             $buffer .= "  <on>$eol   <table>".$sequence_definition['on']['table']."</table>$eol   <field>".$sequence_definition['on']['field']."</field>$eol  </on>$eol";
         }
         $buffer .= " </sequence>$eol";
-        return($buffer);
+        return $buffer;
     }
 
     // }}}
@@ -1448,16 +1448,16 @@ class MDB_Manager extends PEAR
         $parser =& new MDB_Parser($variables, $fail_on_invalid_names);
         $result = $parser->setInputFile($input_file);
         if(MDB::isError($result)) {
-            return($result);
+            return $result;
         };
         $result = $parser->parse();
         if(MDB::isError($result)) {
-            return($result);
+            return $result;
         };
         if(MDB::isError($parser->error)) {
-            return($parser->error);
+            return $parser->error;
         }
-        return($parser->database_definition);
+        return $parser->database_definition;
     }
 
     // }}}
@@ -1586,7 +1586,7 @@ class MDB_Manager extends PEAR
                 }
             }
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -1615,17 +1615,17 @@ class MDB_Manager extends PEAR
         $database_definition = $this->parseDatabaseDefinitionFile($schema_file,
             $variables, $this->options['fail_on_invalid_names']);
         if(MDB::isError($database_definition)) {
-            return($database_definition);
+            return $database_definition;
         }
         
         $this->database_definition = $database_definition;
         
         $result = $this->connect($setup_arguments);
         if(MDB::isError($result)) {
-            return($result);
+            return $result;
         }
         
-        return($this->dumpDatabase($dump_arguments));
+        return $this->dumpDatabase($dump_arguments);
     }
 
     // }}}
@@ -1643,7 +1643,7 @@ class MDB_Manager extends PEAR
     {
         $database = $this->database->database_name;
         if(strlen($database) == 0) {
-            return('it was not specified a valid database name');
+            return 'it was not specified a valid database name';
         }
         $this->database_definition = array(
             'name' => $database,
@@ -1652,13 +1652,13 @@ class MDB_Manager extends PEAR
         );
         $tables = $this->database->listTables();
         if(MDB::isError($tables)) {
-            return($tables);
+            return $tables;
         }
         for($table = 0; $table < count($tables); $table++) {
             $table_name = $tables[$table];
             $fields = $this->database->listTableFields($table_name);
             if(MDB::isError($fields)) {
-                return($fields);
+                return $fields;
             }
             $this->database_definition['TABLES'][$table_name] = array('FIELDS' => array());
             for($field = 0; $field < count($fields); $field++)
@@ -1666,7 +1666,7 @@ class MDB_Manager extends PEAR
                 $field_name = $fields[$field];
                 $definition = $this->database->getTableFieldDefinition($table_name, $field_name);
                 if(MDB::isError($definition)) {
-                    return($definition);
+                    return $definition;
                 }
                 $this->database_definition['TABLES'][$table_name]['FIELDS'][$field_name] = $definition[0][0];
                 $field_choices = count($definition[0]);
@@ -1702,7 +1702,7 @@ class MDB_Manager extends PEAR
             }
             $indexes = $this->database->listTableIndexes($table_name);
             if(MDB::isError($indexes)) {
-                return($indexes);
+                return $indexes;
             }
             if(is_array($indexes) && count($indexes) > 0 && !isset($this->database_definition['TABLES'][$table_name]['INDEXES'])) {
                 $this->database_definition['TABLES'][$table_name]['INDEXES'] = array();
@@ -1712,7 +1712,7 @@ class MDB_Manager extends PEAR
                 $index_name = $indexes[$index];
                 $definition = $this->database->getTableIndexDefinition($table_name, $index_name);
                 if(MDB::isError($definition)) {
-                    return($definition);
+                    return $definition;
                 }
                $this->database_definition['TABLES'][$table_name]['INDEXES'][$index_name] = $definition;
             }
@@ -1762,7 +1762,7 @@ class MDB_Manager extends PEAR
         }
         $sequences = $this->database->listSequences();
         if(MDB::isError($sequences)) {
-            return($sequences);
+            return $sequences;
         }
         if(is_array($sequences) && count($sequences) > 0 && !isset($this->database_definition['SEQUENCES'])) {
             $this->database_definition['SEQUENCES'] = array();
@@ -1771,11 +1771,11 @@ class MDB_Manager extends PEAR
             $sequence_name = $sequences[$sequence];
             $definition = $this->database->getSequenceDefinition($sequence_name);
             if(MDB::isError($definition)) {
-                return($definition);
+                return $definition;
             }
             $this->database_definition['SEQUENCES'][$sequence_name] = $definition;
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -1817,12 +1817,12 @@ class MDB_Manager extends PEAR
             $dump_definition = TRUE;
         } else {
             if(!$this->database) {
-                return($this->raiseError(MDB_ERROR_NODBSELECTED,
-                    NULL, NULL, 'please connect to a RDBMS first'));
+                return $this->raiseError(MDB_ERROR_NODBSELECTED,
+                    NULL, NULL, 'please connect to a RDBMS first');
             }
             $error = $this->getDefinitionFromDatabase();
             if(MDB::isError($error)) {
-                return($error);
+                return $error;
             }
             $dump_definition = FALSE;
         }
@@ -1833,12 +1833,12 @@ class MDB_Manager extends PEAR
             } elseif(function_exists($arguments['Output'])) {
                 $output = $arguments['Output'];
             } else {
-                return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                        'no valid output function specified'));
+                return $this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                        'no valid output function specified');
             }
         } else {
-            return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                'no output method specified'));
+            return $this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                'no output method specified');
         }
         if(isset($arguments['EndOfLine'])) {
             $eol = $arguments['EndOfLine'];
@@ -1877,8 +1877,8 @@ class MDB_Manager extends PEAR
                     if(isset($table['FIELDS']) && is_array($table['FIELDS'])) {
                         foreach($table['FIELDS'] as $field_name => $field) {
                             if(!isset($field['type'])) {
-                                return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                                    'it was not specified the type of the field "'.$field_name.'" of the table "'.$table_name));
+                                return $this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                                    'it was not specified the type of the field "'.$field_name.'" of the table "'.$table_name);
                             }
                             $buffer .=("$eol   <field>$eol    <name>$field_name</name>$eol    <type>".$field['type']."</type>$eol");
                             if(in_array($field_name, array_keys($this->invalid_names))) {
@@ -1905,7 +1905,7 @@ class MDB_Manager extends PEAR
                                 case 'decimal':
                                     break;
                                 default:
-                                    return('type "'.$field['type'].'" is not yet supported');
+                                    return 'type "'.$field['type'].'" is not yet supported';
                             }
                             if(isset($field['notnull'])) {
                                 $buffer .=("    <notnull>1</notnull>$eol");
@@ -1965,7 +1965,7 @@ class MDB_Manager extends PEAR
                         $query = 'SELECT '.implode(',',array_keys($table['FIELDS']))." FROM $table_name";
                         $result = $this->database->queryAll($query, $types, MDB_FETCHMODE_ASSOC);
                         if(MDB::isError($result)) {
-                            return($result);
+                            return $result;
                         }
                         $rows = count($result);
                         if($rows > 0) {
@@ -2019,7 +2019,7 @@ class MDB_Manager extends PEAR
                     {
                         $result = $this->_dumpSequence($sequences[$table_name][$sequence], $eol, $dump);
                         if(MDB::isError($result)) {
-                            return($result);
+                            return $result;
                         }
                         if($output) {
                             $output($result);
@@ -2037,7 +2037,7 @@ class MDB_Manager extends PEAR
             {
                 $result = $this->_dumpSequence($sequences[''][$sequence], $eol, $dump);
                 if(MDB::isError($result)) {
-                    return($result);
+                    return $result;
                 }
                 if($output) {
                        $output($result);
@@ -2058,7 +2058,7 @@ class MDB_Manager extends PEAR
         if(strcmp($previous_database_name, '')) {
             $this->database->setDatabase($previous_database_name);
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -2095,7 +2095,7 @@ class MDB_Manager extends PEAR
         $database_definition = $this->parseDatabaseDefinitionFile($current_schema_file,
             $variables, $this->options['fail_on_invalid_names']);
         if(MDB::isError($database_definition)) {
-            return($database_definition);
+            return $database_definition;
         }
         $this->database_definition = $database_definition;
         $copy = 0;
@@ -2110,37 +2110,37 @@ class MDB_Manager extends PEAR
         if($previous_schema_file && file_exists($previous_schema_file)) {
             $previous_definition = $this->parseDatabaseDefinitionFile($previous_schema_file, $variables, 0);
             if(MDB::isError($previous_definition)) {
-                return($previous_definition);
+                return $previous_definition;
             }
             $changes = $this->_compareDefinitions($previous_definition);
             if(MDB::isError($changes)) {
-                return($changes);
+                return $changes;
             }
             if(isset($changes) && is_array($changes)) {
                 $result = $this->_alterDatabase($previous_definition, $changes);
                 if(MDB::isError($result)) {
-                    return($result);
+                    return $result;
                 }
                 $copy = 1;
                 if($this->options['debug']) {
                     $result = $this->_debugDatabaseChanges($changes);
                     if(MDB::isError($result)) {
-                        return($result);
+                        return $result;
                     }
                 }
             }
         } else {
             $result = $this->_createDatabase();
             if(MDB::isError($result)) {
-                return($result);
+                return $result;
             }
             $copy = 1;
         }
         if($copy && $previous_schema_file && !copy($current_schema_file, $previous_schema_file)) {
-            return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                'Could not copy the new database definition file to the current file'));
+            return $this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                'Could not copy the new database definition file to the current file');
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}

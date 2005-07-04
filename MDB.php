@@ -254,7 +254,7 @@ class MDB
 
         @$db =& new $class_name;
 
-        return($db);
+        return $db;
     }
 
     // }}}
@@ -294,9 +294,9 @@ class MDB
             $class_name    = 'MDB_'.$type;
             $include       = 'MDB/'.$type.'.php';
         } else {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
+            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
                 NULL, NULL, 'no RDBMS driver specified',
-                'MDB_Error', TRUE));
+                'MDB_Error', TRUE);
         }
 
         if(is_array($options)
@@ -312,7 +312,7 @@ class MDB
         if(!class_exists($class_name)) {
             $error = PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND, NULL, NULL,
                 'Unable to include the '.$include.' file', 'MDB_Error', TRUE);
-            return($error);
+            return $error;
         }
 
         @$db =& new $class_name();
@@ -326,10 +326,10 @@ class MDB
             if (MDB::isError($err)) {
                 $dsn = $db->getDSN();
                 $err->addUserInfo($dsn);
-                return($err);
+                return $err;
             }
         }
-        return($db);
+        return $db;
     }
 
     // }}}
@@ -425,7 +425,7 @@ class MDB
      */
     function apiVersion()
     {
-        return(1);
+        return 1;
     }
 
     // }}}
@@ -476,9 +476,9 @@ class MDB
         $manips = 'INSERT|UPDATE|DELETE|REPLACE|CREATE|DROP|
                   ALTER|GRANT|REVOKE|LOCK|UNLOCK|ROLLBACK|COMMIT';
         if (preg_match('/^\s*"?('.$manips.')\s+/i', $query)) {
-            return(TRUE);
+            return TRUE;
         }
-        return(FALSE);
+        return FALSE;
     }
 
     // }}}
@@ -581,7 +581,7 @@ class MDB
     function parseDSN($dsn)
     {
         if (is_array($dsn)) {
-            return($dsn);
+            return $dsn;
         }
 
         $parsed = array(
@@ -616,7 +616,7 @@ class MDB
         }
 
         if (empty($dsn)) {
-            return($parsed);
+            return $parsed;
         }
 
         // Get (if found): username and password
@@ -691,7 +691,7 @@ class MDB
             }
         }
 
-        return($parsed);
+        return $parsed;
     }
 }
 

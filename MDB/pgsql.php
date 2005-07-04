@@ -44,7 +44,7 @@
 //
 // $Id$
 
-require_once('MDB/Common.php');
+require_once 'MDB/Common.php';
 
 /**
  * MDB PostGreSQL driver
@@ -140,11 +140,11 @@ class MDB_pgsql extends MDB_Common
         }
         foreach ($error_regexps as $regexp => $code) {
             if (preg_match($regexp, $errormsg)) {
-                return($code);
+                return $code;
             }
         }
         // Fall back to MDB_ERROR if there was no mapping.
-        return(MDB_ERROR);
+        return MDB_ERROR;
     }
 
     // }}}
@@ -168,7 +168,7 @@ class MDB_pgsql extends MDB_Common
         } else {
             $error = @pg_errormessage();
         }
-        return($this->raiseError($this->errorCode($error), NULL, NULL, $message, $error));
+        return $this->raiseError($this->errorCode($error), NULL, NULL, $message, $error);
     }
 
     // }}}
@@ -207,15 +207,15 @@ class MDB_pgsql extends MDB_Common
     {
         $this->debug('AutoCommit: '.($auto_commit ? 'On' : 'Off'));
         if ($this->auto_commit == $auto_commit) {
-            return(MDB_OK);
+            return MDB_OK;
         }
         if ($this->connection) {
             if (MDB::isError($result = $this->_doQuery($auto_commit ? 'END' : 'BEGIN')))
-                return($result);
+                return $result;
         }
         $this->auto_commit = $auto_commit;
         $this->in_transaction = !$auto_commit;
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -234,9 +234,9 @@ class MDB_pgsql extends MDB_Common
     {
          $this->debug('Commit Transaction');
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'Commit: transaction changes are being auto commited'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL, 'Commit: transaction changes are being auto commited');
         }
-        return($this->_doQuery('COMMIT') && $this->_doQuery('BEGIN'));
+        return ($this->_doQuery('COMMIT') && $this->_doQuery('BEGIN'));
     }
 
     // }}}
@@ -255,9 +255,9 @@ class MDB_pgsql extends MDB_Common
     {
          $this->debug('Rollback Transaction');
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'Rollback: transactions can not be rolled back when changes are auto commited'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL, 'Rollback: transactions can not be rolled back when changes are auto commited');
         }
-        return($this->_doQuery('ROLLBACK') && $this->_doQuery('BEGIN'));
+        return ($this->_doQuery('ROLLBACK') && $this->_doQuery('BEGIN'));
     }
 
     // }}}
@@ -273,7 +273,7 @@ class MDB_pgsql extends MDB_Common
     {
         $function = ($persistent ? 'pg_pconnect' : 'pg_connect');
         if (!function_exists($function)) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'doConnect: PostgreSQL support is not available in this PHP configuration'));
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'doConnect: PostgreSQL support is not available in this PHP configuration');
         }
         $port = (isset($this->port) ? $this->port : '');
         if ($database_name == '') {
@@ -294,14 +294,14 @@ class MDB_pgsql extends MDB_Common
         }
         putenv('PGDATESTYLE=ISO');
         if (($connection = @$function($connect_string)) > 0) {
-            return($connection);
+            return $connection;
         }
         if (isset($php_errormsg)) {
             $error_msg = $php_errormsg;
         } else {
             $error_msg = 'Could not connect to PostgreSQL server';
         }
-        return($this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL, 'doConnect: '.$error_msg));
+        return $this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL, 'doConnect: '.$error_msg);
     }
 
     // }}}
@@ -322,7 +322,7 @@ class MDB_pgsql extends MDB_Common
                 && !strcmp($this->selected_database, $this->database_name)
                 && ($this->opened_persistent == $this->options['persistent']))
             {
-                return(MDB_OK);
+                return MDB_OK;
             }
             @pg_close($this->connection);
             $this->affected_rows = -1;
@@ -330,9 +330,9 @@ class MDB_pgsql extends MDB_Common
         }
 
         if(!PEAR::loadExtension($this->phptype)) {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
+            return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND,
                 NULL, NULL, 'extension '.$this->phptype.' is not compiled into PHP',
-                'MDB_Error', TRUE));
+                'MDB_Error', TRUE);
         }
 
         if(function_exists('pg_cmdTuples')) {
@@ -353,12 +353,12 @@ class MDB_pgsql extends MDB_Common
                 $err = $this->raiseError(MDB_ERROR, NULL, NULL, 'Setup: could not execute BEGIN');
             }
             if (isset($err) && MDB::isError($err)) {
-                return($err);
+                return $err;
             }
         }
         $connection = $this->_doConnect($this->database_name, $this->options['persistent']);
         if (MDB::isError($connection)) {
-            return($connection);
+            return $connection;
         }
         $this->connection = $connection;
 
@@ -366,13 +366,13 @@ class MDB_pgsql extends MDB_Common
             pg_Close($this->connection);
             $this->connection = 0;
             $this->affected_rows = -1;
-            return($trans_result);
+            return $trans_result;
         }
         $this->connected_host = $this->host;
         $this->connected_port = $port;
         $this->selected_database = $this->database_name;
         $this->opened_persistent = $this->options['persistent'];
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -394,9 +394,9 @@ class MDB_pgsql extends MDB_Common
             $this->affected_rows = -1;
 
             unset($GLOBALS['_MDB_databases'][$this->database]);
-            return(MDB_OK);
+            return MDB_OK;
         }
-        return(MDB_ERROR);
+        return MDB_ERROR;
     }
 
     // }}}
@@ -414,9 +414,9 @@ class MDB_pgsql extends MDB_Common
             $this->affected_rows = ($this->support('AffectedRows') ? @pg_cmdtuples($result) : -1);
         } else {
             $error = @pg_errormessage($this->connection);
-            return($this->pgsqlRaiseError());
+            return $this->pgsqlRaiseError();
         }
-        return($result);
+        return $result;
     }
 
     // }}}
@@ -432,13 +432,13 @@ class MDB_pgsql extends MDB_Common
     function _standaloneQuery($query)
     {
         if (($connection = $this->_doConnect('template1', 0)) == 0) {
-            return($this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL, '_standaloneQuery: Cannot connect to template1'));
+            return $this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL, '_standaloneQuery: Cannot connect to template1');
         }
         if (!($result = @pg_Exec($connection, $query))) {
             $this->raiseError(MDB_ERROR, NULL, NULL, '_standaloneQuery: ' . @pg_errormessage($connection));
         }
         pg_Close($connection);
-        return($result);
+        return $result;
     }
 
     // }}}
@@ -463,39 +463,39 @@ class MDB_pgsql extends MDB_Common
         $this->first_selected_row = $this->selected_row_limit = 0;
         $connected = $this->connect();
         if (MDB::isError($connected)) {
-            return($connected);
+            return $connected;
         }
 
         if (!$ismanip && $limit > 0) {
              if ($this->auto_commit && MDB::isError($this->_doQuery('BEGIN'))) {
-                 return($this->raiseError(MDB_ERROR));
+                 return $this->raiseError(MDB_ERROR);
              }
              $result = $this->_doQuery('DECLARE select_cursor SCROLL CURSOR FOR '.$query);
              if (!MDB::isError($result)) {
                  if ($first > 0 && MDB::isError($result = $this->_doQuery("MOVE FORWARD $first FROM select_cursor"))) {
                      $this->freeResult($result);
-                     return($result);
+                     return $result;
                  }
                  if (MDB::isError($result = $this->_doQuery("FETCH FORWARD $limit FROM select_cursor"))) {
                      $this->freeResult($result);
-                     return($result);
+                     return $result;
                  }
              } else {
-                 return($result);
+                 return $result;
              }
              if ($this->auto_commit && MDB::isError($result2 = $this->_doQuery('END'))) {
                  $this->freeResult($result);
-                 return($result2);
+                 return $result2;
              }
          } else {
             $result = $this->_doQuery($query);
             if (MDB::isError($result)) {
-                return($result);
+                return $result;
             }
         }
         if ($ismanip) {
             $this->affected_rows = @pg_cmdtuples($result);
-            return(MDB_OK);
+            return MDB_OK;
         } elseif ((preg_match('/^\s*\(?\s*SELECT\s+/si', $query)
                 && !preg_match('/^\s*\(?\s*SELECT\s+INTO\s/si', $query)
             ) || preg_match('/^\s*EXPLAIN/si',$query )
@@ -515,15 +515,15 @@ class MDB_pgsql extends MDB_Common
                 }
                 if (MDB::isError($err = $this->setResultTypes($result, $types))) {
                     $this->freeResult($result);
-                    return($err);
+                    return $err;
                 }
             }
-            return($result);
+            return $result;
         } else {
             $this->affected_rows = 0;
-            return(MDB_OK);
+            return MDB_OK;
         }
-        return($this->raiseError(MDB_ERROR));
+        return $this->raiseError(MDB_ERROR);
     }
 
     // }}}
@@ -546,7 +546,7 @@ class MDB_pgsql extends MDB_Common
     {
         $result_value = intval($result);
         if (!isset($this->highest_fetched_row[$result_value])) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'Get Column Names: specified an nonexistant result set'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL, 'Get Column Names: specified an nonexistant result set');
         }
         if (!isset($this->columns[$result_value])) {
             $this->columns[$result_value] = array();
@@ -559,7 +559,7 @@ class MDB_pgsql extends MDB_Common
                 $this->columns[$result_value][$field_name] = $column;
             }
         }
-        return($this->columns[$result_value]);
+        return $this->columns[$result_value];
     }
 
     // }}}
@@ -579,7 +579,7 @@ class MDB_pgsql extends MDB_Common
         if (!isset($this->highest_fetched_row[$result_value])) {
             return($this->raiseError(MDB_ERROR, NULL, NULL, 'numCols: specified an nonexistant result set'));
         }
-        return(pg_numfields($result));
+        return pg_numfields($result);
     }
 
     // }}}
@@ -596,9 +596,9 @@ class MDB_pgsql extends MDB_Common
     {
         $result_value = intval($result);
         if (!isset($this->highest_fetched_row[$result_value])) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'End of result attempted to check the end of an unknown result'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL, 'End of result attempted to check the end of an unknown result');
         }
-        return($this->highest_fetched_row[$result_value] >= $this->numRows($result) - 1);
+        return ($this->highest_fetched_row[$result_value] >= $this->numRows($result) - 1);
     }
 
     // }}}
@@ -619,9 +619,9 @@ class MDB_pgsql extends MDB_Common
         $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $row);
         $res = @pg_result($result, $row, $field);
         if ($res === FALSE && $res != NULL) {
-            return($this->pgsqlRaiseError());
+            return $this->pgsqlRaiseError();
         }
-        return($res);
+        return $res;
     }
 
     // }}}
@@ -637,14 +637,14 @@ class MDB_pgsql extends MDB_Common
     function _retrieveLob($lob)
     {
         if (!isset($this->lobs[$lob])) {
-            return($this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
-                'Retrieve LOB: did not specified a valid lob'));
+            return $this->raiseError(MDB_ERROR_INVALID, NULL, NULL,
+                'Retrieve LOB: did not specified a valid lob');
         }
         if (!isset($this->lobs[$lob]['Value'])) {
             if ($this->auto_commit) {
                 if (!@pg_exec($this->connection, 'BEGIN')) {
-                    return($this->raiseError(MDB_ERROR,  NULL, NULL,
-                        'Retrieve LOB: ' . @pg_errormessage($this->connection)));
+                    return $this->raiseError(MDB_ERROR,  NULL, NULL,
+                        'Retrieve LOB: ' . @pg_errormessage($this->connection));
                 }
                 $this->lobs[$lob]['InTransaction'] = 1;
             }
@@ -655,11 +655,11 @@ class MDB_pgsql extends MDB_Common
                     unset($this->lobs[$lob]['InTransaction']);
                 }
                 unset($this->lobs[$lob]['Value']);
-                return($this->raiseError(MDB_ERROR, NULL, NULL,
-                    'Retrieve LOB: ' . @pg_errormessage($this->connection)));
+                return $this->raiseError(MDB_ERROR, NULL, NULL,
+                    'Retrieve LOB: ' . @pg_errormessage($this->connection));
             }
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     // }}}
@@ -677,9 +677,9 @@ class MDB_pgsql extends MDB_Common
     {
         $lobresult = $this->_retrieveLob($lob);
         if (MDB::isError($lobresult)) {
-            return($lobresult);
+            return $lobresult;
         }
-        return(isset($this->lobs[$lob]['EndOfLOB']));
+        return isset($this->lobs[$lob]['EndOfLOB']);
     }
 
     // }}}
@@ -700,7 +700,7 @@ class MDB_pgsql extends MDB_Common
     {
         $lobresult = $this->_retrieveLob($lob);
         if (MDB::isError($lobresult)) {
-            return($lobresult);
+            return $lobresult;
         }
         $data = @pg_loread($this->lobs[$lob]['Handle'], $length);
         if (gettype($data) != 'string') {
@@ -710,7 +710,7 @@ class MDB_pgsql extends MDB_Common
         if (($length = strlen($data)) == 0) {
             $this->lobs[$lob]['EndOfLOB'] = 1;
         }
-        return($length);
+        return $length;
     }
 
     // }}}
@@ -751,7 +751,7 @@ class MDB_pgsql extends MDB_Common
      */
     function fetchClob($result, $row, $field)
     {
-        return($this->fetchLob($result, $row, $field));
+        return $this->fetchLob($result, $row, $field);
     }
 
     // }}}
@@ -768,7 +768,7 @@ class MDB_pgsql extends MDB_Common
      */
     function fetchBlob($result, $row, $field)
     {
-        return($this->fetchLob($result, $row, $field));
+        return $this->fetchLob($result, $row, $field);
     }
 
     // }}}
@@ -786,11 +786,11 @@ class MDB_pgsql extends MDB_Common
     {
         switch ($type) {
             case MDB_TYPE_DECIMAL:
-                return(sprintf('%.'.$this->decimal_places.'f',doubleval($value)/$this->decimal_factor));
+                return sprintf('%.'.$this->decimal_places.'f',doubleval($value)/$this->decimal_factor);
             case MDB_TYPE_TIMESTAMP:
                 return substr($value, 0, strlen('YYYY-MM-DD HH:MM:SS'));
             default:
-                return($this->_baseConvertResult($value, $type));
+                return $this->_baseConvertResult($value, $type);
         }
     }
 
@@ -811,7 +811,7 @@ class MDB_pgsql extends MDB_Common
     {
         $result_value = intval($result);
         $this->highest_fetched_row[$result_value] = max($this->highest_fetched_row[$result_value], $row);
-        return(@pg_fieldisnull($result, $row, $field));
+        return @pg_fieldisnull($result, $row, $field);
     }
 
     // }}}
@@ -826,7 +826,7 @@ class MDB_pgsql extends MDB_Common
      */
     function numRows($result)
     {
-        return(@pg_numrows($result));
+        return @pg_numrows($result);
     }
 
     // }}}
@@ -851,7 +851,7 @@ class MDB_pgsql extends MDB_Common
         if(isset($this->result_types[$result_value])) {
             unset($this->result_types[$result_value]);
         }
-        return(@pg_freeresult($result));
+        return @pg_freeresult($result);
     }
 
     // }}}
@@ -883,7 +883,7 @@ class MDB_pgsql extends MDB_Common
      */
     function getTextDeclaration($name, $field)
     {
-        return((isset($field['length']) ? "$name VARCHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? " DEFAULT '" . $field['default'] . "'" : '') . (isset($field['notnull']) ? ' NOT NULL' : ''));
+        return ((isset($field['length']) ? "$name VARCHAR (" . $field['length'] . ')' : "$name TEXT") . (isset($field['default']) ? " DEFAULT '" . $field['default'] . "'" : '') . (isset($field['notnull']) ? ' NOT NULL' : ''));
     }
 
     // }}}
@@ -912,7 +912,7 @@ class MDB_pgsql extends MDB_Common
      */
     function getClobDeclaration($name, $field)
     {
-        return("$name OID".(isset($field['notnull']) ? ' NOT NULL' : ''));
+        return "$name OID".(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -941,7 +941,7 @@ class MDB_pgsql extends MDB_Common
      */
     function getBlobDeclaration($name, $field)
     {
-        return("$name OID".(isset($field['notnull']) ? ' NOT NULL' : ''));
+        return "$name OID".(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -968,7 +968,7 @@ class MDB_pgsql extends MDB_Common
      */
     function getDateDeclaration($name, $field)
     {
-        return($name.' DATE'.(isset($field['default']) ? ' DEFAULT \''.$field['default'] . "'" : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
+        return $name.' DATE'.(isset($field['default']) ? ' DEFAULT \''.$field['default'] . "'" : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -995,7 +995,7 @@ class MDB_pgsql extends MDB_Common
      */
     function getTimeDeclaration($name, $field)
     {
-        return($name.' TIME'.(isset($field['default']) ? ' DEFAULT \''.$field['default'].'\'' : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
+        return $name.' TIME'.(isset($field['default']) ? ' DEFAULT \''.$field['default'].'\'' : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -1022,7 +1022,7 @@ class MDB_pgsql extends MDB_Common
      */
     function getFloatDeclaration($name, $field)
     {
-        return("$name FLOAT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
+        return "$name FLOAT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -1049,7 +1049,7 @@ class MDB_pgsql extends MDB_Common
      */
     function getDecimalDeclaration($name, $field)
     {
-        return("$name INT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
+        return "$name INT8 ".(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -1070,11 +1070,11 @@ class MDB_pgsql extends MDB_Common
     {
         $connect = $this->connect();
         if (MDB::isError($connect)) {
-            return($connect);
+            return $connect;
         }
         if ($this->auto_commit && !@pg_exec($this->connection, 'BEGIN')) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                '_getLobValue: error starting transaction'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                '_getLobValue: error starting transaction');
         }
         if (($lo = @pg_locreate($this->connection))) {
             if (($handle = @pg_loopen($this->connection, $lo, 'w'))) {
@@ -1107,9 +1107,9 @@ class MDB_pgsql extends MDB_Common
             @pg_exec($this->connection, 'END');
         }
         if (MDB::isError($result)) {
-            return($result);
+            return $result;
         }
-        return($value);
+        return $value;
     }
 
     // }}}
@@ -1128,7 +1128,7 @@ class MDB_pgsql extends MDB_Common
      */
     function getClobValue($prepared_query, $parameter, $clob)
     {
-        return($this->_getLobValue($prepared_query, $parameter, $clob));
+        return $this->_getLobValue($prepared_query, $parameter, $clob);
     }
 
     // }}}
@@ -1147,7 +1147,7 @@ class MDB_pgsql extends MDB_Common
      */
     function getBlobValue($prepared_query, $parameter, $blob)
     {
-        return($this->_getLobValue($prepared_query, $parameter, $blob));
+        return $this->_getLobValue($prepared_query, $parameter, $blob);
     }
 
     // }}}
@@ -1164,7 +1164,7 @@ class MDB_pgsql extends MDB_Common
      */
     function getFloatValue($value)
     {
-        return(($value === NULL) ? 'NULL' : $value);
+        return (($value === NULL) ? 'NULL' : $value);
     }
 
     // }}}
@@ -1181,7 +1181,7 @@ class MDB_pgsql extends MDB_Common
      */
     function getDecimalValue($value)
     {
-        return(($value === NULL) ? 'NULL' : strval(round($value*$this->decimal_factor)));
+        return (($value === NULL) ? 'NULL' : strval(round($value*$this->decimal_factor)));
     }
 
     // }}}
@@ -1209,16 +1209,16 @@ class MDB_pgsql extends MDB_Common
                 $repeat = 1;
                 $result = $this->createSequence($seq_name);
                 if (MDB::isError($result)) {
-                    return($this->raiseError($result));
+                    return $this->raiseError($result);
                 }
             } else {
                 $repeat = 0;
             }
         } while ($repeat);
         if (MDB::isError($result)) {
-            return($this->raiseError($result));
+            return $this->raiseError($result);
         }
-        return($this->fetchOne($result));
+        return $this->fetchOne($result);
     }
 
     // }}}
@@ -1235,12 +1235,12 @@ class MDB_pgsql extends MDB_Common
     {
         $seqname = $this->getSequenceName($seq_name);
         if (MDB::isError($result = $this->queryOne("SELECT last_value FROM $seqname"))) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'currId: Unable to select from ' . $seqname) );
+            return $this->raiseError(MDB_ERROR, NULL, NULL, 'currId: Unable to select from ' . $seqname);
         }
         if (!is_numeric($result)) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, 'currId: could not find value in sequence table'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL, 'currId: could not find value in sequence table');
         }
-        return($result);
+        return $result;
     }
 
     // }}}
@@ -1282,12 +1282,12 @@ class MDB_pgsql extends MDB_Common
             if ($this->options['autofree']) {
                 $this->freeResult($result);
             }
-            return(NULL);
+            return NULL;
         }
         if (isset($this->result_types[$result_value])) {
             $row = $this->convertResultRow($result, $row);
         }
-        return($row);
+        return $row;
     }
 
     // }}}
@@ -1302,7 +1302,7 @@ class MDB_pgsql extends MDB_Common
      */
     function nextResult($result)
     {
-        return(FALSE);
+        return FALSE;
     }
 
     // }}}
@@ -1364,12 +1364,12 @@ class MDB_pgsql extends MDB_Common
         if (is_string($result)) {
             $id = @pg_exec($this->connection, "SELECT * FROM $result LIMIT 0");
             if (empty($id)) {
-                return($this->pgsqlRaiseError());
+                return $this->pgsqlRaiseError();
             }
         } else { // else we want information about a resultset
             $id = $result;
             if (empty($id)) {
-                return($this->pgsqlRaiseError());
+                return $this->pgsqlRaiseError();
             }
         }
 
@@ -1406,7 +1406,7 @@ class MDB_pgsql extends MDB_Common
         if (is_string($result) && is_resource($id)) {
             @pg_freeresult($id);
         }
-        return($res);
+        return $res;
     }
 
     // }}}
@@ -1471,5 +1471,4 @@ class MDB_pgsql extends MDB_Common
         return trim($flags);
     }
 }
-
 ?>

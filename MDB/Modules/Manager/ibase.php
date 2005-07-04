@@ -48,7 +48,7 @@ if(!defined('MDB_MANAGER_IBASE_INCLUDED'))
 {
     define('MDB_MANAGER_IBASE_INCLUDED', 1);
 
-require_once('MDB/Modules/Manager/Common.php');
+require_once 'MDB/Modules/Manager/Common.php';
 
 /**
  * MDB FireBird/InterBase driver for the management modules
@@ -73,9 +73,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function createDatabase(&$db, $name)
     {
-        return ($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'Create database',
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'Create database',
                 'PHP Interbase API does not support direct queries. You have to '
-                .'create the db manually by using isql command or a similar program'));
+                .'create the db manually by using isql command or a similar program');
     }
 
     // }}}
@@ -91,9 +91,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function dropDatabase(&$db, $name)
     {
-        return ($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'Drop database',
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'Drop database',
                 'PHP Interbase API does not support direct queries. You have '
-                .'to drop the db manually by using isql command or a similar program'));
+                .'to drop the db manually by using isql command or a similar program');
     }
 
     // }}}
@@ -109,30 +109,30 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function checkSupportedChanges(&$db, &$changes)
     {
-        for($change=0, reset($changes);
+        for ($change=0, reset($changes);
             $change<count($changes);
             next($changes), $change++)
         {
             switch(key($changes)) {
                 case "ChangedNotNull":
                 case "notnull":
-                    return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                        'Check supported changes: it is not supported changes to field not null constraint'));
+                    return $this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                        'Check supported changes: it is not supported changes to field not null constraint');
                 case "ChangedDefault":
                 case "default":
-                    return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                        'Check supported changes: it is not supported changes to field default value'));
+                    return $this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                        'Check supported changes: it is not supported changes to field default value');
                 case "length":
-                    return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                        'Check supported changes: it is not supported changes to field default length'));
+                    return $this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                        'Check supported changes: it is not supported changes to field default length');
                 case "unsigned":
                 case "type":
                 case "Declaration":
                 case "Definition":
                     break;
                 default:
-                    return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                        'Check supported changes: it is not supported change of type' . key($changes)));
+                    return $this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                        'Check supported changes: it is not supported change of type' . key($changes));
             }
         }
         return(MDB_OK);
@@ -255,16 +255,16 @@ class MDB_Manager_ibase extends MDB_Manager_common
                             next($fields), $field++)
                         {
                             if(MDB::isError($err = $this->checkSupportedChanges($fields[Key($fields)]))) {
-                                return($err);
+                                return $err;
                             }
                         }
                         break;
                     default:
-                        return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                            'Alter table: change type ' . key($changes) . ' not yet supported'));
+                        return $this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                            'Alter table: change type ' . key($changes) . ' not yet supported');
                 }
             }
-            return(MDB_OK);
+            return MDB_OK;
         } else {
             $query = '';
             if(isset($changes['AddedFields'])) {
@@ -299,7 +299,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
                 for($field=0, reset($fields); $field<count($fields); next($fields), $field++) {
                     $field_name = key($fields);
                     if(MDB::isError($err = $this->CheckSupportedChanges($fields[Key($fields)]))) {
-                        return($err);
+                        return $err;
                     }
                     if(strcmp($query, "")) {
                         $query .= ', ';
@@ -310,7 +310,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
             if(MDB::isError($err = $db->query("ALTER TABLE $name $query"))) {
                 return $err;
             }
-            return(MDB_OK);
+            return MDB_OK;
         }
     }
 
@@ -329,13 +329,13 @@ class MDB_Manager_ibase extends MDB_Manager_common
     {
         $result = $db->query("SELECT RDB$FIELD_SOURCE FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME='$table'");
         if(MDB::isError($result)) {
-            return($result);
+            return $result;
         }
         $columns = $db->getColumnNames($result);
         if(MDB::isError($columns)) {
             $db->freeResult($columns);
         }
-        return($columns);
+        return $columns;
     }
 
     // }}}
@@ -354,7 +354,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
     function listViews(&$db)
     {
         //return($db->queryCol('SELECT RDB$VIEW_NAME'));
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'not supported feature'));
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'not supported feature');
     }
 
     // }}}
@@ -418,8 +418,8 @@ class MDB_Manager_ibase extends MDB_Manager_common
                 }
             }
         }
-        return($db->query('CREATE'.(isset($definition['unique']) ? ' UNIQUE' : '') . $query_sort
-                         ." INDEX $name  ON $table ($query_fields)"));
+        return $db->query('CREATE'.(isset($definition['unique']) ? ' UNIQUE' : '') . $query_sort
+                         ." INDEX $name  ON $table ($query_fields)");
     }
 
     // }}}
@@ -438,16 +438,16 @@ class MDB_Manager_ibase extends MDB_Manager_common
     {
         $seqname = $db->getSequenceName($seq_name);
         if (MDB::isError($result = $db->query("CREATE GENERATOR $seqname"))) {
-            return($result);
+            return $result;
         }
         if (MDB::isError($result = $db->query("SET GENERATOR $seqname TO ".($start-1)))) {
             if (MDB::isError($err = $db->dropSequence($seq_name))) {
-                return($this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                return $this->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
                         'Could not setup sequence start value and then it was not possible to drop it: '
-                        .$err->getMessage().' - ' .$err->getUserInfo()));
+                        .$err->getMessage().' - ' .$err->getUserInfo());
             }
         }
-        return($result);
+        return $result;
     }
 
     // }}}
@@ -464,7 +464,7 @@ class MDB_Manager_ibase extends MDB_Manager_common
     function dropSequence(&$db, $seq_name)
     {
         $seqname = $db->getSequenceName($seq_name);
-        return($db->query("DELETE FROM RDB\$GENERATORS WHERE RDB\$GENERATOR_NAME='".strtoupper($seqname)."'"));
+        return $db->query("DELETE FROM RDB\$GENERATORS WHERE RDB\$GENERATOR_NAME='".strtoupper($seqname)."'");
     }
 
     // }}}
@@ -479,9 +479,9 @@ class MDB_Manager_ibase extends MDB_Manager_common
      **/
     function listSequences(&$db)
     {
-        return($db->queryCol("SELECT RDB\$GENERATOR_NAME FROM RDB\$GENERATORS"));
+        return $db->queryCol("SELECT RDB\$GENERATOR_NAME FROM RDB\$GENERATORS");
     }
 }
 
-};
+}
 ?>

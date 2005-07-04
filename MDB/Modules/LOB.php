@@ -69,7 +69,7 @@ class MDB_LOB
         if(isset($arguments['Data'])) {
             $this->data = $arguments['Data'];
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     function destroy()
@@ -79,7 +79,7 @@ class MDB_LOB
 
     function endOfLob()
     {
-        return($this->position >= strlen($this->data));
+        return ($this->position >= strlen($this->data));
     }
 
     function readLob(&$data, $length)
@@ -87,9 +87,9 @@ class MDB_LOB
         $length = min($length, strlen($this->data) - $this->position);
         $data = substr($this->data, $this->position, $length);
         $this->position += $length;
-        return($length);
+        return $length;
     }
-};
+}
 
 class MDB_LOB_Result extends MDB_LOB
 {
@@ -98,12 +98,12 @@ class MDB_LOB_Result extends MDB_LOB
     function create(&$arguments)
     {
         if(!isset($arguments['ResultLOB'])) {
-            return(PEAR::raiseError(NULL, MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
+            return PEAR::raiseError(NULL, MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
                 'it was not specified a result Lob identifier',
-                'MDB_Error', TRUE));
+                'MDB_Error', TRUE);
         }
         $this->result_lob = $arguments['ResultLOB'];
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     function destroy()
@@ -113,23 +113,23 @@ class MDB_LOB_Result extends MDB_LOB
 
     function endOfLob()
     {
-        return($this->database->endOfResultLob($this->result_lob));
+        return $this->database->endOfResultLob($this->result_lob);
     }
 
     function readLob(&$data, $length)
     {
         $read_length = $this->database->_readResultLob($this->result_lob, $data, $length);
         if (MDB::isError($read_length)) {
-            return($read_length);
+            return $read_length;
         }
         if($read_length < 0) {
-            return(PEAR::raiseError(NULL, MDB_ERROR_INVALID, NULL, NULL,
+            return PEAR::raiseError(NULL, MDB_ERROR_INVALID, NULL, NULL,
                 'data was read beyond end of data source',
-                'MDB_Error', TRUE));
+                'MDB_Error', TRUE);
         }
-        return($read_length);
+        return $read_length;
     }
-};
+}
 
 class MDB_LOB_Input_File extends MDB_LOB
 {
@@ -140,9 +140,9 @@ class MDB_LOB_Input_File extends MDB_LOB
     {
         if(isset($arguments['File'])) {
             if(intval($arguments['File']) == 0) {
-                return(PEAR::raiseError(NULL, MDB_ERROR_INVALID, NULL, NULL,
+                return PEAR::raiseError(NULL, MDB_ERROR_INVALID, NULL, NULL,
                     'it was specified an invalid input file identifier',
-                    'MDB_Error', TRUE));
+                    'MDB_Error', TRUE);
             }
             $this->file = $arguments['File'];
         }
@@ -150,18 +150,18 @@ class MDB_LOB_Input_File extends MDB_LOB
         {
             if(isset($arguments['FileName'])) {
                 if((!$this->file = fopen($arguments['FileName'], 'rb'))) {
-                return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND, NULL, NULL,
+                return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND, NULL, NULL,
                     'could not open specified input file ("'.$arguments['FileName'].'")',
-                    'MDB_Error', TRUE));
+                    'MDB_Error', TRUE);
                 }
                 $this->opened_file = 1;
             } else {
-                return(PEAR::raiseError(NULL, MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
+                return PEAR::raiseError(NULL, MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
                     'it was not specified the input file',
-                    'MDB_Error', TRUE));
+                    'MDB_Error', TRUE);
             }
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     function destroy()
@@ -174,19 +174,19 @@ class MDB_LOB_Input_File extends MDB_LOB
     }
 
     function endOfLob() {
-        return(feof($this->file));
+        return feof($this->file);
     }
 
     function readLob(&$data, $length)
     {
         if(gettype($data = @fread($this->file, $length))!= 'string') {
-            return(PEAR::raiseError(NULL, MDB_ERROR, NULL, NULL,
+            return PEAR::raiseError(NULL, MDB_ERROR, NULL, NULL,
                 'could not read from the input file',
-                'MDB_Error', TRUE));
+                'MDB_Error', TRUE);
         }
-        return(strlen($data));
+        return strlen($data);
     }
-};
+}
 
 class MDB_LOB_Output_File extends MDB_LOB
 {
@@ -200,39 +200,39 @@ class MDB_LOB_Output_File extends MDB_LOB
     {
         if(isset($arguments['BufferLength'])) {
             if($arguments['BufferLength'] <= 0) {
-                return(PEAR::raiseError(NULL, MDB_ERROR_INVALID, NULL, NULL,
+                return PEAR::raiseError(NULL, MDB_ERROR_INVALID, NULL, NULL,
                     'it was specified an invalid buffer length',
-                    'MDB_Error', TRUE));
+                    'MDB_Error', TRUE);
             }
             $this->buffer_length = $arguments['BufferLength'];
         }
         if(isset($arguments['File'])) {
             if(intval($arguments['File']) == 0) {
-                return(PEAR::raiseError(NULL, MDB_ERROR_INVALID, NULL, NULL,
+                return PEAR::raiseError(NULL, MDB_ERROR_INVALID, NULL, NULL,
                     'it was specified an invalid output file identifier',
-                    'MDB_Error', TRUE));
+                    'MDB_Error', TRUE);
             }
             $this->file = $arguments['File'];
         } else {
             if(isset($arguments['FileName'])) {
                 if((!$this->file = fopen($arguments['FileName'],'wb'))) {
-                    return(PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND, NULL, NULL,
+                    return PEAR::raiseError(NULL, MDB_ERROR_NOT_FOUND, NULL, NULL,
                         'could not open specified output file ("'.$arguments['FileName'].'")',
-                        'MDB_Error', TRUE));
+                        'MDB_Error', TRUE);
                 }
                 $this->opened_file = 1;
             } else {
-                return(PEAR::raiseError(NULL, MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
+                return PEAR::raiseError(NULL, MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
                     'it was not specified the output file',
-                    'MDB_Error', TRUE));
+                    'MDB_Error', TRUE);
             }
         }
         if(isset($arguments['LOB'])) {
             if(!is_object($arguments['LOB'])) {
                 $this->destroy();
-                return(PEAR::raiseError(NULL, MDB_ERROR_INVALID, NULL, NULL,
+                return PEAR::raiseError(NULL, MDB_ERROR_INVALID, NULL, NULL,
                     'it was specified an invalid input large object identifier',
-                    'MDB_Error', TRUE));
+                    'MDB_Error', TRUE);
             }
             $this->input_lob = $arguments['LOB'];
         } else {
@@ -251,19 +251,19 @@ class MDB_LOB_Output_File extends MDB_LOB
                 }
                 if($this->input_lob == 0) {
                     $this->destroy();
-                    return(PEAR::raiseError(NULL, MDB_ERROR, NULL, NULL,
+                    return PEAR::raiseError(NULL, MDB_ERROR, NULL, NULL,
                         'could not fetch the input result large object',
-                        'MDB_Error', TRUE));
+                        'MDB_Error', TRUE);
                 }
                 $this->opened_lob = 1;
             } else {
                 $this->destroy();
-                return(PEAR::raiseError(NULL, MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
+                return PEAR::raiseError(NULL, MDB_ERROR_NEED_MORE_DATA, NULL, NULL,
                     'it was not specified the input large object identifier',
-                    'MDB_Error', TRUE));
+                    'MDB_Error', TRUE);
             }
         }
-        return(MDB_OK);
+        return MDB_OK;
     }
 
     function destroy()
@@ -282,7 +282,7 @@ class MDB_LOB_Output_File extends MDB_LOB
 
     function endOfLob()
     {
-        return($this->database->endOfLob($this->input_lob));
+        return $this->database->endOfLob($this->input_lob);
     }
 
     function readLob(&$data, $length) {
@@ -297,20 +297,20 @@ class MDB_LOB_Output_File extends MDB_LOB
                 if(MDB::isError($result = $this->database->
                     readLob($this->input_lob, $buffer, $buffer_length)))
                 {
-                    return($result);
+                    return $result;
                 }
                 $read = strlen($buffer);
                 if(@fwrite($this->file, $buffer, $read)!= $read) {
-                    return(PEAR::raiseError(NULL, MDB_ERROR, NULL, NULL,
+                    return PEAR::raiseError(NULL, MDB_ERROR, NULL, NULL,
                         'could not write to the output file',
-                        'MDB_Error', TRUE));
+                        'MDB_Error', TRUE);
                 }
             }
             $written_full += $written;
         } while($length == 0 && !$this->database->endOfLob($this->input_lob));
-        return($written_full);
+        return $written_full;
     }
 }
 
-};
+}
 ?>

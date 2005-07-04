@@ -84,43 +84,43 @@ class MDB_Manager_Common
     function getFieldDeclaration(&$db, $field_name, $field)
     {
         if (!strcmp($field_name, '')) {
-            return($db->raiseError(MDB_ERROR_NOSUCHFIELD, NULL, NULL,
-                'Get field: it was not specified a valid field name ("'.$field_name.'")'));
+            return $db->raiseError(MDB_ERROR_NOSUCHFIELD, NULL, NULL,
+                'Get field: it was not specified a valid field name ("'.$field_name.'")');
         }
         switch($field['type']) {
             case 'integer':
-                return($db->getIntegerDeclaration($field_name, $field));
+                return $db->getIntegerDeclaration($field_name, $field);
                 break;
             case 'text':
-                return($db->getTextDeclaration($field_name, $field));
+                return $db->getTextDeclaration($field_name, $field);
                 break;
             case 'clob':
-                return($db->getClobDeclaration($field_name, $field));
+                return $db->getClobDeclaration($field_name, $field);
                 break;
             case 'blob':
-                return($db->getBlobDeclaration($field_name, $field));
+                return $db->getBlobDeclaration($field_name, $field);
                 break;
             case 'boolean':
-                return($db->getBooleanDeclaration($field_name, $field));
+                return $db->getBooleanDeclaration($field_name, $field);
                 break;
             case 'date':
-                return($db->getDateDeclaration($field_name, $field));
+                return $db->getDateDeclaration($field_name, $field);
                 break;
             case 'timestamp':
-                return($db->getTimestampDeclaration($field_name, $field));
+                return $db->getTimestampDeclaration($field_name, $field);
                 break;
             case 'time':
-                return($db->getTimeDeclaration($field_name, $field));
+                return $db->getTimeDeclaration($field_name, $field);
                 break;
             case 'float':
-                return($db->getFloatDeclaration($field_name, $field));
+                return $db->getFloatDeclaration($field_name, $field);
                 break;
             case 'decimal':
-                return($db->getDecimalDeclaration($field_name, $field));
+                return $db->getDecimalDeclaration($field_name, $field);
                 break;
             default:
-                return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-                    'Get field: type "'.$field['type'].'" is not yet supported'));
+                return $db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+                    'Get field: type "'.$field['type'].'" is not yet supported');
                 break;
         }
     }
@@ -160,14 +160,14 @@ class MDB_Manager_Common
             foreach($fields as $field_name => $field) {
                 $query = $db->getFieldDeclaration($field_name, $field);
                 if (MDB::isError($query)) {
-                    return($query);
+                    return $query;
                 }
                 $query_fields[] = $query;
             }
-            return(implode(',',$query_fields));
+            return implode(',',$query_fields);
         }
-        return(PEAR::raiseError(NULL, MDB_ERROR_MANAGER, NULL, NULL,
-            'the definition of the table "'.$table_name.'" does not contain any fields', 'MDB_Error', TRUE));
+        return PEAR::raiseError(NULL, MDB_ERROR_MANAGER, NULL, NULL,
+            'the definition of the table "'.$table_name.'" does not contain any fields', 'MDB_Error', TRUE);
     }
 
     // }}}
@@ -185,9 +185,9 @@ class MDB_Manager_Common
         $seq_pattern = '/^'.preg_replace('/%s/', '([a-z0-9_]+)', $db->options['seqname_format']).'$/i';
         $seq_name = preg_replace($seq_pattern, '\\1', $sqn);
         if($seq_name && $sqn == $db->getSequenceName($seq_name)) {
-            return($seq_name);
+            return $seq_name;
         }
-        return(FALSE);
+        return FALSE;
     }
 
     // }}}
@@ -203,8 +203,8 @@ class MDB_Manager_Common
      */
     function createDatabase(&$db, $database)
     {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-            'Create database: database creation is not supported'));
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+            'Create database: database creation is not supported');
     }
 
     // }}}
@@ -220,8 +220,8 @@ class MDB_Manager_Common
      */
     function dropDatabase(&$db, $database)
     {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-            'Drop database: database dropping is not supported'));
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+            'Drop database: database dropping is not supported');
     }
 
     // }}}
@@ -261,15 +261,15 @@ class MDB_Manager_Common
     function createTable(&$db, $name, $fields)
     {
         if (!isset($name) || !strcmp($name, '')) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no valid table name specified'));
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no valid table name specified');
         }
         if (count($fields) == 0) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no fields specified for table "'.$name.'"'));
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no fields specified for table "'.$name.'"');
         }
         if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
-            return($query_fields);
+            return $query_fields;
         }
-        return($db->query("CREATE TABLE $name ($query_fields)"));
+        return $db->query("CREATE TABLE $name ($query_fields)");
     }
 
     // }}}
@@ -285,7 +285,7 @@ class MDB_Manager_Common
      */
     function dropTable(&$db, $name)
     {
-        return($db->query("DROP TABLE $name"));
+        return $db->query("DROP TABLE $name");
     }
 
     // }}}
@@ -388,8 +388,8 @@ class MDB_Manager_Common
      */
     function alterTable(&$db, $name, $changes, $check)
     {
-        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
-            'Alter table: database table alterations are not supported'));
+        return $db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL,
+            'Alter table: database table alterations are not supported');
     }
 
     // }}}
@@ -404,8 +404,8 @@ class MDB_Manager_Common
      */
     function listDatabases(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List Databases: list databases is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
+            'List Databases: list databases is not supported');
     }
 
     // }}}
@@ -420,8 +420,8 @@ class MDB_Manager_Common
      */
     function listUsers(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List User: list user is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
+            'List User: list user is not supported');
     }
 
     // }}}
@@ -436,8 +436,8 @@ class MDB_Manager_Common
      */
     function listViews(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List View: list view is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
+            'List View: list view is not supported');
     }
 
     // }}}
@@ -452,8 +452,8 @@ class MDB_Manager_Common
      */
     function listFunctions(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List Function: list function is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
+            'List Function: list function is not supported');
     }
 
     // }}}
@@ -468,8 +468,8 @@ class MDB_Manager_Common
      */
     function listTables(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List tables: list tables is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
+            'List tables: list tables is not supported');
     }
 
     // }}}
@@ -485,8 +485,8 @@ class MDB_Manager_Common
      */
     function listTableFields(&$db, $table)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List table fields: list table fields is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
+            'List table fields: list table fields is not supported');
     }
 
     // }}}
@@ -503,8 +503,8 @@ class MDB_Manager_Common
      */
     function getTableFieldDefinition(&$db, $table, $field)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'Get table field definition: table field definition is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
+            'Get table field definition: table field definition is not supported');
     }
 
     // }}}
@@ -570,7 +570,7 @@ class MDB_Manager_Common
             }
         }
         $query.= ')';
-        return($db->query($query));
+        return $db->query($query);
     }
 
     // }}}
@@ -587,7 +587,7 @@ class MDB_Manager_Common
      */
     function dropIndex(&$db, $table, $name)
     {
-        return($db->query("DROP INDEX $name"));
+        return $db->query("DROP INDEX $name");
     }
 
     // }}}
@@ -603,8 +603,8 @@ class MDB_Manager_Common
      */
     function listTableIndexes(&$db, $table)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List table indexes: List Indexes is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
+            'List table indexes: List Indexes is not supported');
     }
 
     // }}}
@@ -621,8 +621,8 @@ class MDB_Manager_Common
      */
     function getTableIndexDefinition(&$db, $table, $index)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'Get table index definition: getting index definition is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
+            'Get table index definition: getting index definition is not supported');
     }
 
     // }}}
@@ -639,8 +639,8 @@ class MDB_Manager_Common
      */
     function createSequence(&$db, $name, $start)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'Create Sequence: sequence creation not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
+            'Create Sequence: sequence creation not supported');
     }
 
     // }}}
@@ -656,8 +656,8 @@ class MDB_Manager_Common
      */
     function dropSequence(&$db, $name)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'Drop Sequence: sequence dropping not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
+            'Drop Sequence: sequence dropping not supported');
     }
 
     // }}}
@@ -672,8 +672,8 @@ class MDB_Manager_Common
      */
     function listSequences(&$db)
     {
-        return($db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
-            'List sequences: List sequences is not supported'));
+        return $db->raiseError(MDB_ERROR_NOT_CAPABLE, NULL, NULL,
+            'List sequences: List sequences is not supported');
     }
 
     // }}}
@@ -703,7 +703,7 @@ class MDB_Manager_Common
     {
         $start = $db->currId($sequence);
         if (MDB::isError($start)) {
-            return($start);
+            return $start;
         }
         if ($db->support('CurrId')) {
             $start++;
@@ -715,9 +715,9 @@ class MDB_Manager_Common
         if($start != 1) {
             $definition = array('start' => $start);
         }
-        return($definition);
+        return $definition;
     }
 }
 
-};
+}
 ?>

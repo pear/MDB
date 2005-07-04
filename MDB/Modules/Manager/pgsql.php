@@ -48,7 +48,7 @@ if(!defined('MDB_MANAGER_PGSQL_INCLUDED'))
 {
     define('MDB_MANAGER_PGSQL_INCLUDED', 1);
 
-require_once('MDB/Modules/Manager/Common.php');
+require_once 'MDB/Modules/Manager/Common.php';
 
 /**
  * MDB MySQL driver for the management modules
@@ -72,7 +72,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function createDatabase(&$db, $name)
     {
-        return($db->_standaloneQuery("CREATE DATABASE $name"));
+        return $db->_standaloneQuery("CREATE DATABASE $name");
     }
 
     // }}}
@@ -88,7 +88,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function dropDatabase(&$db, $name)
     {
-        return($db->_standaloneQuery("DROP DATABASE $name"));
+        return $db->_standaloneQuery("DROP DATABASE $name");
     }
 
     // }}}
@@ -128,16 +128,16 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     function createTable(&$db, $name, $fields)
     {
         if (!isset($name) || !strcmp($name, '')) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no valid table name specified'));
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no valid table name specified');
         }
         if (count($fields) == 0) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no fields specified for table "'.$name.'"'));
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'no fields specified for table "'.$name.'"');
         }
         $query_fields = '';
         if (MDB::isError($query_fields = $db->getFieldDeclarationList($fields))) {
-            return($db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'unkown error'));
+            return $db->raiseError(MDB_ERROR_CANNOT_CREATE, NULL, NULL, 'unkown error');
         }
-        return($db->query("CREATE TABLE $name ($query_fields)"));
+        return $db->query("CREATE TABLE $name ($query_fields)");
     }
 
     // }}}
@@ -246,25 +246,25 @@ class MDB_Manager_pgsql extends MDB_Manager_common
                     case 'AddedFields':
                         break;
                     case 'RemovedFields':
-                        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'database server does not support dropping table columns'));
+                        return $db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'database server does not support dropping table columns');
                     case 'name':
                     case 'RenamedFields':
                     case 'ChangedFields':
                     default:
-                        return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'change type "'.key($changes).'\" not yet supported'));
+                        return $db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'change type "'.key($changes).'\" not yet supported');
                 }
             }
-            return(MDB_OK);
+            return MDB_OK;
         } else {
-            if (isSet($changes[$change = 'name']) || isSet($changes[$change = 'RenamedFields']) || isSet($changes[$change = 'ChangedFields'])) {
-                return($db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'change type "'.$change.'" not yet supported'));
+            if (isset($changes[$change = 'name']) || isSet($changes[$change = 'RenamedFields']) || isSet($changes[$change = 'ChangedFields'])) {
+                return $db->raiseError(MDB_ERROR_UNSUPPORTED, NULL, NULL, 'change type "'.$change.'" not yet supported');
             }
             $query = '';
-            if (isSet($changes['AddedFields'])) {
+            if (isset($changes['AddedFields'])) {
                 $fields = $changes['AddedFields'];
                 for ($field = 0, reset($fields); $field < count($fields); next($fields), $field++) {
                     if (MDB::isError($result = $db->query("ALTER TABLE $name ADD ".$fields[key($fields)]['Declaration']))) {
-                        return($result);
+                        return $result;
                     }
                 }
             }
@@ -272,11 +272,11 @@ class MDB_Manager_pgsql extends MDB_Manager_common
                 $fields = $changes['RemovedFields'];
                 for ($field = 0, reset($fields); $field < count($fields); next($fields), $field++) {
                     if (MDB::isError($result = $db->query("ALTER TABLE $name DROP ".key($fields)))) {
-                        return($result);
+                        return $result;
                     }
                 }
             }
-            return(MDB_OK);
+            return MDB_OK;
         }
     }
 
@@ -292,7 +292,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listDatabases(&$db)
     {
-        return($db->queryCol('SELECT datname FROM pg_database'));
+        return $db->queryCol('SELECT datname FROM pg_database');
     }
 
     // }}}
@@ -307,7 +307,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
      **/
     function listUsers(&$db)
     {
-        return($db->queryCol('SELECT usename FROM pg_user'));
+        return $db->queryCol('SELECT usename FROM pg_user');
     }
 
     // }}}
@@ -337,7 +337,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
             AND c.relname !~ \'^pg_\'
             AND c.relname !~ \'^pga_\'';
-        return($db->queryCol($query));
+        return $db->queryCol($query);
     }
 
     // }}}
@@ -355,13 +355,13 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     {
         $result = $db->query("SELECT * FROM $table");
         if(MDB::isError($result)) {
-            return($result);
+            return $result;
         }
         $columns = $db->getColumnNames($result);
         if(MDB::isError($columns)) {
             $db->freeResult($columns);
         }
-        return(array_flip($columns));
+        return array_flip($columns);
     }
 
     // }}} 
@@ -394,7 +394,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
                         ORDER BY attnum
                         ");
         if(MDB::isError($result)) {
-            return($result);
+            return $result;
         }
         $columns = $db->fetchInto($result, MDB_FETCHMODE_ASSOC);
         $field_column = $columns['attname'];
@@ -473,8 +473,8 @@ class MDB_Manager_pgsql extends MDB_Manager_common
                 $type[1] = 'date';
                 break;
             default:
-                return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
-                    'List table fields: unknown database attribute type'));
+                return $db->raiseError(MDB_ERROR_MANAGER, NULL, NULL,
+                    'List table fields: unknown database attribute type');
         }
          
         if ($columns['attnotnull'] == 'f') {
@@ -540,7 +540,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
         }
         
         $db->freeResult($result);
-        return($definition);
+        return $definition;
     }
 
 
@@ -557,7 +557,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     function listViews(&$db)
     {
         // gratuitously stolen from PEAR DB _getSpecialQuery in pgsql.php
-        return($db->queryCol('SELECT viewname FROM pg_views'));
+        return $db->queryCol('SELECT viewname FROM pg_views');
     }
 
     // }}}
@@ -597,7 +597,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
                                 WHERE (pg_class.relname='$index_name') 
                                 AND (pg_class.oid=pg_index.indexrelid)", NULL, MDB_FETCHMODE_ASSOC);
         if ($row[0]['relname'] != $index_name) {
-            return($db->raiseError(MDB_ERROR_MANAGER, NULL, NULL, 'Get table index definition: it was not specified an existing table index'));
+            return $db->raiseError(MDB_ERROR_MANAGER, NULL, NULL, 'Get table index definition: it was not specified an existing table index');
         }
 
         $columns = $this->listTableFields($db, $table);
@@ -631,7 +631,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     function createSequence(&$db, $seq_name, $start)
     {
         $seqname = $db->getSequenceName($seq_name);
-        return($db->query("CREATE SEQUENCE $seqname INCREMENT 1".($start < 1 ? " MINVALUE $start" : '')." START $start"));
+        return $db->query("CREATE SEQUENCE $seqname INCREMENT 1".($start < 1 ? " MINVALUE $start" : '')." START $start");
     }
 
     // }}}
@@ -648,7 +648,7 @@ class MDB_Manager_pgsql extends MDB_Manager_common
     function dropSequence(&$db, $seq_name)
     {
         $seqname = $db->getSequenceName($seq_name);
-        return($db->query("DROP SEQUENCE $seqname"));
+        return $db->query("DROP SEQUENCE $seqname");
     }
 
     // }}}
@@ -676,9 +676,9 @@ class MDB_Manager_pgsql extends MDB_Manager_common
             AND not exists (select 1 from pg_views where viewname = c.relname)
             AND not exists (select 1 from pg_user where usesysid = c.relowner)
             AND c.relname !~ \'^pg_\'';
-        return($db->queryCol($query));
+        return $db->queryCol($query);
     }
 }
 
-};
+}
 ?>

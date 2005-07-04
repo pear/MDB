@@ -204,7 +204,7 @@ class MDB_ibase extends MDB_Common
             break;
             default:
                 if (isset($this->errorcode_map[$errno])) {
-                    return($this->errorcode_map[$errno]);
+                    return $this->errorcode_map[$errno];
                 }
                 static $error_regexps;
                 if (empty($error_regexps)) {
@@ -248,8 +248,8 @@ class MDB_ibase extends MDB_Common
     function ibaseRaiseError($errno = NULL, $message = NULL)
     {
         $error = $this->errorNative();
-        return($this->raiseError($this->errorCode($error), NULL, NULL,
-            $message, $error));
+        return $this->raiseError($this->errorCode($error), NULL, NULL,
+            $message, $error);
     }
 
     // }}}
@@ -315,8 +315,8 @@ class MDB_ibase extends MDB_Common
     {
         $this->debug('Commit Transaction');
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'Commit: transaction changes are being auto commited'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                'Commit: transaction changes are being auto commited');
         }
         $connection = ($this->auto_commit ? $this->connection : $this->transaction_id);
         $this->in_transaction = false;
@@ -339,15 +339,15 @@ class MDB_ibase extends MDB_Common
     {
         $this->debug('Rollback Transaction');
         if ($this->auto_commit) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'Rollback: transactions can not be rolled back when changes are auto committed'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                'Rollback: transactions can not be rolled back when changes are auto committed');
         }
 
         //return ibase_rollback($this->connection);
 
         if ($this->transaction_id && !@ibase_rollback($this->connection)) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'Rollback: Could not rollback a pending transaction: '.@ibase_errmsg()));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                'Rollback: Could not rollback a pending transaction: '.@ibase_errmsg());
         }
         $this->in_transaction = false;
         return $this->_startTransaction();
@@ -364,8 +364,8 @@ class MDB_ibase extends MDB_Common
     function _startTransaction()
     {
         if (!$this->transaction_id = @ibase_trans(IBASE_COMMITTED, $this->connection)) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'Could not start a new transaction: '.@ibase_errmsg()));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                'Could not start a new transaction: '.@ibase_errmsg());
         }
         $this->in_transaction = true;
         return MDB_OK;
@@ -403,8 +403,8 @@ class MDB_ibase extends MDB_Common
     {
         $function = ($persistent ? 'ibase_pconnect' : 'ibase_connect');
         if (!function_exists($function)) {
-            return($this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
-                'doConnect: FireBird/InterBase support is not available in this PHP configuration'));
+            return $this->raiseError(MDB_ERROR_UNSUPPORTED, null, null,
+                'doConnect: FireBird/InterBase support is not available in this PHP configuration');
         }
 
         $dbhost = $this->host ?
@@ -437,8 +437,8 @@ class MDB_ibase extends MDB_Common
         } else {
             $error_msg = 'Could not connect to FireBird/InterBase server';
         }
-        return($this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL,
-            'doConnect: '.$error_msg));
+        return $this->raiseError(MDB_ERROR_CONNECT_FAILED, NULL, NULL,
+            'doConnect: '.$error_msg);
     }
 
     // }}}
@@ -567,8 +567,8 @@ class MDB_ibase extends MDB_Common
                 $this->affected_rows = -1;
             }
         } else {
-            return ($this->raiseError(MDB_ERROR, NULL, NULL,
-                '_doQuery: Could not execute query ("'.$query.'"): ' . @ibase_errmsg()));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                '_doQuery: Could not execute query ("'.$query.'"): ' . @ibase_errmsg());
         }
         return $result;
     }
@@ -635,7 +635,7 @@ class MDB_ibase extends MDB_Common
         if (MDB::isError($connect = $this->connect())) {
             return $connect;
         }
-        return($this->_doQuery($query, $first, $limit, $prepared_query));
+        return $this->_doQuery($query, $first, $limit, $prepared_query);
     }
 
     // }}}
@@ -655,8 +655,8 @@ class MDB_ibase extends MDB_Common
         for (; $this->limits[$result_value][2] < $first; $this->limits[$result_value][2]++) {
             if (!is_array(@ibase_fetch_row($result))) {
                 $this->limits[$result_value][2] = $first;
-                return($this->raiseError(MDB_ERROR, NULL, NULL,
-                    'Skip first rows: could not skip a query result row'));
+                return $this->raiseError(MDB_ERROR, NULL, NULL,
+                    'Skip first rows: could not skip a query result row');
             }
         }
         return MDB_OK;
@@ -685,8 +685,8 @@ class MDB_ibase extends MDB_Common
     {
         $result_value = intval($result);
         if (!isset($this->highest_fetched_row[$result_value])) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'Get column names: it was specified an inexisting result set'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                'Get column names: it was specified an inexisting result set');
         }
         if (!isset($this->columns[$result_value])) {
             $this->columns[$result_value] = array();
@@ -717,8 +717,8 @@ class MDB_ibase extends MDB_Common
     function numCols($result)
     {
         if (!isset($this->highest_fetched_row[intval($result)])) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'Number of columns: it was specified an inexisting result set'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                'Number of columns: it was specified an inexisting result set');
         }
         return @ibase_num_fields($result);
     }
@@ -737,14 +737,14 @@ class MDB_ibase extends MDB_Common
     {
         $result_value = intval($result);
         if (!isset($this->current_row[$result_value])) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'End of result: attempted to check the end of an unknown result'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                'End of result: attempted to check the end of an unknown result');
         }
         if (isset($this->results[$result_value]) && end($this->results[$result_value]) === false) {
-            return(($this->highest_fetched_row[$result_value]-1) <= $this->current_row[$result_value]);
+            return (($this->highest_fetched_row[$result_value]-1) <= $this->current_row[$result_value]);
         }
         if (isset($this->row_buffer[$result_value])) {
-            return(!$this->row_buffer[$result_value]);
+            return (!$this->row_buffer[$result_value]);
         }
         if (isset($this->limits[$result_value])) {
             if (MDB::isError($this->_skipLimitOffset($result))
@@ -801,8 +801,8 @@ class MDB_ibase extends MDB_Common
     {
         $result_value = intval($result);
         if (!isset($this->current_row[$result_value])) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'fetchInto: attemped to fetch on an unknown query result'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                'fetchInto: attemped to fetch on an unknown query result');
         }
         if ($fetchmode == MDB_FETCHMODE_DEFAULT) {
             $fetchmode = $this->fetchmode;
@@ -911,8 +911,8 @@ class MDB_ibase extends MDB_Common
     function _retrieveLob($lob)
     {
         if (!isset($this->lobs[$lob])) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'Retrieve LOB: it was not specified a valid lob'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                'Retrieve LOB: it was not specified a valid lob');
         }
 
         if (!isset($this->lobs[$lob]['Value'])) {
@@ -922,8 +922,8 @@ class MDB_ibase extends MDB_Common
 
             if (!$this->lobs[$lob]['Handle'] = @ibase_blob_open($this->lobs[$lob]['Value'])) {
                 unset($this->lobs[$lob]['Value']);
-                return($this->raiseError(MDB_ERROR, NULL, NULL,
-                    'Retrieve LOB: Could not open fetched large object field' . @ibase_errmsg()));
+                return $this->raiseError(MDB_ERROR, NULL, NULL,
+                    'Retrieve LOB: Could not open fetched large object field' . @ibase_errmsg());
             }
         }
         return MDB_OK;
@@ -943,9 +943,9 @@ class MDB_ibase extends MDB_Common
     function endOfResultLob($lob)
     {
         if (MDB::isError($lobresult = $this->_retrieveLob($lob))) {
-            return($lobresult);
+            return $lobresult;
         }
-        return(isset($this->lobs[$lob]['EndOfLOB']));
+        return isset($this->lobs[$lob]['EndOfLOB']);
     }
 
     // }}}
@@ -1075,7 +1075,7 @@ class MDB_ibase extends MDB_Common
         if (MDB::isError($value)) {
             return $value;
         }
-        return(!isset($value));
+        return (!isset($value));
     }
 
     // }}}
@@ -1092,8 +1092,8 @@ class MDB_ibase extends MDB_Common
     {
         $result_value = intval($result);
         if (!isset($this->current_row[$result_value])) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'Number of rows: attemped to obtain the number of rows contained in an unknown query result'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                'Number of rows: attemped to obtain the number of rows contained in an unknown query result');
         }
         if (!isset($this->rows[$result_value][$this->highest_fetched_row[$result_value]])
             || $this->rows[$result_value][$this->highest_fetched_row[$result_value]] !== false
@@ -1125,7 +1125,7 @@ class MDB_ibase extends MDB_Common
                 $this->results[$result_value][$this->highest_fetched_row[$result_value]] = false;
             }
         }
-        return(max(0, $this->highest_fetched_row[$result_value]));
+        return max(0, $this->highest_fetched_row[$result_value]);
     }
 
     // }}}
@@ -1142,8 +1142,8 @@ class MDB_ibase extends MDB_Common
     {
         $result_value = intval($result);
         if (!isset($this->current_row[$result_value])) {
-           return($this->raiseError(MDB_ERROR, NULL, NULL,
-               'Free result: attemped to free an unknown query result'));
+           return $this->raiseError(MDB_ERROR, NULL, NULL,
+               'Free result: attemped to free an unknown query result');
         }
         if (isset($this->highest_fetched_row[$result_value])) {
             unset($this->highest_fetched_row[$result_value]);
@@ -1205,7 +1205,7 @@ class MDB_ibase extends MDB_Common
         switch($field['type'])
         {
             case 'text':
-                return('VARCHAR ('.(isset($field['length']) ? $field['length'] : (isset($this->options['DefaultTextFieldLength']) ? $this->options['DefaultTextFieldLength'] : 4000)).')');
+                return 'VARCHAR ('.(isset($field['length']) ? $field['length'] : (isset($this->options['DefaultTextFieldLength']) ? $this->options['DefaultTextFieldLength'] : 4000)).')';
             case 'clob':
                 return 'BLOB SUB_TYPE 1';
             case 'blob':
@@ -1257,7 +1257,7 @@ class MDB_ibase extends MDB_Common
      */
     function getTextDeclaration($name, $field)
     {
-        return($name.' '.$this->getTypeDeclaration($field).(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($field['default']) : '').(IsSet($field['notnull']) ? ' NOT NULL' : ''));
+        return $name.' '.$this->getTypeDeclaration($field).(isset($field['default']) ? ' DEFAULT '.$this->getTextValue($field['default']) : '').(IsSet($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -1286,7 +1286,7 @@ class MDB_ibase extends MDB_Common
      */
     function getClobDeclaration($name, $field)
     {
-        return($name.' '.$this->getTypeDeclaration($field).(isset($field['notnull']) ? ' NOT NULL' : ''));
+        return $name.' '.$this->getTypeDeclaration($field).(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -1315,7 +1315,7 @@ class MDB_ibase extends MDB_Common
      */
     function getBlobDeclaration($name, $field)
     {
-        return($name.' '.$this->getTypeDeclaration($field).(isset($field['notnull']) ? ' NOT NULL' : ''));
+        return $name.' '.$this->getTypeDeclaration($field).(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -1342,7 +1342,7 @@ class MDB_ibase extends MDB_Common
      */
     function getDateDeclaration($name, $field)
     {
-        return($name.' '.$this->getTypeDeclaration($field).(isset($field['default']) ? ' DEFAULT "'.$field['default'].'"' : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
+        return $name.' '.$this->getTypeDeclaration($field).(isset($field['default']) ? ' DEFAULT "'.$field['default'].'"' : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -1369,7 +1369,7 @@ class MDB_ibase extends MDB_Common
      */
     function getTimeDeclaration($name, $field)
     {
-        return($name.' '.$this->getTypeDeclaration($field).(isset($field['default']) ? ' DEFAULT "'.$field['default'].'"' : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
+        return $name.' '.$this->getTypeDeclaration($field).(isset($field['default']) ? ' DEFAULT "'.$field['default'].'"' : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -1396,7 +1396,7 @@ class MDB_ibase extends MDB_Common
      */
     function getFloatDeclaration($name, $field)
     {
-        return($name.' '.$this->getTypeDeclaration($field).(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
+        return $name.' '.$this->getTypeDeclaration($field).(isset($field['default']) ? ' DEFAULT '.$this->getFloatValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -1423,7 +1423,7 @@ class MDB_ibase extends MDB_Common
      */
     function getDecimalDeclaration($name, $field)
     {
-        return($name.' '.$this->getTypeDeclaration($field).(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : ''));
+        return $name.' '.$this->getTypeDeclaration($field).(isset($field['default']) ? ' DEFAULT '.$this->getDecimalValue($field['default']) : '').(isset($field['notnull']) ? ' NOT NULL' : '');
     }
 
     // }}}
@@ -1447,7 +1447,7 @@ class MDB_ibase extends MDB_Common
         }
         $value   = '';  // DEAL WITH ME
         if (!$this->transaction_id = @ibase_trans(IBASE_COMMITTED, $this->connection)) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL, '_getLobValue: Could not start a new transaction: '.@ibase_errmsg()));
+            return $this->raiseError(MDB_ERROR, NULL, NULL, '_getLobValue: Could not start a new transaction: '.@ibase_errmsg());
         }
 
         if (($lo = @ibase_blob_create($this->auto_commit ? $this->connection : $this->transaction_id))) {
@@ -1688,13 +1688,13 @@ class MDB_ibase extends MDB_Common
         //$sequence_name = $this->getSequenceName($seq_name);
         $query = "SELECT RDB\$GENERATOR_ID FROM RDB\$GENERATORS WHERE RDB\$GENERATOR_NAME='$sequence_name'";
         if (MDB::isError($result = $this->queryOne($query))) {
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'currId: Unable to select from ' . $seqname) );
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                'currId: Unable to select from ' . $seqname);
         }
         if (!is_numeric($result)) {
             //var_dump($result); ==> null
-            return($this->raiseError(MDB_ERROR, NULL, NULL,
-                'currId: could not find value in sequence table'));
+            return $this->raiseError(MDB_ERROR, NULL, NULL,
+                'currId: could not find value in sequence table');
         }
         return $result;
     }
