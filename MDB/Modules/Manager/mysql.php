@@ -39,7 +39,7 @@
 // | WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE          |
 // | POSSIBILITY OF SUCH DAMAGE.                                          |
 // +----------------------------------------------------------------------+
-// | Author: Lukas Smith <smith@backendmedia.com>                         |
+// | Author: Lukas Smith <smith@pooteeweet.org>                           |
 // +----------------------------------------------------------------------+
 //
 // $Id$
@@ -57,7 +57,7 @@ require_once 'MDB/Modules/Manager/Common.php';
  * @package MDB
  * @category Database
  * @access private
- * @author  Lukas Smith <smith@backendmedia.com>
+ * @author  Lukas Smith <smith@pooteeweet.org>
  */
 class MDB_Manager_mysql extends MDB_Manager_Common
 {
