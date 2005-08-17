@@ -143,12 +143,6 @@
   </license>
   <maintainers>
     <maintainer>
-      <user>lsmith</user>
-      <role>lead</role>
-      <name>Lukas Kahwe Smith</name>
-      <email>lsmith@php.net</email>
-    </maintainer>
-    <maintainer>
       <user>dickmann</user>
       <role>contributor</role>
       <name>Christian Dickmann</name>
