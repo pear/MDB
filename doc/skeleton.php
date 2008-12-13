@@ -585,15 +585,15 @@ class MDB_xxx extends MDB_Common
     // }}}
     // {{{ get*Declaration()
 
-    // take phpdoc comments from MDB common.php: get*Declaration()
+    // take phpdoc comments from MDB common.php: getFooDeclaration()
 
-    function get*Declaration($name, $field)
+    function getFooDeclaration($name, $field)
     {
-        // take this from the corresponding Metabase driver: Get*FieldValue()
+        // take this from the corresponding Metabase driver: GetFooFieldValue()
     }
 
     // }}}
-    // {{{ get*Value()
+    // {{{ getFooValue()
 
     /**
      * Convert a text value into a DBMS specific format that is suitable to
@@ -606,9 +606,9 @@ class MDB_xxx extends MDB_Common
      *                 a DBMS specific format.
      * @access public
      */
-    function get*Value($prepared_query, $parameter, $clob)
+    function getFooValue($prepared_query, $parameter, $clob)
     {
-        // take this from the corresponding Metabase driver: Get*FieldValue()
+        // take this from the corresponding Metabase driver: GetFooFieldValue()
     }
 
     // }}}
