@@ -1,0 +1,28 @@
+{
+    "authors": [
+        {
+            "email": "chrisdicki@gmx.de",
+            "name": "Christian Dickmann",
+            "role": "Contributor"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "MDB": "./"
+        }
+    },
+    "description": "More info available on: http://pear.php.net/package/MDB",
+    "include-path": [
+        "./"
+    ],
+    "license": "\n    BSD style\n  ",
+    "name": "pear/mdb",
+    "support": {
+        "issues": "http:///bugs/search.php?cmd=display&package_name[]=MDB",
+        "source": "https://github.com/pear/MDB"
+    },
+    "type": "library",
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    }
+}
